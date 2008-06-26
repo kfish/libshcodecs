@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: uiomux
+Description: A library for sharing access to UIO devices
+Requires:
+Version: @VERSION@
+Libs: -L${libdir}
+Libs.private:
+Cflags: -I${includedir}

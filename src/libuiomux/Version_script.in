@@ -1,0 +1,16 @@
+#
+# Export file for libuiomux
+#
+# Only the symbols listed in the global section will be callable from
+# applications linking to libuiomux.
+#
+
+@PACKAGE@.so.0.0
+{
+        global:
+		uiomux_open;
+                uiomux_close;
+
+        local:
+                *;
+};

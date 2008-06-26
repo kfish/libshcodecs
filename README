@@ -1,0 +1,109 @@
+libuioshare?
+libuiomux? UIOMux UMux
+
+% make a name that rolls of the tongue, and would be proud to talk about
+% at a conference or so ...
+%
+% "When you add UMux support for a device ..."
+% "which makes it possible to build a UIOMux pipeline ..."
+
+The role of the resource allocation manager is to
+mediate access to the custom IP blocks (terminology?)
+in the SuperH MobileR series SoC.
+
+multiplexes access to the IP blocks
+available via UIO.
+
+mediates access, does not interfere with it
+users must understand that they co-operatively access the
+all devices available via UIO; it is not possible via this
+interface for the kernel to provide memory protection
+
+much like the differences between a userspace threading library 
+and kernel threads.
+
+so, internally it simply keeps a counter of events per
+UIO block, and info on who owns each
+
+can return access violations in response to (what?)
+
+can be queried for whether or not a block is available?
+
+can ask for multiple blocks atomically? ie. if cannot get a
+group of blocks, don't get any (to reduce contention on
+eg. requesting both encoder and decoder, or camera and encoder)
+
+hence block identifiers are bitmasked together
+
+API
+
+The API is modelled on a conventional open/read/write/close
+file descriptor interface.
+
+
+% kernel-style naming schemes? opaque descriptor?
+% language: use language / style of arch docs
+
+query which blocks are available on this platform.
+the response to that can be configured at build time
+or set in a system config file (/etc/....conf)
+but the point is to allow application portability
+and the possibility to ship a single codec binary or
+application binary that works on multiple similar chips
+(eg. an application could fall back to software if a needed
+block is not available, or disable relevant funtionality at
+runtime)
+
+ _query()
+
+request access to an IP block, by symbolic name
+
+  _BLOCK_RENESAS_BEU
+  _BLOCK_RENESAS_VEU
+  _BLOCK_RENESAS_CEU
+  _...
+
+% or, should these names be independent of the actual hardware, ie.
+% should this library be arch-independent? obviously that is not
+% a requirement atm, but would be nice in the long run
+% then perhaps these should be more configurable
+
+
+retrieve a printable name for an IP block:
+
+  const char * _name()
+
+(perhaps) gaining access to an IP block gets access to a list of
+maps relevant to that IP block, usable by a user of that IP block
+
+open in read only mode possible? or are all opens writable?
+
+  _open()
+
+deallocate that, removing exclusive access, removing
+memory maps, etc.:
+
+  _close()
+
+check if events/data are available:
+
+  _poll()
+
+poll for particular blocks only?
+get access violation if ask for blocks that don't own?
+
+read data:
+read simply mimics the UIO read() interface, returning the number of
+events available for that IP block?
+
+  _read() XXX?
+
+write data:
+
+  _write()
+
+request memory map:
+
+  _mmap()
+
+or query existing maps for this process?
