@@ -9,15 +9,16 @@
 int
 main (int argc, char *argv[])
 {
+  UIOMux * uiomux;
   int ret;
 
   INFO ("Opening UIOMux");
-  ret = uiomux_open();
-  if (ret != 0)
+  uiomux = uiomux_open(UIOMUX_BLOCK_SH_BEU);
+  if (uiomux == NULL)
     FAIL ("Opening UIOMux");
 
   INFO ("Closing UIOMux");
-  ret = uiomux_close();
+  ret = uiomux_close(uiomux);
   if (ret != 0)
     FAIL ("Closing UIOMux");
 

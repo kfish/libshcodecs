@@ -9,6 +9,9 @@ EXTRA_DIST = Version_script.in
 # Libraries to build
 lib_LTLIBRARIES = libuiomux.la
 
+noinst_HEADERS = \
+	uiomux_private.h
+
 libuiomux_la_SOURCES = \
 	uiomux.c
 
