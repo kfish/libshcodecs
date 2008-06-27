@@ -532,9 +532,9 @@ EXCLUDE_SYMBOLS        =
 # directories that contain example code fragments that are included (see 
 # the \include command).
 
-EXAMPLE_PATH           = ../COPYING \
-                         ../INSTALL \
-                         ../src/examples
+EXAMPLE_PATH           = @top_srcdir@/COPYING \
+                         @top_srcdir@/INSTALL \
+                         @top_srcdir@/src/examples
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the 
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 
