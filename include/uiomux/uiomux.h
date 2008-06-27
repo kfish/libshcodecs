@@ -172,7 +172,7 @@ const char * uiomux_name();
  * \retval NULL on system error; check errno for details
  */
 UIOMux *
-uiomux_open (uiomux_blockmask_t * blockmask);
+uiomux_open (uiomux_blockmask_t blockmask);
 
 /**
  * Close a UIOMux handle, removing exclusive access, removing memory maps, etc.
