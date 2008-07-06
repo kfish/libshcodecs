@@ -1,12 +1,12 @@
 # Process this file with autoconf to produce a configure script.
 AC_INIT
-AC_CONFIG_SRCDIR([src/libuiomux/uiomux.c])
+AC_CONFIG_SRCDIR([src/librsovpu4/uiomux.c])
 
 AC_PREREQ(2.53)
 
 AC_CANONICAL_TARGET
 
-AM_INIT_AUTOMAKE(libuiomux, 0.5.0)
+AM_INIT_AUTOMAKE(librsovpu4, 0.5.0)
 AM_CONFIG_HEADER(config.h)
 
 SHARED_VERSION_INFO="1:0:0"
@@ -91,10 +91,10 @@ if test "x$HAVE_GETOPT_LONG" = xyes ; then
 fi
 
 dnl Overall configuration success flag
-uiomux_config_ok=yes
+rsovpu4_config_ok=yes
 
-uiomux_read_programs=""
-uiomux_rw_programs=""
+rsovpu4_read_programs=""
+rsovpu4_rw_programs=""
 
 dnl
 dnl  Configuration option for building of experimental code.
@@ -150,7 +150,7 @@ dnl
 dnl  Configuration tests complete -- provide summary of results.
 dnl
 
-if test $uiomux_config_ok = no ; then
+if test $rsovpu4_config_ok = no ; then
 
 AC_MSG_RESULT([
 **************************************************************
@@ -205,15 +205,14 @@ Makefile
 doc/Makefile
 doc/Doxyfile
 include/Makefile
-include/uiomux/Makefile
+include/rsovpu4/Makefile
 src/Makefile
-src/libuiomux/Version_script
-src/libuiomux/Makefile
+src/librsovpu4/Version_script
+src/librsovpu4/Makefile
 src/tests/Makefile
-src/tools/Makefile
 src/examples/Makefile
-uiomux.pc
-uiomux-uninstalled.pc
+rsovpu4.pc
+rsovpu4-uninstalled.pc
 ])
 
 AC_MSG_RESULT([
@@ -226,8 +225,8 @@ AC_MSG_RESULT([
 
   Installation paths:
 
-    libuiomux: ..................... ${LIBDIR}
-    C header files: .............. ${INCLUDEDIR}/uiomux
+    librsovpu4: .................. ${LIBDIR}
+    C header files: .............. ${INCLUDEDIR}/rsovpu4
     Documentation: ............... ${DOCDIR}/$PACKAGE
 
   Building:

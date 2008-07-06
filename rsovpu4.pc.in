@@ -3,8 +3,8 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: uiomux
-Description: A library for sharing access to UIO devices
+Name: rsovpu4
+Description: A library for controlling VPU4
 Requires:
 Version: @VERSION@
 Libs: -L${libdir}

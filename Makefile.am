@@ -6,7 +6,7 @@ SUBDIRS = doc include src
 
 # pkg-config
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = uiomux.pc
+pkgconfig_DATA = rsovpu4.pc
 
 # Extra files to distribute in the source tarball.
-EXTRA_DIST = uiomux.pc.in uiomux-uninstalled.pc.in
+EXTRA_DIST = rsovpu4.pc.in rsovpu4-uninstalled.pc.in

@@ -3,8 +3,8 @@ exec_prefix=
 libdir=${pcfiledir}/src
 includedir=${pcfiledir}/include
 
-Name: uiomux uninstalled
-Description: A library for sharing access to UIO devices
+Name: rsovpu4 uninstalled
+Description: A library for controlling VPU4
 Requires:
 Version: @VERSION@
 Libs: -L${libdir}
