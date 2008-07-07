@@ -2,25 +2,23 @@
 #include "config.h"
 #endif
 
-#include <uiomux/uiomux.h>
+#include <rsovpu4/rsovpu4_decoder.h>
 
-#include "uiomux_tests.h"
+#include "rsovpu4_tests.h"
 
 int
 main (int argc, char *argv[])
 {
-  UIOMux * uiomux;
+  RSOVPU4_Decoder * decoder;
   int ret;
 
-  INFO ("Opening UIOMux");
-  uiomux = uiomux_open(UIOMUX_BLOCK_SH_BEU);
-  if (uiomux == NULL)
-    FAIL ("Opening UIOMux");
+  INFO ("Opening RSOVPU4_Decoder");
+  decoder = rsovpu4_decoder_init(320, 240, RSOVPU4_Format_MPEG4);
+  if (decoder == NULL)
+    FAIL ("Opening RSOVPU4_Decoder");
 
-  INFO ("Closing UIOMux");
-  ret = uiomux_close(uiomux);
-  if (ret != 0)
-    FAIL ("Closing UIOMux");
+  INFO ("Closing RSOVPU4_Decoder");
+  rsovpu4_decoder_close(decoder);
 
   exit (0);
 }

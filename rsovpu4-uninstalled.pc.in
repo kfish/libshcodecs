@@ -8,4 +8,5 @@ Description: A library for controlling VPU4
 Requires:
 Version: @VERSION@
 Libs: -L${libdir}
+Libs.private: @VPU4_LIBS@
 Cflags: -I${includedir}

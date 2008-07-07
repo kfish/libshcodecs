@@ -7,13 +7,22 @@ INCLUDES = $(INCLTDL) \
 EXTRA_DIST = Version_script.in
 
 # Libraries to build
-lib_LTLIBRARIES = libuiomux.la
+lib_LTLIBRARIES = librsovpu4.la
 
 noinst_HEADERS = \
-	uiomux_private.h
+	avcbd.h \
+	avcbd_inner_typedef.h \
+	avcbd_optionaldata.h \
+	m4driverif.h \
+	m4iph_vpu4.h \
+	m4vsd_h263dec.h \
+	Mpeg4vdec.h \
+	sample_dec.h \
+	sh7722_vpu.h
 
-libuiomux_la_SOURCES = \
-	uiomux.c
+librsovpu4_la_SOURCES = \
+	m4driverif.c \
+	rsovpu4_decoder.c
 
-libuiomux_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@
-libuiomux_la_LIBADD =
+librsovpu4_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@
+librsovpu4_la_LIBADD = $(VPU4_LIBS)

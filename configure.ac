@@ -75,6 +75,15 @@ fi
 dnl Checks for libraries.
 LIBS=""
 
+dnl The following depend on the functions in src/librsovpu4/m4driver.c
+dnl AC_CHECK_LIB(m4iph, m4iph_vpu4_decode, HAVE_M4IPH="yes", , [-lm4vsd])
+dnl AC_CHECK_LIB(m4vsd, m4vsd_start_decoding, HAVE_M4VSD="yes", , [-lm4iph])
+dnl AC_CHECK_LIB(avcbd, avcbd_decode_picture, HAVE_AVCBD="yes", , [-lm4vsd -lm4iph])
+
+VPU4_LIBS="-lavcbd -lm4iph -lm4vsd"
+AC_SUBST(VPU4_LIBS)
+
+
 # check for getopt in a separate library
 HAVE_GETOPT=no
 AC_CHECK_LIB(getopt, getopt, HAVE_GETOPT="yes")
@@ -106,7 +115,7 @@ AC_ARG_ENABLE(experimental,
      [ ac_enable_experimental=yes ])
 
 if test "x${ac_enable_experimental}" = xyes ; then
-    AC_DEFINE(OGGZ_CONFIG_EXPERIMENTAL, [], [Define to build experimental code])
+    AC_DEFINE(RSOVPU4_CONFIG_EXPERIMENTAL, [], [Define to build experimental code])
 fi
 
 # Checks for header files.

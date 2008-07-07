@@ -8,9 +8,39 @@
 @PACKAGE@.so.0.0
 {
         global:
-		uiomux_open;
-                uiomux_close;
+		rsovpu4_decoder_init;
+		rsovpu4_decoder_close;
+		rsovpu4_decoder_preferred_length;
+		rsovpu4_decoder_decode;
 
+		global_context;
+		m4iph_enc_continue;
+		m4iph_sleep_time_init;
+		m4iph_sleep_time_get;
+		m4iph_start;
+		m4iph_sleep;
+		m4iph_restart;
+		m4iph_vpu_open;
+		m4iph_vpu_close;
+		m4iph_reg_table_read;
+		m4iph_reg_table_write;
+		m4iph_sdr_open;
+		m4iph_sdr_close;
+		m4iph_map_sdr_mem;
+		m4iph_unmap_sdr_mem;
+		m4iph_sync_sdr_mem;
+		m4iph_sdr_read;
+		m4iph_sdr_write;
+		m4iph_sdr_memset;
+		m4iph_sdr_malloc;
+		m4iph_sdr_free;
+		m4iph_avcbd_perror;
+		m4iph_avcbe_perror;
+		avcbd_get_time_code;
+		vpu4_clock_on;
+		vpu4_clock_off;
+		avcbd_idr_adjust;
+		
         local:
                 *;
 };

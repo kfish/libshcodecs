@@ -3,8 +3,8 @@
 INCLUDES = -I$(top_builddir) \
            -I$(top_srcdir)/include
 
-UIOMUXDIR = ../librsovpu4
-UIOMUX_LIBS = $(UIOMUXDIR)/librsovpu4.la
+RSOVPU4DIR = ../librsovpu4
+RSOVPU4_LIBS = $(RSOVPU4DIR)/librsovpu4.la $(VPU4_LIBS)
 
 # Test programs
 
@@ -20,4 +20,4 @@ noinst_HEADERS = rsovpu4_tests.h
 TESTS = $(basic_tests)
 
 noop_SOURCES = noop.c
-noop_LDADD = $(UIOMUX_LIBS)
+noop_LDADD = $(RSOVPU4_LIBS)
