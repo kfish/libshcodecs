@@ -29,8 +29,6 @@ extern "C" {
  * The API is modelled on a conventional open/read/write/close
  * file descriptor interface.
  * 
- * % kernel-style naming schemes? opaque descriptor?
- * % language: use language / style of arch docs
  */
 
 /** \defgroup configuration Configuration
