@@ -10,6 +10,7 @@
         global:
 		rsovpu4_decoder_init;
 		rsovpu4_decoder_close;
+		rsovpu4_decoder_set_decoded_callback;
 		rsovpu4_decoder_preferred_length;
 		rsovpu4_decoder_decode;
 

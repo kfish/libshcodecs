@@ -27,7 +27,14 @@ extern int vpu4_encode(char *ifile, char *ofile, int x, int y, int format,
 extern int vpu4_loopback(int x, int y, int format);
 extern int get_decoded_frames(void);
 
-typedef struct _RSOVPU4_Decoder {
+typedef struct _RSOVPU4_Decoder RSOVPU4_Decoder;
+
+typedef int (*RSOVPU4_Decoded_Callback) (RSOVPU4_Decoder * decoder,
+                                         unsigned char * y_buf, int y_size,
+                                         unsigned char * c_buf, int c_size,
+                                         void * user_data);
+
+struct _RSOVPU4_Decoder {
 	int		si_valid;	/* Is stream valid ? */
 	int		iStream_type;	/* Type of stream */
 	int		iStream_User_FrameWidth;	/* user frame width */
@@ -50,7 +57,9 @@ typedef struct _RSOVPU4_Decoder {
         int             preferred_len;  /* Preferred length of next input */
 	unsigned char   *input_data;
         int             input_len;
-} RSOVPU4_Decoder;
+        RSOVPU4_Decoded_Callback decoded_cb;
+        void            *decoded_cb_data;
+};
 
 
 /**Align address in w bytes boundary.

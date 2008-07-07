@@ -25,7 +25,7 @@
 #define VPU4IP
 #include "m4vsd_h263dec.h"
 
-/* XXX: extern declarations, why are these not in a public header for those libs? */
+/* XXX: extern declarations, implemented in m4driverif.c, req'd by middleware ... */
 extern void m4iph_sleep_time_init(void);
 extern unsigned long m4iph_sleep_time_get(void);
 extern int vpu4_clock_on(void);
@@ -55,6 +55,9 @@ rsovpu4_decoder_init(int width, int height, int format)
 	decoder->iStream_type = format;
 	decoder->iStream_User_FrameWidth = width;
 	decoder->iStream_User_FrameHeight = height;
+
+        decoder->decoded_cb = NULL;
+	decoder->decoded_cb_data = NULL;
 
         /* Initialize m4iph */
         m4iph_vpu_open();
@@ -95,6 +98,19 @@ rsovpu4_decoder_close (RSOVPU4_Decoder * decoder)
         m4iph_vpu_close();
 
         free (decoder);
+}
+
+int
+rsovpu4_decoder_set_decoded_callback (RSOVPU4_Decoder * decoder,
+                                      RSOVPU4_Decoded_Callback * decoded_cb,
+                                      void * user_data)
+{
+        if (!decoder) return -1;
+
+        decoder->decoded_cb = decoded_cb;
+        decoder->decoded_cb_data = user_data;
+
+        return 0;
 }
 
 int
@@ -144,12 +160,14 @@ static TAVCBD_FRAME_SIZE frame_size;
 
 /***********************************************************/
 
+#if 0
 /* XXX: local output callback */
 extern int
 local_vpu4_decoded (RSOVPU4_Decoder * decoder,
                     unsigned char * y_buf, int y_size,
                     unsigned char * c_buf, int c_size,
                     void * user_data);
+#endif
 
 /***********************************************************/
 
@@ -582,8 +600,11 @@ static int decoder_Output_oneFrame(RSOVPU4_Decoder * decoder, long frame_index)
 	//- C component should immediately follow the Y component .
 	cf = ALIGN(yf + ry + luma_size, 32);
 
-        /* XXX: Call user's output callback */
-        local_vpu4_decoded (decoder, yf + ry, luma_size, cf, luma_size>>1, NULL);
+        /* Call user's output callback */
+        if (decoder->decoded_cb) {
+            decoder->decoded_cb (decoder, yf + ry, luma_size, cf, luma_size>>1,
+                                 decoder->decoded_cb_data);
+        }
 
 	m4iph_unmap_sdr_mem(yf, luma_size + (luma_size >> 1) + ry + 31);
 	//wait(1000);
