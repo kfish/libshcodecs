@@ -12,7 +12,7 @@
 		rsovpu4_decoder_close;
 		rsovpu4_decoder_set_decoded_callback;
 		rsovpu4_decoder_preferred_length;
-		rsovpu4_decoder_decode;
+		rsovpu4_decode;
 
 		global_context;
 		m4iph_enc_continue;
