@@ -1,6 +1,6 @@
 # Process this file with autoconf to produce a configure script.
 AC_INIT
-AC_CONFIG_SRCDIR([src/librsovpu4/uiomux.c])
+AC_CONFIG_SRCDIR([src/librsovpu4/rsovpu4_decoder.c])
 
 AC_PREREQ(2.53)
 
