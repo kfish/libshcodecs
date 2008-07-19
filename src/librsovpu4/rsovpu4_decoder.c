@@ -102,7 +102,7 @@ rsovpu4_decoder_close (RSOVPU4_Decoder * decoder)
 
 int
 rsovpu4_decoder_set_decoded_callback (RSOVPU4_Decoder * decoder,
-                                      RSOVPU4_Decoded_Callback * decoded_cb,
+                                      RSOVPU4_Decoded_Callback decoded_cb,
                                       void * user_data)
 {
         if (!decoder) return -1;
@@ -180,6 +180,7 @@ static int stream_Initialize(RSOVPU4_Decoder * decoder)
 {
 	int i;
 	int iContext_ReqWorkSize;
+	size_t dp_size;
 
     //- Get context size.
 	iContext_ReqWorkSize = avcbd_get_workarea_size(decoder->iStream_type == F_H264 ? 
@@ -245,7 +246,7 @@ static int stream_Initialize(RSOVPU4_Decoder * decoder)
 	}
 
 	//- 16 bytes for each macroblocks
-	size_t dp_size = (iContext_ReqWorkSize * 16) >> 8; 
+	dp_size = (iContext_ReqWorkSize * 16) >> 8; 
 
 	pthread_mutex_lock(&vpu_mutex);
 		

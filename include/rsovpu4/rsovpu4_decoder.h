@@ -76,7 +76,7 @@ rsovpu4_decoder_close (RSOVPU4_Decoder * decoder);
  */
 int
 rsovpu4_decoder_set_decoded_callback (RSOVPU4_Decoder * decoder,
-                                      RSOVPU4_Decoded_Callback * decoded_cb,
+                                      RSOVPU4_Decoded_Callback decoded_cb,
                                       void * user_data);
 
 /**
