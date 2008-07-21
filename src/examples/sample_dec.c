@@ -383,7 +383,7 @@ static int increment_Input(RSOVPU4_Decoder * decoder, int len)
 			if (count > 0)
 				rem += count;
 		} while (count > 0 && count < 100);
-		/*decoder->si_ilen = si_isize = rem;*/
+		si_isize = rem;
 		si_ipos = 0;
 		// printf("New size of buffer is %d bytes\n", decoder->si_isize);
 	} else if ((size_t)current_pos < si_isize) {
