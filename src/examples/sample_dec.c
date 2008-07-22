@@ -207,7 +207,6 @@ int main(int argc, char **argv)
         do {
 	  rsovpu4_decode (decoder, pbInput_BufferMemory + si_ipos, si_isize - si_ipos);
           pref_len = rsovpu4_decoder_preferred_length (decoder);
-          printf ("  Preferred length: %d\n", pref_len);
         } while (increment_Input (decoder, pref_len) == 0);
 #endif
 
@@ -369,7 +368,6 @@ static int increment_Input(RSOVPU4_Decoder * decoder, int len)
 	int count;
 
 	if (rem<=0) {
-                printf ("increment_Input: first case failed\n");
                 return -1;
         }
 	if (rem < INPUT_BUF_SIZE/2 /*&& si_isize == INPUT_BUF_SIZE*/) {
@@ -389,7 +387,6 @@ static int increment_Input(RSOVPU4_Decoder * decoder, int len)
 	} else if ((size_t)current_pos < si_isize) {
 		si_ipos = current_pos;
 	} else {
-                printf ("increment_Input: last case failed\n");
 		return -1;
 	}
 	return 0;
