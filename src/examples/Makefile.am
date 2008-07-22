@@ -4,7 +4,7 @@ INCLUDES = -I$(top_builddir) \
            -I$(top_srcdir)/include
 
 RSOVPU4DIR = ../librsovpu4
-RSOVPU4_LIBS = $(RSOVPU4DIR)/librsovpu4.la
+RSOVPU4_LIBS = $(RSOVPU4DIR)/librsovpu4.la -lm
 
 bin_PROGRAMS = rsovpu4dec
 
