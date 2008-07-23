@@ -25,4 +25,4 @@ librsovpu4_la_SOURCES = \
 	rsovpu4_decoder.c
 
 librsovpu4_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@
-librsovpu4_la_LIBADD = $(VPU4_LIBS) -lm
+librsovpu4_la_LIBADD = $(VPU4_DEC_LIBS) -lm

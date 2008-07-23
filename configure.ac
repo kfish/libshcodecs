@@ -80,9 +80,11 @@ dnl AC_CHECK_LIB(m4iph, m4iph_vpu4_decode, HAVE_M4IPH="yes", , [-lm4vsd])
 dnl AC_CHECK_LIB(m4vsd, m4vsd_start_decoding, HAVE_M4VSD="yes", , [-lm4iph])
 dnl AC_CHECK_LIB(avcbd, avcbd_decode_picture, HAVE_AVCBD="yes", , [-lm4vsd -lm4iph])
 
-VPU4_LIBS="-lavcbd -lm4iph -lm4vsd"
-AC_SUBST(VPU4_LIBS)
-
+VPU4_BASE_LIBS="-lm4iph"
+VPU4_DEC_LIBS="$(VPU4_BASE_LIBS) -lavcbd -lm4vsd"
+VPU4_ENC_LIBS="$(VPU4_BASE_LIBS) -lavcbe -lm4vse"
+AC_SUBST(VPU4_DEC_LIBS)
+AC_SUBST(VPU4_ENC_LIBS)
 
 # check for getopt in a separate library
 HAVE_GETOPT=no
@@ -219,6 +221,7 @@ src/Makefile
 src/librsovpu4/Version_script
 src/librsovpu4/Makefile
 src/tests/Makefile
+src/tools/Makefile
 src/examples/Makefile
 rsovpu4.pc
 rsovpu4-uninstalled.pc
