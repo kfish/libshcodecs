@@ -16,7 +16,6 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <sys/time.h>
-#include <asm/page.h>
 #include <sh7722_vpu.h>
 #include <m4iph_vpu4.h>
 #include <avcbd.h>
@@ -198,13 +197,14 @@ unsigned long m4iph_sdr_read(unsigned char *address, unsigned char *buffer,
 	unsigned char *buf;
 	unsigned long addr;
 	int roundoff;
+	int pagesize = getpagesize();
 
 	if ((unsigned long)address + count >= sdr_end || (unsigned long)address < sdr_start) {
 		fprintf(stderr, "%s: Invalid read from SDR memory. ", __FUNCTION__);
 		fprintf(stderr, "address = %p, count = %ld\n", address,	count);
 		return 0;
 	}
-	addr = (unsigned long)address & ~(PAGE_SIZE - 1);
+	addr = (unsigned long)address & ~(pagesize - 1);
 	roundoff = (unsigned long)address - addr;
 	buf = (unsigned char *)m4iph_map_sdr_mem((void *)addr, count + roundoff);
 	if (buf == NULL) {
@@ -223,13 +223,14 @@ void m4iph_sdr_write(unsigned char *address, unsigned char *buffer,
 	unsigned char *buf;
 	unsigned long addr;
 	int roundoff;
+	int pagesize = getpagesize();
 
 	if ((unsigned long)address + count >= sdr_end || (unsigned long)address < sdr_start) {
 		fprintf(stderr, "%s: Invalid write to SDR memory. ", __FUNCTION__);
 		fprintf(stderr, "address = %p, count = %ld\n", address, count);
 		return;
 	}
-	addr = (unsigned long)address & ~(PAGE_SIZE - 1);
+	addr = (unsigned long)address & ~(pagesize - 1);
 	roundoff = (unsigned long)address - addr;
 	buf = (unsigned char *)m4iph_map_sdr_mem((void *)addr, count + roundoff);
 	if (buf == NULL) {
@@ -246,8 +247,9 @@ void m4iph_sdr_memset(unsigned long *address, unsigned long data, unsigned long 
 	unsigned char *buf;
 	unsigned long addr;
 	int roundoff;
+	int pagesize = getpagesize();
 
-	addr = (unsigned long)address & ~(PAGE_SIZE - 1);
+	addr = (unsigned long)address & ~(pagesize - 1);
 	roundoff = (unsigned long)address - addr;
 	buf = (unsigned char *)m4iph_map_sdr_mem((void *)addr, count + roundoff);
 	if (buf == NULL) {

@@ -15,7 +15,6 @@
 #include <sys/param.h>
 #include <sys/types.h>
 #include <sys/time.h>
-#include <asm/page.h>
 #include "avcbd.h"
 #include "avcbd_optionaldata.h"
 #include "sample_dec.h"
@@ -583,6 +582,7 @@ static int decoder_Output_oneFrame(RSOVPU4_Decoder * decoder, long frame_index)
 	int ry;
 	unsigned char *yf, *cf;
 	static long frame_cnt=1;
+	int pagesize = getpagesize();
 
 	if ( performance_flag==1 ) {
 		return 0;
@@ -590,7 +590,7 @@ static int decoder_Output_oneFrame(RSOVPU4_Decoder * decoder, long frame_index)
 	/*UserDisp("Output Frame %d, frame_index=%d\n",frame_cnt++,frame_index);*/
 	ymem = (unsigned long)frame->Y_fmemp;
 	cmem = (unsigned long)frame->C_fmemp;
-	page = ymem & ~(PAGE_SIZE - 1);
+	page = ymem & ~(pagesize - 1);
 	ry = (unsigned long)ymem - page;
 	yf = m4iph_map_sdr_mem((void *)page, luma_size + (luma_size >> 1) + ry + 31);
 	if (yf == NULL) {
