@@ -2,7 +2,7 @@
 
 DISTCHECK_CONFIGURE_FLAGS = --enable-gcc-werror
 
-SUBDIRS = doc include src
+SUBDIRS = data doc include src
 
 # pkg-config
 pkgconfigdir = $(libdir)/pkgconfig

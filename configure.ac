@@ -81,8 +81,8 @@ dnl AC_CHECK_LIB(m4vsd, m4vsd_start_decoding, HAVE_M4VSD="yes", , [-lm4iph])
 dnl AC_CHECK_LIB(avcbd, avcbd_decode_picture, HAVE_AVCBD="yes", , [-lm4vsd -lm4iph])
 
 VPU4_BASE_LIBS="-lm4iph"
-VPU4_DEC_LIBS="$(VPU4_BASE_LIBS) -lavcbd -lm4vsd"
-VPU4_ENC_LIBS="$(VPU4_BASE_LIBS) -lavcbe -lm4vse"
+VPU4_DEC_LIBS="$VPU4_BASE_LIBS -lavcbd -lm4vsd"
+VPU4_ENC_LIBS="$VPU4_BASE_LIBS -lavcbe -lm4vse"
 AC_SUBST(VPU4_DEC_LIBS)
 AC_SUBST(VPU4_ENC_LIBS)
 
@@ -213,6 +213,7 @@ AC_SUBST(SHARED_VERSION_INFO)
 
 AC_OUTPUT([
 Makefile
+data/Makefile
 doc/Makefile
 doc/Doxyfile
 include/Makefile
