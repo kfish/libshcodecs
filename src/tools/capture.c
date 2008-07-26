@@ -395,7 +395,7 @@ int
 main                            (int                    argc,
                                  char **                argv)
 {
-        dev_name = "/dev/video";
+        dev_name = "/dev/video0";
 
         for (;;) {
                 int index;
