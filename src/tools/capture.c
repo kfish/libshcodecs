@@ -102,7 +102,7 @@ read_frame			(void)
 	return 1;
 }
 
-static void
+void
 mainloop                        (void)
 {
 	unsigned int count;
@@ -144,7 +144,7 @@ mainloop                        (void)
         }
 }
 
-static void
+void
 stop_capturing                  (void)
 {
         enum v4l2_buf_type type;
@@ -156,7 +156,7 @@ stop_capturing                  (void)
 
 }
 
-static void
+void
 start_capturing                 (void)
 {
         unsigned int i;
@@ -182,7 +182,7 @@ start_capturing                 (void)
 
 }
 
-static void
+void
 uninit_device                   (void)
 {
         unsigned int i;
@@ -252,7 +252,7 @@ init_mmap			(void)
         }
 }
 
-static void
+void
 init_device                     (void)
 {
         struct v4l2_capability cap;
@@ -334,7 +334,7 @@ init_device                     (void)
 	init_mmap ();
 }
 
-static void
+void
 close_device                    (void)
 {
         if (-1 == close (fd))
@@ -343,10 +343,12 @@ close_device                    (void)
         fd = -1;
 }
 
-static void
-open_device                     (void)
+void
+open_device                     (char * device_name)
 {
         struct stat st; 
+
+	dev_name = device_name;
 
         if (-1 == stat (dev_name, &st)) {
                 fprintf (stderr, "Cannot identify '%s': %d, %s\n",
@@ -366,81 +368,4 @@ open_device                     (void)
                          dev_name, errno, strerror (errno));
                 exit (EXIT_FAILURE);
         }
-}
-
-static void
-usage                           (FILE *                 fp,
-                                 int                    argc,
-                                 char **                argv)
-{
-        fprintf (fp,
-                 "Usage: %s [options]\n\n"
-                 "Options:\n"
-                 "-d | --device name   Video device name [/dev/video]\n"
-                 "-h | --help          Print this message\n"
-                 "",
-		 argv[0]);
-}
-
-static const char short_options [] = "d:hmru";
-
-static const struct option
-long_options [] = {
-        { "device",     required_argument,      NULL,           'd' },
-        { "help",       no_argument,            NULL,           'h' },
-        { 0, 0, 0, 0 }
-};
-
-int
-main                            (int                    argc,
-                                 char **                argv)
-{
-        dev_name = "/dev/video0";
-
-        for (;;) {
-                int index;
-                int c;
-                
-                c = getopt_long (argc, argv,
-                                 short_options, long_options,
-                                 &index);
-
-                if (-1 == c)
-                        break;
-
-                switch (c) {
-                case 0: /* getopt_long() flag */
-                        break;
-
-                case 'd':
-                        dev_name = optarg;
-                        break;
-
-                case 'h':
-                        usage (stdout, argc, argv);
-                        exit (EXIT_SUCCESS);
-
-                default:
-                        usage (stderr, argc, argv);
-                        exit (EXIT_FAILURE);
-                }
-        }
-
-        open_device ();
-
-        init_device ();
-
-        start_capturing ();
-
-        mainloop ();
-
-        stop_capturing ();
-
-        uninit_device ();
-
-        close_device ();
-
-        exit (EXIT_SUCCESS);
-
-        return 0;
 }
