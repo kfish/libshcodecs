@@ -42,11 +42,20 @@ long_options [] = {
         { 0, 0, 0, 0 }
 };
 
+static void
+process_image                   (const void * frame_data, size_t length, void * user_data)
+{
+        fputc ('.', stdout);
+        fflush (stdout);
+}
+
 int
 main                            (int                    argc,
                                  char **                argv)
 {
+	sh_veu * veu;
         char * dev_name = "/dev/video0";
+	unsigned int count;
 
         for (;;) {
                 int index;
@@ -77,19 +86,18 @@ main                            (int                    argc,
                 }
         }
 
-        open_device (dev_name);
+        veu = sh_veu_open (dev_name, 320, 240);
 
-        init_device ();
+        sh_veu_start_capturing (veu);
 
-        start_capturing ();
+        count = 100;
 
-        mainloop ();
+        while (count-- > 0)
+          sh_veu_capture_frame (veu, process_image, NULL);
 
-        stop_capturing ();
+        sh_veu_stop_capturing (veu);
 
-        uninit_device ();
-
-        close_device ();
+        sh_veu_close (veu);
 
         exit (EXIT_SUCCESS);
 

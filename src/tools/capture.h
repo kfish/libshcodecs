@@ -2,19 +2,18 @@
 #ifndef __CAPTURE_H__
 #define __CAPTURE_H__
 
-void open_device                     (char * device_name);
+typedef void * sh_veu;
+typedef void (*sh_process_callback)  (const void * frame_data, size_t length, void * user_data);
 
-void init_device                     (void);
+sh_veu * sh_veu_open (const char * device_name, int width, int height);
 
-void uninit_device                   (void);
+void sh_veu_close (sh_veu * veu);
 
-void close_device                    (void);
+void sh_veu_start_capturing (sh_veu * veu);
 
-void start_capturing                 (void);
+void sh_veu_stop_capturing (sh_veu * veu);
 
-void stop_capturing                  (void);
-
-void mainloop                        (void);
+void sh_veu_capture_frame (sh_veu * veu, sh_process_callback cb, void * user_data);
 
 
 #endif /* __CAPTURE_H__ */
