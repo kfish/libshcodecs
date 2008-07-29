@@ -13,6 +13,8 @@
 #ifndef	AVCBENCSMP_H
 #define	AVCBENCSMP_H   
 
+#include "capture.h"
+
 //#define MAX_D1
 
 enum  { /* case_no */
@@ -283,6 +285,8 @@ typedef struct {
 	long frame_skip_num;	
 	long output_filler_data;	/* for FillerData(CPB  Buffer) *//* add at Version2 */
 	FILE *output_file_fp;           /* for output stream-2 */
+
+	sh_veu * veu;
 
 } APPLI_INFO;
 

@@ -23,6 +23,8 @@
 #include "m4iph_vpu4.h"	/* SuperH MEPG-4&H.264 Video Driver Library Header */
 #include "avcbencsmp.h" 
 
+#include "capture.h"
+
 extern unsigned long my_yuv_data[];	/* array for input YUV data */   
 extern long frame_counter_of_input;	/* the number of input frames for stream-1 */ 
 
@@ -66,6 +68,92 @@ int open_output_file(APPLI_INFO *appli_info)
 // #endif /* MULTI_STREAM */
 
 	return (0);
+}
+
+struct capture {
+	APPLI_INFO * appli_info;
+	unsigned long * addr_y;
+	unsigned long * addr_c;
+};
+
+static void
+capture_image_cb (const void * frame_data, size_t length, void * user_data)
+{
+	struct capture * cap = (struct capture *)user_data;
+	int odd = 0;
+	long hsiz, ysiz, i, j;
+	const unsigned char * d;
+	unsigned char *y, *c;
+	unsigned long *w_addr_yuv;	
+	unsigned long wnum;
+	unsigned char *CbCr_ptr, *Cb_buf_ptr, *Cr_buf_ptr, *ptr;
+
+        fputc ('.', stdout);
+        fflush (stdout);
+
+	hsiz = cap->appli_info->param.avcbe_xpic_size;
+	ysiz = cap->appli_info->param.avcbe_ypic_size;
+
+	/* write memory data size offset make to multiples of 16 */
+	wnum = (((hsiz +15)/16) * 16) * (((ysiz +15)/16) * 16); 
+
+	/* Input data to user memory */
+	CbCr_ptr = malloc(hsiz*ysiz/2);
+
+	/* Input file data to user memory */
+	w_addr_yuv = malloc(hsiz*ysiz*2);
+	if ( w_addr_yuv == NULL ) {
+		printf("load_1frame_from_image_file: malloc error.\n");
+		exit(-1);
+	}
+	memset(w_addr_yuv,0,hsiz*ysiz);
+
+        /* Convert from captured UYUV to NV12 */
+	d = frame_data;
+	y = (unsigned char *)w_addr_yuv;
+	c = CbCr_ptr;
+
+	for (i = 0; i < ysiz; i++) {
+		if (odd) {
+			for (j = 0; j < hsiz/2; j++) {
+				*c += *d++;	/* Cb */
+				*c++ >>= 1;
+				*y++ = *d++;	/* Y */
+				*c += *d++;	/* Cr */
+				*c++ >>= 1;
+				*y++ = *d++;	/* Y */
+			}
+		} else {
+			for (j = 0; j < hsiz/2; j++) {
+				*c++ = *d++;	/* Cb */
+				*y++ = *d++;	/* Y */
+				*c++ = *d++;	/* Cr */
+				*y++ = *d++;	/* Y */
+			}
+			c -= hsiz;
+		}
+
+		/* toggle odd line flag */
+		odd = 1-odd;
+	}
+
+	/* Write image data to kernel memory for VPU */
+	m4iph_sdr_write((unsigned char *)cap->addr_y, (unsigned char *)w_addr_yuv, wnum);
+	m4iph_sdr_write((unsigned char *)cap->addr_c, (unsigned char*)CbCr_ptr, wnum/2);
+	free(w_addr_yuv);
+	free(CbCr_ptr);
+}
+
+/* capture yuv data to the image-capture-field area each frame */
+int capture_image (APPLI_INFO * appli_info, unsigned long *addr_y, unsigned long *addr_c)
+{
+	struct capture cap;
+
+	cap.appli_info = appli_info;
+	cap.addr_y = addr_y;
+	cap.addr_c = addr_c;
+
+	sh_veu_capture_frame (appli_info->veu, capture_image_cb, &cap);
 }
 
 /* copy yuv data to the image-capture-field area each frame */

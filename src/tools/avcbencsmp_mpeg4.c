@@ -25,6 +25,8 @@
 #include "avcbe_inner.h"
 #include "QuantMatrix.h"
 
+#include "capture.h"
+
 #ifdef CAPT_INPUT
 #if 0
 #include	"cpu_sh73380.h"
@@ -227,6 +229,8 @@ int main(int argc, char *argv[])
 		return -1;
 	}                 
 
+	ainfo.veu = sh_veu_open ("/dev/video0", 320, 240);
+
 	/* stream buffer 0 clear */
 //	memset(sdr_read_my_stream_buff,0,sizeof(sdr_read_my_stream_buff));
 	m4iph_vpu_open();
@@ -253,6 +257,9 @@ int main(int argc, char *argv[])
 	my_end_code_buff_bak = malloc(MY_END_CODE_BUFF_SIZE + 31);
 	my_end_code_buff = ALIGN(my_end_code_buff_bak, 32);
 	success_count = 0;
+
+	sh_veu_start_capturing (ainfo.veu);
+
 	for (loop_index=0; loop_index < 1; loop_index++) {  
 		/* encode on each case */
 		if ( stream_type == AVCBE_H264 ) {
@@ -269,6 +276,9 @@ int main(int argc, char *argv[])
 			success_count++;
 		}
 	} 
+
+	sh_veu_stop_capturing (ainfo.veu);
+
 	m4iph_sdr_free(sdr_base,  width_height * (max_frame+3));
 	m4iph_sdr_free(ainfo.vpu4_param.m4iph_temporary_buff_address, MY_STREAM_BUFF_SIZE);
 	m4iph_sdr_close();
@@ -280,6 +290,8 @@ int main(int argc, char *argv[])
 printf("Total encode time = %d(msec)\n",encode_time_get());
 printf("Total sleep  time = %d(msec)\n",m4iph_sleep_time_get());
 	/* TODO vpu4_reg_close(); */
+
+	sh_veu_close (ainfo.veu);
 }
 
 /*---------------------------------------------------------------------*/
@@ -668,9 +680,12 @@ printf("BVOP index=%d\n",index);
 #ifdef CAPT_INPUT
 	
 #else
-		return_code = load_1frame_from_image_file(appli_info, addr_y, addr_c);
+
+		/* return_code = load_1frame_from_image_file(appli_info, addr_y, addr_c);*/
+		return_code = capture_image (appli_info, addr_y, addr_c);
    		if (return_code < 0) {	/* error */ 
-   			DisplayMessage(" encode_1file_mpeg4:load_1frame_from_image_file ERROR! ", 1);
+   			/*DisplayMessage(" encode_1file_mpeg4:load_1frame_from_image_file ERROR! ", 1);*/
+   			DisplayMessage(" encode_1file_mpeg4:capture_image ERROR! ", 1);
 			appli_info->error_return_function = -8;
 			appli_info->error_return_code = return_code;
 			return (-8);
