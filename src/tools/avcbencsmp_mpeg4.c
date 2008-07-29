@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
 		return -1;
 	}                 
 
-	ainfo.veu = sh_veu_open ("/dev/video0", 320, 240);
+	ainfo.ceu = sh_ceu_open ("/dev/video0", 320, 240);
 
 	/* stream buffer 0 clear */
 //	memset(sdr_read_my_stream_buff,0,sizeof(sdr_read_my_stream_buff));
@@ -258,7 +258,7 @@ int main(int argc, char *argv[])
 	my_end_code_buff = ALIGN(my_end_code_buff_bak, 32);
 	success_count = 0;
 
-	sh_veu_start_capturing (ainfo.veu);
+	sh_ceu_start_capturing (ainfo.ceu);
 
 	for (loop_index=0; loop_index < 1; loop_index++) {  
 		/* encode on each case */
@@ -277,7 +277,7 @@ int main(int argc, char *argv[])
 		}
 	} 
 
-	sh_veu_stop_capturing (ainfo.veu);
+	sh_ceu_stop_capturing (ainfo.ceu);
 
 	m4iph_sdr_free(sdr_base,  width_height * (max_frame+3));
 	m4iph_sdr_free(ainfo.vpu4_param.m4iph_temporary_buff_address, MY_STREAM_BUFF_SIZE);
@@ -291,7 +291,7 @@ printf("Total encode time = %d(msec)\n",encode_time_get());
 printf("Total sleep  time = %d(msec)\n",m4iph_sleep_time_get());
 	/* TODO vpu4_reg_close(); */
 
-	sh_veu_close (ainfo.veu);
+	sh_ceu_close (ainfo.ceu);
 }
 
 /*---------------------------------------------------------------------*/

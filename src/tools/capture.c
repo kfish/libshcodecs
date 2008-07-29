@@ -32,14 +32,14 @@ struct buffer {
         size_t                  length;
 };
 
-typedef struct _sh_veu {
+typedef struct _sh_ceu {
 	const char * dev_name;
 	int fd;
 	struct buffer * buffers;
 	unsigned int n_buffers;
 	int width;
 	int height;
-} sh_veu;
+} sh_ceu;
 
 typedef void (*sh_process_callback)  (const void * frame_data, size_t length, void * user_data);
 
@@ -67,7 +67,7 @@ xioctl                          (int                    fd,
 }
 
 static int
-read_frame			(sh_veu * veu, sh_process_callback cb, void * user_data)
+read_frame			(sh_ceu * ceu, sh_process_callback cb, void * user_data)
 {
         struct v4l2_buffer buf;
 	unsigned int i;
@@ -77,7 +77,7 @@ read_frame			(sh_veu * veu, sh_process_callback cb, void * user_data)
     	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
       	buf.memory = V4L2_MEMORY_MMAP;
 
-	if (-1 == xioctl (veu->fd, VIDIOC_DQBUF, &buf)) {
+	if (-1 == xioctl (ceu->fd, VIDIOC_DQBUF, &buf)) {
        		switch (errno) {
        		case EAGAIN:
                		return 0;
@@ -92,18 +92,18 @@ read_frame			(sh_veu * veu, sh_process_callback cb, void * user_data)
 		}
 	}
 
-        assert (buf.index < veu->n_buffers);
+        assert (buf.index < ceu->n_buffers);
 
-        cb (veu->buffers[buf.index].start, veu->buffers[buf.index].length, user_data);
+        cb (ceu->buffers[buf.index].start, ceu->buffers[buf.index].length, user_data);
 
-	if (-1 == xioctl (veu->fd, VIDIOC_QBUF, &buf))
+	if (-1 == xioctl (ceu->fd, VIDIOC_QBUF, &buf))
 		errno_exit ("VIDIOC_QBUF");
 
 	return 1;
 }
 
 void
-sh_veu_capture_frame			(sh_veu * veu, sh_process_callback cb, void * user_data)
+sh_ceu_capture_frame			(sh_ceu * ceu, sh_process_callback cb, void * user_data)
 {
 
         for (;;) {
@@ -112,13 +112,13 @@ sh_veu_capture_frame			(sh_veu * veu, sh_process_callback cb, void * user_data)
                 int r;
 
                 FD_ZERO (&fds);
-                FD_SET (veu->fd, &fds);
+                FD_SET (ceu->fd, &fds);
 
                 /* Timeout. */
                 tv.tv_sec = 2;
                 tv.tv_usec = 0;
 
-                r = select (veu->fd + 1, &fds, NULL, NULL, &tv);
+                r = select (ceu->fd + 1, &fds, NULL, NULL, &tv);
 
                 if (-1 == r) {
                         if (EINTR == errno)
@@ -132,31 +132,31 @@ sh_veu_capture_frame			(sh_veu * veu, sh_process_callback cb, void * user_data)
                         exit (EXIT_FAILURE);
                 }
 
-		if (read_frame (veu, cb, user_data))
+		if (read_frame (ceu, cb, user_data))
                		break;
 		/* EAGAIN - continue select loop. */
         }
 }
 
 void
-sh_veu_stop_capturing                  (sh_veu * veu)
+sh_ceu_stop_capturing                  (sh_ceu * ceu)
 {
         enum v4l2_buf_type type;
 
 	type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-	if (-1 == xioctl (veu->fd, VIDIOC_STREAMOFF, &type))
+	if (-1 == xioctl (ceu->fd, VIDIOC_STREAMOFF, &type))
 		errno_exit ("VIDIOC_STREAMOFF");
 
 }
 
 void
-sh_veu_start_capturing                 (sh_veu * veu)
+sh_ceu_start_capturing                 (sh_ceu * ceu)
 {
         unsigned int i;
         enum v4l2_buf_type type;
 
-	for (i = 0; i < veu->n_buffers; ++i) {
+	for (i = 0; i < ceu->n_buffers; ++i) {
        		struct v4l2_buffer buf;
 
        		CLEAR (buf);
@@ -165,30 +165,30 @@ sh_veu_start_capturing                 (sh_veu * veu)
        		buf.memory      = V4L2_MEMORY_MMAP;
        		buf.index       = i;
 
-       		if (-1 == xioctl (veu->fd, VIDIOC_QBUF, &buf))
+       		if (-1 == xioctl (ceu->fd, VIDIOC_QBUF, &buf))
                		errno_exit ("VIDIOC_QBUF");
 	}
 	
 	type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-	if (-1 == xioctl (veu->fd, VIDIOC_STREAMON, &type))
+	if (-1 == xioctl (ceu->fd, VIDIOC_STREAMON, &type))
 		errno_exit ("VIDIOC_STREAMON");
 
 }
 
 static void
-uninit_device                   (sh_veu * veu)
+uninit_device                   (sh_ceu * ceu)
 {
         unsigned int i;
 
-	for (i = 0; i < veu->n_buffers; ++i)
-		if (-1 == munmap (veu->buffers[i].start, veu->buffers[i].length))
+	for (i = 0; i < ceu->n_buffers; ++i)
+		if (-1 == munmap (ceu->buffers[i].start, ceu->buffers[i].length))
 			errno_exit ("munmap");
-	free (veu->buffers);
+	free (ceu->buffers);
 }
 
 static void
-init_mmap			(sh_veu * veu)
+init_mmap			(sh_ceu * ceu)
 {
 	struct v4l2_requestbuffers req;
 
@@ -198,10 +198,10 @@ init_mmap			(sh_veu * veu)
         req.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         req.memory              = V4L2_MEMORY_MMAP;
 
-	if (-1 == xioctl (veu->fd, VIDIOC_REQBUFS, &req)) {
+	if (-1 == xioctl (ceu->fd, VIDIOC_REQBUFS, &req)) {
                 if (EINVAL == errno) {
                         fprintf (stderr, "%s does not support "
-                                 "memory mapping\n", veu->dev_name);
+                                 "memory mapping\n", ceu->dev_name);
                         exit (EXIT_FAILURE);
                 } else {
                         errno_exit ("VIDIOC_REQBUFS");
@@ -210,44 +210,44 @@ init_mmap			(sh_veu * veu)
 
         if (req.count < 2) {
                 fprintf (stderr, "Insufficient buffer memory on %s\n",
-                         veu->dev_name);
+                         ceu->dev_name);
                 exit (EXIT_FAILURE);
         }
 
-        veu->buffers = calloc (req.count, sizeof (*veu->buffers));
+        ceu->buffers = calloc (req.count, sizeof (*ceu->buffers));
 
-        if (!veu->buffers) {
+        if (!ceu->buffers) {
                 fprintf (stderr, "Out of memory\n");
                 exit (EXIT_FAILURE);
         }
 
-        for (veu->n_buffers = 0; veu->n_buffers < req.count; ++veu->n_buffers) {
+        for (ceu->n_buffers = 0; ceu->n_buffers < req.count; ++ceu->n_buffers) {
                 struct v4l2_buffer buf;
 
                 CLEAR (buf);
 
                 buf.type        = V4L2_BUF_TYPE_VIDEO_CAPTURE;
                 buf.memory      = V4L2_MEMORY_MMAP;
-                buf.index       = veu->n_buffers;
+                buf.index       = ceu->n_buffers;
 
-                if (-1 == xioctl (veu->fd, VIDIOC_QUERYBUF, &buf))
+                if (-1 == xioctl (ceu->fd, VIDIOC_QUERYBUF, &buf))
                         errno_exit ("VIDIOC_QUERYBUF");
 
-                veu->buffers[veu->n_buffers].length = buf.length;
-                veu->buffers[veu->n_buffers].start =
+                ceu->buffers[ceu->n_buffers].length = buf.length;
+                ceu->buffers[ceu->n_buffers].start =
                         mmap (NULL /* start anywhere */,
                               buf.length,
                               PROT_READ | PROT_WRITE /* required */,
                               MAP_SHARED /* recommended */,
-                              veu->fd, buf.m.offset);
+                              ceu->fd, buf.m.offset);
 
-                if (MAP_FAILED == veu->buffers[veu->n_buffers].start)
+                if (MAP_FAILED == ceu->buffers[ceu->n_buffers].start)
                         errno_exit ("mmap");
         }
 }
 
 static void
-init_device                     (sh_veu * veu)
+init_device                     (sh_ceu * ceu)
 {
         struct v4l2_capability cap;
         struct v4l2_cropcap cropcap;
@@ -255,10 +255,10 @@ init_device                     (sh_veu * veu)
         struct v4l2_format fmt;
 	unsigned int min;
 
-        if (-1 == xioctl (veu->fd, VIDIOC_QUERYCAP, &cap)) {
+        if (-1 == xioctl (ceu->fd, VIDIOC_QUERYCAP, &cap)) {
                 if (EINVAL == errno) {
                         fprintf (stderr, "%s is no V4L2 device\n",
-                                 veu->dev_name);
+                                 ceu->dev_name);
                         exit (EXIT_FAILURE);
                 } else {
                         errno_exit ("VIDIOC_QUERYCAP");
@@ -267,13 +267,13 @@ init_device                     (sh_veu * veu)
 
         if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
                 fprintf (stderr, "%s is no video capture device\n",
-                         veu->dev_name);
+                         ceu->dev_name);
                 exit (EXIT_FAILURE);
         }
 
 	if (!(cap.capabilities & V4L2_CAP_STREAMING)) {
 		fprintf (stderr, "%s does not support streaming i/o\n",
-			 veu->dev_name);
+			 ceu->dev_name);
 		exit (EXIT_FAILURE);
 	}
 
@@ -285,11 +285,11 @@ init_device                     (sh_veu * veu)
 
         cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-        if (0 == xioctl (veu->fd, VIDIOC_CROPCAP, &cropcap)) {
+        if (0 == xioctl (ceu->fd, VIDIOC_CROPCAP, &cropcap)) {
                 crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
                 crop.c = cropcap.defrect; /* reset to default */
 
-                if (-1 == xioctl (veu->fd, VIDIOC_S_CROP, &crop)) {
+                if (-1 == xioctl (ceu->fd, VIDIOC_S_CROP, &crop)) {
                         switch (errno) {
                         case EINVAL:
                                 /* Cropping not supported. */
@@ -307,12 +307,12 @@ init_device                     (sh_veu * veu)
         CLEAR (fmt);
 
         fmt.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        fmt.fmt.pix.width       = veu->width; 
-        fmt.fmt.pix.height      = veu->height;
+        fmt.fmt.pix.width       = ceu->width; 
+        fmt.fmt.pix.height      = ceu->height;
         fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
         fmt.fmt.pix.field       = V4L2_FIELD_ANY;
 
-        if (-1 == xioctl (veu->fd, VIDIOC_S_FMT, &fmt))
+        if (-1 == xioctl (ceu->fd, VIDIOC_S_FMT, &fmt))
                 errno_exit ("VIDIOC_S_FMT");
 
         /* Note VIDIOC_S_FMT may change width and height. */
@@ -325,68 +325,68 @@ init_device                     (sh_veu * veu)
 	if (fmt.fmt.pix.sizeimage < min)
 		fmt.fmt.pix.sizeimage = min;
 
-	init_mmap (veu);
+	init_mmap (ceu);
 }
 
 static void
-close_device                    (sh_veu * veu)
+close_device                    (sh_ceu * ceu)
 {
-        if (-1 == close (veu->fd))
+        if (-1 == close (ceu->fd))
 	        errno_exit ("close");
 
-        veu->fd = -1;
+        ceu->fd = -1;
 }
 
 static void
-open_device                     (sh_veu * veu)
+open_device                     (sh_ceu * ceu)
 {
         struct stat st; 
 
 
-        if (-1 == stat (veu->dev_name, &st)) {
+        if (-1 == stat (ceu->dev_name, &st)) {
                 fprintf (stderr, "Cannot identify '%s': %d, %s\n",
-                         veu->dev_name, errno, strerror (errno));
+                         ceu->dev_name, errno, strerror (errno));
                 exit (EXIT_FAILURE);
         }
 
         if (!S_ISCHR (st.st_mode)) {
-                fprintf (stderr, "%s is no device\n", veu->dev_name);
+                fprintf (stderr, "%s is no device\n", ceu->dev_name);
                 exit (EXIT_FAILURE);
         }
 
-        veu->fd = open (veu->dev_name, O_RDWR /* required */ | O_NONBLOCK, 0);
+        ceu->fd = open (ceu->dev_name, O_RDWR /* required */ | O_NONBLOCK, 0);
 
-        if (-1 == veu->fd) {
+        if (-1 == ceu->fd) {
                 fprintf (stderr, "Cannot open '%s': %d, %s\n",
-                         veu->dev_name, errno, strerror (errno));
+                         ceu->dev_name, errno, strerror (errno));
                 exit (EXIT_FAILURE);
         }
 }
 
 void
-sh_veu_close (sh_veu * veu)
+sh_ceu_close (sh_ceu * ceu)
 {
-	uninit_device (veu);
+	uninit_device (ceu);
 
-	close_device (veu);
+	close_device (ceu);
 
-	free (veu);
+	free (ceu);
 }
 
-sh_veu *
-sh_veu_open (const char * device_name, int width, int height)
+sh_ceu *
+sh_ceu_open (const char * device_name, int width, int height)
 {
-	sh_veu * veu;
+	sh_ceu * ceu;
 
-	veu = malloc(sizeof(*veu));
+	ceu = malloc(sizeof(*ceu));
 
-	veu->dev_name = device_name;
-	veu->width = width;
-	veu->height = height;
+	ceu->dev_name = device_name;
+	ceu->width = width;
+	ceu->height = height;
 
-	open_device (veu);
+	open_device (ceu);
 
-	init_device (veu);
+	init_device (ceu);
 
-	return veu;
+	return ceu;
 }

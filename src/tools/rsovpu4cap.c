@@ -53,7 +53,7 @@ int
 main                            (int                    argc,
                                  char **                argv)
 {
-	sh_veu * veu;
+	sh_ceu * ceu;
         char * dev_name = "/dev/video0";
 	unsigned int count;
 
@@ -86,18 +86,18 @@ main                            (int                    argc,
                 }
         }
 
-        veu = sh_veu_open (dev_name, 320, 240);
+        ceu = sh_ceu_open (dev_name, 320, 240);
 
-        sh_veu_start_capturing (veu);
+        sh_ceu_start_capturing (ceu);
 
         count = 100;
 
         while (count-- > 0)
-          sh_veu_capture_frame (veu, process_image, NULL);
+          sh_ceu_capture_frame (ceu, process_image, NULL);
 
-        sh_veu_stop_capturing (veu);
+        sh_ceu_stop_capturing (ceu);
 
-        sh_veu_close (veu);
+        sh_ceu_close (ceu);
 
         exit (EXIT_SUCCESS);
 

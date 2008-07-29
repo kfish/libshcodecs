@@ -153,7 +153,7 @@ int capture_image (APPLI_INFO * appli_info, unsigned long *addr_y, unsigned long
 	cap.addr_y = addr_y;
 	cap.addr_c = addr_c;
 
-	sh_veu_capture_frame (appli_info->veu, capture_image_cb, &cap);
+	sh_ceu_capture_frame (appli_info->ceu, capture_image_cb, &cap);
 }
 
 /* copy yuv data to the image-capture-field area each frame */

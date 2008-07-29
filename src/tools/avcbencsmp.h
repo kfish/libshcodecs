@@ -286,7 +286,7 @@ typedef struct {
 	long output_filler_data;	/* for FillerData(CPB  Buffer) *//* add at Version2 */
 	FILE *output_file_fp;           /* for output stream-2 */
 
-	sh_veu * veu;
+	sh_ceu * ceu;
 
 } APPLI_INFO;
 
