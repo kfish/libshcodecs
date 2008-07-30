@@ -88,8 +88,7 @@ capture_image_cb (const void * frame_data, size_t length, void * user_data)
 	unsigned long wnum;
 	unsigned char *CbCr_ptr, *Cb_buf_ptr, *Cr_buf_ptr, *ptr;
 
-        fputc ('.', stdout);
-        fflush (stdout);
+	printf ("capture_image_cb: IN\n");
 
 	hsiz = cap->appli_info->param.avcbe_xpic_size;
 	ysiz = cap->appli_info->param.avcbe_ypic_size;
@@ -107,6 +106,7 @@ capture_image_cb (const void * frame_data, size_t length, void * user_data)
 		exit(-1);
 	}
 	memset(w_addr_yuv,0,hsiz*ysiz);
+	memset(CbCr_ptr,0,hsiz*ysiz/2);
 
         /* Convert from captured UYUV to NV12 */
 	d = frame_data;
@@ -116,11 +116,13 @@ capture_image_cb (const void * frame_data, size_t length, void * user_data)
 	for (i = 0; i < ysiz; i++) {
 		if (odd) {
 			for (j = 0; j < hsiz/2; j++) {
-				*c += *d++;	/* Cb */
-				*c++ >>= 1;
+				//*c += *d++;	/* Cb */
+				//*c++ >>= 1;
+				d++;
 				*y++ = *d++;	/* Y */
-				*c += *d++;	/* Cr */
-				*c++ >>= 1;
+				//*c += *d++;	/* Cr */
+				//*c++ >>= 1;
+				d++;
 				*y++ = *d++;	/* Y */
 			}
 		} else {
@@ -130,7 +132,7 @@ capture_image_cb (const void * frame_data, size_t length, void * user_data)
 				*c++ = *d++;	/* Cr */
 				*y++ = *d++;	/* Y */
 			}
-			c -= hsiz;
+			//c -= hsiz;
 		}
 
 		/* toggle odd line flag */
@@ -142,6 +144,8 @@ capture_image_cb (const void * frame_data, size_t length, void * user_data)
 	m4iph_sdr_write((unsigned char *)cap->addr_c, (unsigned char*)CbCr_ptr, wnum/2);
 	free(w_addr_yuv);
 	free(CbCr_ptr);
+
+	printf ("capture_image_cb(): OUT\n");
 }
 
 /* capture yuv data to the image-capture-field area each frame */
@@ -149,11 +153,15 @@ int capture_image (APPLI_INFO * appli_info, unsigned long *addr_y, unsigned long
 {
 	struct capture cap;
 
+	printf ("*** capture_image(): IN\n");
+
 	cap.appli_info = appli_info;
 	cap.addr_y = addr_y;
 	cap.addr_c = addr_c;
 
 	sh_ceu_capture_frame (appli_info->ceu, capture_image_cb, &cap);
+
+	printf ("*** capture_image(): OUT\n");
 }
 
 /* copy yuv data to the image-capture-field area each frame */

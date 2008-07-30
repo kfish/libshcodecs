@@ -27,6 +27,9 @@
 
 #include "capture.h"
 
+#define ENC_WIDTH 320
+#define ENC_HEIGHT 240
+
 #ifdef CAPT_INPUT
 #if 0
 #include	"cpu_sh73380.h"
@@ -113,17 +116,17 @@ unsigned long  cnt;
 long  tmp;
 
 #pragma section	_VRAM_BUFF
-	unsigned short	VRAM_Buff[320][240];	/* 16bit RGB */
+	unsigned short	VRAM_Buff[ENC_WIDTH][ENC_HEIGHT];	/* 16bit RGB */
 #pragma section
 #pragma section	_VRAM_BUFF1
-	unsigned short	VRAM_Buff1[320][240];	/* Y */
+	unsigned short	VRAM_Buff1[ENC_WIDTH][ENC_HEIGHT];	/* Y */
 #pragma section
 #pragma section	_VRAM_BUFF2
 
-	unsigned short	VRAM_Buff2[320][240];	/* Cb,Cr */
+	unsigned short	VRAM_Buff2[ENC_WIDTH][ENC_HEIGHT];	/* Cb,Cr */
 #pragma section
 #pragma section	_VRAM_BUFF3
-	unsigned long  VRAM_Buff3[320][240];  /* 18bit RGB */
+	unsigned long  VRAM_Buff3[ENC_WIDTH][ENC_HEIGHT];  /* 18bit RGB */
 #pragma section
 
 void	cnvs_data( void );
@@ -229,7 +232,7 @@ int main(int argc, char *argv[])
 		return -1;
 	}                 
 
-	ainfo.ceu = sh_ceu_open ("/dev/video0", 320, 240);
+	ainfo.ceu = sh_ceu_open ("/dev/video0", ENC_WIDTH, ENC_HEIGHT);
 
 	/* stream buffer 0 clear */
 //	memset(sdr_read_my_stream_buff,0,sizeof(sdr_read_my_stream_buff));
@@ -407,6 +410,7 @@ long init_for_encoder_mpeg4(long case_no, APPLI_INFO *appli_info, long stream_ty
 
 	frame_counter_of_input = 0;
 #ifndef CAPT_INPUT
+#if 0
 	/*--- open input YUV data file (one of the user application's own
 	 *  functions) ---*/
 	return_code = open_input_image_file(appli_info);
@@ -414,6 +418,7 @@ long init_for_encoder_mpeg4(long case_no, APPLI_INFO *appli_info, long stream_ty
 		DisplayMessage(" encode_1file:open_input_image_file ERROR! ", 1);
 		return (-6);
 	} 
+#endif
 #endif
 	/*--- open output file (one of the user application's own functions) ---*/
 	return_code = open_output_file(appli_info);

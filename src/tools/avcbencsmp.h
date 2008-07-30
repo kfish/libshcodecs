@@ -48,16 +48,19 @@ extern "C" {
 /*       Image width x Image height x 1.5                   */
 /*----------------------------------------------------------*/
 #define WIDTH_HEIGHT_1_5	152064 /* 115200=320 x 240 x 1.5(QVGA Size) */
+//#define WIDTH_HEIGHT_1_5	460800 /* 460800=640 x 480 x 1.5(VGA Size) */
 #define MAX_FRAME 4
 /*----------------------------------------------------------*/
 /*       Other work-field area size                         */
 /*----------------------------------------------------------*/
 #define MY_WORK_AREA_SIZE	101376 /*76800 One stream *//* QVGA */
+//#define MY_WORK_AREA_SIZE	(101376*4) /*76800 One stream *//* QVGA */
 
 /*----------------------------------------------------------*/
 /*       Stream-output buffer size for 1 frame              */
 /*----------------------------------------------------------*/
 #define MY_STREAM_BUFF_SIZE	160000     /* byte unit */ /* this value must be multiple of 32 */
+//#define MY_STREAM_BUFF_SIZE	(160000*4)     /* byte unit */ /* this value must be multiple of 32 */
 #endif
 
 /*----------------------------------------------------------*/
@@ -82,6 +85,7 @@ extern "C" {
 /*#define MY_SEI_STREAM_BUFF_SIZE	2000000 *//* Level 2 */
 /*#define MY_SEI_STREAM_BUFF_SIZE	10000000*/ /* Level 3 */
 #define MY_SEI_STREAM_BUFF_SIZE	100000
+//#define MY_SEI_STREAM_BUFF_SIZE	(100000*4)
 
 /*----------------------------------------------------------*/
 /*    Filler-data-stream-output buffer size                 */
@@ -100,6 +104,7 @@ extern "C" {
 
 // ORIG #define  OUTPUT_BUF_SIZE (50*1024)
 #define  OUTPUT_BUF_SIZE (256*1024)
+//#define  OUTPUT_BUF_SIZE (256*1024*4)
 
 /*----- structures -----*/
 

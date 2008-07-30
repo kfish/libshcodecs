@@ -21,6 +21,8 @@
 #include "m4iph_vpu4.h"	/* SuperH MEPG-4&H.264 Video Driver Library Header */  
 #include "avcbencsmp.h"	/* User Application Sample Header */  
 
+#include "capture.h"
+
 extern int open_output_file(APPLI_INFO *appli_info);
 
 extern avcbe_stream_info *my_context;
@@ -158,6 +160,7 @@ long init_for_encoder_h264(long case_no, APPLI_INFO *appli_info, long stream_typ
 	}
 
 #ifndef CAPT_INPUT
+#if 0
 	/*--- open input YUV data file (one of the user application's own
 	 *  functions) ---*/
 	return_code = open_input_image_file(appli_info);
@@ -165,6 +168,7 @@ long init_for_encoder_h264(long case_no, APPLI_INFO *appli_info, long stream_typ
 		DisplayMessage(" encode_1file:open_input_image_file ERROR! ", 1);
 		return (-6);
 	} 
+#endif
 #endif
 
 	return_code = open_output_file(appli_info);
@@ -392,9 +396,10 @@ long encode_picture_unit(long case_no, APPLI_INFO *appli_info, long stream_type,
 			}		
 		}
     		/*--- copy yuv data to the image-capture-field area each frame (one of the user application's own functions) ---*/
-   		return_code = load_1frame_from_image_file(appli_info, addr_y, addr_c); 
+   		/*return_code = load_1frame_from_image_file(appli_info, addr_y, addr_c); */
+   		return_code = capture_image (appli_info, addr_y, addr_c); 
 		if (return_code < 0) {	/* error */ 
-    			DisplayMessage(" encode_1file_h264:load_1frame_from_image_file ERROR! ", 1);
+    			DisplayMessage(" encode_1file_h264:capture_image  ERROR! ", 1);
 			appli_info->error_return_function = -108;
 			appli_info->error_return_code = return_code;
 			return (-108);
@@ -746,10 +751,12 @@ long encode_nal_unit(long case_no, APPLI_INFO *appli_info, long stream_type, avc
 
     	/*--- copy yuv data to the image-capture-field area each frame (one of the user application's own functions) ---*/		
 		if (appli_info->slice_mb_counter == 0) {
-			return_code = load_1frame_from_image_file(appli_info, addr_y, addr_c); 
+			/*return_code = load_1frame_from_image_file(appli_info, addr_y, addr_c); */
+			return_code = capture_image (appli_info, addr_y, addr_c); 
 
 			if (return_code < 0) {	/* error */ 
-    			DisplayMessage(" encode_1file_h264:load_1frame_from_image_file ERROR! ", 1);
+    			/*DisplayMessage(" encode_1file_h264:load_1frame_from_image_file ERROR! ", 1);*/
+    			DisplayMessage(" encode_1file_h264:capture_image ERROR! ", 1);
 				appli_info->error_return_function = -108;
 				appli_info->error_return_code = return_code;
 				return (-108);
