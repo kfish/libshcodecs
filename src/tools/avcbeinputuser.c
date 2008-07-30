@@ -88,8 +88,6 @@ capture_image_cb (const void * frame_data, size_t length, void * user_data)
 	unsigned long wnum;
 	unsigned char *CbCr_ptr, *Cb_buf_ptr, *Cr_buf_ptr, *ptr;
 
-	printf ("capture_image_cb: IN\n");
-
 	hsiz = cap->appli_info->param.avcbe_xpic_size;
 	ysiz = cap->appli_info->param.avcbe_ypic_size;
 
@@ -144,8 +142,6 @@ capture_image_cb (const void * frame_data, size_t length, void * user_data)
 	m4iph_sdr_write((unsigned char *)cap->addr_c, (unsigned char*)CbCr_ptr, wnum/2);
 	free(w_addr_yuv);
 	free(CbCr_ptr);
-
-	printf ("capture_image_cb(): OUT\n");
 }
 
 /* capture yuv data to the image-capture-field area each frame */
@@ -153,15 +149,11 @@ int capture_image (APPLI_INFO * appli_info, unsigned long *addr_y, unsigned long
 {
 	struct capture cap;
 
-	printf ("*** capture_image(): IN\n");
-
 	cap.appli_info = appli_info;
 	cap.addr_y = addr_y;
 	cap.addr_c = addr_c;
 
 	sh_ceu_capture_frame (appli_info->ceu, capture_image_cb, &cap);
-
-	printf ("*** capture_image(): OUT\n");
 }
 
 /* copy yuv data to the image-capture-field area each frame */
