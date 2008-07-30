@@ -86,7 +86,7 @@ main                            (int                    argc,
                 }
         }
 
-        ceu = sh_ceu_open (dev_name, 320, 240);
+        ceu = sh_ceu_open (dev_name, 640, 480);
 
         sh_ceu_start_capturing (ceu);
 

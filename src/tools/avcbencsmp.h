@@ -17,6 +17,8 @@
 
 //#define MAX_D1
 
+#define CAPTURE_VGA 1
+
 enum  { /* case_no */
 	CASE0_MPEG4_001=0,
 	CASE1_H264_001,
@@ -43,24 +45,38 @@ extern "C" {
 /*       Stream-output buffer size for 1 frame              */
 /*----------------------------------------------------------*/
 #define MY_STREAM_BUFF_SIZE	1024*256     /* byte unit */ /* this value must be multiple of 32 */
-#else
+
+#elif defined(CAPTURE_VGA)
+/*----------------------------------------------------------*/
+/*       Image width x Image height x 1.5                   */
+/*----------------------------------------------------------*/
+#define WIDTH_HEIGHT_1_5	460800 /* 460800=640 x 480 x 1.5(VGA Size) */
+#define MAX_FRAME 2
+/*----------------------------------------------------------*/
+/*       Other work-field area size                         */
+/*----------------------------------------------------------*/
+#define MY_WORK_AREA_SIZE	(101376*4) /*76800 One stream *//* QVGA */
+
+/*----------------------------------------------------------*/
+/*       Stream-output buffer size for 1 frame              */
+/*----------------------------------------------------------*/
+#define MY_STREAM_BUFF_SIZE	(400000)     /* byte unit */ /* this value must be multiple of 32 */
+
+#else /* Not D1, or CAPTURE_VGA */
 /*----------------------------------------------------------*/
 /*       Image width x Image height x 1.5                   */
 /*----------------------------------------------------------*/
 #define WIDTH_HEIGHT_1_5	152064 /* 115200=320 x 240 x 1.5(QVGA Size) */
-//#define WIDTH_HEIGHT_1_5	460800 /* 460800=640 x 480 x 1.5(VGA Size) */
 #define MAX_FRAME 4
 /*----------------------------------------------------------*/
 /*       Other work-field area size                         */
 /*----------------------------------------------------------*/
 #define MY_WORK_AREA_SIZE	101376 /*76800 One stream *//* QVGA */
-//#define MY_WORK_AREA_SIZE	(101376*4) /*76800 One stream *//* QVGA */
 
 /*----------------------------------------------------------*/
 /*       Stream-output buffer size for 1 frame              */
 /*----------------------------------------------------------*/
 #define MY_STREAM_BUFF_SIZE	160000     /* byte unit */ /* this value must be multiple of 32 */
-//#define MY_STREAM_BUFF_SIZE	(160000*4)     /* byte unit */ /* this value must be multiple of 32 */
 #endif
 
 /*----------------------------------------------------------*/
@@ -85,7 +101,6 @@ extern "C" {
 /*#define MY_SEI_STREAM_BUFF_SIZE	2000000 *//* Level 2 */
 /*#define MY_SEI_STREAM_BUFF_SIZE	10000000*/ /* Level 3 */
 #define MY_SEI_STREAM_BUFF_SIZE	100000
-//#define MY_SEI_STREAM_BUFF_SIZE	(100000*4)
 
 /*----------------------------------------------------------*/
 /*    Filler-data-stream-output buffer size                 */

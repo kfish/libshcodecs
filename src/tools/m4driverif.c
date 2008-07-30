@@ -22,7 +22,8 @@
 #include "avcbd_optionaldata.h"
 #include "avcbd_inner_typedef.h"
 
-#define SDR_SIZE	(1024*1024*1)
+//#define SDR_SIZE	(1024*1024*1)
+#define SDR_SIZE	(1024*1024*4)
 #define VPU_DEV		"/dev/vpu"
 #define	MEM_DEV		"/dev/mem"
 #define FLG_VPUEND	0x08

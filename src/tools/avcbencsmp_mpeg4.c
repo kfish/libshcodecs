@@ -27,8 +27,8 @@
 
 #include "capture.h"
 
-#define ENC_WIDTH 320
-#define ENC_HEIGHT 240
+#define ENC_WIDTH 640
+#define ENC_HEIGHT 480
 
 #ifdef CAPT_INPUT
 #if 0
@@ -243,8 +243,12 @@ int main(int argc, char *argv[])
 	vpu4_clock_on();
 	width_height = ainfo.enc_exec_info.xpic * ainfo.enc_exec_info.ypic;
 	width_height += (width_height/2);
+
+        printf ("width_height: %d\n", width_height);
+
 	max_frame = 2;
-	sdr_base = m4iph_sdr_malloc(width_height * (max_frame+3), 32); // TODO check memsize	
+	sdr_base = m4iph_sdr_malloc(width_height * (max_frame+3), 32);
+	if (sdr_base == NULL) exit (1);
 	kernel_memory_for_vpu_top = (unsigned long *)sdr_base;
 	for (i=0; i<max_frame; i++ ) {
 		my_frame_memory_capt[i] = (unsigned long *)(sdr_base + width_height*i);
