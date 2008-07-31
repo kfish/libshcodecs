@@ -141,19 +141,16 @@ static int usr_Get_Input_oneSlice_H264(RSOVPU4_Decoder * decoder, void *dst);
 static int usr_Get_Input_oneFrame_Mpeg4_h263(RSOVPU4_Decoder * decoder, void *dst);
 static int usr_Get_Input_slice_or_frame_H264_Mpeg4(RSOVPU4_Decoder * decoder, void *dst);
 
-/* XXX: public function, what is this? */
 long m4iph_enc_continue(long output_bits);
 
-/* XXX: global, what is this? not even used, why is this here? */
 void *global_context;
 
-/* XXX: random statics, probably local */
 /* TODO: actually, this could be local where it is used */
 static M4IPH_VPU4_INIT_OPTION vpu_init_option;
 
 /* XXX: local */
 static long decode_time;
-/* XXX: WTF? this just skips all decode processing, with -S option */
+/* XXX: this just skips all decode processing, with -S option */
 static long performance_flag=0;
 
 /* TODO: This could just be local where it is used */
@@ -207,9 +204,11 @@ static int stream_Initialize(RSOVPU4_Decoder * decoder)
 	decoder->iFrame_number = CFRAME_NUM;
 	iContext_ReqWorkSize = decoder->iStream_User_FrameWidth * 
 									decoder->iStream_User_FrameHeight;
+#if 0
 	if ( iContext_ReqWorkSize > (352*288) ) {
 		decoder->iFrame_number = decoder->iFrame_number/4;
 	}
+#endif
 	decoder->pstFrameInfo_Fnlist = calloc(decoder->iFrame_number, sizeof(FrameInfo));
 	CHECK_ALLOC(decoder->pstFrameInfo_Fnlist, 
 		decoder->iFrame_number * sizeof(FrameInfo), "frame list", err1);

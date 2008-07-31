@@ -13,8 +13,8 @@
 #define		F_H264		2
 
 #define CFRAME_NUM		4
-#define NAL_BUF_SIZE	(128 * 1024)
-#define WORK_BUF_SIZE	(256 * 1024)
+#define NAL_BUF_SIZE	(128 * 1024 * 4)
+#define WORK_BUF_SIZE	(256 * 1024 * 4)
 
 typedef unsigned char uint8;
 typedef unsigned int uint32;

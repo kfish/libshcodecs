@@ -28,13 +28,13 @@ typedef enum {
 #define	RSOVPU4_MIN_FX		48
 
 /** Maximum frame width */
-#define	RSOVPU4_MAX_FX		320
+#define	RSOVPU4_MAX_FX		640
 
 /** Minimum frame height */
 #define	RSOVPU4_MIN_FY		48
 
 /** Maximum frame height */
-#define	RSOVPU4_MAX_FY		240
+#define	RSOVPU4_MAX_FY		480
 
 /**
  * Signature of a callback for librsovpu4 to call when it has decoded
