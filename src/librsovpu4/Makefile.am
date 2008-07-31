@@ -6,6 +6,9 @@ INCLUDES = $(INCLTDL) \
 
 EXTRA_DIST = Version_script.in
 
+AM_CFLAGS = -DVPU4 -DDISABLE_INT2 -D_LIT -DANNEX_B
+#AM_CFLAGS = -DANNEX_B
+
 # Libraries to build
 lib_LTLIBRARIES = librsovpu4.la
 

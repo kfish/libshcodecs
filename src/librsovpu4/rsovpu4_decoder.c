@@ -24,6 +24,8 @@
 #define VPU4IP
 #include "m4vsd_h263dec.h"
 
+//#define DEBUG
+
 /* XXX: extern declarations, implemented in m4driverif.c, req'd by middleware ... */
 extern void m4iph_sleep_time_init(void);
 extern unsigned long m4iph_sleep_time_get(void);
@@ -126,7 +128,7 @@ rsovpu4_decode (RSOVPU4_Decoder * decoder, unsigned char * data, int len)
 
 	decoder->si_ilen = len;
 
-        return decoder_Start (decoder);
+	return decoder_Start (decoder);
 }
 
 /***********************************************************/
@@ -337,9 +339,9 @@ static int decoder_Initialize(RSOVPU4_Decoder * decoder)
 		filtered.C_fmemp = ALIGN(decoder->st_ff.C_fmemp, 32);
 		avcbd_set_filter_mode(decoder->piContext, AVCBD_FILTER_DBL, AVCBD_POST, &filtered);
 	}
-	return 0;
 
 	decoder->iFrame_number = 0;
+	return 0;
 err1:
 	return -1;
 }
@@ -367,19 +369,32 @@ static int decoder_Start(RSOVPU4_Decoder * decoder)
 
 		if (decode_One_Frame(decoder) == -1) {
 			/*UserDisp("%d frames decoded\n", decoder->iFrame_number);*/
+#ifdef DEBUG
+			printf ("%d frames decoded\n", decoder->iFrame_number);
+#endif
 			decoded = 0;
 			if (decoder->iStream_type == F_H264) dpb_mode = 2;
 			else dpb_mode = 1;
 		} else {
+#ifdef DEBUG
+			printf ("rsovpu4_decoder::decoder_Start: decoded\n");
+#endif
 			decoded = 1;
 			dpb_mode = 1;
 		}
 
 		while(1) {
 			long index = avcbd_get_decoded_frame(decoder->piContext, dpb_mode);
+#ifdef DEBUG
+			printf ("rsovpu4_decoder:: avcbd_get_decoded_frame returned index %ld\n",
+                                index);
+#endif
 			if (index < 0) {
 				if ( (decoded==0) && (decoder->iStream_type != F_H264)) {
 					/*UserDisp("DecW=%d, list[0]=%d, list[1]=%d\n",image->DecW,image->ref_pic_list[0],image->ref_pic_list[1]);*/
+#ifdef DEBUG
+					printf ("DecW=%d, list[0]=%d, list[1]=%d\n",image->DecW,image->ref_pic_list[0],image->ref_pic_list[1]);
+#endif
 					if (index_old!=image->ref_pic_list[0]) {
 						decoder_Output_oneFrame(decoder, image->ref_pic_list[0]);
 					} else 	if (index_old!=image->DecW) {
@@ -388,6 +403,10 @@ static int decoder_Start(RSOVPU4_Decoder * decoder)
 						decoder_Output_oneFrame(decoder, image->ref_pic_list[1]);
 					}
 				} 
+#ifdef DEBUG
+				printf ("rsovpu4_decoder::decoder->last_frame_status.error_num: %d\n",
+                                        decoder->last_frame_status.error_num);
+#endif
 				if (decoder->last_frame_status.error_num == AVCBD_PIC_NOTCODED_VOP){ /* Not coded vop */
 					decoder_Output_oneFrame(decoder, image->ref_pic_list[0]);
 				}
@@ -399,6 +418,9 @@ static int decoder_Start(RSOVPU4_Decoder * decoder)
 
 		decoder->iFrame_number++;
 		/*UserDisp("%16d,dpb_mode=%d\n", decoder->iFrame_number, dpb_mode);*/
+#ifdef DEBUG
+		printf ("%16d,dpb_mode=%d\n", decoder->iFrame_number, dpb_mode);
+#endif
 	} while (decoded);
 
 	return 0;
@@ -418,6 +440,10 @@ int decode_One_Frame(RSOVPU4_Decoder * decoder)
 	long tm;
 	static long counter=0, max_size=0;
 	char Ct=0;
+
+#ifdef DEBUG
+	printf ("rsovpu4_decoder::decode_One_Frame IN\n");
+#endif
 	
 	max_mb = decoder->iMacroBlocks_Size;
 	do {
@@ -429,12 +455,20 @@ int decode_One_Frame(RSOVPU4_Decoder * decoder)
 			Ct=0;
 	
 		if (usr_Get_Input_slice_or_frame_H264_Mpeg4(decoder, decoder->pbNAL_H264BufferMemory) <= 0) {
+#ifdef DEBUG
 			printf("usr_Get_Input_slice_or_frame_H264_Mpeg4 failed\n");
+#endif
 			break;
 		}
 		if (decoder->iStream_type == F_H264) {
 			input = (unsigned char *)decoder->pbNAL_H264BufferMemory;
 			len = decoder->si_ilen;
+
+#ifdef DEBUG
+			printf ("rsovpu4_decoder::decode_One_Frame: H.264 len %d: %02x%02x%02x%02x %02x%02x%02x%02x\n",
+				decoder->si_ilen, input[0], input[1], input[2], input[3],
+				input[4], input[5], input[6], input[7]);
+#endif
 
 #ifndef ANNEX_B
 			/* skip "00.. 00 01" to simulate RTP */
@@ -445,7 +479,10 @@ int decode_One_Frame(RSOVPU4_Decoder * decoder)
 			input++;
 			len--;
 #endif
-			avcbd_set_stream_pointer(decoder->piContext, input, len, NULL);
+			ret = avcbd_set_stream_pointer(decoder->piContext, input, len, NULL);
+#ifdef DEBUG
+                        printf ("rsovpu4_decoder::decode_One_Frame: H.264 avcbd_set_stream_pointer returned %ld\n", ret);
+#endif
 		} else {
 			unsigned char *ptr;
 			long hosei;
@@ -480,6 +517,9 @@ int decode_One_Frame(RSOVPU4_Decoder * decoder)
 		vpu4_clock_off();
 		gettimeofday(&tv1, &tz);
 		/*UserDisp("ret=%d,dec_pic1=%ld,",ret,tv1.tv_usec);*/
+#ifdef DEBUG
+		printf ("ret=%d,dec_pic1=%ld,",ret,tv1.tv_usec);
+#endif
 		tm = (tv1.tv_usec-tv.tv_usec)/1000;
 		if ( tm<0 ) {
 			tm = 1000-(tv.tv_usec-tv1.tv_usec)/1000;
@@ -487,11 +527,17 @@ int decode_One_Frame(RSOVPU4_Decoder * decoder)
 		decode_time += tm;
 		/*UserDisp("Total decode time = %d(msec),",(int)decode_Get_time());*/
 		/*UserDisp("Total sleep  time = %d(msec),",(int)m4iph_sleep_time_get(),decoder->si_ilen);*/
-		avcbd_get_last_frame_stat(decoder->piContext, &decoder->last_frame_status);
+		ret = avcbd_get_last_frame_stat(decoder->piContext, &decoder->last_frame_status);
+#ifdef DEBUG	
+		printf ("avcbd_get_last_frame_stat ret %ld\n", ret);
+#endif
 		max_size += decoder->si_ilen;
 		/*UserDisp(" stream_size=%dbyte, max_size=%dbyte\n",decoder->si_ilen, max_size);*/
 		counter = 1;
 		pthread_mutex_unlock(&vpu_mutex);
+#ifdef DEBUG
+		printf (" stream_size=%d bytes, max_size=%d bytes\n",decoder->si_ilen, max_size);
+#endif
 		
 		if (decoder->last_frame_status.error_num < 0) {
 			m4iph_avcbd_perror("avcbd_decode_picture()", decoder->last_frame_status.error_num);
@@ -522,7 +568,17 @@ int decode_One_Frame(RSOVPU4_Decoder * decoder)
 		if (increment_Input(decoder, curr_len) < 0)
 			break;
 #else
+		if (decoder->input_len - decoder->si_ilen < curr_len)
+			break;
+
+		decoder->input_data += curr_len;
+
                 decoder->preferred_len = curr_len;
+
+#if 0
+		if (decoder->si_ilen <= 0)
+			break;
+#endif
 
 #if 0
 		/* XXX: these bits are taken care of in increment_Input() */
@@ -533,7 +589,13 @@ int decode_One_Frame(RSOVPU4_Decoder * decoder)
 #endif
 #endif
 
-		/* XXX: need to check / record these error conditions */
+#ifdef DEBUG
+		printf ("rsovpu4_decoder::decode_One_Frame: decoder->last_frame_status.read_slices = %d\n",
+                        decoder->last_frame_status.read_slices);
+		printf ("rsovpu4_decoder::decode_One_Frame: decoder->last_frame_status.last_macroblock_pos = %d (< max_mb %d?)\n",
+                        decoder->last_frame_status.last_macroblock_pos, max_mb);
+#endif
+
 		if (decoder->last_frame_status.error_num == AVCBD_PIC_NOTCODED_VOP) {
 			err = 0;
 			break;
@@ -546,7 +608,7 @@ int decode_One_Frame(RSOVPU4_Decoder * decoder)
 					* ((unsigned)(frame_size.height + 15) >> 4);
 			decoder->iMacroBlocks_Size = max_mb;
 		}
-		break;
+		//break;
 		err = 0;
 	} while ((decoder->last_frame_status.read_slices == 0) || (decoder->last_frame_status.last_macroblock_pos < max_mb));
 
@@ -588,6 +650,9 @@ static int decoder_Output_oneFrame(RSOVPU4_Decoder * decoder, long frame_index)
 		return 0;
 	}
 	/*UserDisp("Output Frame %d, frame_index=%d\n",frame_cnt++,frame_index);*/
+#ifdef DEBUG
+	printf ("Output Frame %d, frame_index=%d\n",frame_cnt++,frame_index);
+#endif
 	ymem = (unsigned long)frame->Y_fmemp;
 	cmem = (unsigned long)frame->C_fmemp;
 	page = ymem & ~(pagesize - 1);
@@ -618,7 +683,7 @@ static int decoder_Output_oneFrame(RSOVPU4_Decoder * decoder, long frame_index)
  */
 static int usr_Get_Input_oneSlice_H264(RSOVPU4_Decoder * decoder, void *dst)
 {
-	long size;
+	long size=0;
 
 	//- skip pre-gap .
 	size = avcbd_search_start_code(
@@ -646,6 +711,7 @@ static int usr_Get_Input_oneSlice_H264(RSOVPU4_Decoder * decoder, void *dst)
 		printf("usr_Get_Input_H264 error\n");
 	} else
 		decoder->si_ilen = size;
+
 	return size;
 }
 
