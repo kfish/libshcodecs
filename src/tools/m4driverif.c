@@ -22,15 +22,95 @@
 #include "avcbd_optionaldata.h"
 #include "avcbd_inner_typedef.h"
 
-//#define SDR_SIZE	(1024*1024*1)
-#define SDR_SIZE	(1024*1024*4)
-#define VPU_DEV		"/dev/vpu"
-#define	MEM_DEV		"/dev/mem"
-#define FLG_VPUEND	0x08
-                            
+static int fgets_with_openclose(char *fname, char *buf, size_t maxlen) {
+	FILE *fp;
+
+	if ((fp = fopen(fname, "r")) != NULL) {
+		fgets(buf, maxlen, fp);
+		fclose(fp);
+		return strlen(buf);
+	} else {
+		return -1;
+	}
+}
+
+struct uio_device {
+	char *name;
+	char *path;
+	int fd;
+};
+
+#define MAXUIOIDS  100
+#define MAXNAMELEN 256
+
+static int locate_uio_device(char *name, struct uio_device *udp)
+{
+	char fname[MAXNAMELEN], buf[MAXNAMELEN];
+	int uio_id, i;
+
+	for (uio_id = 0; uio_id < MAXUIOIDS; uio_id++) {
+		sprintf(fname, "/sys/class/uio/uio%d/name", uio_id);
+		if (fgets_with_openclose(fname, buf, MAXNAMELEN) < 0)
+			continue;
+		if (strncmp(name, buf, strlen(name)) == 0)
+			break;
+	}
+
+	if (uio_id >= MAXUIOIDS)
+		return -1;
+
+	udp->name = strdup(buf);
+	udp->path = strdup(fname);
+	udp->path[strlen(udp->path) - 4] = '\0';
+
+	sprintf(buf, "/dev/uio%d", uio_id);
+	udp->fd = open(buf, O_RDWR|O_SYNC /*| O_NONBLOCK*/);
+
+	if (udp->fd < 0) {
+		perror("open");
+		return -1;
+	}
+
+	return 0;
+}
+
+struct uio_map {
+	unsigned long address;
+	unsigned long size;
+	void *iomem;
+};
+
+static int setup_uio_map(struct uio_device *udp, int nr, struct uio_map *ump)
+{
+	char fname[MAXNAMELEN], buf[MAXNAMELEN];
+ 
+	sprintf(fname, "%s/maps/map%d/addr", udp->path, nr);
+	if (fgets_with_openclose(fname, buf, MAXNAMELEN) <= 0)
+		return -1;
+
+	ump->address = strtoul(buf, NULL, 0);
+
+	sprintf(fname, "%s/maps/map%d/size", udp->path, nr);
+	if (fgets_with_openclose(fname, buf, MAXNAMELEN) <= 0)
+		return -1;
+
+	ump->size = strtoul(buf, NULL, 0);
+
+	ump->iomem = mmap(0, ump->size,
+			  PROT_READ|PROT_WRITE, MAP_SHARED,
+			  udp->fd, nr * getpagesize());
+
+	if (ump->iomem == MAP_FAILED)
+		return -1;
+
+	return 0;
+}
+
+struct uio_device uio_dev;
+struct uio_map uio_mmio, uio_mem;
+
 extern void *global_context;
-static int vpufd, memfd;
-static int clock_on,sleep_time;
+static int sleep_time;
 static unsigned long sdr_base, sdr_start, sdr_end;
 unsigned long _BM4VSD_BGN, _BM4VSD_END;
 pthread_mutex_t vpu_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -66,8 +146,20 @@ long m4iph_sleep(void)
 	while( m4iph_vpu4_status()!=0);
 	m4iph_vpu4_int_handler();
 #else
-	/* Wait for an IRQ from the VPU. */
-	ioctl(vpufd, VPU4CTRL_SLEEPON, NULL);
+	/* Enable interrupt in UIO driver */
+	{
+		unsigned long enable = 1;
+
+		write(uio_dev.fd, &enable, sizeof(u_long));
+	}
+
+	/* Wait for an interrupt */
+	{
+		unsigned long n_pending;
+
+		read(uio_dev.fd, &n_pending, sizeof(u_long));
+	}
+
 	m4iph_vpu4_int_handler();
 #endif
 	gettimeofday(&tv1, &tz);
@@ -87,60 +179,58 @@ void m4iph_restart(void)
 
 int m4iph_vpu_open(void)
 {
-	if ((vpufd = open(VPU_DEV, O_RDWR)) < 0) {
-		vpufd = 0;
-		return -1;
-	}
-	if (!clock_on) {
-		ioctl(vpufd, VPU4CTRL_CLKON, NULL);
-		clock_on = 1;
-	}
+	int ret;
+
+	ret = locate_uio_device("VPU", &uio_dev);
+	if (ret < 0)
+		return ret;
+	
+	printf("found matching UIO device at %s\n", uio_dev.path);
+
+	ret = setup_uio_map(&uio_dev, 0, &uio_mmio);
+	if (ret < 0)
+		return ret;
+
+	ret = setup_uio_map(&uio_dev, 1, &uio_mem);
+	if (ret < 0)
+		return ret;
+
 	return 0;
 }
 
 void m4iph_vpu_close(void)
 {
-	close(vpufd);
-	vpufd = 0;
-	if (clock_on) {
-		ioctl(vpufd, VPU4CTRL_CLKOFF, NULL);
-		clock_on = 0;
-	}
 }
 
-unsigned long m4iph_reg_table_read(unsigned long *addr, unsigned long *data, long size)
+unsigned long m4iph_reg_table_read(unsigned long *addr, unsigned long *data, long nr_longs)
 {
-	unsigned long offset;
+	unsigned long *reg_base = uio_mmio.iomem;
+	int k;
 
-	offset = (unsigned long)addr - VP4_CTRL;
-	if (lseek(vpufd, (off_t)offset, SEEK_SET) == (off_t)-1) {
-		fprintf(stderr, "%s: Could not seek to register %lx\n",	__FUNCTION__, offset);
-		return 0;
-	} 
-	if (read(vpufd, data, size) < 0) {
-		perror("m4iph_reg_table_read");
-		return 0;
-	}
+	reg_base += ((unsigned long)addr - VP4_CTRL) / 4;
+
+	for (k = 0; k < nr_longs; k++)
+		data[k] = reg_base[k];
+
 #if DEBUG
-	for (offset = 0; offset < size; offset++)
+	for (offset = 0; offset < nr_longs; offset++)
 		printf("%s: addr = %p, data = %08lx\n", __FUNCTION__, addr++, *data++);
 #endif
-	return size;
+	return nr_longs;
 }
 
-void m4iph_reg_table_write(unsigned long *addr, unsigned long *data, long size)
+void m4iph_reg_table_write(unsigned long *addr, unsigned long *data, long nr_longs)
 {
-	unsigned long offset;
+	unsigned long *reg_base = uio_mmio.iomem;
+	int k;
 
-	offset = (unsigned long)addr - VP4_CTRL;
-	if (lseek(vpufd, (off_t)offset, SEEK_SET) == (off_t)-1) {
-		fprintf(stderr, "Could not seek to register %lx\n", offset);
-		return;
-	} 
-	if (write(vpufd, data, size) < 0) 
-		perror("m4iph_reg_table_write");
+	reg_base += ((unsigned long)addr - VP4_CTRL) / 4;
+
+	for (k = 0; k < nr_longs; k++)
+		reg_base[k] = data[k];
+
 #if DEBUG
-	for (offset = 0; offset < size; offset++) {
+	for (offset = 0; offset < nr_longs; offset++) {
 		printf("%s: addr = %p, data = %08lx\n", __FUNCTION__, addr, *data);
 		addr++;
 		data++;
@@ -150,46 +240,29 @@ void m4iph_reg_table_write(unsigned long *addr, unsigned long *data, long size)
 
 int m4iph_sdr_open(void)
 {
-	if ((memfd = open(MEM_DEV, O_RDWR)) < 0) {
-		perror(MEM_DEV);
-		memfd = 0;
-		return -1;
-	}
-	if (ioctl(vpufd, VPU4CTRL_GET_SDR_BASE, &sdr_start)) {
-		perror("VPU4CTRL_GET_SDR_BASE");
-		return -1;
-	}
-	sdr_base = sdr_start;
-	sdr_end = sdr_base + SDR_SIZE;
+	sdr_base = sdr_start = uio_mem.address;
+	sdr_end = sdr_base + uio_mem.size;
 	return 0;
 }
 
 void m4iph_sdr_close(void)
 {
-	if (memfd > 0)
-		close(memfd);
-	memfd = 0;
 	sdr_base = sdr_start = sdr_end = 0;
 }
 
 void *m4iph_map_sdr_mem(void *address, int size)
 {
-	void *ret;
-
-	ret = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, memfd, (off_t)address);
-	if (ret == (void *)MAP_FAILED)
-		return NULL;
-	return ret;
+	return uio_mem.iomem + ((unsigned long)address - uio_mem.address);
 }
 
 int m4iph_unmap_sdr_mem(void *address, int size)
 {
-	return munmap(address, size);
+	return 0;
 }
 
 int m4iph_sync_sdr_mem(void *address, int size)
 {
-	return msync(address, size, MS_SYNC);
+	return 0;
 }
 
 unsigned long m4iph_sdr_read(unsigned char *address, unsigned char *buffer,
@@ -366,12 +439,12 @@ void avcbd_get_time_code(long h, long m, long s)
 
 int vpu4_clock_on(void)
 {
-	return(ioctl(vpufd,VPU4CTRL_CLKON,NULL));
+	return 0;
 }
 
 int vpu4_clock_off(void)
 {
-	return(ioctl(vpufd,VPU4CTRL_CLKOFF,NULL));
+	return 0;
 }
 
 int avcbd_idr_adjust( void *context )
