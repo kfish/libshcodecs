@@ -25,6 +25,13 @@
 #include "avcbe_inner.h"
 #include "QuantMatrix.h"
 
+#include "capture.h"
+
+#define DEBUG
+
+#define ENC_WIDTH 640
+#define ENC_HEIGHT 480
+
 #ifdef CAPT_INPUT
 #if 0
 #include	"cpu_sh73380.h"
@@ -111,17 +118,17 @@ unsigned long  cnt;
 long  tmp;
 
 #pragma section	_VRAM_BUFF
-	unsigned short	VRAM_Buff[320][240];	/* 16bit RGB */
+	unsigned short	VRAM_Buff[ENC_WIDTH][ENC_HEIGHT];	/* 16bit RGB */
 #pragma section
 #pragma section	_VRAM_BUFF1
-	unsigned short	VRAM_Buff1[320][240];	/* Y */
+	unsigned short	VRAM_Buff1[ENC_WIDTH][ENC_HEIGHT];	/* Y */
 #pragma section
 #pragma section	_VRAM_BUFF2
 
-	unsigned short	VRAM_Buff2[320][240];	/* Cb,Cr */
+	unsigned short	VRAM_Buff2[ENC_WIDTH][ENC_HEIGHT];	/* Cb,Cr */
 #pragma section
 #pragma section	_VRAM_BUFF3
-	unsigned long  VRAM_Buff3[320][240];  /* 18bit RGB */
+	unsigned long  VRAM_Buff3[ENC_WIDTH][ENC_HEIGHT];  /* 18bit RGB */
 #pragma section
 
 void	cnvs_data( void );
@@ -227,6 +234,8 @@ int main(int argc, char *argv[])
 		return -1;
 	}                 
 
+	ainfo.ceu = sh_ceu_open ("/dev/video0", ENC_WIDTH, ENC_HEIGHT);
+
 	/* stream buffer 0 clear */
 //	memset(sdr_read_my_stream_buff,0,sizeof(sdr_read_my_stream_buff));
 	m4iph_vpu_open();
@@ -236,8 +245,12 @@ int main(int argc, char *argv[])
 	vpu4_clock_on();
 	width_height = ainfo.enc_exec_info.xpic * ainfo.enc_exec_info.ypic;
 	width_height += (width_height/2);
+
+        printf ("width_height: %d\n", width_height);
+
 	max_frame = 2;
-	sdr_base = m4iph_sdr_malloc(width_height * (max_frame+3), 32); // TODO check memsize	
+	sdr_base = m4iph_sdr_malloc(width_height * (max_frame+3), 32);
+	if (sdr_base == NULL) exit (1);
 	kernel_memory_for_vpu_top = (unsigned long *)sdr_base;
 	for (i=0; i<max_frame; i++ ) {
 		my_frame_memory_capt[i] = (unsigned long *)(sdr_base + width_height*i);
@@ -253,6 +266,9 @@ int main(int argc, char *argv[])
 	my_end_code_buff_bak = malloc(MY_END_CODE_BUFF_SIZE + 31);
 	my_end_code_buff = ALIGN(my_end_code_buff_bak, 32);
 	success_count = 0;
+
+	sh_ceu_start_capturing (ainfo.ceu);
+
 	for (loop_index=0; loop_index < 1; loop_index++) {  
 		/* encode on each case */
 		if ( stream_type == AVCBE_H264 ) {
@@ -269,6 +285,9 @@ int main(int argc, char *argv[])
 			success_count++;
 		}
 	} 
+
+	sh_ceu_stop_capturing (ainfo.ceu);
+
 	m4iph_sdr_free(sdr_base,  width_height * (max_frame+3));
 	m4iph_sdr_free(ainfo.vpu4_param.m4iph_temporary_buff_address, MY_STREAM_BUFF_SIZE);
 	m4iph_sdr_close();
@@ -280,6 +299,8 @@ int main(int argc, char *argv[])
 printf("Total encode time = %d(msec)\n",encode_time_get());
 printf("Total sleep  time = %d(msec)\n",m4iph_sleep_time_get());
 	/* TODO vpu4_reg_close(); */
+
+	sh_ceu_close (ainfo.ceu);
 }
 
 /*---------------------------------------------------------------------*/
@@ -395,6 +416,7 @@ long init_for_encoder_mpeg4(long case_no, APPLI_INFO *appli_info, long stream_ty
 
 	frame_counter_of_input = 0;
 #ifndef CAPT_INPUT
+#if 0
 	/*--- open input YUV data file (one of the user application's own
 	 *  functions) ---*/
 	return_code = open_input_image_file(appli_info);
@@ -402,6 +424,7 @@ long init_for_encoder_mpeg4(long case_no, APPLI_INFO *appli_info, long stream_ty
 		DisplayMessage(" encode_1file:open_input_image_file ERROR! ", 1);
 		return (-6);
 	} 
+#endif
 #endif
 	/*--- open output file (one of the user application's own functions) ---*/
 	return_code = open_output_file(appli_info);
@@ -668,9 +691,14 @@ printf("BVOP index=%d\n",index);
 #ifdef CAPT_INPUT
 	
 #else
-		return_code = load_1frame_from_image_file(appli_info, addr_y, addr_c);
+
+		printf ("encode_picture_for_mpeg4: capture_image ...\n");
+
+		/* return_code = load_1frame_from_image_file(appli_info, addr_y, addr_c);*/
+		return_code = capture_image (appli_info, addr_y, addr_c);
    		if (return_code < 0) {	/* error */ 
-   			DisplayMessage(" encode_1file_mpeg4:load_1frame_from_image_file ERROR! ", 1);
+   			/*DisplayMessage(" encode_1file_mpeg4:load_1frame_from_image_file ERROR! ", 1);*/
+   			DisplayMessage(" encode_1file_mpeg4:capture_image ERROR! ", 1);
 			appli_info->error_return_function = -8;
 			appli_info->error_return_code = return_code;
 			return (-8);
@@ -703,11 +731,22 @@ memset(&my_stream_buff[0], 0, MY_STREAM_BUFF_SIZE);
 				appli_info->output_type, &my_stream_buff_info, NULL);
 		vpu4_clock_off();
 #else
+#ifdef DEBUG
+		printf ("encode_picture_for_mpeg4: avcbe_encode_picture (%x, %ld, %ld, %ld, {%ld, %x})\n",
+			context, frm, appli_info->set_intra, appli_info->output_type,
+			my_stream_buff_info.buff_size, my_stream_buff_info.buff_top);
+#endif
 		vpu4_clock_on();
 gettimeofday(&tv, &tz);
 //printf("enc_pic0=%ld,",tv.tv_usec);
 		return_code = avcbe_encode_picture(context, frm, appli_info->set_intra,	appli_info->output_type, &my_stream_buff_info, NULL);
 gettimeofday(&tv1, &tz);
+
+#ifdef DEBUG
+		printf ("encode_picture_for_mpeg4: avcbe_encode_picture returned %dn", return_code);
+#endif
+		
+
 //printf("ret=%d,enc_pic1=%ld,",return_code,tv1.tv_usec);
 tm = (tv1.tv_usec-tv.tv_usec)/1000;
 if ( tm<0 ) {

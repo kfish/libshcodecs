@@ -8,7 +8,7 @@ RSOVPU4_LIBS = $(RSOVPU4DIR)/librsovpu4.la -lm
 
 #AM_CFLAGS = -v -Wall -O2 -I $(SRC_PATH) -fPIC -fno-common -m4-nofpu
 
-bin_PROGRAMS = rsovpu4capenc rsovpu4cap
+bin_PROGRAMS = rsovpu4enc rsovpu4capenc rsovpu4cap
 
 noinst_HEADERS = \
 	capture.h \
@@ -27,12 +27,33 @@ noinst_HEADERS = \
 	sh7722_vpu.h \
 	VPU4EncDef.h
 
-rsovpu4capenc_SOURCES =  \
+rsovpu4enc_SOURCES =  \
 	capture.c \
 	avcbeinputuser.c \
 	avcbencsmp_common.c \
 	avcbencsmp_h264.c \
 	avcbencsmp_mpeg4.c \
+	ControlFileUtil.c \
+	m4driverif.c \
+	QuantMatrix.c
+
+rsovpu4enc_CFLAGS = -v -Wall -O2 -I $(srcdir) -fPIC -fno-common -m4 \
+	-DNDEBUG -D_LIT -DSH=1 -DVPU4=1 \
+	-DAZASM=1 -DCACHE_PURGE=1 -DCOEFF_INTERMEM=1 -DFPGA=1 \
+	-DVPU_CBP_USED=1 -DVPU2_V20=1 -DSLEEP_ONCE=1 -DVPU=1 \
+	-DBS_FLUSH=1 -DENCOCE_ENABLE=1 -DTEL_WITHOUT_DISPLAY=1 \
+	-DSMAP=1 -DRC_TM5_ENABLE=1 -DVPU2=1 -DVPU3=1 -DFPGA2=1 \
+	-DVPU_FILEOUT=1 -DTEL_TRACE_LEVEL2=1 -DSH_X=1 -DLINUX_VPU=1CFLAGS \
+	-DVPU3IP -DVPU4IP -DMPEG4SP -DVPU4S
+
+rsovpu4enc_LDADD = -lstdc++ $(RSOVPU4_LIBS) $(VPU4_ENC_LIBS)
+
+rsovpu4capenc_SOURCES =  \
+	capture.c \
+	avcbeinputuser.c \
+	avcbencsmp_common.c \
+	avcbencsmp_h264.c \
+	avcbencsmp_mpeg4-capture.c \
 	ControlFileUtil.c \
 	m4driverif.c \
 	QuantMatrix.c
@@ -49,3 +70,4 @@ rsovpu4capenc_CFLAGS = -v -Wall -O2 -I $(srcdir) -fPIC -fno-common -m4 \
 rsovpu4capenc_LDADD = -lstdc++ $(RSOVPU4_LIBS) $(VPU4_ENC_LIBS)
 
 rsovpu4cap_SOURCES = capture.c rsovpu4cap.c
+
