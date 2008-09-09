@@ -39,9 +39,10 @@ typedef struct _sh_ceu {
 	unsigned int n_buffers;
 	int width;
 	int height;
+	unsigned int pixel_format;
 } sh_ceu;
 
-typedef void (*sh_process_callback)  (const void * frame_data, size_t length, void * user_data);
+typedef void (*sh_process_callback)  (sh_ceu * ceu, const void * frame_data, size_t length, void * user_data);
 
 
 static void
@@ -94,7 +95,7 @@ read_frame			(sh_ceu * ceu, sh_process_callback cb, void * user_data)
 
         assert (buf.index < ceu->n_buffers);
 
-        cb (ceu->buffers[buf.index].start, ceu->buffers[buf.index].length, user_data);
+        cb (ceu, ceu->buffers[buf.index].start, ceu->buffers[buf.index].length, user_data);
 
 	if (-1 == xioctl (ceu->fd, VIDIOC_QBUF, &buf))
 		errno_exit ("VIDIOC_QBUF");
@@ -312,8 +313,13 @@ init_device                     (sh_ceu * ceu)
         fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
         fmt.fmt.pix.field       = V4L2_FIELD_ANY;
 
-        if (-1 == xioctl (ceu->fd, VIDIOC_S_FMT, &fmt))
-                errno_exit ("VIDIOC_S_FMT");
+        if (-1 == xioctl (ceu->fd, VIDIOC_S_FMT, &fmt)) {
+        	fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB565;
+        	if (-1 == xioctl (ceu->fd, VIDIOC_S_FMT, &fmt)) {
+                	errno_exit ("VIDIOC_S_FMT");
+		}
+	}
+	ceu->pixel_format = fmt.fmt.pix.pixelformat;
 
         /* Note VIDIOC_S_FMT may change width and height. */
 
@@ -389,4 +395,10 @@ sh_ceu_open (const char * device_name, int width, int height)
 	init_device (ceu);
 
 	return ceu;
+}
+
+unsigned int
+sh_ceu_get_pixel_format (sh_ceu * ceu)
+{
+	return ceu->pixel_format;
 }

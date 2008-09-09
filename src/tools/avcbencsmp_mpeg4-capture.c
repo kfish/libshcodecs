@@ -26,6 +26,7 @@
 #include "QuantMatrix.h"
 
 #include "capture.h"
+#include "veu_colorspace.h"
 
 #define DEBUG
 
@@ -236,10 +237,16 @@ int main(int argc, char *argv[])
 
 	ainfo.ceu = sh_ceu_open ("/dev/video0", ENC_WIDTH, ENC_HEIGHT);
 
+	sh_veu_open ();
+
+        printf ("1: Got CEU\n");
+
 	/* stream buffer 0 clear */
 //	memset(sdr_read_my_stream_buff,0,sizeof(sdr_read_my_stream_buff));
 	m4iph_vpu_open();
+        printf ("1: Got VPU\n");
 	m4iph_sdr_open();
+        printf ("1: Got SDR\n");
 	m4iph_sleep_time_init();
 	encode_time_init();
 	vpu4_clock_on();
@@ -299,6 +306,8 @@ int main(int argc, char *argv[])
 printf("Total encode time = %d(msec)\n",encode_time_get());
 printf("Total sleep  time = %d(msec)\n",m4iph_sleep_time_get());
 	/* TODO vpu4_reg_close(); */
+
+	sh_veu_close ();
 
 	sh_ceu_close (ainfo.ceu);
 }

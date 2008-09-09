@@ -25,7 +25,8 @@ noinst_HEADERS = \
 	m4vse_api_sub.h \
 	QuantMatrix.h \
 	sh7722_vpu.h \
-	VPU4EncDef.h
+	VPU4EncDef.h \
+	veu_colorspace.h
 
 rsovpu4enc_SOURCES =  \
 	capture.c \
@@ -35,9 +36,10 @@ rsovpu4enc_SOURCES =  \
 	avcbencsmp_mpeg4.c \
 	ControlFileUtil.c \
 	m4driverif.c \
-	QuantMatrix.c
+	QuantMatrix.c \
+	veu_colorspace.c
 
-rsovpu4enc_CFLAGS = -v -Wall -O2 -I $(srcdir) -fPIC -fno-common -m4 \
+rsovpu4enc_CFLAGS = -v -Wall -O2 -I $(srcdir) -fPIC -fno-common \
 	-DNDEBUG -D_LIT -DSH=1 -DVPU4=1 \
 	-DAZASM=1 -DCACHE_PURGE=1 -DCOEFF_INTERMEM=1 -DFPGA=1 \
 	-DVPU_CBP_USED=1 -DVPU2_V20=1 -DSLEEP_ONCE=1 -DVPU=1 \
@@ -56,9 +58,10 @@ rsovpu4capenc_SOURCES =  \
 	avcbencsmp_mpeg4-capture.c \
 	ControlFileUtil.c \
 	m4driverif.c \
-	QuantMatrix.c
+	QuantMatrix.c \
+	veu_colorspace.c
 
-rsovpu4capenc_CFLAGS = -v -Wall -O2 -I $(srcdir) -fPIC -fno-common -m4 \
+rsovpu4capenc_CFLAGS = -v -Wall -O2 -I $(srcdir) -fPIC -fno-common \
 	-DNDEBUG -D_LIT -DSH=1 -DVPU4=1 \
 	-DAZASM=1 -DCACHE_PURGE=1 -DCOEFF_INTERMEM=1 -DFPGA=1 \
 	-DVPU_CBP_USED=1 -DVPU2_V20=1 -DSLEEP_ONCE=1 -DVPU=1 \
