@@ -351,9 +351,11 @@ long encode_picture_unit(long case_no, APPLI_INFO *appli_info, long stream_type,
 			appli_info->output_type = AVCBE_OUTPUT_SPS;
 			return_code = avcbe_encode_picture(context, frm, appli_info->set_intra, appli_info->output_type, &my_sps_stream_buff_info, NULL);
 			if (return_code == AVCBE_SPS_OUTPUTTED) { /* 6 */
+#if 0
 				sprintf(messeage_buf, " encode_1file_h264:avcbe_encode_picture OUTPUT SEQUENCE PARAMETER SET frm=%d,seq_no=%d ",
 							 (int)frm, (int)appli_info->frame_counter);
 				DisplayMessage(messeage_buf, 1);
+#endif
 				/* get the size of SPS data in byte unit */
 				avcbe_get_last_slice_stat(context, &slice_stat);
 				appli_info->SPS_PPS_header_bytes = slice_stat.avcbe_SPS_unit_bytes;
@@ -369,8 +371,10 @@ long encode_picture_unit(long case_no, APPLI_INFO *appli_info, long stream_type,
 			appli_info->output_type = AVCBE_OUTPUT_PPS;
 			return_code = avcbe_encode_picture(context, frm, appli_info->set_intra, appli_info->output_type, &my_pps_stream_buff_info, NULL);
 			if (return_code == AVCBE_PPS_OUTPUTTED) { /* 7 */
-				sprintf(messeage_buf, " encode_1file:avcbe_encode_picture OUTPUT PICTURE PARAMETER SET frm=%d,seq_no=%d ",
-							 (int)frm, (int)appli_info->frame_counter);
+				//sprintf(messeage_buf, " encode_1file:avcbe_encode_picture OUTPUT PICTURE PARAMETER SET frm=%d,seq_no=%d ",
+				//			 (int)frm, (int)appli_info->frame_counter);
+				sprintf(messeage_buf, "Encoded frame %5d, sequence no %5d",
+					 (int)frm, (int)appli_info->frame_counter);
 				DisplayMessage(messeage_buf, 1); 
 
 				/* get the size of PPS data in byte unit */
@@ -391,8 +395,10 @@ long encode_picture_unit(long case_no, APPLI_INFO *appli_info, long stream_type,
 				sprintf(messeage_buf, " Not put SEI parameter : return_code = %06x\n", (int)return_code);
 				DisplayMessage(messeage_buf, 1);
 			} else {
+#if 0
 				sprintf(messeage_buf, "%s:%d: Put SEI parameter : return_code = %d\n", __FUNCTION__, __LINE__, (int)return_code);
 				DisplayMessage(messeage_buf, 1);
+#endif
 			}		
 		}
     		/*--- copy yuv data to the image-capture-field area each frame (one of the user application's own functions) ---*/
@@ -503,9 +509,12 @@ long encode_picture_unit(long case_no, APPLI_INFO *appli_info, long stream_type,
 				appli_info->output_type = AVCBE_OUTPUT_SPS;	
 				return_code = avcbe_encode_picture(context, frm, appli_info->set_intra, appli_info->output_type, &my_sps_stream_buff_info, NULL);
 				if (return_code == AVCBE_SPS_OUTPUTTED) { /* 6 */
+#if 0
 					sprintf(messeage_buf, " encode_1file_h264:avcbe_encode_picture OUTPUT SEQUENCE PARAMETER SET frm=%d,seq_no=%d ",
 								 (int)frm, (int)appli_info->frame_counter);
 					DisplayMessage(messeage_buf, 1);
+#endif
+
 					/* get the size of SPS data in byte unit */
 					avcbe_get_last_slice_stat(context, &slice_stat);
 					appli_info->SPS_PPS_header_bytes = slice_stat.avcbe_SPS_unit_bytes;
@@ -525,9 +534,12 @@ long encode_picture_unit(long case_no, APPLI_INFO *appli_info, long stream_type,
 				return_code = avcbe_encode_picture(context, frm, appli_info->set_intra, appli_info->output_type, 
 												&my_pps_stream_buff_info, NULL);
 				if (return_code == AVCBE_PPS_OUTPUTTED) { /* 7 */
-					sprintf(messeage_buf, " encode_1file_h264:avcbe_encode_picture OUTPUT PICTURE PARAMETER SET frm=%d,seq_no=%d ",
-								 (int)frm, (int)appli_info->frame_counter);
+					//sprintf(messeage_buf, " encode_1file_h264:avcbe_encode_picture OUTPUT PICTURE PARAMETER SET frm=%d,seq_no=%d ",
+					//			 (int)frm, (int)appli_info->frame_counter);
+					sprintf(messeage_buf, "Encoded frame %5d, sequence no %5d",
+						 (int)frm, (int)appli_info->frame_counter);
 					DisplayMessage(messeage_buf, 1); 
+
 					/* get the size of PPS data in byte unit */
 					avcbe_get_last_slice_stat(context, &slice_stat);
 					appli_info->SPS_PPS_header_bytes += slice_stat.avcbe_PPS_unit_bytes;
@@ -560,8 +572,10 @@ long encode_picture_unit(long case_no, APPLI_INFO *appli_info, long stream_type,
 				sprintf(messeage_buf, " Not put SEI parameter : return_code = %06x\n", (int)return_code);
 				DisplayMessage(messeage_buf, 1);
 			} else {
+#if 0
 				sprintf(messeage_buf, "%s:%d Put SEI parameter : return_code = %d\n", __FUNCTION__, __LINE__, (int)return_code);
 				DisplayMessage(messeage_buf, 1);
+#endif
 			}
 
 			/* concatenate Filler data(if CPB Buffer overflow) */
@@ -576,9 +590,11 @@ long encode_picture_unit(long case_no, APPLI_INFO *appli_info, long stream_type,
 			streamsize_per_frame = ((slice_stat.avcbe_encoded_slice_bits + 7)>>3);
 			cat_output_stream(appli_info, context, (char *)&my_stream_buff[0], streamsize_per_frame);
 			fwrite((char *)&my_stream_buff[0], 1, streamsize_per_frame, appli_info->output_file_fp);
+#if 0
 			sprintf(messeage_buf, " encode_1file_h264:avcbe_encode_picture SUCCESS  frm=%d,seq_no=%d,size=%d ",
 						(int)frm, (int)appli_info->frame_counter,streamsize_per_frame);
 			DisplayMessage(messeage_buf, 1);
+#endif
 		} /* the end of 'if (return_code == AVCBE_ENCODE_SUCCESS)' */
 		if (return_code == AVCBE_ENCODE_SUCCESS) {
 			streamsize_total += (slice_stat.avcbe_encoded_slice_bits/8);
@@ -705,9 +721,12 @@ long encode_nal_unit(long case_no, APPLI_INFO *appli_info, long stream_type, avc
 											&my_sps_stream_buff_info, NULL);
 
 			if (return_code == AVCBE_SPS_OUTPUTTED) { /* 6 */
+#if 0
 				sprintf(messeage_buf, " encode_1file:avcbe_encode_picture OUTPUT SEQUENCE PARAMETER SET frm=%d,seq_no=%d ", 
 							(int)frm, (int)appli_info->frame_counter);
 				DisplayMessage(messeage_buf, 1);
+#endif
+
 				/* get the size of SPS data in byte unit */
 				avcbe_get_last_slice_stat(context, &slice_stat);
 				appli_info->SPS_PPS_header_bytes = slice_stat.avcbe_SPS_unit_bytes;
@@ -723,9 +742,12 @@ long encode_nal_unit(long case_no, APPLI_INFO *appli_info, long stream_type, avc
 			return_code = avcbe_encode_picture(context, frm, appli_info->set_intra, appli_info->output_type, 
 											&my_pps_stream_buff_info, NULL);
 			if (return_code == AVCBE_PPS_OUTPUTTED) { /* 7 */
-				sprintf(messeage_buf, " encode_1file:avcbe_encode_picture OUTPUT PICTURE PARAMETER SET frm=%d,seq_no=%d ",
-							 (int)frm, (int)appli_info->frame_counter);
+				//sprintf(messeage_buf, " encode_1file:avcbe_encode_picture OUTPUT PICTURE PARAMETER SET frm=%d,seq_no=%d ",
+				//			 (int)frm, (int)appli_info->frame_counter);
+				sprintf(messeage_buf, "Encoded frame %5d, sequence no %5d",
+					 	(int)frm, (int)appli_info->frame_counter);
 				DisplayMessage(messeage_buf, 1); 
+
 				/* get the size of PPS data in byte unit */
 				avcbe_get_last_slice_stat(context, &slice_stat);
 				appli_info->SPS_PPS_header_bytes += slice_stat.avcbe_PPS_unit_bytes;
@@ -913,9 +935,11 @@ long encode_nal_unit(long case_no, APPLI_INFO *appli_info, long stream_type, avc
 												&my_sps_stream_buff_info, NULL);
 
 				if (return_code == AVCBE_SPS_OUTPUTTED) { /* 6 */
+#if 0
 					sprintf(messeage_buf, " encode_1file:avcbe_encode_picture OUTPUT SEQUENCE PARAMETER SET frm=%d,seq_no=%d ",
 								 (int)frm, (int)appli_info->frame_counter);
 					DisplayMessage(messeage_buf, 1);
+#endif
 
 					/* get the size of SPS data in byte unit */
 					avcbe_get_last_slice_stat(context, &slice_stat);
@@ -938,8 +962,10 @@ long encode_nal_unit(long case_no, APPLI_INFO *appli_info, long stream_type, avc
 				return_code = avcbe_encode_picture(context, frm, appli_info->set_intra, appli_info->output_type, 
 												&my_pps_stream_buff_info, NULL);
 				if (return_code == AVCBE_PPS_OUTPUTTED) { /* 7 */
-					sprintf(messeage_buf, " encode_1file:avcbe_encode_picture OUTPUT PICTURE PARAMETER SET frm=%d,seq_no=%d ", 
-								(int)frm, (int)appli_info->frame_counter);
+					//sprintf(messeage_buf, " encode_1file:avcbe_encode_picture OUTPUT PICTURE PARAMETER SET frm=%d,seq_no=%d ", 
+					//			(int)frm, (int)appli_info->frame_counter);
+					sprintf(messeage_buf, "Encoded frame %5d, sequence no %5d",
+						 	(int)frm, (int)appli_info->frame_counter);
 					DisplayMessage(messeage_buf, 1); 
 
 					/* set to output PPS data */

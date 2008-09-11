@@ -98,13 +98,8 @@ capture_image_cb (sh_ceu * ceu, const void * frame_data, size_t length, void * u
 	unsigned int oy;
 	int ou, ov;
 
-        printf ("capture_image_cb IN\n");
-        fflush (stdout);
-
 	hsiz = cap->appli_info->param.avcbe_xpic_size;
 	ysiz = cap->appli_info->param.avcbe_ypic_size;
-
-        printf ("capture_image_cb got img %ld x %ld\n", hsiz, ysiz);
 
 	/* write memory data size offset make to multiples of 16 */
 	wnum = (((hsiz +15)/16) * 16) * (((ysiz +15)/16) * 16); 
@@ -263,9 +258,6 @@ capture_image_cb (sh_ceu * ceu, const void * frame_data, size_t length, void * u
 	m4iph_sdr_write((unsigned char *)cap->addr_c, (unsigned char*)CbCr_ptr, wnum/2);
 	free(w_addr_yuv);
 	free(CbCr_ptr);
-
-        printf ("capture_image_cb OUT\n");
-        fflush (stdout);
 }
 
 /* capture yuv data to the image-capture-field area each frame */
