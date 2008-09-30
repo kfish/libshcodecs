@@ -118,7 +118,10 @@ capture_image_cb (sh_ceu * ceu, const void * frame_data, size_t length, void * u
 
 	pixel_format = sh_ceu_get_pixel_format (ceu);
 
-	if (pixel_format == V4L2_PIX_FMT_UYVY) {
+	if (pixel_format == V4L2_PIX_FMT_NV12) {
+		memcpy (w_addr_yuv, frame_data, hsiz*ysiz);
+		memcpy (CbCr_ptr, &frame_data[hsiz*ysiz], hsiz*ysiz/2);
+	} else if (pixel_format == V4L2_PIX_FMT_UYVY) {
         	/* Convert from captured UYVY to NV12 */
 		d = frame_data;
 		y = (unsigned char *)w_addr_yuv;

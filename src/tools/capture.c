@@ -310,13 +310,16 @@ init_device                     (sh_ceu * ceu)
         fmt.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         fmt.fmt.pix.width       = ceu->width; 
         fmt.fmt.pix.height      = ceu->height;
-        fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
+        fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_NV12;
         fmt.fmt.pix.field       = V4L2_FIELD_ANY;
 
         if (-1 == xioctl (ceu->fd, VIDIOC_S_FMT, &fmt)) {
-        	fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB565;
+        	fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
         	if (-1 == xioctl (ceu->fd, VIDIOC_S_FMT, &fmt)) {
-                	errno_exit ("VIDIOC_S_FMT");
+        		fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB565;
+        		if (-1 == xioctl (ceu->fd, VIDIOC_S_FMT, &fmt)) {
+               			errno_exit ("VIDIOC_S_FMT");
+			}
 		}
 	}
 	ceu->pixel_format = fmt.fmt.pix.pixelformat;
