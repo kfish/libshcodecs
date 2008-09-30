@@ -7,6 +7,6 @@ Name: rsovpu4 uninstalled
 Description: A library for controlling VPU4
 Requires:
 Version: @VERSION@
-Libs: -L${libdir}
+Libs: -L${libdir} -lrsovpu4
 Libs.private: @VPU4_LIBS@
 Cflags: -I${includedir}
