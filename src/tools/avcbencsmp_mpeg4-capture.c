@@ -30,6 +30,7 @@
 
 #define DEBUG
 
+/* Maximum width and height of capture, used for allocating static buffers. */
 #define ENC_WIDTH 640
 #define ENC_HEIGHT 480
 
@@ -235,7 +236,7 @@ int main(int argc, char *argv[])
 		return -1;
 	}                 
 
-	ainfo.ceu = sh_ceu_open ("/dev/video0", ENC_WIDTH, ENC_HEIGHT);
+	ainfo.ceu = sh_ceu_open ("/dev/video0", ainfo.enc_exec_info.xpic, ainfo.enc_exec_info.ypic);
 
 	sh_veu_open ();
 
