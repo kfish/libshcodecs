@@ -3,10 +3,10 @@
 INCLUDES = -I$(top_builddir) \
            -I$(top_srcdir)/include
 
-RSOVPU4DIR = ../librsovpu4
-RSOVPU4_LIBS = $(RSOVPU4DIR)/librsovpu4.la -lm
+SHCODECSDIR = ../libshcodecs
+SHCODECS_LIBS = $(SHCODECSDIR)/libshcodecs.la -lm
 
-bin_PROGRAMS = rsovpu4dec
+bin_PROGRAMS = shcodecsdec
 
-rsovpu4dec_SOURCES = sample_dec.c
-rsovpu4dec_LDADD = $(RSOVPU4_LIBS)
+shcodecsdec_SOURCES = sample_dec.c
+shcodecsdec_LDADD = $(SHCODECS_LIBS)

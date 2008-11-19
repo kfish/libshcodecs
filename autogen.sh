@@ -2,7 +2,7 @@
 # Run this to set up the build system: configure, makefiles, etc.
 # (based on the version in enlightenment's cvs)
 
-package="librsovpu4"
+package="libshcodecs"
 
 olddir=`pwd`
 srcdir=`dirname $0`

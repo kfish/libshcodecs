@@ -1,5 +1,5 @@
 #
-# Export file for libuiomux
+# Export file for libshcodecs
 #
 # Only the symbols listed in the global section will be callable from
 # applications linking to libuiomux.
@@ -8,11 +8,11 @@
 @PACKAGE@.so.0.0
 {
         global:
-		rsovpu4_decoder_init;
-		rsovpu4_decoder_close;
-		rsovpu4_decoder_set_decoded_callback;
-		rsovpu4_decoder_preferred_length;
-		rsovpu4_decode;
+		shcodecs_decoder_init;
+		shcodecs_decoder_close;
+		shcodecs_decoder_set_decoded_callback;
+		shcodecs_decoder_preferred_length;
+		shcodecs_decode;
 
 		global_context;
 		m4iph_enc_continue;

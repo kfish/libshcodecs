@@ -16,7 +16,7 @@
 #include <sys/types.h>
 #include <sys/time.h>
 
-#include <rsovpu4/rsovpu4_decoder.h>
+#include <shcodecs/shcodecs_decoder.h>
 
 #define INPUT_BUF_SIZE	(256 * 1024)
 
@@ -34,7 +34,7 @@ static int  open_OutputStream(void);
 void UserDisp(__const char *__restrict __format, ...);
 static void decode_time_Initialize(void);
 static unsigned long decode_Get_time(void);
-static int increment_Input(RSOVPU4_Decoder * decoder, int len);
+static int increment_Input(SHCodecs_Decoder * decoder, int len);
 
 static int local_init (char *pInputfile, char *pOutputfile);
 static int local_close (void);
@@ -77,7 +77,7 @@ static long performance_flag=0;
 
 /* local output callback, should be static */
 static int
-local_vpu4_decoded (RSOVPU4_Decoder * decoder,
+local_vpu4_decoded (SHCodecs_Decoder * decoder,
                     unsigned char * y_buf, int y_size,
                     unsigned char * c_buf, int c_size,
                     void * user_data)
@@ -98,8 +98,8 @@ local_vpu4_decoded (RSOVPU4_Decoder * decoder,
 /* XXX: local (main) */
 int main(int argc, char **argv)
 {
-        RSOVPU4_Decoder * decoder;
-	int iRtn=0, iStream_typ = RSOVPU4_Format_H264, iIdx, w, h;
+        SHCodecs_Decoder * decoder;
+	int iRtn=0, iStream_typ = SHCodecs_Format_H264, iIdx, w, h;
 	char c, szIfile[MAXPATHLEN], szOfile[MAXPATHLEN];
 	struct sched_param stSchePara;
         int pref_len;
@@ -121,9 +121,9 @@ int main(int argc, char **argv)
 		switch (c) {
 			case 'f':
 				if (strncmp(optarg, "mpeg4", 5) == 0)
-					iStream_typ = RSOVPU4_Format_MPEG4;
+					iStream_typ = SHCodecs_Format_MPEG4;
 				else if (strncmp(optarg, "h264", 4) == 0)
-					iStream_typ = RSOVPU4_Format_H264;
+					iStream_typ = SHCodecs_Format_H264;
 				else{
 					/*int ilen = strlen(optarg);*/
 					/*printf("optarg len = %d \n", optarg);*/
@@ -167,7 +167,7 @@ int main(int argc, char **argv)
 		UserDisp("Invalid input file.\n");
 		exit(-5);
 	}
-	if (w < RSOVPU4_MIN_FX || w > RSOVPU4_MAX_FX || h < RSOVPU4_MIN_FY || h > RSOVPU4_MAX_FY) {
+	if (w < SHCODECS_MIN_FX || w > SHCODECS_MAX_FX || h < SHCODECS_MIN_FY || h > SHCODECS_MAX_FY) {
 		UserDisp("Invalid width and/or height specified.\n");
 		exit(-6);
 	}
@@ -175,7 +175,7 @@ int main(int argc, char **argv)
 		UserDisp("Too many arguments.\n");
 		exit(-7);
 	}
-	UserDisp("Format: %s\n", iStream_typ == RSOVPU4_Format_H264 ? "H.264" : "MPEG4");
+	UserDisp("Format: %s\n", iStream_typ == SHCodecs_Format_H264 ? "H.264" : "MPEG4");
 	UserDisp("Resolution: %dx%d\n", w, h);
 	UserDisp("Input  file: %s\n", szIfile);
 	UserDisp("Output file: %s\n", szOfile);
@@ -191,29 +191,29 @@ int main(int argc, char **argv)
     */
 
         /* XXX: init */
-        decoder = rsovpu4_decoder_init(w, h, iStream_typ);
+        decoder = shcodecs_decoder_init(w, h, iStream_typ);
 
         /* XXX: local */
         decode_time_Initialize();
 
         local_init(szIfile, szOfile);
 
-	rsovpu4_decoder_set_decoded_callback (decoder, local_vpu4_decoded, NULL);
+	shcodecs_decoder_set_decoded_callback (decoder, local_vpu4_decoded, NULL);
 
         /* XXX: decode -- start main loop */
 #if 0
 	decoder_Start(decoder);
 #else
         do {
-	  rsovpu4_decode (decoder, pbInput_BufferMemory + si_ipos, si_isize - si_ipos);
-          pref_len = rsovpu4_decoder_preferred_length (decoder);
+	  shcodecs_decode (decoder, pbInput_BufferMemory + si_ipos, si_isize - si_ipos);
+          pref_len = shcodecs_decoder_preferred_length (decoder);
         } while (increment_Input (decoder, pref_len) == 0);
 #endif
 
         local_close ();
 
         /* XXX: shutdown */
-        rsovpu4_decoder_close(decoder);
+        shcodecs_decoder_close(decoder);
 
         /* XXX: local */
 	UserDisp("Total decode time = %d(msec)\n",(int)decode_Get_time());
@@ -361,7 +361,7 @@ long m4iph_enc_continue(long output_bits)
  * increment_Input
  * Increment pointer to the input bitstream after decoding a frame/slice.
  */
-static int increment_Input(RSOVPU4_Decoder * decoder, int len)
+static int increment_Input(SHCodecs_Decoder * decoder, int len)
 {
 	int current_pos = si_ipos + len;
 	int rem = si_isize - current_pos;

@@ -27,14 +27,14 @@ extern int vpu4_encode(char *ifile, char *ofile, int x, int y, int format,
 extern int vpu4_loopback(int x, int y, int format);
 extern int get_decoded_frames(void);
 
-typedef struct _RSOVPU4_Decoder RSOVPU4_Decoder;
+typedef struct _SHCodecs_Decoder SHCodecs_Decoder;
 
-typedef int (*RSOVPU4_Decoded_Callback) (RSOVPU4_Decoder * decoder,
-                                         unsigned char * y_buf, int y_size,
-                                         unsigned char * c_buf, int c_size,
-                                         void * user_data);
+typedef int (*SHCodecs_Decoded_Callback) (SHCodecs_Decoder * decoder,
+                                          unsigned char * y_buf, int y_size,
+                                          unsigned char * c_buf, int c_size,
+                                          void * user_data);
 
-struct _RSOVPU4_Decoder {
+struct _SHCodecs_Decoder {
 	int		si_valid;	/* Is stream valid ? */
 	int		iStream_type;	/* Type of stream */
 	int		iStream_User_FrameWidth;	/* user frame width */
@@ -57,7 +57,7 @@ struct _RSOVPU4_Decoder {
         int             preferred_len;  /* Preferred length of next input */
 	unsigned char   *input_data;
         int             input_len;
-        RSOVPU4_Decoded_Callback decoded_cb;
+        SHCodecs_Decoded_Callback decoded_cb;
         void            *decoded_cb_data;
 };
 
@@ -93,20 +93,20 @@ void workaround_vpu4_cmodel(void);
 /*
  * init ()
  */
-RSOVPU4_Decoder *
-rsovpu4_decoder_init(int width, int height, int format);
+SHCodecs_Decoder *
+shcodecs_decoder_init(int width, int height, int format);
 
 /*
  * close ()
  */
 void
-rsovpu4_decoder_close (RSOVPU4_Decoder * decoder);
+shcodecs_decoder_close (SHCodecs_Decoder * decoder);
 
 int
-rsovpu4_decoder_preferred_length (RSOVPU4_Decoder * decoder);
+shcodecs_decoder_preferred_length (SHCodecs_Decoder * decoder);
 
 int
-rsovpu4_decode (RSOVPU4_Decoder * decoder, unsigned char * data, int len);
+shcodecs_decode (SHCodecs_Decoder * decoder, unsigned char * data, int len);
 
 
 #endif /* _SAMPLE_MAIN_H_ */

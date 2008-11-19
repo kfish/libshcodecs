@@ -3,10 +3,10 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: rsovpu4
-Description: A library for controlling VPU4
+Name: shcodecs
+Description: A library for controlling SH-Mobile hardware codecs
 Requires:
 Version: @VERSION@
-Libs: -L${libdir} -lrsovpu4
+Libs: -L${libdir} -lshcodecs
 Libs.private: @VPU4_LIBS@
 Cflags: -I${includedir}

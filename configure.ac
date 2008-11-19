@@ -1,12 +1,12 @@
 # Process this file with autoconf to produce a configure script.
 AC_INIT
-AC_CONFIG_SRCDIR([src/librsovpu4/rsovpu4_decoder.c])
+AC_CONFIG_SRCDIR([src/libshcodecs/shcodecs_decoder.c])
 
 AC_PREREQ(2.53)
 
 AC_CANONICAL_TARGET
 
-AM_INIT_AUTOMAKE(librsovpu4, 0.7.5)
+AM_INIT_AUTOMAKE(libshcodecs, 0.8.0)
 AM_CONFIG_HEADER(config.h)
 
 SHARED_VERSION_INFO="1:0:0"
@@ -75,7 +75,7 @@ fi
 dnl Checks for libraries.
 LIBS=""
 
-dnl The following depend on the functions in src/librsovpu4/m4driver.c
+dnl The following depend on the functions in src/libshcodecs/m4driver.c
 dnl AC_CHECK_LIB(m4iph, m4iph_vpu4_decode, HAVE_M4IPH="yes", , [-lm4vsd])
 dnl AC_CHECK_LIB(m4vsd, m4vsd_start_decoding, HAVE_M4VSD="yes", , [-lm4iph])
 dnl AC_CHECK_LIB(avcbd, avcbd_decode_picture, HAVE_AVCBD="yes", , [-lm4vsd -lm4iph])
@@ -102,10 +102,10 @@ if test "x$HAVE_GETOPT_LONG" = xyes ; then
 fi
 
 dnl Overall configuration success flag
-rsovpu4_config_ok=yes
+shcodecs_config_ok=yes
 
-rsovpu4_read_programs=""
-rsovpu4_rw_programs=""
+shcodecs_read_programs=""
+shcodecs_rw_programs=""
 
 dnl
 dnl  Configuration option for building of experimental code.
@@ -117,7 +117,7 @@ AC_ARG_ENABLE(experimental,
      [ ac_enable_experimental=yes ])
 
 if test "x${ac_enable_experimental}" = xyes ; then
-    AC_DEFINE(RSOVPU4_CONFIG_EXPERIMENTAL, [], [Define to build experimental code])
+    AC_DEFINE(SHCODECS_CONFIG_EXPERIMENTAL, [], [Define to build experimental code])
 fi
 
 # Checks for header files.
@@ -161,7 +161,7 @@ dnl
 dnl  Configuration tests complete -- provide summary of results.
 dnl
 
-if test $rsovpu4_config_ok = no ; then
+if test $shcodecs_config_ok = no ; then
 
 AC_MSG_RESULT([
 **************************************************************
@@ -217,15 +217,15 @@ data/Makefile
 doc/Makefile
 doc/Doxyfile
 include/Makefile
-include/rsovpu4/Makefile
+include/shcodecs/Makefile
 src/Makefile
-src/librsovpu4/Version_script
-src/librsovpu4/Makefile
+src/libshcodecs/Version_script
+src/libshcodecs/Makefile
 src/tests/Makefile
 src/tools/Makefile
 src/examples/Makefile
-rsovpu4.pc
-rsovpu4-uninstalled.pc
+shcodecs.pc
+shcodecs-uninstalled.pc
 ])
 
 AC_MSG_RESULT([
@@ -238,8 +238,8 @@ AC_MSG_RESULT([
 
   Installation paths:
 
-    librsovpu4: .................. ${LIBDIR}
-    C header files: .............. ${INCLUDEDIR}/rsovpu4
+    libshcodecs: ................. ${LIBDIR}
+    C header files: .............. ${INCLUDEDIR}/shcodecs
     Documentation: ............... ${DOCDIR}/$PACKAGE
 
   Building:

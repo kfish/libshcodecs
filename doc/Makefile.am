@@ -9,7 +9,7 @@ EXTRA_DIST = $(man_MANS) Doxyfile.in
 noinst_DATA = doxygen-build.stamp
 
 if HAVE_DOXYGEN
-doxygen-build.stamp: Doxyfile $(top_srcdir)/include/rsovpu4/*.h $(top_srcdir)/src/examples/*.c
+doxygen-build.stamp: Doxyfile $(top_srcdir)/include/shcodecs/*.h $(top_srcdir)/src/examples/*.c
 	doxygen
 	touch doxygen-build.stamp
 else
@@ -18,12 +18,12 @@ doxygen-build.stamp:
 	touch doxygen-build.stamp
 endif
 
-dist_docdir = $(distdir)/librsovpu4
+dist_docdir = $(distdir)/libshcodecs
 
 dist-hook:
-	if test -d librsovpu4; then \
+	if test -d libshcodecs; then \
 	  mkdir $(dist_docdir); \
-	  for dir in librsovpu4/*; do \
+	  for dir in libshcodecs/*; do \
             b=`basename $$dir`; \
             if test $$b != "CVS"; then \
               if test -d $$dir; then \
@@ -39,8 +39,8 @@ dist-hook:
 
 install-data-local: doxygen-build.stamp
 	$(mkinstalldirs) $(DESTDIR)$(docdir)
-	if test -d librsovpu4; then \
-	  for dir in librsovpu4/*; do \
+	if test -d libshcodecs; then \
+	  for dir in libshcodecs/*; do \
 	    if test -d $$dir; then \
 	      b=`basename $$dir`; \
 	      $(mkinstalldirs) $(DESTDIR)$(docdir)/$$b; \
@@ -55,5 +55,5 @@ uninstall-local:
 	rm -rf $(DESTDIR)$(docdir)
 
 clean-local:
-	if test -d librsovpu4; then rm -rf librsovpu4; fi
+	if test -d libshcodecs; then rm -rf libshcodecs; fi
 	if test -f doxygen-build.stamp; then rm -f doxygen-build.stamp; fi

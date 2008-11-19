@@ -2,23 +2,23 @@
 #include "config.h"
 #endif
 
-#include <rsovpu4/rsovpu4_decoder.h>
+#include <shcodecs/shcodecs_decoder.h>
 
-#include "rsovpu4_tests.h"
+#include "shcodecs_tests.h"
 
 int
 main (int argc, char *argv[])
 {
-  RSOVPU4_Decoder * decoder;
+  SHCodecs_Decoder * decoder;
   int ret;
 
-  INFO ("Opening RSOVPU4_Decoder");
-  decoder = rsovpu4_decoder_init(320, 240, RSOVPU4_Format_MPEG4);
+  INFO ("Opening SHCodecs_Decoder");
+  decoder = shcodecs_decoder_init(320, 240, SHCodecs_Format_MPEG4);
   if (decoder == NULL)
-    FAIL ("Opening RSOVPU4_Decoder");
+    FAIL ("Opening SHCodecs_Decoder");
 
-  INFO ("Closing RSOVPU4_Decoder");
-  rsovpu4_decoder_close(decoder);
+  INFO ("Closing SHCodecs_Decoder");
+  shcodecs_decoder_close(decoder);
 
   exit (0);
 }

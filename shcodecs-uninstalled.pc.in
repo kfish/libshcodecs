@@ -3,10 +3,10 @@ exec_prefix=
 libdir=${pcfiledir}/src
 includedir=${pcfiledir}/include
 
-Name: rsovpu4 uninstalled
-Description: A library for controlling VPU4
+Name: shcodecs uninstalled
+Description: A library for controlling SH-Mobile hardware codecs
 Requires:
 Version: @VERSION@
-Libs: -L${libdir} -lrsovpu4
+Libs: -L${libdir} -lshcodecs
 Libs.private: @VPU4_LIBS@
 Cflags: -I${includedir}

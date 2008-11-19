@@ -10,7 +10,7 @@ AM_CFLAGS = -DVPU4 -DDISABLE_INT2 -D_LIT -DANNEX_B
 #AM_CFLAGS = -DANNEX_B
 
 # Libraries to build
-lib_LTLIBRARIES = librsovpu4.la
+lib_LTLIBRARIES = libshcodecs.la
 
 noinst_HEADERS = \
 	avcbd.h \
@@ -23,9 +23,9 @@ noinst_HEADERS = \
 	sample_dec.h \
 	sh7722_vpu.h
 
-librsovpu4_la_SOURCES = \
+libshcodecs_la_SOURCES = \
 	m4driverif.c \
-	rsovpu4_decoder.c
+	shcodecs_decoder.c
 
-librsovpu4_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@
-librsovpu4_la_LIBADD = $(VPU4_DEC_LIBS) -lm
+libshcodecs_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@
+libshcodecs_la_LIBADD = $(VPU4_DEC_LIBS) -lm

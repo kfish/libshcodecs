@@ -3,12 +3,12 @@
 INCLUDES = -I$(top_builddir) \
            -I$(top_srcdir)/include
 
-RSOVPU4DIR = ../librsovpu4
-RSOVPU4_LIBS = $(RSOVPU4DIR)/librsovpu4.la -lm
+SHCODECSDIR = ../libshcodecs
+SHCODECS_LIBS = $(SHCODECSDIR)/libshcodecs.la -lm
 
 #AM_CFLAGS = -v -Wall -O2 -I $(SRC_PATH) -fPIC -fno-common -m4-nofpu
 
-bin_PROGRAMS = rsovpu4enc rsovpu4capenc rsovpu4cap
+bin_PROGRAMS = shcodecs-enc shcodecs-capenc shcodecs-cap
 
 noinst_HEADERS = \
 	capture.h \
@@ -28,7 +28,7 @@ noinst_HEADERS = \
 	VPU4EncDef.h \
 	veu_colorspace.h
 
-rsovpu4enc_SOURCES =  \
+shcodecs_enc_SOURCES =  \
 	capture.c \
 	avcbeinputuser.c \
 	avcbencsmp_common.c \
@@ -39,7 +39,7 @@ rsovpu4enc_SOURCES =  \
 	QuantMatrix.c \
 	veu_colorspace.c
 
-rsovpu4enc_CFLAGS = -v -Wall -O2 -I $(srcdir) -fPIC -fno-common \
+shcodecs_enc_CFLAGS = -v -Wall -O2 -I $(srcdir) -fPIC -fno-common \
 	-DNDEBUG -D_LIT -DSH=1 -DVPU4=1 \
 	-DAZASM=1 -DCACHE_PURGE=1 -DCOEFF_INTERMEM=1 -DFPGA=1 \
 	-DVPU_CBP_USED=1 -DVPU2_V20=1 -DSLEEP_ONCE=1 -DVPU=1 \
@@ -48,9 +48,9 @@ rsovpu4enc_CFLAGS = -v -Wall -O2 -I $(srcdir) -fPIC -fno-common \
 	-DVPU_FILEOUT=1 -DTEL_TRACE_LEVEL2=1 -DSH_X=1 -DLINUX_VPU=1CFLAGS \
 	-DVPU3IP -DVPU4IP -DMPEG4SP -DVPU4S
 
-rsovpu4enc_LDADD = -lstdc++ $(RSOVPU4_LIBS) $(VPU4_ENC_LIBS)
+shcodecs_enc_LDADD = -lstdc++ $(SHCODECS_LIBS) $(VPU4_ENC_LIBS)
 
-rsovpu4capenc_SOURCES =  \
+shcodecs_capenc_SOURCES =  \
 	capture.c \
 	avcbeinputuser.c \
 	avcbencsmp_common.c \
@@ -61,7 +61,7 @@ rsovpu4capenc_SOURCES =  \
 	QuantMatrix.c \
 	veu_colorspace.c
 
-rsovpu4capenc_CFLAGS = -v -Wall -O2 -I $(srcdir) -fPIC -fno-common \
+shcodecs_capenc_CFLAGS = -v -Wall -O2 -I $(srcdir) -fPIC -fno-common \
 	-DNDEBUG -D_LIT -DSH=1 -DVPU4=1 \
 	-DAZASM=1 -DCACHE_PURGE=1 -DCOEFF_INTERMEM=1 -DFPGA=1 \
 	-DVPU_CBP_USED=1 -DVPU2_V20=1 -DSLEEP_ONCE=1 -DVPU=1 \
@@ -70,7 +70,7 @@ rsovpu4capenc_CFLAGS = -v -Wall -O2 -I $(srcdir) -fPIC -fno-common \
 	-DVPU_FILEOUT=1 -DTEL_TRACE_LEVEL2=1 -DSH_X=1 -DLINUX_VPU=1CFLAGS \
 	-DVPU3IP -DVPU4IP -DMPEG4SP -DVPU4S
 
-rsovpu4capenc_LDADD = -lstdc++ $(RSOVPU4_LIBS) $(VPU4_ENC_LIBS)
+shcodecs_capenc_LDADD = -lstdc++ $(SHCODECS_LIBS) $(VPU4_ENC_LIBS)
 
-rsovpu4cap_SOURCES = capture.c rsovpu4cap.c
+shcodecs_cap_SOURCES = capture.c shcodecs-cap.c
 

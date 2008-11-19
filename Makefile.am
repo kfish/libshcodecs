@@ -6,7 +6,7 @@ SUBDIRS = data doc include src
 
 # pkg-config
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = rsovpu4.pc
+pkgconfig_DATA = shcodecs.pc
 
 # Extra files to distribute in the source tarball.
-EXTRA_DIST = rsovpu4.pc.in rsovpu4-uninstalled.pc.in
+EXTRA_DIST = shcodecs.pc.in shcodecs-uninstalled.pc.in
