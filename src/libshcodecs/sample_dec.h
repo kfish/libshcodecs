@@ -36,27 +36,33 @@ typedef int (*SHCodecs_Decoded_Callback) (SHCodecs_Decoder * decoder,
 
 struct _SHCodecs_Decoder {
 	int		si_valid;	/* Is stream valid ? */
-	int		iStream_type;	/* Type of stream */
-	int		iStream_User_FrameWidth;	/* user frame width */
-	int		iStream_User_FrameHeight;	/* user frame height */
-	int		*piContext;	/* Pointer to context */
-	int		iContextSize;	/* Size of context */
-	unsigned char	*pbNAL_H264BufferMemory;	/* NAL Buffer for H.264 */ 
-	int		iFrame_number;	/* Frame number */
-	FrameInfo	*pstFrameInfo_Fnlist;
-	int		iMacroBlocks_Size;	/* Size in macro blocks */
-	TAVCBD_VUI_PARAMETERS *pst_vui; 	/* Only for H.264 data. */
-	TAVCBD_SEI 	*pst_sei;	/* Only for H.264 data. */
-	long		*pl_dp_264;	/* Data partition pointers */
-	long		*pl_dp_m4;	/* Only valid for MPEG-4 data. */
-	FrameInfo	st_ff;		/* Filtered frame */
-	int			i_fx;		/* Width of frame */
-	int			i_fy;		/* Height of frame */
-	int		si_ilen;	/* Size of current frame/slice */
-	TAVCBD_LAST_FRAME_STATUS last_frame_status;
-        int             preferred_len;  /* Preferred length of next input */
+	int		*si_ctxt;	/* Pointer to context */
+	int		si_ctxt_size;	/* Size of context */
+	int		si_type;	/* Type of stream */
+
 	unsigned char   *input_data;
         int             input_len;
+
+	unsigned char	*si_nalb;	/* NAL Buffer for H.264 */ 
+	int		si_ilen;	/* Size of current frame/slice */
+	FrameInfo	*si_flist;
+	int		si_fnum;	/* Frame number */
+	int		si_fx;		/* Width of frame */
+	int		si_fy;		/* Height of frame */
+	int		si_max_fx;	/* Maximum frame width */
+	int		si_max_fy;	/* Maximum frame height */
+	int		si_mbnum;	/* Size in macro blocks */
+	long		*si_dp_264;	/* Data partition pointers */
+	long		*si_dp_m4;	/* Only valid for MPEG-4 data. */
+	TAVCBD_VUI_PARAMETERS *si_vui; 	/* Only for H.264 data. */
+	TAVCBD_SEI 	*si_sei;	/* Only for H.264 data. */
+	FrameInfo	si_ff;		/* Filtered frame */
+
+	TAVCBD_LAST_FRAME_STATUS last_frame_status;
+
+        int             preferred_len;  /* Preferred length of next input */
+
+
         SHCodecs_Decoded_Callback decoded_cb;
         void            *decoded_cb_data;
 };
