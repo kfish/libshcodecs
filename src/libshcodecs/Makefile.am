@@ -20,7 +20,7 @@ noinst_HEADERS = \
 	m4iph_vpu4.h \
 	m4vsd_h263dec.h \
 	Mpeg4vdec.h \
-	sample_dec.h \
+	decoder_private.h \
 	sh7722_vpu.h
 
 libshcodecs_la_SOURCES = \
