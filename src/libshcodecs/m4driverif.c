@@ -67,7 +67,7 @@ static int locate_uio_device(char *name, struct uio_device *udp)
 	udp->fd = open(buf, O_RDWR|O_SYNC /*| O_NONBLOCK*/);
 
 	if (udp->fd < 0) {
-		perror("open");
+		perror(buf);
 		return -1;
 	}
 
