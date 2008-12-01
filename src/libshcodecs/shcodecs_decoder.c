@@ -27,16 +27,16 @@
 //#define DEBUG
 
 /* XXX: extern declarations, implemented in m4driverif.c, req'd by middleware ... */
-extern void m4iph_sleep_time_init(void);
-extern unsigned long m4iph_sleep_time_get(void);
-extern int vpu4_clock_on(void);
-extern int vpu4_clock_off(void);
+extern void m4iph_sleep_time_init (void);
+extern unsigned long m4iph_sleep_time_get (void);
+extern int vpu4_clock_on (void);
+extern int vpu4_clock_off (void);
 
 /*extern void UserDisp(__const char *__restrict __format, ...);*/
 
-static int  stream_Initialize(SHCodecs_Decoder * decoder);
-static int decoder_Initialize(SHCodecs_Decoder * decoder);
-static int decoder_Start(SHCodecs_Decoder *decoder);
+static int stream_init (SHCodecs_Decoder * decoder);
+static int decoder_init (SHCodecs_Decoder * decoder);
+static int decoder_start (SHCodecs_Decoder *decoder);
 
 /***********************************************************/
 
@@ -44,7 +44,7 @@ static int decoder_Start(SHCodecs_Decoder *decoder);
  * init ()
  */
 SHCodecs_Decoder *
-shcodecs_decoder_init(int width, int height, int format)
+shcodecs_decoder_init (int width, int height, int format)
 {
         SHCodecs_Decoder * decoder;
 
@@ -66,14 +66,14 @@ shcodecs_decoder_init(int width, int height, int format)
         m4iph_sleep_time_init();
 
     //- Stream initialize .
-	if (stream_Initialize(decoder)) {
+	if (stream_init(decoder)) {
 		/* stream_init() prints the specific error message */
                 free (decoder);
 		return NULL;
 	}
 
     //- Decoder initialize .
-	if (decoder_Initialize(decoder)) {
+	if (decoder_init(decoder)) {
                 free (decoder);
 		return NULL;
 	}
@@ -128,20 +128,20 @@ shcodecs_decode (SHCodecs_Decoder * decoder, unsigned char * data, int len)
 
 	decoder->si_ilen = len;
 
-	return decoder_Start (decoder);
+	return decoder_start (decoder);
 }
 
 /***********************************************************/
 
 
 /* XXX: Forward declarations, ignore for now */
-static int decode_One_Frame(SHCodecs_Decoder *decoder);
-static int decoder_Output_oneFrame(SHCodecs_Decoder *decoder, long frame_index);
-static int usr_Get_Input_oneSlice_H264(SHCodecs_Decoder * decoder, void *dst);
-static int usr_Get_Input_oneFrame_Mpeg4_h263(SHCodecs_Decoder * decoder, void *dst);
-static int usr_Get_Input_slice_or_frame_H264_Mpeg4(SHCodecs_Decoder * decoder, void *dst);
+static int decode_frame (SHCodecs_Decoder *decoder);
+static int extract_frame (SHCodecs_Decoder *decoder, long frame_index);
+static int usr_get_input_h264 (SHCodecs_Decoder * decoder, void *dst);
+static int usr_get_input_mpeg4 (SHCodecs_Decoder * decoder, void *dst);
+static int get_input (SHCodecs_Decoder * decoder, void *dst);
 
-long m4iph_enc_continue(long output_bits);
+long m4iph_enc_continue (long output_bits);
 
 void *global_context;
 
@@ -171,10 +171,10 @@ local_vpu4_decoded (SHCodecs_Decoder * decoder,
 
 /* XXX: init */
 /*
- * stream_Initialize.
+ * stream_init.
  *
  */
-static int stream_Initialize(SHCodecs_Decoder * decoder)
+static int stream_init (SHCodecs_Decoder * decoder)
 {
 	int i;
 	int iContext_ReqWorkSize;
@@ -275,10 +275,10 @@ err2:
 
 /* XXX: init */
 /*
- * decoder_Initialize
+ * decoder_init
  *
  */
-static int decoder_Initialize(SHCodecs_Decoder * decoder)
+static int decoder_init (SHCodecs_Decoder * decoder)
 {
 	TAVCBD_FMEM *frame_list;
 	void *pv_wk_buff;
@@ -347,10 +347,10 @@ err1:
 
 /* XXX: decode */
 /*
- * decoder_Start
+ * decoder_start
  *
  */
-static int decoder_Start(SHCodecs_Decoder * decoder)
+static int decoder_start (SHCodecs_Decoder * decoder)
 {
 	static int index_old = 0;
 	int decoded, dpb_mode;
@@ -366,7 +366,7 @@ static int decoder_Start(SHCodecs_Decoder * decoder)
 	do {
 		decoded = 0;
 
-		if (decode_One_Frame(decoder) == -1) {
+		if (decode_frame(decoder) == -1) {
 			/*UserDisp("%d frames decoded\n", decoder->iFrame_number);*/
 #ifdef DEBUG
 			printf ("%d frames decoded\n", decoder->iFrame_number);
@@ -376,7 +376,7 @@ static int decoder_Start(SHCodecs_Decoder * decoder)
 			else dpb_mode = 1;
 		} else {
 #ifdef DEBUG
-			printf ("shcodecs_decoder::decoder_Start: decoded\n");
+			printf ("shcodecs_decoder::decoder_start: decoded\n");
 #endif
 			decoded = 1;
 			dpb_mode = 1;
@@ -395,11 +395,11 @@ static int decoder_Start(SHCodecs_Decoder * decoder)
 					printf ("DecW=%d, list[0]=%d, list[1]=%d\n",image->DecW,image->ref_pic_list[0],image->ref_pic_list[1]);
 #endif
 					if (index_old!=image->ref_pic_list[0]) {
-						decoder_Output_oneFrame(decoder, image->ref_pic_list[0]);
+						extract_frame(decoder, image->ref_pic_list[0]);
 					} else 	if (index_old!=image->DecW) {
-						decoder_Output_oneFrame(decoder, image->DecW);
+						extract_frame(decoder, image->DecW);
 					} else 	if (index_old!=image->ref_pic_list[1]) {
-						decoder_Output_oneFrame(decoder, image->ref_pic_list[1]);
+						extract_frame(decoder, image->ref_pic_list[1]);
 					}
 				} 
 #ifdef DEBUG
@@ -407,11 +407,11 @@ static int decoder_Start(SHCodecs_Decoder * decoder)
                                         decoder->last_frame_status.error_num);
 #endif
 				if (decoder->last_frame_status.error_num == AVCBD_PIC_NOTCODED_VOP){ /* Not coded vop */
-					decoder_Output_oneFrame(decoder, image->ref_pic_list[0]);
+					extract_frame(decoder, image->ref_pic_list[0]);
 				}
 				break;
 			}
-			decoder_Output_oneFrame(decoder, index);
+			extract_frame(decoder, index);
 			index_old = index;
 		}
 
@@ -426,10 +426,10 @@ static int decoder_Start(SHCodecs_Decoder * decoder)
 }
 
 /*
- * decode_One_Frame
+ * decode_frame
  *
  */
-int decode_One_Frame(SHCodecs_Decoder * decoder)
+int decode_frame (SHCodecs_Decoder * decoder)
 {
 	int err, ret, len, i;
 	int max_mb;
@@ -441,7 +441,7 @@ int decode_One_Frame(SHCodecs_Decoder * decoder)
 	char Ct=0;
 
 #ifdef DEBUG
-	printf ("shcodecs_decoder::decode_One_Frame IN\n");
+	printf ("shcodecs_decoder::decode_frame IN\n");
 #endif
 	
 	max_mb = decoder->iMacroBlocks_Size;
@@ -453,9 +453,9 @@ int decode_One_Frame(SHCodecs_Decoder * decoder)
 		if(Ct > 250)
 			Ct=0;
 	
-		if (usr_Get_Input_slice_or_frame_H264_Mpeg4(decoder, decoder->pbNAL_H264BufferMemory) <= 0) {
+		if (get_input(decoder, decoder->pbNAL_H264BufferMemory) <= 0) {
 #ifdef DEBUG
-			printf("usr_Get_Input_slice_or_frame_H264_Mpeg4 failed\n");
+			printf("get_input failed\n");
 #endif
 			break;
 		}
@@ -464,7 +464,7 @@ int decode_One_Frame(SHCodecs_Decoder * decoder)
 			len = decoder->si_ilen;
 
 #ifdef DEBUG
-			printf ("shcodecs_decoder::decode_One_Frame: H.264 len %d: %02x%02x%02x%02x %02x%02x%02x%02x\n",
+			printf ("shcodecs_decoder::decode_frame: H.264 len %d: %02x%02x%02x%02x %02x%02x%02x%02x\n",
 				decoder->si_ilen, input[0], input[1], input[2], input[3],
 				input[4], input[5], input[6], input[7]);
 #endif
@@ -480,7 +480,7 @@ int decode_One_Frame(SHCodecs_Decoder * decoder)
 #endif
 			ret = avcbd_set_stream_pointer(decoder->piContext, input, len, NULL);
 #ifdef DEBUG
-                        printf ("shcodecs_decoder::decode_One_Frame: H.264 avcbd_set_stream_pointer returned %ld\n", ret);
+                        printf ("shcodecs_decoder::decode_frame: H.264 avcbd_set_stream_pointer returned %ld\n", ret);
 #endif
 		} else {
 			unsigned char *ptr;
@@ -589,9 +589,9 @@ int decode_One_Frame(SHCodecs_Decoder * decoder)
 #endif
 
 #ifdef DEBUG
-		printf ("shcodecs_decoder::decode_One_Frame: decoder->last_frame_status.read_slices = %d\n",
+		printf ("shcodecs_decoder::decode_frame: decoder->last_frame_status.read_slices = %d\n",
                         decoder->last_frame_status.read_slices);
-		printf ("shcodecs_decoder::decode_One_Frame: decoder->last_frame_status.last_macroblock_pos = %d (< max_mb %d?)\n",
+		printf ("shcodecs_decoder::decode_frame: decoder->last_frame_status.last_macroblock_pos = %d (< max_mb %d?)\n",
                         decoder->last_frame_status.last_macroblock_pos, max_mb);
 #endif
 
@@ -625,17 +625,17 @@ int decode_One_Frame(SHCodecs_Decoder * decoder)
  * m4iph_enc_continue
  *
  */
-long m4iph_enc_continue(long output_bits)
+long m4iph_enc_continue (long output_bits)
 {
 	return 1;
 }
 #endif
 
 /*
- * decoder_Output_oneFrame
+ * extract_frame: extract a decoded frame from the VPU
  *
  */
-static int decoder_Output_oneFrame(SHCodecs_Decoder * decoder, long frame_index)
+static int extract_frame (SHCodecs_Decoder * decoder, long frame_index)
 {
 	FrameInfo *frame = &decoder->pstFrameInfo_Fnlist[frame_index];
 	int luma_size = decoder->i_fx * decoder->i_fy;
@@ -677,10 +677,10 @@ static int decoder_Output_oneFrame(SHCodecs_Decoder * decoder, long frame_index)
 }
 
 /*
- * usr_Get_Input_oneSlice_H264
+ * usr_get_input_h264
  *
  */
-static int usr_Get_Input_oneSlice_H264(SHCodecs_Decoder * decoder, void *dst)
+static int usr_get_input_h264 (SHCodecs_Decoder * decoder, void *dst)
 {
 	long size=0;
 
@@ -715,23 +715,23 @@ static int usr_Get_Input_oneSlice_H264(SHCodecs_Decoder * decoder, void *dst)
 }
 
 /*
- * usr_Get_Input_oneFrame_Mpeg4_h263
+ * usr_get_input_mpeg4
  *
  */
-static int usr_Get_Input_oneFrame_Mpeg4_h263(SHCodecs_Decoder * decoder, void *dst)
+static int usr_get_input_mpeg4 (SHCodecs_Decoder * decoder, void *dst)
 {
 	return decoder->si_ilen;
 }
 
 /*
- * usr_Get_Input_slice_or_frame_H264_Mpeg4
+ * get_input
  *
  */
-static int usr_Get_Input_slice_or_frame_H264_Mpeg4(SHCodecs_Decoder * decoder, void *dst)
+static int get_input (SHCodecs_Decoder * decoder, void *dst)
 {
 	if (decoder->iStream_type == F_H264) {
-		return usr_Get_Input_oneSlice_H264(decoder, dst);
+		return usr_get_input_h264(decoder, dst);
 	} else {
-		return usr_Get_Input_oneFrame_Mpeg4_h263(decoder, dst);
+		return usr_get_input_mpeg4(decoder, dst);
 	}
 }
