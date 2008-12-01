@@ -17,7 +17,7 @@
 #include <sys/time.h>
 #include "avcbd.h"
 #include "avcbd_optionaldata.h"
-#include "sample_dec.h"
+#include "decoder_private.h"
 #include "m4iph_vpu4.h"
 #include "m4driverif.h"
 #define VPU3IP
