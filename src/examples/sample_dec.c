@@ -191,7 +191,10 @@ int main(int argc, char **argv)
     */
 
         /* XXX: init */
-        decoder = shcodecs_decoder_init(w, h, iStream_typ);
+        if ((decoder = shcodecs_decoder_init(w, h, iStream_typ)) == NULL) {
+                exit (-9);
+        }
+
 
         /* XXX: local */
         decode_time_Initialize();
