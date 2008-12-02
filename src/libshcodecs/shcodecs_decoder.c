@@ -26,11 +26,10 @@
 
 /*#define DEBUG*/
 
-/* XXX: extern declarations, implemented in m4driverif.c, req'd by middleware ... */
-extern void m4iph_sleep_time_init(void);
-extern unsigned long m4iph_sleep_time_get(void);
-extern int vpu4_clock_on(void);
-extern int vpu4_clock_off(void);
+/* XXX: Forward declarations */
+static int decode_frame(SHCodecs_Decoder * decoder);
+static int extract_frame(SHCodecs_Decoder * decoder, long frame_index);
+static int get_input(SHCodecs_Decoder * decoder, void *dst);
 
 static int stream_init(SHCodecs_Decoder * decoder);
 static int decoder_init(SHCodecs_Decoder * decoder);
@@ -60,7 +59,6 @@ SHCodecs_Decoder *shcodecs_decoder_init(int width, int height, int format)
 	/* Initialize m4iph */
 	m4iph_vpu_open();
 	m4iph_sdr_open();
-	m4iph_sleep_time_init();
 
 	/* Stream initialize */
 	if (stream_init(decoder)) {
@@ -126,28 +124,9 @@ shcodecs_decode(SHCodecs_Decoder * decoder, unsigned char *data, int len)
 
 /***********************************************************/
 
-
-/* XXX: Forward declarations, ignore for now */
-static int decode_frame(SHCodecs_Decoder * decoder);
-static int extract_frame(SHCodecs_Decoder * decoder, long frame_index);
-static int usr_get_input_h264(SHCodecs_Decoder * decoder, void *dst);
-static int usr_get_input_mpeg4(SHCodecs_Decoder * decoder, void *dst);
-static int get_input(SHCodecs_Decoder * decoder, void *dst);
-
 long m4iph_enc_continue(long output_bits);
 
 void *global_context;
-
-/* TODO: actually, this could be local where it is used */
-static M4IPH_VPU4_INIT_OPTION vpu_init_option;
-
-/* XXX: local */
-static long decode_time;
-/* XXX: this just skips all decode processing, with -S option */
-static long performance_flag = 0;
-
-/* TODO: This could just be local where it is used */
-static TAVCBD_FRAME_SIZE frame_size;
 
 /***********************************************************/
 
@@ -272,6 +251,7 @@ static int stream_init(SHCodecs_Decoder * decoder)
  */
 static int decoder_init(SHCodecs_Decoder * decoder)
 {
+	M4IPH_VPU4_INIT_OPTION vpu_init_option;
 	TAVCBD_FMEM *frame_list;
 	void *pv_wk_buff;
 	long stream_mode;
@@ -469,6 +449,7 @@ static int decode_frame(SHCodecs_Decoder * decoder)
 {
 	int err, ret, i;
 	int max_mb;
+	TAVCBD_FRAME_SIZE frame_size;
 	static long counter = 0;
 
 #ifdef DEBUG
@@ -644,10 +625,6 @@ static int extract_frame(SHCodecs_Decoder * decoder, long frame_index)
 	static long frame_cnt = 1;
 	int pagesize = getpagesize();
 
-	if (performance_flag == 1) {
-		return 0;
-	}
-	/* printf("Output Frame %d, frame_index=%d\n",frame_cnt++,frame_index); */
 #ifdef DEBUG
 	printf("Output Frame %d, frame_index=%d\n", frame_cnt++,
 	       frame_index);
@@ -674,7 +651,7 @@ static int extract_frame(SHCodecs_Decoder * decoder, long frame_index)
 	}
 
 	m4iph_unmap_sdr_mem(yf, luma_size + (luma_size >> 1) + ry + 31);
-	//wait(1000);
+
 	return 0;
 }
 
@@ -695,15 +672,11 @@ static int usr_get_input_h264(SHCodecs_Decoder * decoder, void *dst)
 		  0x01);
 
 	if (size < 0) {
-		m4iph_avcbd_perror("avcbd_search_start_code()", size);
+		/* m4iph_avcbd_perror("avcbd_search_start_code()", size); */
 		return -1;
 	}
 
 	decoder->si_ipos += size;
-
-	if ((size_t)decoder->si_ipos > decoder->si_isize)
-		fprintf (stderr, "get_input_h264: si_ipos %d > si_isize %d\n",
-					decoder->si_ipos, decoder->si_isize);
 
 	/* transfer one block excluding "(00 00) 03" */
 	size = avcbd_extract_nal(

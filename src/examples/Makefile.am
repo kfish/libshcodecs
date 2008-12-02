@@ -6,7 +6,7 @@ INCLUDES = -I$(top_builddir) \
 SHCODECSDIR = ../libshcodecs
 SHCODECS_LIBS = $(SHCODECSDIR)/libshcodecs.la -lm
 
-bin_PROGRAMS = shcodecsdec
+bin_PROGRAMS = shcodecs-dec
 
-shcodecsdec_SOURCES = sample_dec.c
-shcodecsdec_LDADD = $(SHCODECS_LIBS)
+shcodecs_dec_SOURCES = sample_dec.c
+shcodecs_dec_LDADD = $(SHCODECS_LIBS)

@@ -18,6 +18,9 @@
 
 #include <shcodecs/shcodecs_decoder.h>
 
+#define DEFAULT_WIDTH 320
+#define DEFAULT_HEIGHT 240
+
 #define INPUT_BUF_SIZE	(256 * 1024)
 
 /* #define _DEBUG */
@@ -28,8 +31,6 @@ extern unsigned long m4iph_sleep_time_get(void);
 /***********************************************************/
 
 /* Forward declarations */
-static int  open_InputStream(void);
-static int  open_OutputStream(void);
 static int update_input(SHCodecs_Decoder * decoder, int len);
 
 static int local_init (char *pInputfile, char *pOutputfile);
@@ -39,33 +40,21 @@ static int local_close (void);
 /* XXX: public function, what is this? */
 long m4iph_enc_continue(long output_bits);
 
-/* XXX: global, what is this? not even used, why is this here? */
-void *global_context;
-
-/* XXX: local stuff */
 static struct option stLong_options[] = {
         { "format", 1, 0, 'f'},
         { "output", 1, 0, 'o'},
         { "input" , 1, 0, 'i'},
         { "width" , 1, 0, 'w'},
-        { "height", 1, 0, 'h'},
-	    { "perfor", 1, 0, 'S'}
+        { "height", 1, 0, 'h'}
 };
 
-/* XXX: sample-dec local vars, removed from ST_STREAM_INFO */
-char	input_filename[MAXPATHLEN];	/* Input file name */
-char	output_filename[MAXPATHLEN];	/* Output file name */
-int		input_fd;		/* Input file descriptor */
-int		output_fd;		/* Output file descriptor */
+/* local vars, removed from ST_STREAM_INFO */
+int		input_fd;	/* Input file descriptor */
+int		output_fd;	/* Output file descriptor */
 unsigned char	*input_buffer;	/* Pointer to input buffer */
 int		si_ipos;	/* Current position in input stream */
 size_t		si_isize;	/* Total size of input data */
 
-
-/* XXX: random statics, probably local */
-
-/* XXX: WTF? this just skips all decode processing, with -S option */
-static long performance_flag=0;
 
 /*
  * debug_printf
@@ -99,12 +88,11 @@ local_vpu4_decoded (SHCodecs_Decoder * decoder,
 
 /***********************************************************/
 
-/* XXX: local (main) */
 int main(int argc, char **argv)
 {
         SHCodecs_Decoder * decoder;
-	int iRtn=0, iStream_typ = SHCodecs_Format_H264, iIdx, w, h;
-	char c, szIfile[MAXPATHLEN], szOfile[MAXPATHLEN];
+	int ret=0, stream_type = SHCodecs_Format_H264, i, w, h;
+	char c, input_filename[MAXPATHLEN], output_filename[MAXPATHLEN];
 	struct sched_param stSchePara;
         int bytes_decoded;
 
@@ -113,21 +101,25 @@ int main(int argc, char **argv)
 		exit(0);
 	}
 	setvbuf(stdout, NULL, _IONBF, 0);
-	szOfile[0] = szIfile[0] = '\0';
-	memset(szIfile, 0, sizeof(szIfile));
-	memset(szOfile, 0, sizeof(szOfile));
-	w = h = -1;
+	output_filename[0] = input_filename[0] = '\0';
+	memset(input_filename, 0, sizeof(input_filename));
+	memset(output_filename, 0, sizeof(output_filename));
+
+	/* Set defaults */
+	w = DEFAULT_WIDTH;
+	h = DEFAULT_HEIGHT;
+
 	while (1) {
-		c = getopt_long(argc, argv, "f:o:i:w:h:S", stLong_options, &iIdx);
+		c = getopt_long(argc, argv, "f:o:i:w:h:", stLong_options, &i);
 		if (c == -1)
 			break;
 
 		switch (c) {
 		case 'f':
 			if (strncmp(optarg, "mpeg4", 5) == 0)
-				iStream_typ = SHCodecs_Format_MPEG4;
+				stream_type = SHCodecs_Format_MPEG4;
 			else if (strncmp(optarg, "h264", 4) == 0)
-				iStream_typ = SHCodecs_Format_H264;
+				stream_type = SHCodecs_Format_H264;
 			else{
 				/*int ilen = strlen(optarg);*/
 				/*printf("optarg len = %d \n", optarg);*/
@@ -137,11 +129,11 @@ int main(int argc, char **argv)
 			break;
 		case 'o':
 			if (optarg)
-				strncpy(szOfile, optarg, sizeof(szOfile) - 1);
+				strncpy(output_filename, optarg, sizeof(output_filename) - 1);
 			break;
 		case 'i':
 			if (optarg)
-				strncpy(szIfile, optarg, sizeof(szIfile) - 1);
+				strncpy(input_filename, optarg, sizeof(input_filename) - 1);
 			break;
 		case 'w':
 			if (optarg)
@@ -150,9 +142,6 @@ int main(int argc, char **argv)
 		case 'h':
 			if (optarg)
 				h = strtoul(optarg, NULL, 10);
-			break;
-		case 'S':
-			performance_flag=1;
 			break;
 		default:
 			debug_printf("argument error!\n");
@@ -163,11 +152,11 @@ int main(int argc, char **argv)
 		debug_printf("Invalid width and/or height specified.\n");
 		exit(-3);
 	}
-	if ( (strcmp(szIfile, "-") == 0) || (szIfile[0] == '\0') ){
+	if ( (strcmp(input_filename, "-") == 0) || (input_filename[0] == '\0') ){
 		debug_printf("Invalid input file.\n");
 		exit(-4);
 	}
-	if ( (strcmp(szOfile, "-") == 0) || (szOfile[0] == '\0') ){
+	if ( (strcmp(output_filename, "-") == 0) || (output_filename[0] == '\0') ){
 		debug_printf("Invalid input file.\n");
 		exit(-5);
 	}
@@ -179,10 +168,10 @@ int main(int argc, char **argv)
 		debug_printf("Too many arguments.\n");
 		exit(-7);
 	}
-	debug_printf("Format: %s\n", iStream_typ == SHCodecs_Format_H264 ? "H.264" : "MPEG4");
+	debug_printf("Format: %s\n", stream_type == SHCodecs_Format_H264 ? "H.264" : "MPEG4");
 	debug_printf("Resolution: %dx%d\n", w, h);
-	debug_printf("Input  file: %s\n", szIfile);
-	debug_printf("Output file: %s\n", szOfile);
+	debug_printf("Input  file: %s\n", input_filename);
+	debug_printf("Output file: %s\n", output_filename);
  	stSchePara.sched_priority = sched_get_priority_max(SCHED_FIFO);
 	if (sched_setscheduler(0, SCHED_RR, &stSchePara) != 0) {
 		perror("sched_setscheduler");
@@ -191,11 +180,11 @@ int main(int argc, char **argv)
 
 	/* Open file descriptors to talk to the VPU and SDR drivers */
 
-        if ((decoder = shcodecs_decoder_init(w, h, iStream_typ)) == NULL) {
+        if ((decoder = shcodecs_decoder_init(w, h, stream_type)) == NULL) {
                 exit (-9);
         }
 
-        local_init(szIfile, szOfile);
+        local_init(input_filename, output_filename);
 
 	shcodecs_decoder_set_decoded_callback (decoder, local_vpu4_decoded, NULL);
 
@@ -212,24 +201,48 @@ int main(int argc, char **argv)
 
 	debug_printf("Total sleep  time = %d(msec)\n",(int)m4iph_sleep_time_get());
 	
-	return iRtn;
+	return ret;
+}
+
+/*
+ * open_input
+ *
+ */
+static int open_input(char *input_filename)
+{
+	input_fd = open(input_filename, O_RDONLY);
+	if (input_fd == -1) {
+		perror(input_filename);
+		return -1;
+	}
+	return 0;
+}
+ 
+/*
+ * open_output
+ *
+ */
+static int open_output(char *output_filename)
+{
+	output_fd = open(output_filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (output_fd == -1) {
+		perror(output_filename);
+		return -1;
+	}
+	return 0;
 }
 
 static int
-local_init (char *pInputfile, char *pOutputfile)
+local_init (char *input_filename, char *output_filename)
 {
 	struct timeval tv;
 	struct timezone tz;
 
-        /* XXX: local setup */
-	strcpy(input_filename, pInputfile);
-	strcpy(output_filename, pOutputfile);
-
 	/* Open input/output stream */
 	input_fd = output_fd = -1;
-	if (pInputfile[0] != '\0' && open_InputStream())
+	if (input_filename[0] != '\0' && open_input(input_filename))
 		return -50;
-	if (pOutputfile[0] != '\0' && open_OutputStream())
+	if (output_filename[0] != '\0' && open_output(output_filename))
 		return -51;
 
 	/* Allocate memory for input buffer */
@@ -276,33 +289,6 @@ local_close (void)
 }
  
 
-/*
- * open_InputStream
- *
- */
-static int open_InputStream(void)
-{
-	input_fd = open(input_filename, O_RDONLY);
-	if (input_fd == -1) {
-		perror(input_filename);
-		return -1;
-	}
-	return 0;
-}
- 
-/*
- * open_OutputStream
- *
- */
-static int open_OutputStream(void)
-{
-	output_fd = open(output_filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-	if (output_fd == -1) {
-		perror(output_filename);
-		return -1;
-	}
-	return 0;
-}
 
 /*
  * m4iph_enc_continue
