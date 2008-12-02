@@ -20,21 +20,17 @@
 
 #define INPUT_BUF_SIZE	(256 * 1024)
 
+/* #define _DEBUG */
+
 /* XXX: extern declarations, why are these not in a public header for those libs? */
-extern void m4iph_sleep_time_init(void);
 extern unsigned long m4iph_sleep_time_get(void);
-extern int vpu4_clock_on(void);
-extern int vpu4_clock_off(void);
 
 /***********************************************************/
 
-/* XXX: Forward declarations, ignore for now */
+/* Forward declarations */
 static int  open_InputStream(void);
 static int  open_OutputStream(void);
-void UserDisp(__const char *__restrict __format, ...);
-static void decode_time_Initialize(void);
-static unsigned long decode_Get_time(void);
-static int increment_Input(SHCodecs_Decoder * decoder, int len);
+static int update_input(SHCodecs_Decoder * decoder, int len);
 
 static int local_init (char *pInputfile, char *pOutputfile);
 static int local_close (void);
@@ -68,26 +64,34 @@ size_t		si_isize;	/* Total size of input data */
 
 /* XXX: random statics, probably local */
 
-/* XXX: local */
-static long decode_time;
 /* XXX: WTF? this just skips all decode processing, with -S option */
 static long performance_flag=0;
 
+/*
+ * debug_printf
+ *
+ */
+void debug_printf(__const char *__restrict __format, ...)
+{
+#ifdef _DEBUG
+	printf(__format);
+#endif
+}
+
 /***********************************************************/
 
-/* local output callback, should be static */
+/* local output callback */
 static int
 local_vpu4_decoded (SHCodecs_Decoder * decoder,
                     unsigned char * y_buf, int y_size,
                     unsigned char * c_buf, int c_size,
                     void * user_data)
 {
-  ssize_t len;
+	ssize_t len;
+
 	if (output_fd != -1) {
 		len = write(output_fd, y_buf, y_size);
 		write(output_fd, c_buf, c_size);
-	} else {
-		// vio_render_frame(yf + ry, luma_size);
 	}
 
         return 0;
@@ -102,10 +106,10 @@ int main(int argc, char **argv)
 	int iRtn=0, iStream_typ = SHCodecs_Format_H264, iIdx, w, h;
 	char c, szIfile[MAXPATHLEN], szOfile[MAXPATHLEN];
 	struct sched_param stSchePara;
-        int pref_len;
+        int bytes_decoded;
 
 	if (argc == 1) {
-		UserDisp("argument error!\n");
+		debug_printf("argument error!\n");
 		exit(0);
 	}
 	setvbuf(stdout, NULL, _IONBF, 0);
@@ -119,107 +123,94 @@ int main(int argc, char **argv)
 			break;
 
 		switch (c) {
-			case 'f':
-				if (strncmp(optarg, "mpeg4", 5) == 0)
-					iStream_typ = SHCodecs_Format_MPEG4;
-				else if (strncmp(optarg, "h264", 4) == 0)
-					iStream_typ = SHCodecs_Format_H264;
-				else{
-					/*int ilen = strlen(optarg);*/
-					/*printf("optarg len = %d \n", optarg);*/
-					UserDisp("argument: Unknown video format: %s.\n",optarg);
-					exit(-1);
-				}
-				break;
-			case 'o':
-				if (optarg)
-					strncpy(szOfile, optarg, sizeof(szOfile) - 1);
-				break;
-			case 'i':
-				if (optarg)
-					strncpy(szIfile, optarg, sizeof(szIfile) - 1);
-				break;
-			case 'w':
-				if (optarg)
-					w = strtoul(optarg, NULL, 10);
-				break;
-			case 'h':
-				if (optarg)
-					h = strtoul(optarg, NULL, 10);
-				break;
-			case 'S':
-				performance_flag=1;
-				break;
-			default:
-				UserDisp("argument error!\n");
-				exit(-2);
+		case 'f':
+			if (strncmp(optarg, "mpeg4", 5) == 0)
+				iStream_typ = SHCodecs_Format_MPEG4;
+			else if (strncmp(optarg, "h264", 4) == 0)
+				iStream_typ = SHCodecs_Format_H264;
+			else{
+				/*int ilen = strlen(optarg);*/
+				/*printf("optarg len = %d \n", optarg);*/
+				debug_printf("argument: Unknown video format: %s.\n",optarg);
+				exit(-1);
+			}
+			break;
+		case 'o':
+			if (optarg)
+				strncpy(szOfile, optarg, sizeof(szOfile) - 1);
+			break;
+		case 'i':
+			if (optarg)
+				strncpy(szIfile, optarg, sizeof(szIfile) - 1);
+			break;
+		case 'w':
+			if (optarg)
+				w = strtoul(optarg, NULL, 10);
+			break;
+		case 'h':
+			if (optarg)
+				h = strtoul(optarg, NULL, 10);
+			break;
+		case 'S':
+			performance_flag=1;
+			break;
+		default:
+			debug_printf("argument error!\n");
+			exit(-2);
 		}
 	}
 	if (w == -1 || h == -1){
-		UserDisp("Invalid width and/or height specified.\n");
+		debug_printf("Invalid width and/or height specified.\n");
 		exit(-3);
 	}
 	if ( (strcmp(szIfile, "-") == 0) || (szIfile[0] == '\0') ){
-		UserDisp("Invalid input file.\n");
+		debug_printf("Invalid input file.\n");
 		exit(-4);
 	}
 	if ( (strcmp(szOfile, "-") == 0) || (szOfile[0] == '\0') ){
-		UserDisp("Invalid input file.\n");
+		debug_printf("Invalid input file.\n");
 		exit(-5);
 	}
 	if (w < SHCODECS_MIN_FX || w > SHCODECS_MAX_FX || h < SHCODECS_MIN_FY || h > SHCODECS_MAX_FY) {
-		UserDisp("Invalid width and/or height specified.\n");
+		debug_printf("Invalid width and/or height specified.\n");
 		exit(-6);
 	}
 	if (optind > argc){
-		UserDisp("Too many arguments.\n");
+		debug_printf("Too many arguments.\n");
 		exit(-7);
 	}
-	UserDisp("Format: %s\n", iStream_typ == SHCodecs_Format_H264 ? "H.264" : "MPEG4");
-	UserDisp("Resolution: %dx%d\n", w, h);
-	UserDisp("Input  file: %s\n", szIfile);
-	UserDisp("Output file: %s\n", szOfile);
+	debug_printf("Format: %s\n", iStream_typ == SHCodecs_Format_H264 ? "H.264" : "MPEG4");
+	debug_printf("Resolution: %dx%d\n", w, h);
+	debug_printf("Input  file: %s\n", szIfile);
+	debug_printf("Output file: %s\n", szOfile);
  	stSchePara.sched_priority = sched_get_priority_max(SCHED_FIFO);
 	if (sched_setscheduler(0, SCHED_RR, &stSchePara) != 0) {
 		perror("sched_setscheduler");
 		exit(-8);
 	}
 
-   /*
-    * Open file descriptors to talk to the VPU and SDR drivers
-    *
-    */
+	/* Open file descriptors to talk to the VPU and SDR drivers */
 
-        /* XXX: init */
         if ((decoder = shcodecs_decoder_init(w, h, iStream_typ)) == NULL) {
                 exit (-9);
         }
-
-
-        /* XXX: local */
-        decode_time_Initialize();
 
         local_init(szIfile, szOfile);
 
 	shcodecs_decoder_set_decoded_callback (decoder, local_vpu4_decoded, NULL);
 
-        /* XXX: decode -- start main loop */
-#if 0
-	decoder_Start(decoder);
-#else
+        /* decode main loop */
         do {
-	  shcodecs_decode (decoder, input_buffer + si_ipos, si_isize - si_ipos);
-        } while (increment_Input (decoder, pref_len) == 0);
-#endif
+		debug_printf ("Calling shcodecs_decode (si_ipos %d, si_isize %d) ...", si_ipos, si_isize);
+		bytes_decoded = shcodecs_decode (decoder, input_buffer + si_ipos, si_isize - si_ipos);
+		debug_printf (" decoded %d bytes\n", bytes_decoded);
+        } while (bytes_decoded > 0 && update_input (decoder, bytes_decoded) == 0);
 
         local_close ();
 
-        /* XXX: shutdown */
         shcodecs_decoder_close(decoder);
 
-        /* XXX: local */
-	UserDisp("Total decode time = %d(msec)\n",(int)decode_Get_time());
-	UserDisp("Total sleep  time = %d(msec)\n",(int)m4iph_sleep_time_get());
+	debug_printf("Total sleep  time = %d(msec)\n",(int)m4iph_sleep_time_get());
 	
 	return iRtn;
 }
@@ -234,21 +225,20 @@ local_init (char *pInputfile, char *pOutputfile)
 	strcpy(input_filename, pInputfile);
 	strcpy(output_filename, pOutputfile);
 
-    //- Open input/output stream .
+	/* Open input/output stream */
 	input_fd = output_fd = -1;
 	if (pInputfile[0] != '\0' && open_InputStream())
 		return -50;
 	if (pOutputfile[0] != '\0' && open_OutputStream())
 		return -51;
 
-        /* from stream_Initialize() */
-    //- Allocate memory for input buffer.
+	/* Allocate memory for input buffer */
 	input_buffer = malloc(INPUT_BUF_SIZE);
-	UserDisp("input buffer = %X\n",(int)input_buffer);
+	debug_printf("input buffer = %X\n",(int)input_buffer);
 	if (input_buffer == NULL) goto err2;
 
 	if (input_fd != -1) {
-		//- Fill input buffer .
+		/* Fill input buffer */
 		if ((si_isize = read(input_fd, input_buffer, INPUT_BUF_SIZE)) <= 0) {
 				perror(input_filename);
 				return -54;
@@ -258,7 +248,7 @@ local_init (char *pInputfile, char *pOutputfile)
 	si_ipos = 0;
 
 	gettimeofday(&tv, &tz);
-	UserDisp("decode start %ld,%ld\n",tv.tv_sec,tv.tv_usec);
+	debug_printf("decode start %ld,%ld\n",tv.tv_sec,tv.tv_usec);
 
 	return 0;
 err2:
@@ -277,21 +267,14 @@ local_close (void)
 	if (input_fd != -1 && input_fd > 2)
 		close(input_fd);
 
-	if (input_buffer){
+	if (input_buffer)
 		free(input_buffer);
-		#if 0
-		if (decoder->pbNAL_H264BufferMemory)
-			free(decoder->pbNAL_H264BufferMemory);
-		#endif
-	}
 
 	gettimeofday(&tv, &tz);
-	UserDisp("%ld,%ld\n",tv.tv_sec,tv.tv_usec);
+	debug_printf("%ld,%ld\n",tv.tv_sec,tv.tv_usec);
 	return 0;
 }
  
-
-/* XXX: local */
 
 /*
  * open_InputStream
@@ -322,35 +305,6 @@ static int open_OutputStream(void)
 }
 
 /*
- * UserDisp
- *
- */
-void UserDisp(__const char *__restrict __format, ...)
-{
-#ifdef _DEBUG
-	printf(__format);
-#endif
-}
-
-/*
- * decode_time_Initialize
- *
- */
-void decode_time_Initialize(void)
-{
-	decode_time = 0;
-}
-
-/*
- * decode_Get_time
- *
- */
-unsigned long decode_Get_time(void)
-{
-	return decode_time;
-}
-
-/*
  * m4iph_enc_continue
  *
  */
@@ -360,10 +314,10 @@ long m4iph_enc_continue(long output_bits)
 }
 
 /*
- * increment_Input
+ * update_input
  * Increment pointer to the input bitstream after decoding a frame/slice.
  */
-static int increment_Input(SHCodecs_Decoder * decoder, int len)
+static int update_input(SHCodecs_Decoder * decoder, int len)
 {
 	int current_pos = si_ipos + len;
 	int rem = si_isize - current_pos;
@@ -372,11 +326,12 @@ static int increment_Input(SHCodecs_Decoder * decoder, int len)
 	if (rem<=0) {
                 return -1;
         }
-	if (rem < INPUT_BUF_SIZE/2 /*&& si_isize == INPUT_BUF_SIZE*/) {
-		// printf("Refilling buffer\n");
-		// printf("Remaining bytes %d, moving from %d to 0\n", rem, current_pos);
+	if (rem < INPUT_BUF_SIZE/2 /* && si_isize == INPUT_BUF_SIZE */) {
+		debug_printf ("Refilling buffer: ");
+		debug_printf ("Remaining bytes %d, moving from %d to 0\n", rem, current_pos);
 		memmove(input_buffer, input_buffer + current_pos, rem);
-		// printf("Reading %d bytes at pos %d\n", si_isize - rem, rem);
+		debug_printf ("Reading %d bytes at pos %d\n", si_isize - rem, rem);
+		si_ipos = 0;
 		
 		do {
 			count = read(input_fd, input_buffer + rem, INPUT_BUF_SIZE - rem);
@@ -384,13 +339,13 @@ static int increment_Input(SHCodecs_Decoder * decoder, int len)
 				rem += count;
 		} while (count > 0 && count < 100);
 		si_isize = rem;
-		si_ipos = 0;
-		// printf("New size of buffer is %d bytes\n", decoder->si_isize);
+		debug_printf ("New size of buffer is %d bytes\n", si_isize);
 	} else if ((size_t)current_pos < si_isize) {
 		si_ipos = current_pos;
 	} else {
 		return -1;
 	}
+
 	return 0;
 }
 
