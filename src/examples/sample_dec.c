@@ -57,11 +57,11 @@ static struct option stLong_options[] = {
 };
 
 /* XXX: sample-dec local vars, removed from ST_STREAM_INFO */
-char	szInput_fileName[MAXPATHLEN];	/* Input file name */
-char	szOutput_fileName[MAXPATHLEN];	/* Output file name */
-int		iInput_fd;		/* Input file descriptor */
-int		iOutput_fd;		/* Output file descriptor */
-unsigned char	*pbInput_BufferMemory;	/* Pointer to input buffer */
+char	input_filename[MAXPATHLEN];	/* Input file name */
+char	output_filename[MAXPATHLEN];	/* Output file name */
+int		input_fd;		/* Input file descriptor */
+int		output_fd;		/* Output file descriptor */
+unsigned char	*input_buffer;	/* Pointer to input buffer */
 int		si_ipos;	/* Current position in input stream */
 size_t		si_isize;	/* Total size of input data */
 
@@ -83,9 +83,9 @@ local_vpu4_decoded (SHCodecs_Decoder * decoder,
                     void * user_data)
 {
   ssize_t len;
-	if (iOutput_fd != -1) {
-		len = write(iOutput_fd, y_buf, y_size);
-		write(iOutput_fd, c_buf, c_size);
+	if (output_fd != -1) {
+		len = write(output_fd, y_buf, y_size);
+		write(output_fd, c_buf, c_size);
 	} else {
 		// vio_render_frame(yf + ry, luma_size);
 	}
@@ -208,8 +208,7 @@ int main(int argc, char **argv)
 	decoder_Start(decoder);
 #else
         do {
-	  shcodecs_decode (decoder, pbInput_BufferMemory + si_ipos, si_isize - si_ipos);
-          pref_len = shcodecs_decoder_preferred_length (decoder);
+	  shcodecs_decode (decoder, input_buffer + si_ipos, si_isize - si_ipos);
         } while (increment_Input (decoder, pref_len) == 0);
 #endif
 
@@ -232,11 +231,11 @@ local_init (char *pInputfile, char *pOutputfile)
 	struct timezone tz;
 
         /* XXX: local setup */
-	strcpy(szInput_fileName, pInputfile);
-	strcpy(szOutput_fileName, pOutputfile);
+	strcpy(input_filename, pInputfile);
+	strcpy(output_filename, pOutputfile);
 
     //- Open input/output stream .
-	iInput_fd = iOutput_fd = -1;
+	input_fd = output_fd = -1;
 	if (pInputfile[0] != '\0' && open_InputStream())
 		return -50;
 	if (pOutputfile[0] != '\0' && open_OutputStream())
@@ -244,14 +243,14 @@ local_init (char *pInputfile, char *pOutputfile)
 
         /* from stream_Initialize() */
     //- Allocate memory for input buffer.
-	pbInput_BufferMemory = malloc(INPUT_BUF_SIZE);
-	UserDisp("input buffer = %X\n",(int)pbInput_BufferMemory);
-	if (pbInput_BufferMemory == NULL) goto err2;
+	input_buffer = malloc(INPUT_BUF_SIZE);
+	UserDisp("input buffer = %X\n",(int)input_buffer);
+	if (input_buffer == NULL) goto err2;
 
-	if (iInput_fd != -1) {
+	if (input_fd != -1) {
 		//- Fill input buffer .
-		if ((si_isize = read(iInput_fd, pbInput_BufferMemory, INPUT_BUF_SIZE)) <= 0) {
-				perror(szInput_fileName);
+		if ((si_isize = read(input_fd, input_buffer, INPUT_BUF_SIZE)) <= 0) {
+				perror(input_filename);
 				return -54;
 		}
 	}
@@ -273,13 +272,13 @@ local_close (void)
 	struct timeval tv;
 	struct timezone tz;
 
-	if (iOutput_fd != -1 && iOutput_fd > 2)
-		close(iOutput_fd);
-	if (iInput_fd != -1 && iInput_fd > 2)
-		close(iInput_fd);
+	if (output_fd != -1 && output_fd > 2)
+		close(output_fd);
+	if (input_fd != -1 && input_fd > 2)
+		close(input_fd);
 
-	if (pbInput_BufferMemory){
-		free(pbInput_BufferMemory);
+	if (input_buffer){
+		free(input_buffer);
 		#if 0
 		if (decoder->pbNAL_H264BufferMemory)
 			free(decoder->pbNAL_H264BufferMemory);
@@ -300,9 +299,9 @@ local_close (void)
  */
 static int open_InputStream(void)
 {
-	iInput_fd = open(szInput_fileName, O_RDONLY);
-	if (iInput_fd == -1) {
-		perror(szInput_fileName);
+	input_fd = open(input_filename, O_RDONLY);
+	if (input_fd == -1) {
+		perror(input_filename);
 		return -1;
 	}
 	return 0;
@@ -314,9 +313,9 @@ static int open_InputStream(void)
  */
 static int open_OutputStream(void)
 {
-	iOutput_fd = open(szOutput_fileName, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-	if (iOutput_fd == -1) {
-		perror(szOutput_fileName);
+	output_fd = open(output_filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (output_fd == -1) {
+		perror(output_filename);
 		return -1;
 	}
 	return 0;
@@ -376,11 +375,11 @@ static int increment_Input(SHCodecs_Decoder * decoder, int len)
 	if (rem < INPUT_BUF_SIZE/2 /*&& si_isize == INPUT_BUF_SIZE*/) {
 		// printf("Refilling buffer\n");
 		// printf("Remaining bytes %d, moving from %d to 0\n", rem, current_pos);
-		memmove(pbInput_BufferMemory, pbInput_BufferMemory + current_pos, rem);
+		memmove(input_buffer, input_buffer + current_pos, rem);
 		// printf("Reading %d bytes at pos %d\n", si_isize - rem, rem);
 		
 		do {
-			count = read(iInput_fd, pbInput_BufferMemory + rem, INPUT_BUF_SIZE - rem);
+			count = read(input_fd, input_buffer + rem, INPUT_BUF_SIZE - rem);
 			if (count > 0)
 				rem += count;
 		} while (count > 0 && count < 100);
