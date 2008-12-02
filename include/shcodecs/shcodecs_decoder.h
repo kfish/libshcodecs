@@ -80,19 +80,12 @@ shcodecs_decoder_set_decoded_callback (SHCodecs_Decoder * decoder,
                                       void * user_data);
 
 /**
- * Query the optimal input length in bytes.
- * \param decoder The SHCodecs_Decoder* handle
- * \returns The optimal input length in bytes.
- */
-int
-shcodecs_decoder_preferred_length (SHCodecs_Decoder * decoder);
-
-/**
  * Decode a buffer of input data. This function will call the previously
  * registered callback each time it has decoded a complete frame.
  * \param decoder The SHCodecs_Decoder* handle
- * \param data A memory buffer containing comperssed video data
+ * \param data A memory buffer containing compressed video data
  * \param len The length in bytes of the data
+ * \returns The number of bytes of input that were used.
  */
 int
 shcodecs_decode (SHCodecs_Decoder * decoder, unsigned char * data, int len);
