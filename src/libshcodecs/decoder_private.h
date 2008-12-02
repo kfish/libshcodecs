@@ -39,12 +39,11 @@ struct _SHCodecs_Decoder {
 	int		*si_ctxt;	/* Pointer to context */
 	int		si_ctxt_size;	/* Size of context */
 	int		si_type;	/* Type of stream */
-
-	unsigned char   *input_data;
-        int             input_len;
-
+	unsigned char   *si_input;	/* Pointer to input buffer */
 	unsigned char	*si_nalb;	/* NAL Buffer for H.264 */ 
+	int		si_ipos;	/* Current position in input stream */
 	int		si_ilen;	/* Size of current frame/slice */
+	size_t		si_isize;	/* Total size of input data */
 	FrameInfo	*si_flist;
 	int		si_fnum;	/* Frame number */
 	int		si_fx;		/* Width of frame */
@@ -59,9 +58,6 @@ struct _SHCodecs_Decoder {
 	FrameInfo	si_ff;		/* Filtered frame */
 
 	TAVCBD_LAST_FRAME_STATUS last_frame_status;
-
-        int             preferred_len;  /* Preferred length of next input */
-
 
         SHCodecs_Decoded_Callback decoded_cb;
         void            *decoded_cb_data;

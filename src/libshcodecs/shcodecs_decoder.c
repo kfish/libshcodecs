@@ -24,15 +24,13 @@
 #define VPU4IP
 #include "m4vsd_h263dec.h"
 
-//#define DEBUG
+/*#define DEBUG*/
 
 /* XXX: extern declarations, implemented in m4driverif.c, req'd by middleware ... */
 extern void m4iph_sleep_time_init(void);
 extern unsigned long m4iph_sleep_time_get(void);
 extern int vpu4_clock_on(void);
 extern int vpu4_clock_off(void);
-
-/*extern void printf(__const char *__restrict __format, ...);*/
 
 static int stream_init(SHCodecs_Decoder * decoder);
 static int decoder_init(SHCodecs_Decoder * decoder);
@@ -112,18 +110,16 @@ shcodecs_decoder_set_decoded_callback(SHCodecs_Decoder * decoder,
 	return 0;
 }
 
-int shcodecs_decoder_preferred_length(SHCodecs_Decoder * decoder)
-{
-	return decoder->preferred_len;
-}
-
+/*
+ * Returns number of bytes used.
+ */
 int
 shcodecs_decode(SHCodecs_Decoder * decoder, unsigned char *data, int len)
 {
-	decoder->input_data = data;
-	decoder->input_len = len;
-
+	decoder->si_input = data;
+	decoder->si_ipos = 0;
 	decoder->si_ilen = len;
+	decoder->si_isize = len;
 
 	return decoder_start(decoder);
 }
@@ -372,7 +368,6 @@ static int decoder_start(SHCodecs_Decoder * decoder)
 		decoded = 0;
 
 		if (decode_frame(decoder) == -1) {
-			/* printf("%d frames decoded\n", decoder->si_fnum); */
 #ifdef DEBUG
 			printf("%d frames decoded\n", decoder->si_fnum);
 #endif
@@ -437,6 +432,31 @@ static int decoder_start(SHCodecs_Decoder * decoder)
 #endif
 	} while (decoded);
 
+	/* Return number of bytes consumed */
+	return decoder->si_ipos;
+}
+
+/*
+ * increment_input()
+ *
+ * Work through the passed-in buffer.
+ */
+static int increment_input (SHCodecs_Decoder * decoder, int len)
+{
+	int current_pos = decoder->si_ipos + len;
+	int rem = decoder->si_isize - current_pos;
+	int count;
+
+#ifdef DEBUG
+	printf("shcodecs_decoder::increment_input IN, rem=%d\n", rem);
+#endif
+
+	if ((size_t)current_pos <= decoder->si_isize) {
+		decoder->si_ipos = current_pos;
+	} else {
+		return -1;
+	}
+
 	return 0;
 }
 
@@ -497,8 +517,7 @@ static int decode_frame(SHCodecs_Decoder * decoder)
 			unsigned char *ptr;
 			long hosei;
 
-			/*ptr = (pbInput_BufferMemory + si_ipos); */
-			ptr = decoder->input_data;
+			ptr = decoder->si_input + decoder->si_ipos;
 
 			ret = avcbd_search_vop_header(decoder->si_ctxt,
 						      ptr,
@@ -518,22 +537,23 @@ static int decode_frame(SHCodecs_Decoder * decoder)
 				}
 			}
 			avcbd_set_stream_pointer(decoder->si_ctxt,
-						 /*pbInput_BufferMemory + si_ipos, */
-						 decoder->input_data,
-						 decoder->si_ilen +
-						 hosei, NULL);
+						 decoder->si_input + decoder->si_ipos,
+						 decoder->si_ilen + hosei, NULL);
 		}
 
 		/* XXX: lock VPU */
 		ret = avcbd_decode_picture(decoder->si_ctxt, decoder->si_ilen * 8);
+#ifdef DEBUG
+		printf
+		    ("shcodecs_decoder::decode_frame: avcbd_decode_picture returned %d\n", ret);
+#endif
 		ret = avcbd_get_last_frame_stat(decoder->si_ctxt, &decoder->last_frame_status);
 		counter = 1;
 		/* XXX: unlock VPU */
 
 		if (decoder->last_frame_status.error_num < 0) {
 			m4iph_avcbd_perror("avcbd_decode_picture()",
-					   decoder->last_frame_status.
-					   error_num);
+					   decoder->last_frame_status.error_num);
 #if 0
 			switch (decoder->last_frame_status.error_num) {
 			case AVCBD_MB_OVERRUN:
@@ -552,37 +572,16 @@ static int decode_frame(SHCodecs_Decoder * decoder)
 			curr_len =
 			    (unsigned) (decoder->last_frame_status.read_bits + 7) >> 3;
 			decoder->si_ilen -= curr_len;
-			avcbd_get_frame_size(decoder->si_ctxt,
-					     &frame_size);
+			avcbd_get_frame_size(decoder->si_ctxt, &frame_size);
 			decoder->si_fx = frame_size.width;
 			decoder->si_fy = frame_size.height;
 		}
 
-		/* XXX: this is where actual input data is read */
-#if 0
-		if (increment_input(decoder, curr_len) < 0)
+		/* This is where actual input data is read */
+		if (increment_input(decoder, curr_len) < 0) {
+			err = 0;
 			break;
-#else
-		if (decoder->input_len - decoder->si_ilen < curr_len)
-			break;
-
-		decoder->input_data += curr_len;
-
-		decoder->preferred_len = curr_len;
-
-#if 0
-		if (decoder->si_ilen <= 0)
-			break;
-#endif
-
-#if 0
-		/* XXX: these bits are taken care of in increment_input() */
-		if ((si_isize - si_ipos - curr_len) <= 0)
-			break;
-		else if (si_ipos + curr_len < si_isize)
-			si_ipos += curr_len;
-#endif
-#endif
+		}
 
 #ifdef DEBUG
 		printf
@@ -594,26 +593,22 @@ static int decode_frame(SHCodecs_Decoder * decoder)
 		     max_mb);
 #endif
 
-		if (decoder->last_frame_status.error_num ==
-		    AVCBD_PIC_NOTCODED_VOP) {
+		if (decoder->last_frame_status.error_num == AVCBD_PIC_NOTCODED_VOP) {
 			err = 0;
 			break;
 		}
 		if (decoder->last_frame_status.detect_param & AVCBD_SPS) {
-			avcbd_get_frame_size(decoder->si_ctxt,
-					     &frame_size);
+			avcbd_get_frame_size(decoder->si_ctxt, &frame_size);
 			decoder->si_fx = frame_size.width;
 			decoder->si_fy = frame_size.height;
-			max_mb = ((unsigned) (frame_size.width + 15) >> 4)
-			    * ((unsigned) (frame_size.height + 15) >> 4);
+			max_mb = ((unsigned)(frame_size.width + 15) >> 4) *
+				((unsigned)(frame_size.height + 15) >> 4);
 			decoder->si_mbnum = max_mb;
 		}
-		//break;
 		err = 0;
 	}
 	while ((decoder->last_frame_status.read_slices == 0)
-	       || (decoder->last_frame_status.last_macroblock_pos <
-		   max_mb));
+	       || (decoder->last_frame_status.last_macroblock_pos < max_mb));
 
 	if (!err) {
 		return 0;
@@ -695,24 +690,30 @@ static int usr_get_input_h264(SHCodecs_Decoder * decoder, void *dst)
 
 	/* skip pre-gap */
 	size = avcbd_search_start_code(
-                  /*pbInput_BufferMemory + si_ipos, */ decoder->input_data,
-                  /*(si_isize - si_ipos) * 8, */
-		       decoder->input_len * 8, 0x01);
+                  decoder->si_input + decoder->si_ipos,
+                  (decoder->si_isize - decoder->si_ipos) * 8,
+		  0x01);
+
 	if (size < 0) {
 		m4iph_avcbd_perror("avcbd_search_start_code()", size);
 		return -1;
 	}
 
-	/*si_ipos += size; */
+	decoder->si_ipos += size;
 
-	/* tranfer one block excluding "(00 00) 03" */
-	size = avcbd_extract_nal(	/* pbInput_BufferMemory + si_ipos, */
-					decoder->input_data + size, dst,
-					/*si_isize - si_ipos, */
-					decoder->input_len, 3);
+	if ((size_t)decoder->si_ipos > decoder->si_isize)
+		fprintf (stderr, "get_input_h264: si_ipos %d > si_isize %d\n",
+					decoder->si_ipos, decoder->si_isize);
+
+	/* transfer one block excluding "(00 00) 03" */
+	size = avcbd_extract_nal(
+		decoder->si_input + decoder->si_ipos,
+		dst,
+		decoder->si_isize - decoder->si_ipos,
+		3);
+
 	if (size <= 0) {
 		m4iph_avcbd_perror("avcbd_extract_nal()", size);
-		printf("usr_Get_Input_H264 error\n");
 	} else
 		decoder->si_ilen = size;
 
