@@ -38,13 +38,15 @@ typedef enum {
 
 /**
  * Signature of a callback for libshcodecs to call when it has decoded
- * YUV 4:2:0 data.
+ * YUV 4:2:0 data. To pause decoding, return 1 from this callback.
  * \param decoder The SHCodecs_Decoder* handle
  * \param y_buf The decoded Y plane
  * \param y_size The size in bytes of the decoded Y data
  * \param c_buf The decoded C plane
  * \param c_size The size in bytes of the decoded C data
  * \param user_data Arbitrary data supplied by user
+ * \retval 0 Continue decoding
+ * \retval 1 Pause decoding, return from shcodecs_decode()
  */
 typedef int (*SHCodecs_Decoded_Callback) (SHCodecs_Decoder * decoder,
                                          unsigned char * y_buf, int y_size,
@@ -95,11 +97,16 @@ shcodecs_decoder_set_frame_by_frame (SHCodecs_Decoder * decoder,
 
 /**
  * Decode a buffer of input data. This function will call the previously
- * registered callback each time it has decoded a complete frame.
+ * registered callback each time it has decoded a complete frame. If that
+ * callback returns 1, decoding is paused and shcodecs_decode() will
+ * return immediately. The decode state will be retained between successive
+ * calls.
  * \param decoder The SHCodecs_Decoder* handle
  * \param data A memory buffer containing compressed video data
  * \param len The length in bytes of the data
- * \returns The number of bytes of input that were used.
+ * \returns The number of bytes of input that were used. Note that this
+ * may be zero even if frames were decoded, in the case that the decoder
+ * was previously paused and is being resumed.
  */
 int
 shcodecs_decode (SHCodecs_Decoder * decoder, unsigned char * data, int len);
