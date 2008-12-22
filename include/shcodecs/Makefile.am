@@ -2,4 +2,4 @@
 
 # Include files to install
 shcodecsincludedir = $(includedir)/shcodecs
-shcodecsinclude_HEADERS = shcodecs.h shcodecs_decoder.h
+shcodecsinclude_HEADERS = shcodecs.h shcodecs_common.h shcodecs_decoder.h shcodecs_encoder.h

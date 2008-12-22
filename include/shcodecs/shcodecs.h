@@ -89,6 +89,7 @@ extern "C" {
  */
 
 #include <shcodecs/shcodecs_decoder.h>
+#include <shcodecs/shcodecs_encoder.h>
 
 #ifdef __cplusplus
 }
