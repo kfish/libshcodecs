@@ -11,6 +11,7 @@ SHCODECS_LIBS = $(SHCODECSDIR)/libshcodecs.la -lm
 bin_PROGRAMS = shcodecs-enc shcodecs-capenc shcodecs-cap
 
 noinst_HEADERS = \
+	encoder_private.h \
 	capture.h \
 	avcbd.h \
 	avcbd_inner_typedef.h \
@@ -29,6 +30,7 @@ noinst_HEADERS = \
 	veu_colorspace.h
 
 shcodecs_enc_SOURCES =  \
+	shcodecs_encoder.c \
 	capture.c \
 	avcbeinputuser.c \
 	avcbencsmp_common.c \
@@ -51,6 +53,7 @@ shcodecs_enc_CFLAGS = -v -Wall -O2 -I $(srcdir) -fPIC -fno-common \
 shcodecs_enc_LDADD = -lstdc++ $(SHCODECS_LIBS) $(VPU4_ENC_LIBS)
 
 shcodecs_capenc_SOURCES =  \
+	shcodecs_encoder.c \
 	capture.c \
 	avcbeinputuser.c \
 	avcbencsmp_common.c \
