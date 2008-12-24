@@ -234,8 +234,6 @@ int main(int argc, char *argv[])
 
 	/* stream buffer 0 clear */
 //	memset(sdr_read_my_stream_buff,0,sizeof(sdr_read_my_stream_buff));
-	m4iph_vpu_open();
-	m4iph_sdr_open();
 	m4iph_sleep_time_init();
 	encode_time_init();
 	vpu4_clock_on();
@@ -276,8 +274,9 @@ int main(int argc, char *argv[])
 	} 
 	m4iph_sdr_free(sdr_base,  width_height * (max_frame+3));
 	m4iph_sdr_free(ainfo.vpu4_param.m4iph_temporary_buff_address, MY_STREAM_BUFF_SIZE);
-	m4iph_sdr_close();
-	m4iph_vpu_close();
+
+	shcodecs_encoder_close (encoder);
+
 	free(my_stream_buff_bak);
 	free(my_end_code_buff_bak);
 	free(my_work_area);
@@ -285,8 +284,6 @@ int main(int argc, char *argv[])
 printf("Total encode time = %d(msec)\n",encode_time_get());
 printf("Total sleep  time = %d(msec)\n",m4iph_sleep_time_get());
 	/* TODO vpu4_reg_close(); */
-
-	shcodecs_encoder_close (encoder);
 }
 
 /*---------------------------------------------------------------------*/

@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include "m4iph_vpu4.h"	/* SuperH MEPG-4&H.264 Video Driver Library Header */  
 
 #include "encoder_private.h"
 
@@ -17,6 +18,11 @@
 SHCodecs_Encoder *
 shcodecs_encoder_init(int width, int height, SHCodecs_Format format)
 {
+        m4iph_vpu_open();
+        printf ("1: Got VPU\n");
+	m4iph_sdr_open();
+        printf ("1: Got SDR\n");
+
   return NULL;
 }
 
@@ -28,6 +34,9 @@ shcodecs_encoder_init(int width, int height, SHCodecs_Format format)
 void
 shcodecs_encoder_close (SHCodecs_Encoder * encoder)
 {
+	m4iph_sdr_close();
+	m4iph_vpu_close();
+
   return;
 }
 
