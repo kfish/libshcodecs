@@ -28,6 +28,8 @@
 #include "capture.h"
 #include "veu_colorspace.h"
 
+#include <shcodecs/shcodecs_encoder.h>
+
 #define DEBUG
 
 /* Maximum width and height of capture, used for allocating static buffers. */
@@ -197,6 +199,7 @@ int main(int argc, char *argv[])
 	char message_buf[256];
 	int return_code, case_no=0;
 	long stream_type, width_height, max_frame;	/* 041201 */
+	SHCodecs_Encoder * encoder;
 
 	if (argc == 2) { /* 第1引数=コントロールファイル */
 		strcpy(ainfo.ctrl_file_name_buf, argv[1]);
@@ -241,6 +244,8 @@ int main(int argc, char *argv[])
 	sh_veu_open ();
 
         printf ("1: Got CEU\n");
+
+	encoder = shcodecs_encoder_init (ainfo.enc_exec_info.xpic, ainfo.enc_exec_info.ypic, stream_type);
 
 	/* stream buffer 0 clear */
 //	memset(sdr_read_my_stream_buff,0,sizeof(sdr_read_my_stream_buff));
@@ -309,6 +314,8 @@ printf("Total sleep  time = %d(msec)\n",m4iph_sleep_time_get());
 	/* TODO vpu4_reg_close(); */
 
 	sh_veu_close ();
+
+	shcodecs_encoder_close (encoder);
 
 	sh_ceu_close (ainfo.ceu);
 }
