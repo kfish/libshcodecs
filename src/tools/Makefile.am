@@ -54,6 +54,7 @@ shcodecs_enc_CFLAGS = -v -Wall -O2 -I $(srcdir) -fPIC -fno-common \
 shcodecs_enc_LDADD = -lstdc++ $(SHCODECS_LIBS) $(VPU4_ENC_LIBS)
 
 shcodecs_capenc_SOURCES =  \
+	shcodecs-capenc.c \
 	shcodecs_encoder.c \
 	capture.c \
 	avcbeinputuser.c \
