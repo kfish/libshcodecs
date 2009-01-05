@@ -55,7 +55,7 @@ shcodecs_encoder_set_encoded_callback (SHCodecs_Encoder * encoder,
 }
 
 /**
- * Decode a buffer of input data. This function will call the previously
+ * Encode a buffer of input data. This function will call the previously
  * registered callback each time it has encoded a complete frame. If that
  * callback returns 1, encoding is paused and shcodecs_encode() will
  * return immediately. The encode state will be retained between successive
