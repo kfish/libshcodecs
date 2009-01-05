@@ -30,6 +30,7 @@ noinst_HEADERS = \
 	veu_colorspace.h
 
 shcodecs_enc_SOURCES =  \
+	shcodecs-enc.c \
 	shcodecs_encoder.c \
 	capture.c \
 	avcbeinputuser.c \

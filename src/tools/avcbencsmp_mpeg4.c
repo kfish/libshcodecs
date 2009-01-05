@@ -74,15 +74,15 @@ extern avcbe_stream_info *my_context;
 extern TAVCBE_FMEM LDEC_ARRY[];
 extern TAVCBE_FMEM CAPTF_ARRY[];
 
-unsigned long *my_frame_memory_capt[19];
+extern unsigned long *my_frame_memory_capt[19];
 
-unsigned long *my_frame_memory_ldec1;
-unsigned long *my_frame_memory_ldec2;
-unsigned long *my_frame_memory_ldec3;
-unsigned long *my_stream_buff;
-unsigned long *my_end_code_buff;
-unsigned long *my_stream_buff_bak;
-unsigned long *my_end_code_buff_bak;
+extern unsigned long *my_frame_memory_ldec1;
+extern unsigned long *my_frame_memory_ldec2;
+extern unsigned long *my_frame_memory_ldec3;
+extern unsigned long *my_stream_buff;
+extern unsigned long *my_end_code_buff;
+extern unsigned long *my_stream_buff_bak;
+extern unsigned long *my_end_code_buff_bak;
 extern unsigned long *my_work_area;	/* 4 bytes alignment */
 
 
@@ -154,15 +154,10 @@ extern int GetFromCtrlFTop(const char *control_filepath, ENC_EXEC_INFO *enc_exec
 /*int mpeg4_enc(void) */
 extern APPLI_INFO ainfo;  /* User Application Data */
 
-u_int32_t sdr_base;
-
-unsigned long m4iph_vpu4_reg_base=0xfe900000;
-#define KERNEL_MEMORY_FOR_VPU_BOTTOM 0xadffffff
-
-unsigned long *kernel_memory_for_vpu_top;
 void get_new_stream_buf(avcbe_stream_info *context, char *previous_stream_buff,
 		long output_size, char **next_stream_buff, long *stream_buff_size);
 
+#if 0
 void file_name_copy(void)
 {
 		strcpy(ainfo.file_path_buf_1, ainfo.enc_exec_info.buf_input_yuv_file_with_path);/* 入力ディレクトリ */
@@ -285,6 +280,7 @@ printf("Total encode time = %d(msec)\n",encode_time_get());
 printf("Total sleep  time = %d(msec)\n",m4iph_sleep_time_get());
 	/* TODO vpu4_reg_close(); */
 }
+#endif
 
 /*---------------------------------------------------------------------*/
 /*    encode on each case (for MPEG-4 or H.263) 					   */   
