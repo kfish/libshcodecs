@@ -32,10 +32,6 @@
 
 #define DEBUG
 
-/* Maximum width and height of capture, used for allocating static buffers. */
-#define ENC_WIDTH 640
-#define ENC_HEIGHT 480
-
 #ifdef CAPT_INPUT
 #if 0
 #include	"cpu_sh73380.h"
@@ -104,20 +100,6 @@ unsigned long  ComplexDiffSave[ComplexValueMax];
 unsigned long swap_long(unsigned long ul_val);
 unsigned long  cnt;
 long  tmp;
-
-#pragma section	_VRAM_BUFF
-	unsigned short	VRAM_Buff[ENC_WIDTH][ENC_HEIGHT];	/* 16bit RGB */
-#pragma section
-#pragma section	_VRAM_BUFF1
-	unsigned short	VRAM_Buff1[ENC_WIDTH][ENC_HEIGHT];	/* Y */
-#pragma section
-#pragma section	_VRAM_BUFF2
-
-	unsigned short	VRAM_Buff2[ENC_WIDTH][ENC_HEIGHT];	/* Cb,Cr */
-#pragma section
-#pragma section	_VRAM_BUFF3
-	unsigned long  VRAM_Buff3[ENC_WIDTH][ENC_HEIGHT];  /* 18bit RGB */
-#pragma section
 
 void	cnvs_data( void );
 

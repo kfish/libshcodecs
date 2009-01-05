@@ -95,20 +95,6 @@ unsigned long swap_long(unsigned long ul_val);
 unsigned long  cnt;
 long  tmp;
 
-#pragma section	_VRAM_BUFF
-	unsigned short	VRAM_Buff[320][240];	/* 16bit RGB */
-#pragma section
-#pragma section	_VRAM_BUFF1
-	unsigned short	VRAM_Buff1[320][240];	/* Y */
-#pragma section
-#pragma section	_VRAM_BUFF2
-
-	unsigned short	VRAM_Buff2[320][240];	/* Cb,Cr */
-#pragma section
-#pragma section	_VRAM_BUFF3
-	unsigned long  VRAM_Buff3[320][240];  /* 18bit RGB */
-#pragma section
-
 void	cnvs_data( void );
 
 
