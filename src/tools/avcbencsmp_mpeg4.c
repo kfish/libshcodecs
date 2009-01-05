@@ -557,11 +557,22 @@ memset(&my_stream_buff[0], 0, MY_STREAM_BUFF_SIZE);
 				appli_info->output_type, &my_stream_buff_info, NULL);
 		vpu4_clock_off();
 #else
+#ifdef DEBUG
+		printf ("encode_picture_for_mpeg4: avcbe_encode_picture (%x, %ld, %ld, %ld, {%ld, %x})\n",
+			context, frm, appli_info->set_intra, appli_info->output_type,
+			my_stream_buff_info.buff_size, my_stream_buff_info.buff_top);
+#endif
 		vpu4_clock_on();
 gettimeofday(&tv, &tz);
 //printf("enc_pic0=%ld,",tv.tv_usec);
 		return_code = avcbe_encode_picture(context, frm, appli_info->set_intra,	appli_info->output_type, &my_stream_buff_info, NULL);
 gettimeofday(&tv1, &tz);
+
+#ifdef DEBUG
+		printf ("encode_picture_for_mpeg4: avcbe_encode_picture returned %dn", return_code);
+#endif
+
+
 //printf("ret=%d,enc_pic1=%ld,",return_code,tv1.tv_usec);
 tm = (tv1.tv_usec-tv.tv_usec)/1000;
 if ( tm<0 ) {

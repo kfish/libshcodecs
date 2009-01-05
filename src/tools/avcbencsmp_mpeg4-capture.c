@@ -577,7 +577,7 @@ gettimeofday(&tv1, &tz);
 #ifdef DEBUG
 		printf ("encode_picture_for_mpeg4: avcbe_encode_picture returned %dn", return_code);
 #endif
-		
+
 
 //printf("ret=%d,enc_pic1=%ld,",return_code,tv1.tv_usec);
 tm = (tv1.tv_usec-tv.tv_usec)/1000;
