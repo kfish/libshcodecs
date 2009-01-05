@@ -160,15 +160,6 @@ long init_for_encoder_h264(long case_no, APPLI_INFO *appli_info, long stream_typ
 	}
 
 #ifndef CAPT_INPUT
-#if 0
-	/*--- open input YUV data file (one of the user application's own
-	 *  functions) ---*/
-	return_code = open_input_image_file(appli_info);
-	if (return_code != 0) {	/* error */ 
-		DisplayMessage(" encode_1file:open_input_image_file ERROR! ", 1);
-		return (-6);
-	} 
-#endif
 #endif
 
 	return_code = open_output_file(appli_info);

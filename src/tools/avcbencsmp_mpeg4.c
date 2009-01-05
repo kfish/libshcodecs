@@ -88,7 +88,6 @@ extern unsigned long *my_work_area;	/* 4 bytes alignment */
 
 extern long frame_counter_of_input;	/* the number of input frames for stream-1 */
 
-int open_input_image_file(APPLI_INFO *);
 int open_output_file(APPLI_INFO *);
 void disp_context_info(void *context);
 
@@ -255,15 +254,7 @@ long init_for_encoder_mpeg4(long case_no, APPLI_INFO *appli_info, long stream_ty
 	} 
 
 	frame_counter_of_input = 0;
-#ifndef CAPT_INPUT
-	/*--- open input YUV data file (one of the user application's own
-	 *  functions) ---*/
-	return_code = open_input_image_file(appli_info);
-	if (return_code != 0) {	/* error */ 
-		DisplayMessage(" encode_1file:open_input_image_file ERROR! ", 1);
-		return (-6);
-	} 
-#endif
+
 	/*--- open output file (one of the user application's own functions) ---*/
 	return_code = open_output_file(appli_info);
 	if (return_code != 0) {	/* error */ 

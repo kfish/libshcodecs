@@ -225,6 +225,15 @@ int main(int argc, char *argv[])
 	my_end_code_buff_bak = malloc(MY_END_CODE_BUFF_SIZE + 31);
 	my_end_code_buff = ALIGN(my_end_code_buff_bak, 32);
 	success_count = 0;
+
+	/*--- open input YUV data file (one of the user application's own
+	 *  functions) ---*/
+	return_code = open_input_image_file(&ainfo);
+	if (return_code != 0) {	/* error */ 
+		DisplayMessage(" open_input_image_file ERROR! ", 1);
+		return (-6);
+	} 
+
 	for (loop_index=0; loop_index < 1; loop_index++) {  
 		/* encode on each case */
 		if ( stream_type == AVCBE_H264 ) {
