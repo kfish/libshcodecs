@@ -18,8 +18,22 @@
 typedef void SHCodecs_Encoder;
 
 /**
- * Signature of a callback for libshcodecs to call when it has encoded
- * YUV 4:2:0 data. To pause encoding, return 1 from this callback.
+ * Signature of a callback for libshcodecs to call when it requires YUV 4:2:0 data.
+ * To pause encoding, return 1 from this callback.
+ * \param encoder The SHCodecs_Encoder* handle
+ * \param addr_y Address in which to write Y data
+ * \param addr_c Address in which to write CbCr data
+ * \param user_data Arbitrary data supplied by user
+ * \retval 0 Continue encoding
+ * \retval 1 Pause encoding, return from shcodecs_encode()
+ */
+typedef int (*SHCodecs_Encoder_Input) (SHCodecs_Encoder * encoder,
+                                       unsigned long *addr_y, unsigned long *addr_c,
+                                       void * user_data);
+
+/**
+ * Signature of a callback for libshcodecs to call when it has encoded data.
+ * To pause encoding, return 1 from this callback.
  * \param encoder The SHCodecs_Encoder* handle
  * \param data The encoded data
  * \param length Length of encoded data in bytes
@@ -27,12 +41,9 @@ typedef void SHCodecs_Encoder;
  * \retval 0 Continue encoding
  * \retval 1 Pause encoding, return from shcodecs_encode()
  */
-typedef int (*SHCodecs_Encoded_Callback) (SHCodecs_Encoder * encoder,
-                                          unsigned char * data, int length,
-                                          void * user_data);
-
-#if 0
-#endif
+typedef int (*SHCodecs_Encoder_Output) (SHCodecs_Encoder * encoder,
+                                        unsigned char * data, int length,
+                                        void * user_data);
 
 /**
  * Initialize the VPU4 for encoding a given video format.
@@ -59,9 +70,20 @@ shcodecs_encoder_close (SHCodecs_Encoder * encoder);
  * \param user_data Additional data to pass to the callback function
  */
 int
-shcodecs_encoder_set_encoded_callback (SHCodecs_Encoder * encoder,
-                                       SHCodecs_Encoded_Callback encoded_cb,
-                                       void * user_data);
+shcodecs_encoder_set_output_callback (SHCodecs_Encoder * encoder,
+                                      SHCodecs_Encoder_Output output_cb,
+                                      void * user_data);
+
+/**
+ * Set the callback for libshcodecs to call when raw YUV data is required.
+ * \param encoder The SHCodecs_Encoder* handle
+ * \param get_input_cb The callback function
+ * \param user_data Additional data to pass to the callback function
+ */
+int
+shcodecs_encoder_set_input_callback (SHCodecs_Encoder * encoder,
+                                     SHCodecs_Encoder_Input input_cb,
+                                     void * user_data);
 
 /**
  * Encode a buffer of input data. This function will call the previously

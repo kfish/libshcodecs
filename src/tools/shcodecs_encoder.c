@@ -18,12 +18,19 @@
 SHCodecs_Encoder *
 shcodecs_encoder_init(int width, int height, SHCodecs_Format format)
 {
+        SHCodecs_Encoder * encoder;
+
+        encoder = malloc (sizeof (SHCodecs_Encoder));
+
         m4iph_vpu_open();
         printf ("1: Got VPU\n");
 	m4iph_sdr_open();
         printf ("1: Got SDR\n");
 
-  return NULL;
+        encoder->input = NULL;
+        encoder->output = NULL;
+
+        return encoder;
 }
 
 /**
@@ -37,7 +44,26 @@ shcodecs_encoder_close (SHCodecs_Encoder * encoder)
 	m4iph_sdr_close();
 	m4iph_vpu_close();
 
+  if (encoder) free (encoder);
+
   return;
+}
+
+/**
+ * Set the callback for libshcodecs to call when raw YUV data is required.
+ * \param encoder The SHCodecs_Encoder* handle
+ * \param get_input_cb The callback function
+ * \param user_data Additional data to pass to the callback function
+ */
+int
+shcodecs_encoder_set_input_callback (SHCodecs_Encoder * encoder,
+                                     SHCodecs_Encoder_Input input_cb,
+                                     void * user_data)
+{
+  encoder->input = input_cb;
+  encoder->input_user_data = user_data;
+
+  return 0;
 }
 
 /**
@@ -47,10 +73,13 @@ shcodecs_encoder_close (SHCodecs_Encoder * encoder)
  * \param user_data Additional data to pass to the callback function
  */
 int
-shcodecs_encoder_set_encoded_callback (SHCodecs_Encoder * encoder,
-                                       SHCodecs_Encoded_Callback encoded_cb,
-                                       void * user_data)
+shcodecs_encoder_set_output_callback (SHCodecs_Encoder * encoder,
+                                      SHCodecs_Encoder_Output output_cb,
+                                      void * user_data)
 {
+  encoder->output = output_cb;
+  encoder->output_user_data = user_data;
+
   return 0;
 }
 
