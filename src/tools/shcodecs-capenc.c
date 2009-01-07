@@ -103,7 +103,6 @@ long  tmp;
 
 void	cnvs_data( void );
 
-
 typedef struct {
     int                         video_buffer_size_max;
     volatile int                video_buffer_size_current;
@@ -157,6 +156,15 @@ void file_name_copy(void)
 
 		printf("ainfo.input_file_name_buf = %s \n", ainfo.input_file_name_buf);
 		printf("ainfo.output_file_name_buf = %s \n", ainfo.output_file_name_buf);
+}
+
+/* SHCodecs_Encoder_Input callback for acquiring an image from the CEU */
+static int get_input (SHCodecs_Encoder *encoder,
+                      unsigned long *addr_y, unsigned long *addr_c,
+                      void * user_data)
+{
+        APPLI_INFO *appli_info = (APPLI_INFO *)user_data;
+        return capture_image (appli_info, addr_y, addr_c);
 }
 
 int main(int argc, char *argv[])
@@ -213,9 +221,10 @@ int main(int argc, char *argv[])
 
 	encoder = shcodecs_encoder_init (ainfo.enc_exec_info.xpic, ainfo.enc_exec_info.ypic, stream_type);
 
+        shcodecs_encoder_set_input_callback (encoder, get_input, &ainfo);
+
 	/* stream buffer 0 clear */
 //	memset(sdr_read_my_stream_buff,0,sizeof(sdr_read_my_stream_buff));
-	m4iph_sleep_time_init();
 	encode_time_init();
 	vpu4_clock_on();
 	width_height = ainfo.enc_exec_info.xpic * ainfo.enc_exec_info.ypic;
@@ -245,12 +254,16 @@ int main(int argc, char *argv[])
 	sh_ceu_start_capturing (ainfo.ceu);
 
 	for (loop_index=0; loop_index < 1; loop_index++) {  
+#if 0
 		/* encode on each case */
 		if ( stream_type == AVCBE_H264 ) {
 			encode_return_code = encode_1file_h264(ainfo.case_no, &ainfo, AVCBE_H264);   
 		} else {
-			encode_return_code = encode_1file_mpeg4(ainfo.case_no, &ainfo, stream_type);
+			encode_return_code = encode_1file_mpeg4(encoder, ainfo.case_no, &ainfo, stream_type);
 		}
+#endif
+                encode_return_code = shcodecs_encoder_run (encoder);
+
 		if (encode_return_code < 0) {	/* encode error */
 			sprintf(message_buf, "Encode Error  code=%d ", encode_return_code);
 			DisplayMessage(message_buf, 1);

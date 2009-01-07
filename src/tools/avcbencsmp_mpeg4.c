@@ -25,7 +25,7 @@
 #include "avcbe_inner.h"
 #include "QuantMatrix.h"
 
-#include <shcodecs/shcodecs_encoder.h>
+#include "encoder_private.h"
 
 /* #define DEBUG */
 
@@ -93,6 +93,8 @@ extern long frame_counter_of_input;	/* the number of input frames for stream-1 *
 int open_output_file(APPLI_INFO *);
 void disp_context_info(void *context);
 
+long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO *appli_info, long stream_type, avcbe_stream_info *context);
+
 #ifdef CAPT_INPUT
 /*------------------------------------------------------------------------------*/
 /*   For input camera															*/
@@ -147,7 +149,7 @@ void get_new_stream_buf(avcbe_stream_info *context, char *previous_stream_buff,
 /*---------------------------------------------------------------------*/
 /*    encode on each case (for MPEG-4 or H.263) 					   */   
 /*---------------------------------------------------------------------*/
-int encode_1file_mpeg4(long case_no, APPLI_INFO *appli_info, long stream_type)
+int encode_1file_mpeg4(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO *appli_info, long stream_type)
 {  
 	long return_code;  
 	TAVCBE_STREAM_BUFF my_end_code_buff_info;
@@ -190,7 +192,7 @@ int encode_1file_mpeg4(long case_no, APPLI_INFO *appli_info, long stream_type)
 	}
 
 	/* encode process function for mpeg-4/H.263 (call avcbe_encode_picture func.) */
-	return_code = encode_picture_for_mpeg4(case_no, appli_info, stream_type, my_context);
+	return_code = encode_picture_for_mpeg4(encoder, case_no, appli_info, stream_type, my_context);
 	if(return_code != 0){
 		return (-15);
 	}
@@ -391,7 +393,7 @@ printf("avcbe_init_memory=%d\n",return_code);
 /*------------------------------------------------------------------------*/
 /* Encode process function for MPEG-4/H.263                               */
 /*------------------------------------------------------------------------*/
-long encode_picture_for_mpeg4(long case_no, APPLI_INFO *appli_info, long stream_type, avcbe_stream_info *context)
+long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO *appli_info, long stream_type, avcbe_stream_info *context)
 {
 	unsigned long ldec, ref1, ref2;
 	long stream_bits, streamsize_per_frame, streamsize_total;
@@ -519,18 +521,19 @@ printf("BVOP index=%d\n",index);
 			}
 		}
 #endif /* USE_BVOP */
-#ifdef CAPT_INPUT
-	
-#else
-		return_code = load_1frame_from_image_file(appli_info, addr_y, addr_c);
-   		if (return_code < 0) {	/* error */ 
-   			DisplayMessage(" encode_1file_mpeg4:load_1frame_from_image_file ERROR! ", 1);
+
+                if (encoder->input) {
+		    /* return_code = load_1frame_from_image_file(appli_info, addr_y, addr_c);*/
+		    /* return_code = capture_image (appli_info, addr_y, addr_c); */
+                    return_code = encoder->input (encoder, addr_y, addr_c, appli_info);
+   		    if (return_code < 0) {	/* error */ 
+   		        DisplayMessage(" encode_1file_mpeg4: ERROR acquiring input image! ", 1);
 			appli_info->error_return_function = -8;
 			appli_info->error_return_code = return_code;
 			return (-8);
+                    }
 		} 
 
-#endif /* CAPT_INPUT */
 		/*--- The MPEG-4 Encoder Library API(required-7)@specify the *
 		 * address in the capture-image-field area ---*/
 		if(stream_type != AVCBE_MPEG4){

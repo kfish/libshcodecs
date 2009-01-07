@@ -22,6 +22,7 @@
 #include "avcbencsmp.h"	/* User Application Sample Header */  
 
 #include "capture.h"
+#include "encoder_private.h"
 
 extern int open_output_file(APPLI_INFO *appli_info);
 
@@ -63,7 +64,7 @@ extern long tmp_slice_size;
 /*-------------------------------------------------------------------------------*/
 /*    encode on each case (for H.264)                                            */   
 /*-------------------------------------------------------------------------------*/
-int encode_1file_h264(long case_no, APPLI_INFO *appli_info, long stream_type)
+int encode_1file_h264(SHCodecs_Encoder *encoder, long case_no, APPLI_INFO *appli_info, long stream_type)
 {  
 	long return_code;  
 	TAVCBE_STREAM_BUFF my_end_code_buff_info;
@@ -99,9 +100,9 @@ int encode_1file_h264(long case_no, APPLI_INFO *appli_info, long stream_type)
 	/* encode process function for H.264 (call avcbe_encode_picture func.) */
 	if((appli_info->other_options_h264.avcbe_use_slice == AVCBE_ON)&&
 		(appli_info->other_options_h264.avcbe_call_unit == AVCBE_CALL_PER_NAL)){
-		return_code = encode_nal_unit(case_no, appli_info, stream_type, my_context);
+		return_code = encode_nal_unit(encoder, case_no, appli_info, stream_type, my_context);
 	}else{
-		return_code = encode_picture_unit(case_no, appli_info, stream_type, my_context);
+		return_code = encode_picture_unit(encoder, case_no, appli_info, stream_type, my_context);
 	}
 	if(return_code != 0){
 		return (-115);
@@ -251,7 +252,7 @@ long init_for_encoder_h264(long case_no, APPLI_INFO *appli_info, long stream_typ
 /*----------------------------------------------------------------------------------------------*/
 /* Encode by 1 picture unit without/with using slice division for H.264                         */
 /*----------------------------------------------------------------------------------------------*/
-long encode_picture_unit(long case_no, APPLI_INFO *appli_info, long stream_type, avcbe_stream_info *context)
+long encode_picture_unit(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO *appli_info, long stream_type, avcbe_stream_info *context)
 {
 
 	unsigned long ldec, ref1, ref2;
@@ -397,19 +398,20 @@ long encode_picture_unit(long case_no, APPLI_INFO *appli_info, long stream_type,
 #endif
 			}		
 		}
+
     		/*--- copy yuv data to the image-capture-field area each frame (one of the user application's own functions) ---*/
-#if 1
-   		return_code = load_1frame_from_image_file(appli_info, addr_y, addr_c);
-#else
-   		return_code = capture_image (appli_info, addr_y, addr_c); 
-#endif
-		if (return_code < 0) {	/* error */ 
-    			DisplayMessage(" encode_1file_h264:capture_image  ERROR! ", 1);
-                        printf ("error %d\n", return_code);
+                if (encoder->input) {
+		    /* return_code = load_1frame_from_image_file(appli_info, addr_y, addr_c);*/
+		    /* return_code = capture_image (appli_info, addr_y, addr_c); */
+                    return_code = encoder->input (encoder, addr_y, addr_c, appli_info);
+   		    if (return_code < 0) {	/* error */ 
+   		        DisplayMessage(" encode_1file_h264: ERROR acquiring input image! ", 1);
 			appli_info->error_return_function = -108;
 			appli_info->error_return_code = return_code;
 			return (-108);
+                    }
 		} 
+
 		/*--- The MPEG-4 Encoder Library API(required-7)@specify the address in the capture-image-field area ---*/
 		return_code = avcbe_set_image_pointer(context, &CAPTF_ARRY, ldec, ref1, ref2);
 		if (return_code != 0) {
@@ -618,7 +620,7 @@ long encode_picture_unit(long case_no, APPLI_INFO *appli_info, long stream_type,
 /*----------------------------------------------------------------------------------------------*/
 /* Encode by NAL unit for H.264                                                                 */
 /*----------------------------------------------------------------------------------------------*/
-long encode_nal_unit(long case_no, APPLI_INFO *appli_info, long stream_type, avcbe_stream_info *context)
+long encode_nal_unit(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO *appli_info, long stream_type, avcbe_stream_info *context)
 {
 	unsigned long ldec, ref1, ref2;
 	long streamsize_total;
@@ -786,19 +788,17 @@ long encode_nal_unit(long case_no, APPLI_INFO *appli_info, long stream_type, avc
 
     	/*--- copy yuv data to the image-capture-field area each frame (one of the user application's own functions) ---*/		
 		if (appli_info->slice_mb_counter == 0) {
-#if 1
-			return_code = load_1frame_from_image_file(appli_info, addr_y, addr_c);
-#else
-			return_code = capture_image (appli_info, addr_y, addr_c); 
-#endif
-
-			if (return_code < 0) {	/* error */ 
-    			/*DisplayMessage(" encode_1file_h264:load_1frame_from_image_file ERROR! ", 1);*/
-    			DisplayMessage(" encode_1file_h264:capture_image ERROR! ", 1);
-				appli_info->error_return_function = -108;
-				appli_info->error_return_code = return_code;
-				return (-108);
-			}
+                    if (encoder->input) {
+		        /* return_code = load_1frame_from_image_file(appli_info, addr_y, addr_c);*/
+		        /* return_code = capture_image (appli_info, addr_y, addr_c); */
+                        return_code = encoder->input (encoder, addr_y, addr_c, appli_info);
+   		        if (return_code < 0) {	/* error */ 
+   		            DisplayMessage(" encode_1file_h264: ERROR acquiring input image! ", 1);
+			    appli_info->error_return_function = -108;
+			    appli_info->error_return_code = return_code;
+			    return (-108);
+                        }
+		    } 
 		}
 
 		/* If NAL unit, the avcbe_set_image_pointer function is called at 1st slice */

@@ -140,6 +140,9 @@ unsigned long avcbe_insert_filler_data_for_cpb_buffer(unsigned long input_filler
 /*----------------------------------------------------------------------------------------------*/
 /* Top of the user application sample source to encode */ 
 /*----------------------------------------------------------------------------------------------*/
+/* XXX: This function is unused by the core middleware 2.5 samples, hence this code passes NULL as the
+ * SHCodecs_Encoder* below. TODO: Remove this function, or refactor shcodecs_run to use something like
+ * this instead */
 int avcbe_enc(long stream_type)
 {        
 	int encode_return_code, loop_index, success_count;
@@ -162,10 +165,10 @@ int avcbe_enc(long stream_type)
 			stream_type = AVCBE_H264;
 		}
 		if (stream_type == AVCBE_H264) {
-			encode_return_code = encode_1file_h264(ainfo.case_no, &ainfo, stream_type); /* add at Version2 */
+			encode_return_code = encode_1file_h264(NULL, ainfo.case_no, &ainfo, stream_type); /* add at Version2 */
 
 		} else if ((stream_type == AVCBE_MPEG4)||(stream_type == AVCBE_H263)) {
-			encode_return_code = encode_1file_mpeg4(ainfo.case_no, &ainfo, stream_type);
+			encode_return_code = encode_1file_mpeg4(NULL, ainfo.case_no, &ainfo, stream_type);
 
 		}
 	

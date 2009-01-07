@@ -4,7 +4,11 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include "m4driverif.h"
 #include "m4iph_vpu4.h"	/* SuperH MEPG-4&H.264 Video Driver Library Header */  
+
+#include "avcbe.h"
+#include "avcbencsmp.h"	/* User Application Sample Header */  
 
 #include "encoder_private.h"
 
@@ -23,12 +27,16 @@ shcodecs_encoder_init(int width, int height, SHCodecs_Format format)
         encoder = malloc (sizeof (SHCodecs_Encoder));
 
         m4iph_vpu_open();
-        printf ("1: Got VPU\n");
 	m4iph_sdr_open();
-        printf ("1: Got SDR\n");
+
+	encoder->width = width;
+	encoder->height = height;
+	encoder->format = format;
 
         encoder->input = NULL;
         encoder->output = NULL;
+
+	m4iph_sleep_time_init();
 
         return encoder;
 }
@@ -84,22 +92,20 @@ shcodecs_encoder_set_output_callback (SHCodecs_Encoder * encoder,
 }
 
 /**
- * Encode a buffer of input data. This function will call the previously
- * registered callback each time it has encoded a complete frame. If that
- * callback returns 1, encoding is paused and shcodecs_encode() will
- * return immediately. The encode state will be retained between successive
- * calls.
+ * Run the encoder.
  * \param encoder The SHCodecs_Encoder* handle
- * \param y_buf The encoded Y plane
- * \param y_size The size in bytes of the encoded Y data
- * \param c_buf The encoded C plane
- * \param c_size The size in bytes of the encoded C data
  * \retval 0 Success
  */
 int
-shcodecs_encode (SHCodecs_Encoder * encoder,
-                 unsigned char * y_buf, int y_size,
-                 unsigned char * c_buf, int c_size)
+shcodecs_encoder_run (SHCodecs_Encoder * encoder)
 {
-  return 0;
+#if 0
+	if (encoder->format == AVCBE_H264 ) {
+		return encode_1file_h264(encoder, ainfo.case_no, &ainfo, AVCBE_H264);   
+	} else {
+		return encode_1file_mpeg4(encoder, ainfo.case_no, &ainfo, stream_type);
+	}
+#else
+        return 0;
+#endif
 }

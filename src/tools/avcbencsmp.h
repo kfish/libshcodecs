@@ -14,6 +14,7 @@
 #define	AVCBENCSMP_H   
 
 #include "capture.h"
+//#include "encoder_private.h"
 
 //#define MAX_D1
 
@@ -322,16 +323,11 @@ void cat_output_stream(APPLI_INFO *appli_info, avcbe_stream_info *context, char 
 void DisplayMessage(char *message_text, int line_feed_flag);
 
 /*--- the functions in avcbencsmp_h264.c ---*/
-int encode_1file_h264(long case_no, APPLI_INFO *appli_info, long stream_type);
 long init_for_encoder_h264(long case_no, APPLI_INFO *appli_info, long stream_type, avcbe_stream_info **context);
-long encode_picture_unit(long case_no, APPLI_INFO *appli_info, long stream_type, avcbe_stream_info *context);
-long encode_nal_unit(long case_no, APPLI_INFO *appli_info, long stream_type, avcbe_stream_info *context);
 long output_SEI_parameters(APPLI_INFO *appli_info, avcbe_stream_info *context,TAVCBE_STREAM_BUFF *stream_buff_info);
 
 /*--- the functions in avcbencsmp_mpeg4.c ---*/
-int encode_1file_mpeg4(long case_no, APPLI_INFO *appli_info, long stream_type);
 long init_for_encoder_mpeg4(long case_no, APPLI_INFO *appli_info, long stream_type, avcbe_stream_info **context);
-long encode_picture_for_mpeg4(long case_no, APPLI_INFO *appli_info, long stream_type, avcbe_stream_info *context);
 
 /*--- the functions in avcbeinputuser.c ---*/
 int open_input_image_file(APPLI_INFO *appli_info);

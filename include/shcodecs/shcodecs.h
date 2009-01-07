@@ -13,7 +13,7 @@ extern "C" {
  * This is the documentation for the SHCodecs C API.
  *
  * Features:
- *  - Simple callback-based decoding
+ *  - Simple callback-based encoding and decoding
  * 
  * \subsection contents Contents
  * 

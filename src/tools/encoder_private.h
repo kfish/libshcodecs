@@ -1,3 +1,6 @@
+#ifndef __ENCODER_PRIVATE_H__
+#define __ENCODER_PRIVATE_H__
+
 #include <shcodecs/shcodecs_common.h>
 
 /**
@@ -34,9 +37,27 @@ typedef int (*SHCodecs_Encoder_Output) (SHCodecs_Encoder * encoder,
                                         void * user_data);
 
 struct _SHCodecs_Encoder {
+  int width;
+  int height;
+  SHCodecs_Format format;
+
   SHCodecs_Encoder_Input input;
   void * input_user_data;
 
   SHCodecs_Encoder_Output output;
   void * output_user_data;
 };
+
+/* Internal prototypes of functions using SHCodecs_Encoder */
+
+int encode_1file_h264(SHCodecs_Encoder *encoder, long case_no, APPLI_INFO *appli_info, long stream_type);
+long encode_picture_unit(SHCodecs_Encoder *encoder, long case_no, APPLI_INFO *appli_info, long stream_type, avcbe_stream_info *context);
+long encode_nal_unit(SHCodecs_Encoder *encoder, long case_no, APPLI_INFO *appli_info, long stream_type, avcbe_stream_info *context);
+
+int encode_1file_mpeg4(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO *appli_info, long stream_type);
+long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO *appli_info, long stream_type, avcbe_stream_info *context);
+
+/* Other internal functions */
+void m4iph_sleep_time_init(void);
+
+#endif /* __ENCODER_PRIVATE_H__ */

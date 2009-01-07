@@ -86,21 +86,11 @@ shcodecs_encoder_set_input_callback (SHCodecs_Encoder * encoder,
                                      void * user_data);
 
 /**
- * Encode a buffer of input data. This function will call the previously
- * registered callback each time it has encoded a complete frame. If that
- * callback returns 1, encoding is paused and shcodecs_encode() will
- * return immediately. The encode state will be retained between successive
- * calls.
+ * Run the encoder.
  * \param encoder The SHCodecs_Encoder* handle
- * \param y_buf The encoded Y plane
- * \param y_size The size in bytes of the encoded Y data
- * \param c_buf The encoded C plane
- * \param c_size The size in bytes of the encoded C data
  * \retval 0 Success
  */
 int
-shcodecs_encode (SHCodecs_Encoder * encoder,
-                 unsigned char * y_buf, int y_size,
-                 unsigned char * c_buf, int c_size);
+shcodecs_encoder_run (SHCodecs_Encoder * encoder);
 
 #endif /* __SHCODECS_ENCODER_H__ */
