@@ -81,13 +81,13 @@ SHCodecs_Decoder *shcodecs_decoder_init(int width, int height, int format)
 void shcodecs_decoder_close(SHCodecs_Decoder * decoder)
 {
 
-	/* XXX: from stream_Finalization() */
+	/* Stream finalization */
 	if (decoder->si_vui)
 		free(decoder->si_vui);
 	if (decoder->si_sei)
 		free(decoder->si_sei);
 
-	/* XXX: from main() */
+	/* m4driverif */
 	m4iph_sdr_close();
 	m4iph_vpu_close();
 
@@ -130,7 +130,6 @@ void *global_context;
 
 /***********************************************************/
 
-/* XXX: init */
 /*
  * stream_init.
  *
@@ -244,7 +243,6 @@ static int stream_init(SHCodecs_Decoder * decoder)
 	return -1;
 }
 
-/* XXX: init */
 /*
  * decoder_init
  *
@@ -326,7 +324,6 @@ static int decoder_init(SHCodecs_Decoder * decoder)
 	return -1;
 }
 
-/* XXX: decode */
 /*
  * decoder_start
  *
