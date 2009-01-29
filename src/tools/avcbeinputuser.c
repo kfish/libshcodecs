@@ -356,7 +356,8 @@ int load_1frame_from_image_file(APPLI_INFO *appli_info,
 		if(read_size <= 1){
 			return (-1);
 		}
-}
+        }
+
 	/* Write image data to kernel memory for VPU */
 	m4iph_sdr_write((unsigned char *)addr_y, (unsigned char *)w_addr_yuv, wnum);
 	m4iph_sdr_write((unsigned char *)addr_c, (unsigned char*)CbCr_ptr, wnum/2);

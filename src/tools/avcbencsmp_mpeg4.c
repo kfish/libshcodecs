@@ -675,6 +675,8 @@ printf("BVOP index=%d\n",index);
 			appli_info->error_return_code = return_code;
 			return (-8);
 		} 
+                printf ("avcbencsmp_mpeg4.c: LOADED 1frame\n");
+
 #endif /* CAPT_INPUT */
 		/*--- The MPEG-4 Encoder Library API(required-7)@specify the *
 		 * address in the capture-image-field area ---*/

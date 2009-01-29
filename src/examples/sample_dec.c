@@ -55,6 +55,8 @@ unsigned char	*input_buffer;	/* Pointer to input buffer */
 int		si_ipos;	/* Current position in input stream */
 size_t		si_isize;	/* Total size of input data */
 
+long total_input_consumed = 0;
+long total_output_bytes = 0;
 
 /*
  * debug_printf
@@ -83,6 +85,8 @@ local_vpu4_decoded (SHCodecs_Decoder * decoder,
 		write(output_fd, c_buf, c_size);
 	}
 
+        total_output_bytes += y_size+c_size;
+
         return 0;
 }
 
@@ -91,8 +95,8 @@ local_vpu4_decoded (SHCodecs_Decoder * decoder,
 int main(int argc, char **argv)
 {
         SHCodecs_Decoder * decoder;
-	int ret=0, stream_type = SHCodecs_Format_H264, i, w, h;
-	char c, input_filename[MAXPATHLEN], output_filename[MAXPATHLEN];
+	int ret=0, stream_type = SHCodecs_Format_H264, i, w, h, c;
+	char input_filename[MAXPATHLEN], output_filename[MAXPATHLEN];
 	struct sched_param stSchePara;
         int bytes_decoded;
 
@@ -156,10 +160,12 @@ int main(int argc, char **argv)
 		debug_printf("Invalid input file.\n");
 		exit(-4);
 	}
+#if 0
 	if ( (strcmp(output_filename, "-") == 0) || (output_filename[0] == '\0') ){
-		debug_printf("Invalid input file.\n");
+		debug_printf("Invalid output file.\n");
 		exit(-5);
 	}
+#endif
 	if (w < SHCODECS_MIN_FX || w > SHCODECS_MAX_FX || h < SHCODECS_MIN_FY || h > SHCODECS_MAX_FY) {
 		debug_printf("Invalid width and/or height specified.\n");
 		exit(-6);
@@ -193,14 +199,21 @@ int main(int argc, char **argv)
 		debug_printf ("Calling shcodecs_decode (si_ipos %d, si_isize %d) ...", si_ipos, si_isize);
 		bytes_decoded = shcodecs_decode (decoder, input_buffer + si_ipos, si_isize - si_ipos);
 		debug_printf (" decoded %d bytes\n", bytes_decoded);
+                if (bytes_decoded > 0) total_input_consumed += bytes_decoded;
         } while (bytes_decoded > 0 && update_input (decoder, bytes_decoded) == 0);
+
+	/* Finalize the decode output, in case a final MPEG4 frame is available */
+	shcodecs_decoder_finalize (decoder);
 
         local_close ();
 
         shcodecs_decoder_close(decoder);
 
 	debug_printf("Total sleep  time = %d(msec)\n",(int)m4iph_sleep_time_get());
-	
+
+        printf ("Total bytes consumed: %ld\n", total_input_consumed);
+        printf ("Total bytes output: %ld\n", total_output_bytes);
+
 	return ret;
 }
 

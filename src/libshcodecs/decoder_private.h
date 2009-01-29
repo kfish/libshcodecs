@@ -61,6 +61,9 @@ struct _SHCodecs_Decoder {
 
         SHCodecs_Decoded_Callback decoded_cb;
         void            *decoded_cb_data;
+
+	long		index_old;
+	int		needs_finalization;
 };
 
 
@@ -110,5 +113,7 @@ shcodecs_decoder_preferred_length (SHCodecs_Decoder * decoder);
 int
 shcodecs_decode (SHCodecs_Decoder * decoder, unsigned char * data, int len);
 
+int
+shcodecs_decode_finalize (SHCodecs_Decoder * decoder);
 
 #endif /* _SAMPLE_MAIN_H_ */

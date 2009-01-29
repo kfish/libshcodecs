@@ -12,6 +12,7 @@
 		shcodecs_decoder_close;
 		shcodecs_decoder_set_decoded_callback;
 		shcodecs_decode;
+		shcodecs_decoder_finalize;
 
 		global_context;
 		m4iph_enc_continue;
