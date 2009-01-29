@@ -80,6 +80,20 @@ shcodecs_decoder_set_decoded_callback (SHCodecs_Decoder * decoder,
                                       void * user_data);
 
 /**
+ * Set the data input mode for frame-by-frame input, or for continuous
+ * data streaming input. If the calling application does its own packet
+ * demuxing and passes individiual packets to shcodecs, then set this
+ * function. Otherwise, arbitrary data can be streamed in and shcodecs
+ * will scan for packet boundaries.
+ * \param decoder The SHCodecs_Decoder* handle
+ * \param frame_by_frame Flag: Input data is passed in one frame blocks
+ * \retval 0 Success
+ */
+int
+shcodecs_decoder_set_frame_by_frame (SHCodecs_Decoder * decoder,
+                                     int frame_by_frame);
+
+/**
  * Decode a buffer of input data. This function will call the previously
  * registered callback each time it has decoded a complete frame.
  * \param decoder The SHCodecs_Decoder* handle

@@ -6,7 +6,7 @@ AC_PREREQ(2.53)
 
 AC_CANONICAL_TARGET
 
-AM_INIT_AUTOMAKE(libshcodecs, 0.8.2)
+AM_INIT_AUTOMAKE(libshcodecs, 0.8.3)
 AM_CONFIG_HEADER(config.h)
 
 ################################################################################

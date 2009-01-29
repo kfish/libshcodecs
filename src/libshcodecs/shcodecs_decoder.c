@@ -94,6 +94,16 @@ void shcodecs_decoder_close(SHCodecs_Decoder * decoder)
 }
 
 int
+shcodecs_decoder_set_frame_by_frame (SHCodecs_Decoder * decoder, int frame_by_frame)
+{
+        if (!decoder) return -1;
+
+        decoder->frame_by_frame = frame_by_frame;
+
+        return 0;
+}
+
+int
 shcodecs_decoder_set_decoded_callback(SHCodecs_Decoder * decoder,
 				      SHCodecs_Decoded_Callback decoded_cb,
 				      void *user_data)
@@ -732,6 +742,11 @@ static int usr_get_input_mpeg4(SHCodecs_Decoder * decoder, void *dst)
         long len, ret=0;
         int i, zeroes=0;
         unsigned char * c = decoder->si_input + decoder->si_ipos;
+
+        /* When receiving data frame-by-frame, there is no need to go
+         * looking for frame boundaries.  */
+        if (decoder->frame_by_frame)
+                return decoder->si_ilen;
 
         len = decoder->si_isize - decoder->si_ipos;
         if (len < 3) return -2;
