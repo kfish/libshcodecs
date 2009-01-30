@@ -27,7 +27,7 @@
 
 #include <shcodecs/shcodecs_encoder.h>
 
-#define DEBUG
+/* #define DEBUG */
 
 #ifdef CAPT_INPUT
 #if 0
@@ -220,21 +220,6 @@ my_size = fwrite((unsigned char *)&my_end_code_buff[0], return_code, 1, appli_in
 	return (0);
 }
 
-static void
-print_context (avcbe_stream_info * context)
-{
-        unsigned char * c;
-
-	printf ("Context: %x\n", context);
-        if (!context) return;
-
-        printf ("\tstream_type: %ld\n", context->stream_type);
-        printf ("\tstreamp: %x\n", context->streamp);
-
- 	c = (unsigned char *)context->streamp;
-	printf ("\t*streamp: %02x %02x %02x %02x\n", c[0], c[1], c[2], c[3]);
-}
-
 /*--------------------------------------------------------------*/
 /* init for encoder						*/ 
 /*--------------------------------------------------------------*/
@@ -400,9 +385,6 @@ printf("avcbe_init_memory=%d\n",return_code);
 		return (-7);
 	}
 
-	print_context (*context);
-        printf ("%s: OUT\n", __func__);
-
 	return (0);
 }
 
@@ -438,9 +420,6 @@ long encode_picture_for_mpeg4(long case_no, APPLI_INFO *appli_info, long stream_
 	int i;
 #endif
 #endif /* CAPT_INPUT */
-
-        printf ("%s: IN\n", __func__);
-	print_context (context);
 
 	addr_y = (unsigned long *)CAPTF_ARRY[0].Y_fmemp;
 	addr_c = (unsigned long *)CAPTF_ARRY[0].C_fmemp;
