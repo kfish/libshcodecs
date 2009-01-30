@@ -358,6 +358,7 @@ void m4iph_sdr_free(void *address, unsigned long count)
 	fprintf(stderr, "%s() is not required\n", __FUNCTION__);
 }
 
+#if 0
 float logf(float x)
 {
 	return (float)log((double)x);
@@ -367,6 +368,7 @@ float ceilf(float x)
 {
 	return (float)ceil((double)x);
 }
+#endif
 
 void m4iph_avcbd_perror(char *msg, int error)
 {
