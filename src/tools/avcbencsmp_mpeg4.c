@@ -27,6 +27,8 @@
 
 #include <shcodecs/shcodecs_encoder.h>
 
+#define DEBUG
+
 #ifdef CAPT_INPUT
 #if 0
 #include	"cpu_sh73380.h"
@@ -218,6 +220,21 @@ my_size = fwrite((unsigned char *)&my_end_code_buff[0], return_code, 1, appli_in
 	return (0);
 }
 
+static void
+print_context (avcbe_stream_info * context)
+{
+        unsigned char * c;
+
+	printf ("Context: %x\n", context);
+        if (!context) return;
+
+        printf ("\tstream_type: %ld\n", context->stream_type);
+        printf ("\tstreamp: %x\n", context->streamp);
+
+ 	c = (unsigned char *)context->streamp;
+	printf ("\t*streamp: %02x %02x %02x %02x\n", c[0], c[1], c[2], c[3]);
+}
+
 /*--------------------------------------------------------------*/
 /* init for encoder						*/ 
 /*--------------------------------------------------------------*/
@@ -383,6 +400,9 @@ printf("avcbe_init_memory=%d\n",return_code);
 		return (-7);
 	}
 
+	print_context (*context);
+        printf ("%s: OUT\n", __func__);
+
 	return (0);
 }
 
@@ -418,6 +438,9 @@ long encode_picture_for_mpeg4(long case_no, APPLI_INFO *appli_info, long stream_
 	int i;
 #endif
 #endif /* CAPT_INPUT */
+
+        printf ("%s: IN\n", __func__);
+	print_context (context);
 
 	addr_y = (unsigned long *)CAPTF_ARRY[0].Y_fmemp;
 	addr_c = (unsigned long *)CAPTF_ARRY[0].C_fmemp;
@@ -561,11 +584,25 @@ memset(&my_stream_buff[0], 0, MY_STREAM_BUFF_SIZE);
 		printf ("encode_picture_for_mpeg4: avcbe_encode_picture (%x, %ld, %ld, %ld, {%ld, %x})\n",
 			context, frm, appli_info->set_intra, appli_info->output_type,
 			my_stream_buff_info.buff_size, my_stream_buff_info.buff_top);
+                fflush(stdout);
+                sleep(1);
 #endif
 		vpu4_clock_on();
 gettimeofday(&tv, &tz);
 //printf("enc_pic0=%ld,",tv.tv_usec);
+//
+
+		{
+			unsigned char * c = my_stream_buff_info.buff_top;
+			*c = 'a';
+
+			*(c+my_stream_buff_info.buff_size-1) = 'b';
+		}
+	
+
+#if 1
 		return_code = avcbe_encode_picture(context, frm, appli_info->set_intra,	appli_info->output_type, &my_stream_buff_info, NULL);
+#endif
 gettimeofday(&tv1, &tz);
 
 #ifdef DEBUG
