@@ -261,7 +261,7 @@ printf("Control file read OK!\n");
 	appli_info->case_no = case_no;
 	appli_info->frame_number_to_encode = 1;
 //	appli_info->input_file_name_buf[0] = '\0';
-	appli_info->input_yuv_fp = NULL;
+	//appli_info->input_yuv_fp = NULL;
 
 	appli_info->other_API_enc_param.out_local_decode_file = 0;
 	appli_info->other_API_enc_param.put_local_decode_when_frameskip = 1;

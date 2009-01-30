@@ -269,6 +269,10 @@ long encode_picture_unit(long case_no, APPLI_INFO *appli_info, long stream_type,
 	struct timezone tz;
 	long tm, ret;
 
+#ifdef DEBUG
+	printf ("encode_picture_unit IN\n");
+#endif
+
 	addr_y = (unsigned long *)CAPTF_ARRY.Y_fmemp;
 	addr_c = (unsigned long *)CAPTF_ARRY.C_fmemp;
 	area_width = ((appli_info->param.avcbe_xpic_size +15)/16) *16; /* make it multiples of 16 */
@@ -379,6 +383,7 @@ long encode_picture_unit(long case_no, APPLI_INFO *appli_info, long stream_type,
 				return (-111);
 			}
 		}
+
 		/* output SEI data (if AU delimiter is NOT used) */
 		if (extra_stream_buff == NULL) {
 			return_code = output_SEI_parameters(appli_info, context, &my_sei_stream_buff_info);
@@ -393,10 +398,14 @@ long encode_picture_unit(long case_no, APPLI_INFO *appli_info, long stream_type,
 			}		
 		}
     		/*--- copy yuv data to the image-capture-field area each frame (one of the user application's own functions) ---*/
-   		/*return_code = load_1frame_from_image_file(appli_info, addr_y, addr_c); */
+#if 1
+   		return_code = load_1frame_from_image_file(appli_info, addr_y, addr_c);
+#else
    		return_code = capture_image (appli_info, addr_y, addr_c); 
+#endif
 		if (return_code < 0) {	/* error */ 
     			DisplayMessage(" encode_1file_h264:capture_image  ERROR! ", 1);
+                        printf ("error %d\n", return_code);
 			appli_info->error_return_function = -108;
 			appli_info->error_return_code = return_code;
 			return (-108);
@@ -424,6 +433,11 @@ long encode_picture_unit(long case_no, APPLI_INFO *appli_info, long stream_type,
 			tm = 1000-(tv.tv_usec-tv1.tv_usec)/1000;
 		}
 		encode_time += tm;
+
+#ifdef DEBUG
+		printf ("encode_picture_unit: avcbe_encode_picture() returned %d\n", return_code);
+#endif
+
 //		printf("Total encode time = %d(msec),",encode_time_get());
 //		printf("Total sleep  time = %d(msec)\n",m4iph_sleep_time_get());
 		if (return_code < 0) {	/* error */ 
@@ -594,6 +608,10 @@ long encode_picture_unit(long case_no, APPLI_INFO *appli_info, long stream_type,
 		appli_info->frame_counter++;
 	} /* while */
 	/*---------------------- End of repeating by frame numbers -----------------------------*/
+#ifdef DEBUG
+	printf ("encode_picture_unit OUT\n");
+#endif
+
 	return (0);
 }
 
@@ -617,6 +635,10 @@ long encode_nal_unit(long case_no, APPLI_INFO *appli_info, long stream_type, avc
 	struct timeval tv, tv1;
 	struct timezone tz;
 	long tm, ret;
+
+#ifdef DEBUG
+	printf ("encode_nal_unit\n");
+#endif
 
 	addr_y = (unsigned long *)CAPTF_ARRY.Y_fmemp;
 	addr_c = (unsigned long *)CAPTF_ARRY.C_fmemp;

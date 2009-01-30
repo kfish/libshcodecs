@@ -110,7 +110,7 @@ capture_image_cb (sh_ceu * ceu, const void * frame_data, size_t length, void * u
 	/* Input file data to user memory */
 	w_addr_yuv = malloc(hsiz*ysiz*2);
 	if ( w_addr_yuv == NULL ) {
-		printf("load_1frame_from_image_file: malloc error.\n");
+		printf("capture_image_cb: malloc error.\n");
 		exit(-1);
 	}
 	memset(w_addr_yuv,0,hsiz*ysiz);
@@ -313,6 +313,7 @@ int load_1frame_from_image_file(APPLI_INFO *appli_info,
 		free(w_addr_yuv);
 		return (1);
 	}
+
 	/* write memory data size offset make to multiples of 16 */
 	wnum = (((hsiz +15)/16) * 16) * (((ysiz +15)/16) * 16); 
 	/* Input file data to user memory */
@@ -323,6 +324,7 @@ int load_1frame_from_image_file(APPLI_INFO *appli_info,
 		printf("malloc error \n");
 		exit(-1);
 	} 
+
 //printf("appli_info->enc_exec_info.yuv_CbCr_format == %d\n",appli_info->enc_exec_info.yuv_CbCr_format);
 	if (appli_info->enc_exec_info.yuv_CbCr_format == 1) { /* 1:CbSCrS */
 //printf("appli_info->yuv_CbCr_format == 1\n");
@@ -365,6 +367,7 @@ int load_1frame_from_image_file(APPLI_INFO *appli_info,
 	free(Cb_buf_ptr);
 	free(Cr_buf_ptr);
 	free(CbCr_ptr);
+
 	return (0);
 }   
 
