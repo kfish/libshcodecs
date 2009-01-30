@@ -398,7 +398,7 @@ long encode_picture_unit(long case_no, APPLI_INFO *appli_info, long stream_type,
 			}		
 		}
     		/*--- copy yuv data to the image-capture-field area each frame (one of the user application's own functions) ---*/
-#if 1
+#if 0
    		return_code = load_1frame_from_image_file(appli_info, addr_y, addr_c);
 #else
    		return_code = capture_image (appli_info, addr_y, addr_c); 
@@ -786,7 +786,7 @@ long encode_nal_unit(long case_no, APPLI_INFO *appli_info, long stream_type, avc
 
     	/*--- copy yuv data to the image-capture-field area each frame (one of the user application's own functions) ---*/		
 		if (appli_info->slice_mb_counter == 0) {
-#if 1
+#if 0
 			return_code = load_1frame_from_image_file(appli_info, addr_y, addr_c);
 #else
 			return_code = capture_image (appli_info, addr_y, addr_c); 

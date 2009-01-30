@@ -59,7 +59,7 @@ shcodecs_capenc_SOURCES =  \
 	capture.c \
 	avcbeinputuser.c \
 	avcbencsmp_common.c \
-	avcbencsmp_h264.c \
+	avcbencsmp_h264-capture.c \
 	avcbencsmp_mpeg4-capture.c \
 	ControlFileUtil.c \
 	m4driverif.c \
