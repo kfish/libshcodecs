@@ -529,7 +529,6 @@ printf("BVOP index=%d\n",index);
 			appli_info->error_return_code = return_code;
 			return (-8);
 		} 
-                printf ("avcbencsmp_mpeg4.c: LOADED 1frame\n");
 
 #endif /* CAPT_INPUT */
 		/*--- The MPEG-4 Encoder Library API(required-7)@specify the *
@@ -563,25 +562,11 @@ memset(&my_stream_buff[0], 0, MY_STREAM_BUFF_SIZE);
 		printf ("encode_picture_for_mpeg4: avcbe_encode_picture (%x, %ld, %ld, %ld, {%ld, %x})\n",
 			context, frm, appli_info->set_intra, appli_info->output_type,
 			my_stream_buff_info.buff_size, my_stream_buff_info.buff_top);
-                fflush(stdout);
-                sleep(1);
 #endif
 		vpu4_clock_on();
 gettimeofday(&tv, &tz);
 //printf("enc_pic0=%ld,",tv.tv_usec);
-//
-
-		{
-			unsigned char * c = my_stream_buff_info.buff_top;
-			*c = 'a';
-
-			*(c+my_stream_buff_info.buff_size-1) = 'b';
-		}
-	
-
-#if 1
 		return_code = avcbe_encode_picture(context, frm, appli_info->set_intra,	appli_info->output_type, &my_stream_buff_info, NULL);
-#endif
 gettimeofday(&tv1, &tz);
 
 #ifdef DEBUG
