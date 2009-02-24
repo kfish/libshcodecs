@@ -31,7 +31,6 @@ extern unsigned long sdr_base;
 /*----------------------------------------------------------*/
 TAVCBE_FMEM LDEC_ARRY[3];	/* Always set the head of STREAMAREA section! */
 TAVCBE_FMEM CAPTF_ARRY[3];
-APPLI_INFO ainfo;		/* User Application Data */
 
 avcbe_stream_info *my_context;
 
@@ -126,6 +125,9 @@ void m4iph_sdr_write_vpu4(unsigned char *address, unsigned char *buffer,
 unsigned long avcbe_insert_filler_data_for_cpb_buffer(unsigned long
 						      input_filler_size)
 {
+#if 1
+	return input_filler_size;
+#else
 	if (ainfo.output_filler_enable == 1) {
 		/* Output Stream Buffer Infomation For Filler Data */
 		my_filler_data_buff_info.buff_top =
@@ -143,62 +145,12 @@ unsigned long avcbe_insert_filler_data_for_cpb_buffer(unsigned long
 		ainfo.output_filler_data = input_filler_size;
 	}
 	return (ainfo.output_filler_data);
+#endif
 }
 
 /*----------------------------------------------------------------------------------------------*/
 /* Top of the user application sample source to encode */
 /*----------------------------------------------------------------------------------------------*/
-/* XXX: This function is unused by the core middleware 2.5 samples, hence this code passes NULL as the
- * SHCodecs_Encoder* below. TODO: Remove this function, or refactor shcodecs_run to use something like
- * this instead */
-int avcbe_enc(long stream_type)
-{
-	int encode_return_code, loop_index, success_count;
-	char message_buf[256];
-
-	memset(&ainfo, 0, sizeof(APPLI_INFO));
-	/* stream buffer 0 clear */
-	for (loop_index = 0; loop_index < (MY_STREAM_BUFF_SIZE / 4);
-	     loop_index++) {
-		my_stream_buff[loop_index] = 0;
-	}
-	for (loop_index = 0; loop_index < (OUTPUT_BUF_SIZE); loop_index++) {
-		ainfo.output_buf[loop_index] = 0;
-	}
-	success_count = 0;
-	for (loop_index = CASE0_MPEG4_001; loop_index <= CASE3_H264_003;
-	     loop_index++) {
-		ainfo.case_no = loop_index;
-		if (ainfo.case_no == CASE0_MPEG4_001) {
-			stream_type = AVCBE_MPEG4;
-		} else {
-			stream_type = AVCBE_H264;
-		}
-		if (stream_type == AVCBE_H264) {
-			encode_return_code = encode_1file_h264(NULL, ainfo.case_no, &ainfo, stream_type);	/* add at Version2 */
-
-		} else if ((stream_type == AVCBE_MPEG4)
-			   || (stream_type == AVCBE_H263)) {
-			encode_return_code =
-			    encode_1file_mpeg4(NULL, ainfo.case_no, &ainfo,
-					       stream_type);
-
-		}
-
-		if (encode_return_code < 0) {	/* encode error */
-			sprintf(message_buf, "Encode Error  code=%d ",
-				encode_return_code);
-			DisplayMessage(message_buf, 1);
-		} else {	/* encode success */
-			sprintf(message_buf, "Encode Success ");
-			DisplayMessage(message_buf, 1);
-			success_count++;
-		}
-
-	}
-
-	return (success_count);
-}
 
 /*----------------------------------------------------------------------------------------------*/
 /* set the parameters of VPU4 */

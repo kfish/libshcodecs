@@ -128,7 +128,7 @@ extern int GetFromCtrlFTop(const char *control_filepath,
 
 /* Top of the user application sample source to encode */
 /*int mpeg4_enc(void) */
-extern APPLI_INFO ainfo;	/* User Application Data */
+APPLI_INFO ainfo;	/* User Application Data */
 
 u_int32_t sdr_base;
 
