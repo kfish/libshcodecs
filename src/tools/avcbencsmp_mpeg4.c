@@ -195,7 +195,7 @@ int encode_1file_mpeg4(SHCodecs_Encoder * encoder, long case_no,
 	/* Initialize Function Of Encoder(avcbe_set_default_param, avcbe_init_encode, 
 	 * avcbe_init_memory) */
 	return_code =
-	    init_for_encoder_mpeg4(case_no, appli_info, stream_type,
+	    init_for_encoder_mpeg4(encoder, case_no, appli_info, stream_type,
 				   &my_context);
 	if (return_code != 0) {
 		return (-14);
@@ -246,7 +246,7 @@ int encode_1file_mpeg4(SHCodecs_Encoder * encoder, long case_no,
 /*--------------------------------------------------------------*/
 /* init for encoder						*/
 /*--------------------------------------------------------------*/
-long init_for_encoder_mpeg4(long case_no, APPLI_INFO * appli_info,
+long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO * appli_info,
 			    long stream_type, avcbe_stream_info ** context)
 {
 	long return_code = 0;
@@ -298,8 +298,7 @@ long init_for_encoder_mpeg4(long case_no, APPLI_INFO * appli_info,
 
 	/* Capt Image Memory Size Check */
 	if (WIDTH_HEIGHT_1_5 <
-	    (appli_info->param.avcbe_xpic_size *
-	     appli_info->param.avcbe_ypic_size * 3 / 2)) {
+	    (encoder->width * encoder->height * 3 / 2)) {
 		while (1);
 	}
 
@@ -370,13 +369,16 @@ long init_for_encoder_mpeg4(long case_no, APPLI_INFO * appli_info,
 
 	nrefframe = 1;
 	nldecfmem = 2;
+
 	/* Local-decode-image Y */
 	LDEC_ARRY[0].Y_fmemp = (unsigned char *) &my_frame_memory_ldec1[0];
 	LDEC_ARRY[1].Y_fmemp = (unsigned char *) &my_frame_memory_ldec2[0];
 	LDEC_ARRY[2].Y_fmemp = (unsigned char *) &my_frame_memory_ldec3[0];
+
 	/* make it multiples of 16 */
-	area_width = ((appli_info->param.avcbe_xpic_size + 15) / 16) * 16;
-	area_height = ((appli_info->param.avcbe_ypic_size + 15) / 16) * 16;
+	area_width = ((encoder->width + 15) / 16) * 16;
+	area_height = ((encoder->height + 15) / 16) * 16;
+
 	/* Local-decode-image C */
 	LDEC_ARRY[0].C_fmemp =
 	    (unsigned char *) (LDEC_ARRY[0].Y_fmemp +
@@ -486,9 +488,10 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder, long case_no,
 	addr_y = (unsigned long *) CAPTF_ARRY[0].Y_fmemp;
 	addr_c = (unsigned long *) CAPTF_ARRY[0].C_fmemp;
 
-	area_width = ((appli_info->param.avcbe_xpic_size + 15) / 16) * 16;
 	/* make it multiples of 16 */
-	area_height = ((appli_info->param.avcbe_ypic_size + 15) / 16) * 16;
+	area_width = ((encoder->width + 15) / 16) * 16;
+	area_height = ((encoder->height + 15) / 16) * 16;
+
 #ifdef USE_BVOP			/* 050106 */
 	for (index = 0;
 	     index <

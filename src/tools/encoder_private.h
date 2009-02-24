@@ -56,6 +56,9 @@ struct _SHCodecs_Encoder {
 
 int encode_1file_h264(SHCodecs_Encoder * encoder, long case_no,
 		      APPLI_INFO * appli_info, long stream_type);
+long init_for_encoder_h264(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO * appli_info,
+		           long stream_type,
+		           avcbe_stream_info ** context);
 long encode_picture_unit(SHCodecs_Encoder * encoder, long case_no,
 			 APPLI_INFO * appli_info, long stream_type,
 			 avcbe_stream_info * context);
@@ -65,6 +68,9 @@ long encode_nal_unit(SHCodecs_Encoder * encoder, long case_no,
 
 int encode_1file_mpeg4(SHCodecs_Encoder * encoder, long case_no,
 		       APPLI_INFO * appli_info, long stream_type);
+long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO * appli_info,
+			    long stream_type,
+			    avcbe_stream_info ** context);
 long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder, long case_no,
 			      APPLI_INFO * appli_info, long stream_type,
 			      avcbe_stream_info * context);

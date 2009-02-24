@@ -97,7 +97,7 @@ int encode_1file_h264(SHCodecs_Encoder * encoder, long case_no,
 
 	/* Initialize Function Of Encoder(avcbe_set_default_param, avcbe_init_encode, avcbe_init_memory) */
 	return_code =
-	    init_for_encoder_h264(case_no, appli_info, stream_type,
+	    init_for_encoder_h264(encoder, case_no, appli_info, stream_type,
 				  &my_context);
 	if (return_code != 0) {
 		return (-114);
@@ -152,7 +152,7 @@ int encode_1file_h264(SHCodecs_Encoder * encoder, long case_no,
 /*-------------------------------------------------------------------------------*/
 /* init for encoder                                                              */
 /*-------------------------------------------------------------------------------*/
-long init_for_encoder_h264(long case_no, APPLI_INFO * appli_info,
+long init_for_encoder_h264(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO * appli_info,
 			   long stream_type, avcbe_stream_info ** context)
 {
 	long return_code = 0;
@@ -196,10 +196,10 @@ long init_for_encoder_h264(long case_no, APPLI_INFO * appli_info,
 		return (-6);
 	}
 	frame_counter_of_input = 0;
+
 	/* Capt Image Memory Size Check */
 	if (WIDTH_HEIGHT_1_5 <
-	    (appli_info->param.avcbe_xpic_size *
-	     appli_info->param.avcbe_ypic_size * 3 / 2)) {
+	    (encoder->width * encoder->height * 3 / 2)) {
 		printf("Size OVER\n");
 		while (1);
 	}
@@ -266,8 +266,8 @@ long init_for_encoder_h264(long case_no, APPLI_INFO * appli_info,
 	LDEC_ARRY[1].Y_fmemp = (unsigned char *) &my_frame_memory_ldec2[0];
 	LDEC_ARRY[2].Y_fmemp = (unsigned char *) &my_frame_memory_ldec3[0];
 
-	area_width = ((appli_info->param.avcbe_xpic_size + 15) / 16) * 16;	/* make it multiples of 16 */
-	area_height = ((appli_info->param.avcbe_ypic_size + 15) / 16) * 16;
+	area_width = ((encoder->width + 15) / 16) * 16;	/* make it multiples of 16 */
+	area_height = ((encoder->height + 15) / 16) * 16;
 
 	/* Local-decode-image C */
 	LDEC_ARRY[0].C_fmemp =
@@ -344,8 +344,10 @@ long encode_picture_unit(SHCodecs_Encoder * encoder, long case_no,
 
 	addr_y = (unsigned long *) CAPTF_ARRY.Y_fmemp;
 	addr_c = (unsigned long *) CAPTF_ARRY.C_fmemp;
-	area_width = ((appli_info->param.avcbe_xpic_size + 15) / 16) * 16;	/* make it multiples of 16 */
-	area_height = ((appli_info->param.avcbe_ypic_size + 15) / 16) * 16;
+
+	area_width = ((encoder->width + 15) / 16) * 16;	/* make it multiples of 16 */
+	area_height = ((encoder->height + 15) / 16) * 16;
+
 	if (appli_info->other_options_h264.avcbe_out_vui_parameters == AVCBE_ON) {	/* output VUI parameters */
 		/* get the size of CPB-buffer to set 'cpb_size_scale' of HRD */
 		return_code = avcbe_get_cpb_buffer_size(context);
@@ -904,8 +906,8 @@ long encode_nal_unit(SHCodecs_Encoder * encoder, long case_no,
 	addr_y = (unsigned long *) CAPTF_ARRY.Y_fmemp;
 	addr_c = (unsigned long *) CAPTF_ARRY.C_fmemp;
 
-	area_width = ((appli_info->param.avcbe_xpic_size + 15) / 16) * 16;	/* make it multiples of 16 */
-	area_height = ((appli_info->param.avcbe_ypic_size + 15) / 16) * 16;
+	area_width = ((encoder->width + 15) / 16) * 16;	/* make it multiples of 16 */
+	area_height = ((encoder->height + 15) / 16) * 16;
 
 	if (appli_info->other_options_h264.avcbe_out_vui_parameters == AVCBE_ON) {	/* output VUI parameters */
 
