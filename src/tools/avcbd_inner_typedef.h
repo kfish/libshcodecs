@@ -20,7 +20,7 @@ typedef struct {
 	int bitpos; /**< Bit position in the current read point.
 		       zero means MSB.*/
 	unsigned int cache_byte; /**< One byte cache. */
-	unsigned char *current; /**< Current read point.*/
+	unsigned char *current;	/**< Current read point.*/
 	unsigned char *tail; /**< End of the input stream + 1.*/
 	unsigned char *head; /**< Head of the input stream.*/
 } TAVCBD_STREAM_BUFFER;
@@ -30,14 +30,14 @@ typedef struct {
 typedef struct {
 	short width; /**< horizontal size of frame memory. */
 	short height; /**< vertical size of frame memory. */
-	long frame_max; /**< number of frame memories. */
+	long frame_max;	/**< number of frame memories. */
 	long dec; /**< current frame to be decoded. */
-	unsigned long used_in_dec; /**< bit-field flags  */									/* 060807 VPU4RevUp2.2 for reodering @P002-DMDT-H264 */
-	TAVCBD_FMEM frame[ AVCBD_MAX_FRAME_NUM ]; /**< pointers to frame memories. */
+	unsigned long used_in_dec;	/**< bit-field flags  *//* 060807 VPU4RevUp2.2 for reodering @P002-DMDT-H264 */
+	TAVCBD_FMEM frame[AVCBD_MAX_FRAME_NUM];	  /**< pointers to frame memories. */
 	unsigned long used_in_dpb; /**< bit-field flags  */
 	unsigned long displayable; /**< bit-field flags  */
-	unsigned long frame_lru[ AVCBD_MAX_FRAME_NUM ];										/* 060807 VPU4RevUp2.2 for reodering @P002-DMDT-H264 */
-	long poc_list[ AVCBD_MAX_FRAME_NUM ]; /**<picture order counter of the picture */
+	unsigned long frame_lru[AVCBD_MAX_FRAME_NUM];	/* 060807 VPU4RevUp2.2 for reodering @P002-DMDT-H264 */
+	long poc_list[AVCBD_MAX_FRAME_NUM];   /**<picture order counter of the picture */
 } TAVCBD_MEM_INFO;
 
 /** Supplimental informations about POC.
@@ -64,13 +64,13 @@ typedef struct {
 	unsigned char MbaffFrameFlag;
 	unsigned char field_flag;
 	unsigned short idr_pic_id;
-	short frame_id; /**< frame_num (or idr_pic_id if IDR picture) */
+	short frame_id;	/**< frame_num (or idr_pic_id if IDR picture) */
 	unsigned short pic_order_cnt_lsb;
 	signed long delta_pic_order_cnt_bottom;
-	signed long delta_pic_order_cnt[ 2 ];
+	signed long delta_pic_order_cnt[2];
 	signed char redundant_pic_cnt; /**< [0,127] */
 	signed char direct_spatial_mv_pred_flag; /**< one bit flag */
-	unsigned char num_ref_idx_active_override_flag; /**< one bit flag */
+	unsigned char num_ref_idx_active_override_flag;	/**< one bit flag */
 	unsigned char num_ref_idx_l0_active; /**< [1,32] */
 	unsigned char num_ref_idx_l1_active; /**< [1,32] */
 	signed char slice_qp_delta;
@@ -90,7 +90,7 @@ typedef struct {
 typedef struct {
 	unsigned char ref_pic_list_reordering_flag_l0;
 	unsigned char ref_pic_list_reordering_flag_l1;
-	TAVCBD_REORDERING_ARRAY array[ 16 ];
+	TAVCBD_REORDERING_ARRAY array[16];
 } TAVCBD_REORDERING;
 
 #define AVCBD_ERROR_HISTORY_MAX 8
@@ -174,8 +174,8 @@ typedef struct {
 	int QPy;
 	int QPc;
 	int chromaOffset;
-	short QPyA[ 16 ];
-	short QPcA[ 16 ];
+	short QPyA[16];
+	short QPcA[16];
 } TAVCBD_QUANT_INFO;
 
 /** Record of slices for deblocking filter.
@@ -183,9 +183,9 @@ typedef struct {
 */
 typedef struct {
 	short mb_pos; /** position of head of the slice in macroblock unit. -1 indicates tail of list. */
-	char disable_deblocking_filter; /** disable_deblocking_filter_idc flag. */
-	char offsetA : 4; /** Q offset alpha for deblocking filter. */
-	char offsetB : 4; /** Q offset beta for deblocking filter. */
+	char disable_deblocking_filter;	/** disable_deblocking_filter_idc flag. */
+	char offsetA:4;	  /** Q offset alpha for deblocking filter. */
+	char offsetB:4;	  /** Q offset beta for deblocking filter. */
 } TAVCBD_SLICE_RECORD;
 
 #ifdef EXP01
@@ -204,21 +204,21 @@ typedef struct {
 	char intra; /** 0 when inter. */
 	char cbp; /** cbp bits of chroma and luma. */
 } TAVCBD_MB_RECORD;
-#endif /* EXP01 */
+#endif				/* EXP01 */
 
 #ifndef VPU4IP
 typedef struct {
-	char					mb_type;
-	char					Intra16x16PredMode;
-	char					NumMbPart;
-	char					MbPredType;
-	unsigned char			CodedBlockPatternChroma;
-	unsigned char			CodedBlockPatternLuma;
-	short					MbPartWidth;
-	short					MbPartHeight;
-	short					MbSliceID;
-	char					MbPartPredMode[4];
-	char					MbRefIdx0[4];
+	char mb_type;
+	char Intra16x16PredMode;
+	char NumMbPart;
+	char MbPredType;
+	unsigned char CodedBlockPatternChroma;
+	unsigned char CodedBlockPatternLuma;
+	short MbPartWidth;
+	short MbPartHeight;
+	short MbSliceID;
+	char MbPartPredMode[4];
+	char MbRefIdx0[4];
 } TAVCBD_MB_INFO;
 typedef struct {
 	char mb_type;
@@ -228,7 +228,7 @@ typedef struct {
 	char MbQPc;
 	char MbAvail;
 	short MbSliceID;
-	char MbRefIdx0[ 4 ];
+	char MbRefIdx0[4];
 	unsigned char DisableDeblockingFilterIdc;
 	char FilterOffsetA;
 	char FilterOffsetB;
@@ -240,37 +240,37 @@ typedef struct {
  */
 typedef struct {
 	int type;
-	short mv[(16 * 16)/(4 * 4)];
+	short mv[(16 * 16) / (4 * 4)];
 } TAVCBD_BLK_MV;
 #endif
 typedef struct {
-	short					sub_mb_type;
-	short					SubMbPartPredMode;
-	short					NumSubMbPart;
-	short					SubMbPartWidth;
-	short					SubMbPartHeight;
+	short sub_mb_type;
+	short SubMbPartPredMode;
+	short NumSubMbPart;
+	short SubMbPartWidth;
+	short SubMbPartHeight;
 } TAVCBD_SUB_MB_INFO;
 typedef struct {
-	short					Blk4x4Idx;
-	short					TotalCoeff;
-	short					SliceID;
-	short					MBPredType;
-	short					MVL0[2];
-	short					MVL1[2];
+	short Blk4x4Idx;
+	short TotalCoeff;
+	short SliceID;
+	short MBPredType;
+	short MVL0[2];
+	short MVL1[2];
 } TAVCBD_4x4BLK_INFO;
 typedef struct {
-	unsigned char			*pSource;
-	unsigned char			*pDestination;
-	int						*FracData;
-	int						PredXSize;
-	int						PredYSize;
-	int						*MVdata;
+	unsigned char *pSource;
+	unsigned char *pDestination;
+	int *FracData;
+	int PredXSize;
+	int PredYSize;
+	int *MVdata;
 	int frame_width;
 } TAVCBD_PRED_INFO;
-#endif /* VPU4IP */
+#endif				/* VPU4IP */
 typedef struct {
 	unsigned char *pCurFrameY, *pCurFrameC;
-	TAVCBD_FMEM pRefFrame[ 4 ];
+	TAVCBD_FMEM pRefFrame[4];
 	int CurrMBAddr;
 #ifndef VPU4IP
 	int MBHPosition, MBVPosition;
@@ -279,7 +279,7 @@ typedef struct {
 	int constrained;
 	TAVCBD_MB_INFO *pMbInfo;
 	TAVCBD_SUB_MB_INFO *pSubMbInfo;
-#endif /* VPU4IP */
+#endif				/* VPU4IP */
 } TAVCBD_MB_INFO_ALL;
 
 /* avcbd_rbsp.c */
@@ -304,8 +304,8 @@ typedef struct {
 #ifndef VPU4IP
 	TAVCBD_MB_INFO_ST *mb_info;
 #endif
-	TAVCBD_STREAM_BUFFER streambuf; /**< Instance of avcbd_streambuf */
-	TAVCBD_REF_PIC_LIST ref_pic_list_l0[ 16 ];
+	TAVCBD_STREAM_BUFFER streambuf;	/**< Instance of avcbd_streambuf */
+	TAVCBD_REF_PIC_LIST ref_pic_list_l0[16];
 	TAVCBD_MEM_INFO image; /**< frame memory information */
 	TAVCBD_SLICE_HEADER *slice_header;
 	AVCBD_SEQ_PARAMETER_SET *seq_param; /**< pointer to seq_parameter_set array */
@@ -313,17 +313,17 @@ typedef struct {
 	AVCBD_PIC_PARAMETER_SET *pic_param; /**< pointer to pic_parameter_set array */
 	long pic_param_max;
 	short decode_unit; /**< decode unit is frame/slice/not_annex_b */
-	long error_resume_mode; /**< whether ignore error or not */
+	long error_resume_mode;	/**< whether ignore error or not */
 	long error_conceal_mode; /**< type of concealment */
 	long error_conceal_strength; /**< strength of concealment */
 	long first_frame_flag; /**< indicates first frame or not */
-	TAVCBD_ERROR_NOTE error_history[ AVCBD_ERROR_HISTORY_MAX + 1 ];
+	TAVCBD_ERROR_NOTE error_history[AVCBD_ERROR_HISTORY_MAX + 1];
 	TAVCBD_REORDERING reorder; /**< reordering related */
-	TAVCBD_MARKING marking; /**< ref_pic_marking related */
+	TAVCBD_MARKING marking;	/**< ref_pic_marking related */
 	TAVCBD_POC_INFO poc_info;
 	TAVCBD_LAST_FRAME_STATUS status; /**< last frame status */
 	TAVCBD_VUI_PARAMETERS *vui_parameters; /**< vui_parameters() */
-	TAVCBD_REF_PIC_LIST ref_pic_list_l1[ 16 ];
+	TAVCBD_REF_PIC_LIST ref_pic_list_l1[16];
 	TAVCBD_SEI *sei;
 	long now_decoding; /**< To notify active context in continue mode */
 	TAVCBD_DEC_CONTINUE_FUNC continue_func;
@@ -339,7 +339,7 @@ typedef struct {
 		TAVCBD_Q_RECORD *record;
 	} q_history;
 	TAVCBD_MB_RECORD *mb_history;
-#endif /* EXP01 */
+#endif				/* EXP01 */
 } TAVCBD_VARIABLES;
 
 /** Container struct to store the variables.
@@ -368,26 +368,27 @@ typedef struct {
 #define  IClip( Min, Max, Val) (((Val)<(Min))? (Min):(((Val)>(Max))? (Max):(Val)))
 
 #if defined(__HITACHI_VERSION__) || defined(__RENESAS_VERSION__)
-	#include <umachine.h>
-	#define MUL_EXTEND
-	#define bswap_32(a) end_cnvl(a)
-	#define _INLINE_
-	#pragma inline(avcbd_add_clip, avcbd_sub_clip, avcbd_get_strength_intra, avcbd_get_strength_inter, avcbd_deblock_mb, avcbd_deblock_slice)
+#include <umachine.h>
+#define MUL_EXTEND
+#define bswap_32(a) end_cnvl(a)
+#define _INLINE_
+#pragma inline(avcbd_add_clip, avcbd_sub_clip, avcbd_get_strength_intra, avcbd_get_strength_inter, avcbd_deblock_mb, avcbd_deblock_slice)
 #elif defined(__GNUC__)
-	#define _INLINE_ inline
-	#if defined(__i386__)
-		static inline unsigned int bswap_32(unsigned int a) {
-			__asm__( "bswap %0" : "=r" (a) : "0" (a) );
-			return a;
-		}
-	#endif /* __i386__ */
+#define _INLINE_ inline
+#if defined(__i386__)
+static inline unsigned int bswap_32(unsigned int a)
+{
+      __asm__("bswap %0": "=r"(a):"0"(a));
+	return a;
+}
+#endif				/* __i386__ */
 #else
-	#define bswap_32(a) ( ( (a) << 24 ) | ( ( (a) & 0xff00 ) << 8 ) | ( ( (a) >> 8 ) & 0xff00 ) | ( ( (a) >> 24 ) & 0xff ) )
-	#if defined(_M_IX86)
-		#define _INLINE_ __inline
-	#else
-		#define _INLINE_
-	#endif
+#define bswap_32(a) ( ( (a) << 24 ) | ( ( (a) & 0xff00 ) << 8 ) | ( ( (a) >> 8 ) & 0xff00 ) | ( ( (a) >> 24 ) & 0xff ) )
+#if defined(_M_IX86)
+#define _INLINE_ __inline
+#else
+#define _INLINE_
+#endif
 #endif
 
 #ifdef MUL_EXTEND
@@ -398,5 +399,4 @@ typedef struct {
 #define EXTEND_BYTE(a) ((a = (((a) << 8) | (a))), (((a) << 16) | (a)))
 #endif
 
-#endif /* _AVCBD_INNER_TYPEDEF_H_ */
-
+#endif				/* _AVCBD_INNER_TYPEDEF_H_ */

@@ -4,7 +4,7 @@
 #include <shcodecs/shcodecs_common.h>
 
 #include "avcbe.h"
-#include "avcbencsmp.h" /* XXX: for APPLI_INFO */
+#include "avcbencsmp.h"		/* XXX: for APPLI_INFO */
 
 /**
  * An opaque handle to the VPU4 for encoding.
@@ -22,8 +22,9 @@ typedef struct _SHCodecs_Encoder SHCodecs_Encoder;
  * \retval 1 Pause encoding, return from shcodecs_encode()
  */
 typedef int (*SHCodecs_Encoder_Input) (SHCodecs_Encoder * encoder,
-                                       unsigned long *addr_y, unsigned long *addr_c,
-                                       void * user_data);
+				       unsigned long *addr_y,
+				       unsigned long *addr_c,
+				       void *user_data);
 
 /**
  * Signature of a callback for libshcodecs to call when it has encoded data.
@@ -36,31 +37,39 @@ typedef int (*SHCodecs_Encoder_Input) (SHCodecs_Encoder * encoder,
  * \retval 1 Pause encoding, return from shcodecs_encode()
  */
 typedef int (*SHCodecs_Encoder_Output) (SHCodecs_Encoder * encoder,
-                                        unsigned char * data, int length,
-                                        void * user_data);
+					unsigned char *data, int length,
+					void *user_data);
 
 struct _SHCodecs_Encoder {
-  int width;
-  int height;
-  SHCodecs_Format format;
+	int width;
+	int height;
+	SHCodecs_Format format;
 
-  SHCodecs_Encoder_Input input;
-  void * input_user_data;
+	SHCodecs_Encoder_Input input;
+	void *input_user_data;
 
-  SHCodecs_Encoder_Output output;
-  void * output_user_data;
+	SHCodecs_Encoder_Output output;
+	void *output_user_data;
 };
 
 /* Internal prototypes of functions using SHCodecs_Encoder */
 
-int encode_1file_h264(SHCodecs_Encoder *encoder, long case_no, APPLI_INFO *appli_info, long stream_type);
-long encode_picture_unit(SHCodecs_Encoder *encoder, long case_no, APPLI_INFO *appli_info, long stream_type, avcbe_stream_info *context);
-long encode_nal_unit(SHCodecs_Encoder *encoder, long case_no, APPLI_INFO *appli_info, long stream_type, avcbe_stream_info *context);
+int encode_1file_h264(SHCodecs_Encoder * encoder, long case_no,
+		      APPLI_INFO * appli_info, long stream_type);
+long encode_picture_unit(SHCodecs_Encoder * encoder, long case_no,
+			 APPLI_INFO * appli_info, long stream_type,
+			 avcbe_stream_info * context);
+long encode_nal_unit(SHCodecs_Encoder * encoder, long case_no,
+		     APPLI_INFO * appli_info, long stream_type,
+		     avcbe_stream_info * context);
 
-int encode_1file_mpeg4(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO *appli_info, long stream_type);
-long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO *appli_info, long stream_type, avcbe_stream_info *context);
+int encode_1file_mpeg4(SHCodecs_Encoder * encoder, long case_no,
+		       APPLI_INFO * appli_info, long stream_type);
+long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder, long case_no,
+			      APPLI_INFO * appli_info, long stream_type,
+			      avcbe_stream_info * context);
 
 /* Other internal functions */
 void m4iph_sleep_time_init(void);
 
-#endif /* __ENCODER_PRIVATE_H__ */
+#endif				/* __ENCODER_PRIVATE_H__ */

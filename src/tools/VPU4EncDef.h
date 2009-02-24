@@ -27,59 +27,59 @@ typedef struct {
 	unsigned char ref_frame_num;	/* 参照フレーム数（1 or 2) (H.264のみ） */
 
 	long weightdQ_enable;
-	TAVCBE_WEIGHTEDQ_CENTER	weightedQ_info_center;	/* API関数avcbe_set_weightedQ()に渡すための構造体(1) */
-	TAVCBE_WEIGHTEDQ_RECT	weightedQ_info_rect;	/* API関数avcbe_set_weightedQ()に渡すための構造体(2) */
-	TAVCBE_WEIGHTEDQ_USER	weightedQ_info_user;	/* API関数avcbe_set_weightedQ()に渡すための構造体(3) */
-	char weightedQ_table_filepath[256]; /* 重み付けテーブルファイルのパス名 */
+	TAVCBE_WEIGHTEDQ_CENTER weightedQ_info_center;	/* API関数avcbe_set_weightedQ()に渡すための構造体(1) */
+	TAVCBE_WEIGHTEDQ_RECT weightedQ_info_rect;	/* API関数avcbe_set_weightedQ()に渡すための構造体(2) */
+	TAVCBE_WEIGHTEDQ_USER weightedQ_info_user;	/* API関数avcbe_set_weightedQ()に渡すための構造体(3) */
+	char weightedQ_table_filepath[256];	/* 重み付けテーブルファイルのパス名 */
 
-	avcbe_vui_main_param		vui_main_param;	/* API関数avcbe_set_VUI_parameters()に渡すための構造体 (H.264のみ） */
+	avcbe_vui_main_param vui_main_param;	/* API関数avcbe_set_VUI_parameters()に渡すための構造体 (H.264のみ） */
 
-	char out_buffering_period_SEI;	/* SEIメッセージの出力の有無（1:出力する）*/
+	char out_buffering_period_SEI;	/* SEIメッセージの出力の有無（1:出力する） */
 	char out_pic_timing_SEI;
 	char out_pan_scan_rect_SEI;
 	char out_filler_payload_SEI;
 	char out_recovery_point_SEI;
 	char out_dec_ref_pic_marking_repetition_SEI;
 
-	avcbe_sei_buffering_period_param	sei_buffering_period_param;	/* API関数avcbe_put_SEI_parameters()に渡すための構造体(1) (H.264のみ） */
-	avcbe_sei_pic_timing_param			sei_pic_timing_param;		/* API関数avcbe_put_SEI_parameters()に渡すための構造体(2) (H.264のみ） */
-	avcbe_sei_pan_scan_rect_param		sei_pan_scan_rect_param;	/* API関数avcbe_put_SEI_parameters()に渡すための構造体(3) (H.264のみ） */
-	avcbe_sei_filler_payload_param		sei_filler_payload_param;	/* API関数avcbe_put_SEI_parameters()に渡すための構造体(4) (H.264のみ） */
-	avcbe_sei_recovery_point_param		sei_recovery_point_param;	/* API関数avcbe_put_SEI_parameters()に渡すための構造体(5) (H.264のみ） */
-//050222	avcbe_sei_dec_ref_pic_marking_repetition_param	sei_dec_ref_pic_marking_repetition_param; /* API関数avcbe_put_SEI_parameters()に渡すための構造体(6) (H.264のみ） */
+	avcbe_sei_buffering_period_param sei_buffering_period_param;	/* API関数avcbe_put_SEI_parameters()に渡すための構造体(1) (H.264のみ） */
+	avcbe_sei_pic_timing_param sei_pic_timing_param;	/* API関数avcbe_put_SEI_parameters()に渡すための構造体(2) (H.264のみ） */
+	avcbe_sei_pan_scan_rect_param sei_pan_scan_rect_param;	/* API関数avcbe_put_SEI_parameters()に渡すための構造体(3) (H.264のみ） */
+	avcbe_sei_filler_payload_param sei_filler_payload_param;	/* API関数avcbe_put_SEI_parameters()に渡すための構造体(4) (H.264のみ） */
+	avcbe_sei_recovery_point_param sei_recovery_point_param;	/* API関数avcbe_put_SEI_parameters()に渡すための構造体(5) (H.264のみ） */
+//050222        avcbe_sei_dec_ref_pic_marking_repetition_param  sei_dec_ref_pic_marking_repetition_param; /* API関数avcbe_put_SEI_parameters()に渡すための構造体(6) (H.264のみ） */
 
-	long use_I_PCM_flag; /*I_PCMを出力するかどうか　041109 */
+	long use_I_PCM_flag;	/*I_PCMを出力するかどうか　041109 */
 
 } OTHER_API_ENC_PARAM;
 
 /* エンコード実行条件の構造体 */
 typedef struct {
 
-	long frame_number_to_encode;		/* エンコードするフレーム数 */
-	long frame_number_read_skip;		/* 入力のYUVファイルを読み飛ばすときのフレーム数（0：読み飛ばしなし、1〜5:読み飛ばすフレーム数） */ /* 050520 */
-	long frame_number_start_log_out;	/* 出力のログファイルを出力し始めるフレーム番号（0;最初のフレームから出力する） */ /* 050520 */
-	long frame_number_end_log_out;		/* 出力のログファイルを出力し終えるフレーム番号（0;最後のフレームまで出力する） */ /* 050520 */
+	long frame_number_to_encode;	/* エンコードするフレーム数 */
+	long frame_number_read_skip;	/* 入力のYUVファイルを読み飛ばすときのフレーム数（0：読み飛ばしなし、1〜5:読み飛ばすフレーム数） *//* 050520 */
+	long frame_number_start_log_out;	/* 出力のログファイルを出力し始めるフレーム番号（0;最初のフレームから出力する） *//* 050520 */
+	long frame_number_end_log_out;	/* 出力のログファイルを出力し終えるフレーム番号（0;最後のフレームまで出力する） *//* 050520 */
 
-	long output_filler_enable;			/* CPBバッファのオーバーフロー時にFillerを挿入するかどうか *//* 050519 */
-	char calc_PSNR_flag;				/* PSNRを算出するか AVCBE_ON(1)/AVCBE_OFF(0) */
-	char yuv_CbCr_format;				/* YUVデータ内（出力するローカルデコードファイルも）のCb,Crデータの並び順（1:Cb全部Cr全部、2:Cb0,Cr0,Cb1,Cr1,...、3:Cbの1ライン分,Crの1ライン分,...） */ /* 050520 */
+	long output_filler_enable;	/* CPBバッファのオーバーフロー時にFillerを挿入するかどうか *//* 050519 */
+	char calc_PSNR_flag;	/* PSNRを算出するか AVCBE_ON(1)/AVCBE_OFF(0) */
+	char yuv_CbCr_format;	/* YUVデータ内（出力するローカルデコードファイルも）のCb,Crデータの並び順（1:Cb全部Cr全部、2:Cb0,Cr0,Cb1,Cr1,...、3:Cbの1ライン分,Crの1ライン分,...） *//* 050520 */
 
-	char out_local_decode_file;			/* ローカルデコードファイルを出力するか(1:する、0:しない) */
-	char put_local_decode_when_frameskip;	/* フレームスキップしたときにローカルデコード画像を出力するか(1:する、0:しない) */ /* 050601 */
-	char out_capt_file;					/* キャプチャ画像ファイルを出力するか */
-	char out_rate_log_file;				/* レートコントロールのログファイルを出力するか */
-	char out_debug_log_file;			/* デバッグ用ログファイルを出力するか */
+	char out_local_decode_file;	/* ローカルデコードファイルを出力するか(1:する、0:しない) */
+	char put_local_decode_when_frameskip;	/* フレームスキップしたときにローカルデコード画像を出力するか(1:する、0:しない) *//* 050601 */
+	char out_capt_file;	/* キャプチャ画像ファイルを出力するか */
+	char out_rate_log_file;	/* レートコントロールのログファイルを出力するか */
+	char out_debug_log_file;	/* デバッグ用ログファイルを出力するか */
 
-	char buf_input_yuv_file_with_path[256+8];	/* 入力YUVファイル名（パス付き） *//* 041201 */
-	char buf_input_yuv_file[64+8];		/* 入力YUVファイル名（パスなし） */
+	char buf_input_yuv_file_with_path[256 + 8];	/* 入力YUVファイル名（パス付き） *//* 041201 */
+	char buf_input_yuv_file[64 + 8];	/* 入力YUVファイル名（パスなし） */
 
-	char buf_output_directry[256+8];	/* 出力先のディレクトリ *//* 041201 */
-	char buf_output_stream_file[64+8];	/* 出力ストリームファイル名（パスなし） */
-	char buf_log_file[64+8];			/* 出力エンコードログファイル名（パスなし） */
-	char buf_local_decode_file[64+8];	/* 出力ローカルデコードファイル名（パスなし） */
-	char buf_capt_file[64+8];			/* 出力キャプチャ画像ファイル名（パスなし） */
-	char buf_rate_log_file[64+8];		/* 出力レートコントロールのログファイル名（パスなし） */
-	char buf_debug_log_file[64+8];		/* 出力デバッグ用ログファイル名（パスなし） */
+	char buf_output_directry[256 + 8];	/* 出力先のディレクトリ *//* 041201 */
+	char buf_output_stream_file[64 + 8];	/* 出力ストリームファイル名（パスなし） */
+	char buf_log_file[64 + 8];	/* 出力エンコードログファイル名（パスなし） */
+	char buf_local_decode_file[64 + 8];	/* 出力ローカルデコードファイル名（パスなし） */
+	char buf_capt_file[64 + 8];	/* 出力キャプチャ画像ファイル名（パスなし） */
+	char buf_rate_log_file[64 + 8];	/* 出力レートコントロールのログファイル名（パスなし） */
+	char buf_debug_log_file[64 + 8];	/* 出力デバッグ用ログファイル名（パスなし） */
 	unsigned char ref_frame_num;	/* 参照フレーム数（1 or 2) (H.264のみ） */
 	long xpic;
 	long ypic;
@@ -96,6 +96,5 @@ extern "C" {
 
 #ifdef __cplusplus
 }
-#endif  
-
-#endif /* VPU4ENCDEF_H */
+#endif
+#endif				/* VPU4ENCDEF_H */

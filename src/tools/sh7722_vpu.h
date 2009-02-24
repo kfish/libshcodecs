@@ -96,8 +96,8 @@
 /* VPU (Video Processing Unit) IPR */
 /***********************************/
 #define VPU_BASE		0xfe900000
-#define VP4_IRQ_STA_EE		0x00000002 /* Err processing completion */
-#define VP4_IRQ_STA_EDT		0x00000100 /* Error DeTect */
+#define VP4_IRQ_STA_EE		0x00000002	/* Err processing completion */
+#define VP4_IRQ_STA_EDT		0x00000100	/* Error DeTect */
 
 /**************************/
 /*    LOW POWER MODE      */
@@ -115,4 +115,3 @@
 #define VPU4CTRL_CLKON 		0x00000101
 #define VPU4CTRL_CLKOFF 	0x00000102
 #define VPU4CTRL_GET_SDR_BASE	0x00000103
-
