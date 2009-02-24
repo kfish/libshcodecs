@@ -95,15 +95,11 @@ shcodecs_encoder_set_output_callback(SHCodecs_Encoder * encoder,
  */
 int shcodecs_encoder_run(SHCodecs_Encoder * encoder, APPLI_INFO * ainfo)
 {
-#if 1
-	if (encoder->format == AVCBE_H264) {
+	if (encoder->format == SHCodecs_Format_H264) {
 		return encode_1file_h264(encoder, ainfo->case_no, ainfo,
 					 AVCBE_H264);
 	} else {
 		return encode_1file_mpeg4(encoder, ainfo->case_no, ainfo,
-					  encoder->format);
+					  AVCBE_MPEG4);
 	}
-#else
-	return 0;
-#endif
 }
