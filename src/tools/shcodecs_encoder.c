@@ -7,9 +7,6 @@
 #include "m4driverif.h"
 #include "m4iph_vpu4.h"	/* SuperH MEPG-4&H.264 Video Driver Library Header */  
 
-#include "avcbe.h"
-#include "avcbencsmp.h"	/* User Application Sample Header */  
-
 #include "encoder_private.h"
 
 /**
@@ -97,13 +94,13 @@ shcodecs_encoder_set_output_callback (SHCodecs_Encoder * encoder,
  * \retval 0 Success
  */
 int
-shcodecs_encoder_run (SHCodecs_Encoder * encoder)
+shcodecs_encoder_run (SHCodecs_Encoder * encoder, APPLI_INFO * ainfo)
 {
-#if 0
+#if 1
 	if (encoder->format == AVCBE_H264 ) {
-		return encode_1file_h264(encoder, ainfo.case_no, &ainfo, AVCBE_H264);   
+		return encode_1file_h264(encoder, ainfo->case_no, ainfo, AVCBE_H264);   
 	} else {
-		return encode_1file_mpeg4(encoder, ainfo.case_no, &ainfo, stream_type);
+		return encode_1file_mpeg4(encoder, ainfo->case_no, ainfo, encoder->format);
 	}
 #else
         return 0;

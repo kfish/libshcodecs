@@ -91,6 +91,6 @@ shcodecs_encoder_set_input_callback (SHCodecs_Encoder * encoder,
  * \retval 0 Success
  */
 int
-shcodecs_encoder_run (SHCodecs_Encoder * encoder);
+shcodecs_encoder_run (SHCodecs_Encoder * encoder, void * ainfo);
 
 #endif /* __SHCODECS_ENCODER_H__ */

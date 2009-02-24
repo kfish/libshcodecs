@@ -253,7 +253,7 @@ int main(int argc, char *argv[])
 			encode_return_code = encode_1file_mpeg4(ainfo.case_no, &ainfo, stream_type);
 		}
 #endif
-                encode_return_code = shcodecs_encoder_run (encoder);
+                encode_return_code = shcodecs_encoder_run (encoder, &ainfo);
 
 		if (encode_return_code < 0) {	/* encode error */
 			sprintf(message_buf, "Encode Error  code=%d ", encode_return_code);

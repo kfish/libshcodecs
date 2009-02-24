@@ -3,6 +3,9 @@
 
 #include <shcodecs/shcodecs_common.h>
 
+#include "avcbe.h"
+#include "avcbencsmp.h" /* XXX: for APPLI_INFO */
+
 /**
  * An opaque handle to the VPU4 for encoding.
  */
