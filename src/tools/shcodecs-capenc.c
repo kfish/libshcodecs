@@ -279,6 +279,13 @@ int main(int argc, char *argv[])
 	my_end_code_buff = ALIGN(my_end_code_buff_bak, 32);
 	success_count = 0;
 
+	/*--- open output file (one of the user application's own functions) ---*/
+	return_code = open_output_file(&ainfo);
+	if (return_code != 0) {	/* error */
+		DisplayMessage("  encode_1file:open_output_file ERROR! ", 1);
+		return (-6);
+	}
+
 	sh_ceu_start_capturing(ainfo.ceu);
 
 	for (loop_index = 0; loop_index < 1; loop_index++) {

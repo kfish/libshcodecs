@@ -24,8 +24,6 @@
 #include "capture.h"
 #include "encoder_private.h"
 
-extern int open_output_file(APPLI_INFO * appli_info);
-
 extern avcbe_stream_info *my_context;
 extern TAVCBE_FMEM LDEC_ARRY[];
 extern TAVCBE_FMEM CAPTF_ARRY;
@@ -186,15 +184,7 @@ long init_for_encoder_h264(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO 
 		appli_info->error_return_code = return_code;
 		return (-103);
 	}
-#ifndef CAPT_INPUT
-#endif
 
-	return_code = open_output_file(appli_info);
-	if (return_code != 0) {	/* error */
-		DisplayMessage("  encode_1file:open_output_file ERROR! ",
-			       1);
-		return (-6);
-	}
 	frame_counter_of_input = 0;
 
 	/* Capt Image Memory Size Check */

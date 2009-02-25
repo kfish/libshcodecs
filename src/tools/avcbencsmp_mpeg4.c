@@ -90,7 +90,6 @@ extern unsigned long *my_work_area;	/* 4 bytes alignment */
 
 extern long frame_counter_of_input;	/* the number of input frames for stream-1 */
 
-int open_output_file(APPLI_INFO *);
 void disp_context_info(void *context);
 
 long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder, long case_no,
@@ -287,14 +286,6 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO
 	}
 
 	frame_counter_of_input = 0;
-
-	/*--- open output file (one of the user application's own functions) ---*/
-	return_code = open_output_file(appli_info);
-	if (return_code != 0) {	/* error */
-		DisplayMessage("  encode_1file:open_output_file ERROR! ",
-			       1);
-		return (-6);
-	}
 
 	/* Capt Image Memory Size Check */
 	if (WIDTH_HEIGHT_1_5 <

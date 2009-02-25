@@ -268,6 +268,13 @@ int main(int argc, char *argv[])
 		return (-6);
 	}
 
+	/*--- open output file (one of the user application's own functions) ---*/
+	return_code = open_output_file(&ainfo);
+	if (return_code != 0) {	/* error */
+		DisplayMessage("  encode_1file:open_output_file ERROR! ", 1);
+		return (-6);
+	}
+
 	for (loop_index = 0; loop_index < 1; loop_index++) {
 #if 0
 		/* encode on each case */
