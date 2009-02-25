@@ -158,13 +158,22 @@ void file_name_copy(void)
 		ainfo.output_file_name_buf);
 }
 
-/* SHCodecs_Encoder_Input callback for acquiring an image from the CEU */
+/* SHCodecs_Encoder_Input callback for acquiring an image from the input file */
 static int get_input(SHCodecs_Encoder * encoder,
 		     unsigned long *addr_y, unsigned long *addr_c,
 		     void *user_data)
 {
 	APPLI_INFO *appli_info = (APPLI_INFO *) user_data;
 	return load_1frame_from_image_file(appli_info, addr_y, addr_c);
+}
+
+/* SHCodecs_Encoder_Output callback for writing encoded data to the output file */
+static int write_output (SHCodecs_Encoder * encoder,
+                         unsigned char * data, int length,
+                         void *user_data)
+{
+	APPLI_INFO *appli_info = (APPLI_INFO *) user_data;
+	return fwrite(data, 1, length, appli_info->output_file_fp);
 }
 
 int main(int argc, char *argv[])
@@ -230,6 +239,7 @@ int main(int argc, char *argv[])
 				  ainfo.enc_exec_info.ypic, stream_type);
 
 	shcodecs_encoder_set_input_callback(encoder, get_input, &ainfo);
+        shcodecs_encoder_set_output_callback (encoder, write_output, &ainfo);
 
 	/* stream buffer 0 clear */
 //      memset(sdr_read_my_stream_buff,0,sizeof(sdr_read_my_stream_buff));
