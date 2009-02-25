@@ -228,9 +228,6 @@ int encode_1file_mpeg4(SHCodecs_Encoder * encoder, long case_no,
 
 		return (-16);
 	} else {
-//              m4iph_sdr_read((unsigned char *)&my_end_code_buff[0],   (unsigned char *)&sdr_read_my_stream_buff[0],   MY_END_CODE_BUFF_SIZE);
-//              cat_output_stream(appli_info, my_context, (char *)&sdr_read_my_stream_buff[0],  MY_END_CODE_BUFF_SIZE);
-//              my_size = fwrite((unsigned char *)&sdr_read_my_stream_buff[0], MY_END_CODE_BUFF_SIZE, 1, appli_info->output_file_fp);
 		cat_output_stream(appli_info, my_context,
 				  (char *) &my_end_code_buff[0],
 				  return_code);
@@ -778,7 +775,6 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder, long case_no,
 			stream_bits = frame_stat.avcbe_frame_n_bits;
 			/* get the size of bitstream (byte unit) */
 			streamsize_per_frame = (stream_bits / 8);
-//                      m4iph_sdr_read((unsigned char *)&my_stream_buff[0],(unsigned char *)&sdr_read_my_stream_buff[0], streamsize_per_frame);
 			cat_output_stream(appli_info, context,
 					  (char *) &my_stream_buff[0],
 					  streamsize_per_frame);
@@ -786,9 +782,6 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder, long case_no,
 			    fwrite((unsigned char *) &my_stream_buff[0], 1,
 				   streamsize_per_frame,
 				   appli_info->output_file_fp);
-//printf("streamsize_per_frame=%d,fwrite = %dbyte\n",streamsize_per_frame,my_size);
-//cat_output_stream(appli_info, context, (char *)&sdr_read_my_stream_buff[0], streamsize_per_frame); 
-//my_size = fwrite((unsigned char *)&sdr_read_my_stream_buff[0], streamsize_per_frame, 1, appli_info->output_file_fp);
 		}
 		frm += appli_info->frame_no_increment;
 		appli_info->frame_counter++;
