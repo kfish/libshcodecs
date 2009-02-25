@@ -65,6 +65,9 @@ long encode_picture_unit(SHCodecs_Encoder * encoder, long case_no,
 long encode_nal_unit(SHCodecs_Encoder * encoder, long case_no,
 		     APPLI_INFO * appli_info, long stream_type,
 		     avcbe_stream_info * context);
+long output_SEI_parameters(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
+			   avcbe_stream_info * context,
+			   TAVCBE_STREAM_BUFF * stream_buff_info);
 
 int encode_1file_mpeg4(SHCodecs_Encoder * encoder, long case_no,
 		       APPLI_INFO * appli_info, long stream_type);

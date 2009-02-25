@@ -317,11 +317,6 @@ extern "C" {
 			       long frame_stream_size);
 	void DisplayMessage(char *message_text, int line_feed_flag);
 
-/*--- the functions in avcbencsmp_h264.c ---*/
-	long output_SEI_parameters(APPLI_INFO * appli_info,
-				   avcbe_stream_info * context,
-				   TAVCBE_STREAM_BUFF * stream_buff_info);
-
 /*--- the functions in avcbeinputuser.c ---*/
 	int open_input_image_file(APPLI_INFO * appli_info);
 // ORIG int load_1frame_from_image_file(APPLI_INFO *appli_info, avcbe_stream_info *context, unsigned long *addr_y, unsigned long *addr_c);

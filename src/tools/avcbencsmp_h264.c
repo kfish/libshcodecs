@@ -95,8 +95,8 @@ int encode_1file_h264(SHCodecs_Encoder * encoder, long case_no,
 
 	/* Initialize Function Of Encoder(avcbe_set_default_param, avcbe_init_encode, avcbe_init_memory) */
 	return_code =
-	    init_for_encoder_h264(encoder, case_no, appli_info, stream_type,
-				  &my_context);
+	    init_for_encoder_h264(encoder, case_no, appli_info,
+				  stream_type, &my_context);
 	if (return_code != 0) {
 		return (-114);
 	}
@@ -132,13 +132,19 @@ int encode_1file_h264(SHCodecs_Encoder * encoder, long case_no,
 		appli_info->error_return_code = return_code;
 		return (-116);
 	} else {
-		fwrite((char *) &my_end_code_buff[0], return_code, 1, appli_info->output_file_fp);
+		if (encoder->output) {
+			encoder->output(encoder,
+					(unsigned char *)
+					&my_end_code_buff[0], return_code,
+					encoder->output_user_data);
+		}
 	}
 	if (appli_info->output_filler_enable == 1) {
 		return_code =
 		    avcbe_put_filler_data(&my_stream_buff_info,
-					  appli_info->other_options_h264.
-					  avcbe_put_start_code, 2);
+					  appli_info->
+					  other_options_h264.avcbe_put_start_code,
+					  2);
 	}
 	return (0);
 }
@@ -146,8 +152,9 @@ int encode_1file_h264(SHCodecs_Encoder * encoder, long case_no,
 /*-------------------------------------------------------------------------------*/
 /* init for encoder                                                              */
 /*-------------------------------------------------------------------------------*/
-long init_for_encoder_h264(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO * appli_info,
-			   long stream_type, avcbe_stream_info ** context)
+long init_for_encoder_h264(SHCodecs_Encoder * encoder, long case_no,
+			   APPLI_INFO * appli_info, long stream_type,
+			   avcbe_stream_info ** context)
 {
 	long return_code = 0;
 	unsigned long nrefframe, nldecfmem, addr_temp;
@@ -160,8 +167,8 @@ long init_for_encoder_h264(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO 
 	return_code =
 	    avcbe_set_default_param(stream_type, AVCBE_RATE_NORMAL,
 				    &(appli_info->param),
-				    (void *) &(appli_info->
-					       other_options_h264));
+				    (void *)
+				    &(appli_info->other_options_h264));
 	if (return_code != 0) {	/* error */
 		DisplayMessage
 		    (" encode_1file_h264:avcbe_set_default_param ERROR! ",
@@ -184,8 +191,7 @@ long init_for_encoder_h264(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO 
 	frame_counter_of_input = 0;
 
 	/* Capt Image Memory Size Check */
-	if (WIDTH_HEIGHT_1_5 <
-	    (encoder->width * encoder->height * 3 / 2)) {
+	if (WIDTH_HEIGHT_1_5 < (encoder->width * encoder->height * 3 / 2)) {
 		printf("Size OVER\n");
 		while (1);
 	}
@@ -202,21 +208,18 @@ long init_for_encoder_h264(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO 
 	WORK_ARRY[1].area_top = (unsigned char *) NULL;
 #endif				/* VPU4IP */
 
-	if (appli_info->other_options_h264.
-	    avcbe_ratecontrol_cpb_buffer_mode == AVCBE_MANUAL) {
-		appli_info->other_options_h264.
-		    avcbe_ratecontrol_cpb_offset =
-		    (unsigned long) avcbe_calc_cpb_buff_offset(appli_info->
-							       param.
-							       avcbe_bitrate,
-							       (appli_info->
-								other_options_h264.
-								avcbe_ratecontrol_cpb_max_size
-								*
-								appli_info->
-								other_options_h264.
-								avcbe_ratecontrol_cpb_buffer_unit_size),
-							       90);
+	if (appli_info->
+	    other_options_h264.avcbe_ratecontrol_cpb_buffer_mode ==
+	    AVCBE_MANUAL) {
+		appli_info->
+		    other_options_h264.avcbe_ratecontrol_cpb_offset =
+		    (unsigned long)
+		    avcbe_calc_cpb_buff_offset
+		    (appli_info->param.avcbe_bitrate,
+		     (appli_info->other_options_h264.avcbe_ratecontrol_cpb_max_size
+		      *
+		      appli_info->other_options_h264.avcbe_ratecontrol_cpb_buffer_unit_size),
+		     90);
 	}
 	return_code =
 	    avcbe_init_encode(&(appli_info->param), &(appli_info->paramR),
@@ -342,28 +345,28 @@ long encode_picture_unit(SHCodecs_Encoder * encoder, long case_no,
 			appli_info->error_return_code = return_code;
 			return (-112);
 		} else {
-			if (appli_info->other_API_enc_param.vui_main_param.
-			    avcbe_nal_hrd_parameters_present_flag ==
-			    AVCBE_ON) {
-				appli_info->other_API_enc_param.
-				    vui_main_param.avcbe_nal_hrd_param.
-				    avcbe_cpb_size_scale = return_code;
+			if (appli_info->other_API_enc_param.
+			    vui_main_param.avcbe_nal_hrd_parameters_present_flag
+			    == AVCBE_ON) {
+				appli_info->
+				    other_API_enc_param.vui_main_param.
+				    avcbe_nal_hrd_param.avcbe_cpb_size_scale
+				    = return_code;
 
-			} else if (appli_info->other_API_enc_param.
-				   vui_main_param.
-				   avcbe_vcl_hrd_parameters_present_flag ==
-				   AVCBE_ON) {
-				appli_info->other_API_enc_param.
-				    vui_main_param.avcbe_vcl_hrd_param.
-				    avcbe_cpb_size_scale = return_code;
+			} else if (appli_info->
+				   other_API_enc_param.vui_main_param.avcbe_vcl_hrd_parameters_present_flag
+				   == AVCBE_ON) {
+				appli_info->
+				    other_API_enc_param.vui_main_param.
+				    avcbe_vcl_hrd_param.avcbe_cpb_size_scale
+				    = return_code;
 			}
 		}
 		appli_info->other_API_enc_param.vui_main_param.avcbe_video_signal_type_present_flag = AVCBE_OFF;	//@061215 AVCBE_ON;
 		return_code =
 		    avcbe_set_VUI_parameters(context,
-					     &(appli_info->
-					       other_API_enc_param.
-					       vui_main_param));
+					     &
+					     (appli_info->other_API_enc_param.vui_main_param));
 		if (return_code != 0) {
 			appli_info->error_return_function = -113;
 			appli_info->error_return_code = return_code;
@@ -490,7 +493,8 @@ long encode_picture_unit(SHCodecs_Encoder * encoder, long case_no,
 		/* output SEI data (if AU delimiter is NOT used) */
 		if (extra_stream_buff == NULL) {
 			return_code =
-			    output_SEI_parameters(appli_info, context,
+			    output_SEI_parameters(encoder, appli_info,
+						  context,
 						  &my_sei_stream_buff_info);
 			if (return_code != 0) {
 				sprintf(messeage_buf,
@@ -653,8 +657,16 @@ long encode_picture_unit(SHCodecs_Encoder * encoder, long case_no,
 			/*--- copy H.264 bitstream of the frame encoded now (one of the user application's own functions) ---*/
 			/* output AU delimiter */
 			if (extra_stream_buff != NULL) {
-				fwrite((char *) &my_extra_stream_buff[0], slice_stat.avcbe_AU_unit_bytes, 1,
-				       appli_info->output_file_fp);
+				if (encoder->output) {
+					encoder->output(encoder,
+							(unsigned char *)
+							&my_extra_stream_buff
+							[0],
+							slice_stat.
+							avcbe_AU_unit_bytes,
+							encoder->
+							output_user_data);
+				}
 			}
 
 			/* If the type is IDR-picture, output SPS and PPS data (for 2nd frame and later) */
@@ -665,10 +677,8 @@ long encode_picture_unit(SHCodecs_Encoder * encoder, long case_no,
 				appli_info->output_type = AVCBE_OUTPUT_SPS;
 				return_code =
 				    avcbe_encode_picture(context, frm,
-							 appli_info->
-							 set_intra,
-							 appli_info->
-							 output_type,
+							 appli_info->set_intra,
+							 appli_info->output_type,
 							 &my_sps_stream_buff_info,
 							 NULL);
 				if (return_code == AVCBE_SPS_OUTPUTTED) {	/* 6 */
@@ -676,8 +686,8 @@ long encode_picture_unit(SHCodecs_Encoder * encoder, long case_no,
 					sprintf(messeage_buf,
 						" encode_1file_h264:avcbe_encode_picture OUTPUT SEQUENCE PARAMETER SET frm=%d,seq_no=%d ",
 						(int) frm,
-						(int) appli_info->
-						frame_counter);
+						(int)
+						appli_info->frame_counter);
 					DisplayMessage(messeage_buf, 1);
 #endif
 
@@ -685,12 +695,19 @@ long encode_picture_unit(SHCodecs_Encoder * encoder, long case_no,
 					avcbe_get_last_slice_stat(context,
 								  &slice_stat);
 					appli_info->SPS_PPS_header_bytes =
-					    slice_stat.
-					    avcbe_SPS_unit_bytes;
+					    slice_stat.avcbe_SPS_unit_bytes;
 					/* concatenate the SPS data */
-					fwrite((char *)my_sps_stream_buff_info.buff_top, 1,
-					       slice_stat.avcbe_SPS_unit_bytes,
-					       appli_info->output_file_fp);
+					if (encoder->output) {
+						encoder->output(encoder,
+								(unsigned
+								 char *)
+								my_sps_stream_buff_info.
+								buff_top,
+								slice_stat.
+								avcbe_SPS_unit_bytes,
+								encoder->
+								output_user_data);
+					}
 				} else {
 					sprintf(messeage_buf,
 						" ERROR OUTPUT SEQUENCE PARAMETER SET return_code=%d ",
@@ -707,10 +724,8 @@ long encode_picture_unit(SHCodecs_Encoder * encoder, long case_no,
 				appli_info->output_type = AVCBE_OUTPUT_PPS;
 				return_code =
 				    avcbe_encode_picture(context, frm,
-							 appli_info->
-							 set_intra,
-							 appli_info->
-							 output_type,
+							 appli_info->set_intra,
+							 appli_info->output_type,
 							 &my_pps_stream_buff_info,
 							 NULL);
 				if (return_code == AVCBE_PPS_OUTPUTTED) {	/* 7 */
@@ -719,20 +734,26 @@ long encode_picture_unit(SHCodecs_Encoder * encoder, long case_no,
 					sprintf(messeage_buf,
 						"Encoded frame %5d, sequence no %5d",
 						(int) frm,
-						(int) appli_info->
-						frame_counter);
+						(int)
+						appli_info->frame_counter);
 					DisplayMessage(messeage_buf, 1);
 
 					/* get the size of PPS data in byte unit */
 					avcbe_get_last_slice_stat(context,
 								  &slice_stat);
 					appli_info->SPS_PPS_header_bytes +=
-					    slice_stat.
-					    avcbe_PPS_unit_bytes;
+					    slice_stat.avcbe_PPS_unit_bytes;
 					/* concatenate the PPS data */
-					fwrite((char *)my_pps_stream_buff_info.buff_top, 1,
-					       slice_stat.avcbe_PPS_unit_bytes,
-					       appli_info->output_file_fp);
+					if (encoder->output) {
+						encoder->output(encoder,
+								(unsigned char *)
+								my_pps_stream_buff_info.
+								buff_top,
+								slice_stat.
+								avcbe_PPS_unit_bytes,
+								encoder->
+								output_user_data);
+					}
 				} else {
 					sprintf(messeage_buf,
 						" ERROR OUTPUT PICTURE PARAMETER SET return_code=%d ",
@@ -748,21 +769,35 @@ long encode_picture_unit(SHCodecs_Encoder * encoder, long case_no,
 
 				/* output SPS data and PPS data after AU Delimiter */
 				/* concatenate the SPS data */
-				fwrite((char *) my_sps_stream_buff_info.buff_top,
-				       slice_stat.avcbe_SPS_unit_bytes, 1,
-				       appli_info->output_file_fp);
+				if (encoder->output) {
+					encoder->output(encoder,
+							(unsigned char *)
+							my_sps_stream_buff_info.
+							buff_top,
+							slice_stat.
+							avcbe_SPS_unit_bytes,
+							encoder->
+							output_user_data);
+				}
 				/* concatenate the PPS data */
-				fwrite((char *) my_pps_stream_buff_info.
-				       buff_top,
-				       slice_stat.avcbe_PPS_unit_bytes, 1,
-				       appli_info->output_file_fp);
+				if (encoder->output) {
+					encoder->output(encoder,
+							(unsigned char *)
+							my_pps_stream_buff_info.
+							buff_top,
+							slice_stat.
+							avcbe_PPS_unit_bytes,
+							encoder->
+							output_user_data);
+				}
 				/* clear the 1st-frame-flag */
 				header_output_flag = 0;
 			}
 
 			/* output SEI parameter (if AU delimiter is used, SEI parameter must be output after AU delimiter) */
 			return_code =
-			    output_SEI_parameters(appli_info, context,
+			    output_SEI_parameters(encoder, appli_info,
+						  context,
 						  &my_sei_stream_buff_info);
 			if (return_code != 0) {
 				sprintf(messeage_buf,
@@ -782,18 +817,29 @@ long encode_picture_unit(SHCodecs_Encoder * encoder, long case_no,
 			/* concatenate Filler data(if CPB Buffer overflow) */
 			if ((appli_info->output_filler_enable == 1)
 			    && (appli_info->output_filler_data > 0)) {
-				fwrite((char *) &my_filler_data_buff[0],
-				       appli_info->output_filler_data, 1,
-				       appli_info->output_file_fp);
+				if (encoder->output) {
+					encoder->output(encoder,
+							(unsigned char *)
+							&my_filler_data_buff
+							[0],
+							appli_info->
+							output_filler_data,
+							encoder->
+							output_user_data);
+				}
 			}
 
 			/* concatenate slice header and slice data */
 			streamsize_per_frame =
 			    ((slice_stat.avcbe_encoded_slice_bits +
 			      7) >> 3);
-			fwrite((char *) &my_stream_buff[0], 1,
-			       streamsize_per_frame,
-			       appli_info->output_file_fp);
+			if (encoder->output) {
+				encoder->output(encoder,
+						(unsigned char *)
+						&my_stream_buff[0],
+						streamsize_per_frame,
+						encoder->output_user_data);
+			}
 #if 0
 			sprintf(messeage_buf,
 				" encode_1file_h264:avcbe_encode_picture SUCCESS  frm=%d,seq_no=%d,size=%d ",
@@ -860,28 +906,28 @@ long encode_nal_unit(SHCodecs_Encoder * encoder, long case_no,
 			appli_info->error_return_code = return_code;
 			return (-112);
 		} else {
-			if (appli_info->other_API_enc_param.vui_main_param.
-			    avcbe_nal_hrd_parameters_present_flag ==
-			    AVCBE_ON) {
-				appli_info->other_API_enc_param.
-				    vui_main_param.avcbe_nal_hrd_param.
-				    avcbe_cpb_size_scale = return_code;
+			if (appli_info->other_API_enc_param.
+			    vui_main_param.avcbe_nal_hrd_parameters_present_flag
+			    == AVCBE_ON) {
+				appli_info->
+				    other_API_enc_param.vui_main_param.
+				    avcbe_nal_hrd_param.avcbe_cpb_size_scale
+				    = return_code;
 
-			} else if (appli_info->other_API_enc_param.
-				   vui_main_param.
-				   avcbe_vcl_hrd_parameters_present_flag ==
-				   AVCBE_ON) {
-				appli_info->other_API_enc_param.
-				    vui_main_param.avcbe_vcl_hrd_param.
-				    avcbe_cpb_size_scale = return_code;
+			} else if (appli_info->
+				   other_API_enc_param.vui_main_param.avcbe_vcl_hrd_parameters_present_flag
+				   == AVCBE_ON) {
+				appli_info->
+				    other_API_enc_param.vui_main_param.
+				    avcbe_vcl_hrd_param.avcbe_cpb_size_scale
+				    = return_code;
 			}
 		}
 
 		return_code =
 		    avcbe_set_VUI_parameters(context,
-					     &(appli_info->
-					       other_API_enc_param.
-					       vui_main_param));
+					     &
+					     (appli_info->other_API_enc_param.vui_main_param));
 		if (return_code != 0) {
 			appli_info->error_return_function = -113;
 			appli_info->error_return_code = return_code;
@@ -1023,7 +1069,8 @@ long encode_nal_unit(SHCodecs_Encoder * encoder, long case_no,
 		/* output SEI data (if AU delimiter is NOT used) */
 		if (extra_stream_buff == NULL) {
 			return_code =
-			    output_SEI_parameters(appli_info, context,
+			    output_SEI_parameters(encoder, appli_info,
+						  context,
 						  &my_sei_stream_buff_info);
 			if (return_code != 0) {
 				sprintf(messeage_buf,
@@ -1228,10 +1275,18 @@ long encode_nal_unit(SHCodecs_Encoder * encoder, long case_no,
 			/*--- copy H.264 bitstream of the frame encoded now (one of the user application's own functions) ---*/
 			/* output AU delimiter */
 			if (extra_stream_buff != NULL) {
-				fwrite((char *) &my_extra_stream_buff[0],
-				       slice_stat.avcbe_AU_unit_bytes, 1,
-				       appli_info->output_file_fp);
-				DisplayMessage("Put Access Unit Delimiter", 1);
+				if (encoder->output) {
+					encoder->output(encoder,
+							(unsigned char *)
+							&my_extra_stream_buff
+							[0],
+							slice_stat.
+							avcbe_AU_unit_bytes,
+							encoder->
+							output_user_data);
+				}
+				DisplayMessage("Put Access Unit Delimiter",
+					       1);
 			}
 
 			/* If the type is IDR-picture, output SPS and PPS data (for 2nd frame and later) */
@@ -1243,10 +1298,8 @@ long encode_nal_unit(SHCodecs_Encoder * encoder, long case_no,
 
 				return_code =
 				    avcbe_encode_picture(context, frm,
-							 appli_info->
-							 set_intra,
-							 appli_info->
-							 output_type,
+							 appli_info->set_intra,
+							 appli_info->output_type,
 							 &my_sps_stream_buff_info,
 							 NULL);
 
@@ -1255,8 +1308,8 @@ long encode_nal_unit(SHCodecs_Encoder * encoder, long case_no,
 					sprintf(messeage_buf,
 						" encode_1file:avcbe_encode_picture OUTPUT SEQUENCE PARAMETER SET frm=%d,seq_no=%d ",
 						(int) frm,
-						(int) appli_info->
-						frame_counter);
+						(int)
+						appli_info->frame_counter);
 					DisplayMessage(messeage_buf, 1);
 #endif
 
@@ -1264,14 +1317,19 @@ long encode_nal_unit(SHCodecs_Encoder * encoder, long case_no,
 					avcbe_get_last_slice_stat(context,
 								  &slice_stat);
 					appli_info->SPS_PPS_header_bytes =
-					    slice_stat.
-					    avcbe_SPS_unit_bytes;
+					    slice_stat.avcbe_SPS_unit_bytes;
 
 					/* concatenate the SPS data */
-					fwrite((char *)
-					       my_sps_stream_buff_info.buff_top,
-					       slice_stat.avcbe_SPS_unit_bytes, 1,
-					       appli_info->output_file_fp);
+					if (encoder->output) {
+						encoder->output(encoder,
+								(unsigned char *)
+								my_sps_stream_buff_info.
+								buff_top,
+								slice_stat.
+								avcbe_SPS_unit_bytes,
+								encoder->
+								output_user_data);
+					}
 
 				} else {
 					sprintf(messeage_buf,
@@ -1290,10 +1348,8 @@ long encode_nal_unit(SHCodecs_Encoder * encoder, long case_no,
 				appli_info->output_type = AVCBE_OUTPUT_PPS;
 				return_code =
 				    avcbe_encode_picture(context, frm,
-							 appli_info->
-							 set_intra,
-							 appli_info->
-							 output_type,
+							 appli_info->set_intra,
+							 appli_info->output_type,
 							 &my_pps_stream_buff_info,
 							 NULL);
 				if (return_code == AVCBE_PPS_OUTPUTTED) {	/* 7 */
@@ -1302,21 +1358,27 @@ long encode_nal_unit(SHCodecs_Encoder * encoder, long case_no,
 					sprintf(messeage_buf,
 						"Encoded frame %5d, sequence no %5d",
 						(int) frm,
-						(int) appli_info->
-						frame_counter);
+						(int)
+						appli_info->frame_counter);
 					DisplayMessage(messeage_buf, 1);
 
 					/* set to output PPS data */
 					avcbe_get_last_slice_stat(context,
 								  &slice_stat);
 					appli_info->SPS_PPS_header_bytes +=
-					    slice_stat.
-					    avcbe_PPS_unit_bytes;
+					    slice_stat.avcbe_PPS_unit_bytes;
 
 					/* concatenate the PPS data */
-					fwrite((char *)my_pps_stream_buff_info.buff_top,
-					       slice_stat.avcbe_PPS_unit_bytes, 1,
-					       appli_info->output_file_fp);
+					if (encoder->output) {
+						encoder->output(encoder,
+								(unsigned char *)
+								my_pps_stream_buff_info.
+								buff_top,
+								slice_stat.
+								avcbe_PPS_unit_bytes,
+								encoder->
+								output_user_data);
+					}
 
 				} else {
 					sprintf(messeage_buf,
@@ -1333,20 +1395,35 @@ long encode_nal_unit(SHCodecs_Encoder * encoder, long case_no,
 			} else if (header_output_flag == 1) {
 				/* output SPS data and PPS data after AU Delimiter */
 				/* concatenate the SPS data */
-				fwrite((char *) my_sps_stream_buff_info.buff_top,
-				       slice_stat.avcbe_SPS_unit_bytes, 1,
-				       appli_info->output_file_fp);
+				if (encoder->output) {
+					encoder->output(encoder,
+							(unsigned char *)
+							my_sps_stream_buff_info.
+							buff_top,
+							slice_stat.
+							avcbe_SPS_unit_bytes,
+							encoder->
+							output_user_data);
+				}
 				/* concatenate the PPS data */
-				fwrite((char *) my_pps_stream_buff_info.buff_top,
-				       slice_stat.avcbe_PPS_unit_bytes, 1,
-				       appli_info->output_file_fp);
+				if (encoder->output) {
+					encoder->output(encoder,
+							(unsigned char *)
+							my_pps_stream_buff_info.
+							buff_top,
+							slice_stat.
+							avcbe_PPS_unit_bytes,
+							encoder->
+							output_user_data);
+				}
 				/* clear the 1st-frame-flag */
 				header_output_flag = 0;
 			}
 
 			/* output SEI parameter (if AU delimiter is used, SEI parameter must be output after AU delimiter) */
 			return_code =
-			    output_SEI_parameters(appli_info, context,
+			    output_SEI_parameters(encoder, appli_info,
+						  context,
 						  &my_sei_stream_buff_info);
 			if (return_code != 0) {
 				sprintf(messeage_buf,
@@ -1364,9 +1441,16 @@ long encode_nal_unit(SHCodecs_Encoder * encoder, long case_no,
 			/* concatenate Filler data(if CPB Buffer overflow) */
 			if ((appli_info->output_filler_enable == 1)
 			    && (appli_info->output_filler_data > 0)) {
-				fwrite((char *) &my_filler_data_buff[0],
-				       appli_info->output_filler_data, 1,
-				       appli_info->output_file_fp);
+				if (encoder->output) {
+					encoder->output(encoder,
+							(unsigned char *)
+							&my_filler_data_buff
+							[0],
+							appli_info->
+							output_filler_data,
+							encoder->
+							output_user_data);
+				}
 			}
 			/* copy the bitstream of 1-slice newly encoded, and add the size to the total size of 1-frame */
 			memcpy(dummy_nal_buf_addr, (char *) &my_stream_buff[0], tmp_slice_size);	/* in byte unit */
@@ -1374,7 +1458,12 @@ long encode_nal_unit(SHCodecs_Encoder * encoder, long case_no,
 			tmp_pic_total_bytes += tmp_slice_size;	/* total size of 1-frame */
 			dummy_nal_buf_addr += tmp_slice_size;	/* update the address of buffer for 1-slice */
 			/* concatenate slice header and slice data */
-			fwrite(dummy_nal_buf, tmp_pic_total_bytes, 1, appli_info->output_file_fp);
+			if (encoder->output) {
+				encoder->output(encoder,
+						dummy_nal_buf,
+						tmp_pic_total_bytes,
+						encoder->output_user_data);
+			}
 			/* clear the size of 1-frame */
 			tmp_pic_total_bytes = 0;
 			/* make the address which dummy_nal_buf_addr has, to the top address of dummy_nal_buf[] */
@@ -1406,7 +1495,8 @@ long encode_nal_unit(SHCodecs_Encoder * encoder, long case_no,
 /*		   16:error (out_recovery_point_SEI is OFF)					*/
 /*		   32:vout_dec_ref_pic_marking_repetition_SEI is OFF)		*/
 /*------------------------------------------------------------------*/
-long output_SEI_parameters(APPLI_INFO * appli_info,
+long output_SEI_parameters(SHCodecs_Encoder * encoder,
+			   APPLI_INFO * appli_info,
 			   avcbe_stream_info * context,
 			   TAVCBE_STREAM_BUFF * sei_stream_buff_info)
 {
@@ -1419,14 +1509,19 @@ long output_SEI_parameters(APPLI_INFO * appli_info,
 		return_code =
 		    avcbe_put_SEI_parameters(context,
 					     AVCBE_SEI_MESSAGE_BUFFERING_PERIOD,
-					     (void *) &(appli_info->
-							other_API_enc_param.
-							sei_buffering_period_param),
+					     (void *)
+					     &
+					     (appli_info->other_API_enc_param.sei_buffering_period_param),
 					     sei_stream_buff_info);
 		/* concatenate SEI parameter (return_code means the size of SEI parameter in byte unit) */
 		if (return_code > 0) {
-			fwrite((char *) sei_stream_buff_info->buff_top,
-			       return_code, 1, appli_info->output_file_fp);
+			if (encoder->output) {
+				encoder->output(encoder,
+						(unsigned char *)
+						sei_stream_buff_info->
+						buff_top, return_code,
+						encoder->output_user_data);
+			}
 			return_value = 0;
 		} else {	/* error */
 			return_value |= 0x1;
@@ -1438,14 +1533,19 @@ long output_SEI_parameters(APPLI_INFO * appli_info,
 		return_code =
 		    avcbe_put_SEI_parameters(context,
 					     AVCBE_SEI_MESSAGE_PIC_TIMING,
-					     (void *) &(appli_info->
-							other_API_enc_param.
-							sei_pic_timing_param),
+					     (void *)
+					     &
+					     (appli_info->other_API_enc_param.sei_pic_timing_param),
 					     sei_stream_buff_info);
 		/* concatenate SEI parameter (return_code means the size of SEI parameter in byte unit) */
 		if (return_code > 0) {
-			fwrite((char *) sei_stream_buff_info->buff_top,
-			       return_code, 1, appli_info->output_file_fp);
+			if (encoder->output) {
+				encoder->output(encoder,
+						(unsigned char *)
+						sei_stream_buff_info->
+						buff_top, return_code,
+						encoder->output_user_data);
+			}
 			return_value = 0;
 		} else {	/* error */
 			return_value |= 0x2;
@@ -1457,14 +1557,19 @@ long output_SEI_parameters(APPLI_INFO * appli_info,
 		return_code =
 		    avcbe_put_SEI_parameters(context,
 					     AVCBE_SEI_MESSAGE_PAN_SCAN_RECT,
-					     (void *) &(appli_info->
-							other_API_enc_param.
-							sei_pan_scan_rect_param),
+					     (void *)
+					     &
+					     (appli_info->other_API_enc_param.sei_pan_scan_rect_param),
 					     sei_stream_buff_info);
 		/* concatenate SEI parameter (return_code means the size of SEI parameter in byte unit) */
 		if (return_code > 0) {
-			fwrite((char *) sei_stream_buff_info->buff_top,
-			       return_code, 1, appli_info->output_file_fp);
+			if (encoder->output) {
+				encoder->output(encoder,
+						(unsigned char *)
+						sei_stream_buff_info->
+						buff_top, return_code,
+						encoder->output_user_data);
+			}
 			return_value = 0;
 		} else {	/* error */
 			return_value |= 0x4;
@@ -1476,14 +1581,19 @@ long output_SEI_parameters(APPLI_INFO * appli_info,
 		return_code =
 		    avcbe_put_SEI_parameters(context,
 					     AVCBE_SEI_MESSAGE_FILLER_PAYLOAD,
-					     (void *) &(appli_info->
-							other_API_enc_param.
-							sei_filler_payload_param),
+					     (void *)
+					     &
+					     (appli_info->other_API_enc_param.sei_filler_payload_param),
 					     sei_stream_buff_info);
 		/* concatenate SEI parameter (return_code means the size of SEI parameter in byte unit) */
 		if (return_code > 0) {
-			fwrite((char *) sei_stream_buff_info->buff_top,
-			       return_code, 1, appli_info->output_file_fp);
+			if (encoder->output) {
+				encoder->output(encoder,
+						(unsigned char *)
+						sei_stream_buff_info->
+						buff_top, return_code,
+						encoder->output_user_data);
+			}
 			return_value = 0;
 		} else {	/* error */
 			return_value |= 0x8;
@@ -1495,14 +1605,19 @@ long output_SEI_parameters(APPLI_INFO * appli_info,
 		return_code =
 		    avcbe_put_SEI_parameters(context,
 					     AVCBE_SEI_MESSAGE_RECOVERY_POINT,
-					     (void *) &(appli_info->
-							other_API_enc_param.
-							sei_recovery_point_param),
+					     (void *)
+					     &
+					     (appli_info->other_API_enc_param.sei_recovery_point_param),
 					     sei_stream_buff_info);
 		/* concatenate SEI parameter (return_code means the size of SEI parameter in byte unit) */
 		if (return_code > 0) {
-			fwrite((char *) &sei_stream_buff_info->buff_top,
-			       return_code, 1, appli_info->output_file_fp);
+			if (encoder->output) {
+				encoder->output(encoder,
+						(unsigned char *)
+						&sei_stream_buff_info->
+						buff_top, return_code,
+						encoder->output_user_data);
+			}
 			return_value = 0;
 		} else {	/* error */
 			return_value |= 0x10;
