@@ -227,9 +227,6 @@ int select_inputfile_set_param(long case_no, APPLI_INFO * appli_info)
 	printf("Control file read OK!\n");
 
 	/* same parameters to case No. */
-	appli_info->output_buf[0] = '\0';
-/*	appli_info->prev_output_buf_addr1 = NULL;*/
-/*	appli_info->prev_output_buf_addr2 = NULL;*/
 	appli_info->frm = 0;
 	appli_info->output_write_size = 0;
 	appli_info->case_no = case_no;
@@ -281,7 +278,6 @@ int select_inputfile_set_param(long case_no, APPLI_INFO * appli_info)
 	appli_info->error_return_function = 0;	/* add at Version2 */
 	appli_info->error_return_code = 0;	/* add at Version2 */
 
-	appli_info->slice_output_buf[0] = '\0';	/* add at Version2 */
 	appli_info->mb_num_of_picture = 0;	/* add at Version2 */
 	appli_info->slice_mb_counter = 0;	/* add at Version2 */
 	appli_info->SPS_PPS_header_bytes = 0;	/* add at Version2 */
@@ -720,29 +716,6 @@ int select_inputfile_set_param(long case_no, APPLI_INFO * appli_info)
 #endif
 
 	return (return_code);
-}
-
-
-
-/*----------------------------------------------------------*/
-/* concatenate bitstream in every one frame					*/
-/*----------------------------------------------------------*/
-/* frame_stream_size is byte unit */
-void cat_output_stream(APPLI_INFO * appli_info,
-		       avcbe_stream_info * context,
-		       char *frame_stream_address, long frame_stream_size)
-{
-
-	if (frame_stream_size == 0) {
-		return;
-	}
-	if ((appli_info->output_write_size + frame_stream_size) <=
-	    OUTPUT_BUF_SIZE) {
-		memcpy((appli_info->output_buf +
-			appli_info->output_write_size),
-		       frame_stream_address, frame_stream_size);
-		appli_info->output_write_size += frame_stream_size;
-	}
 }
 
 /*-------------------------------------------------------------------------*/

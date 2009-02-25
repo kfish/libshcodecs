@@ -132,11 +132,7 @@ int encode_1file_h264(SHCodecs_Encoder * encoder, long case_no,
 		appli_info->error_return_code = return_code;
 		return (-116);
 	} else {
-		cat_output_stream(appli_info, my_context,
-				  (char *) &my_end_code_buff[0],
-				  return_code);
-		fwrite((char *) &my_end_code_buff[0], return_code, 1,
-		       appli_info->output_file_fp);
+		fwrite((char *) &my_end_code_buff[0], return_code, 1, appli_info->output_file_fp);
 	}
 	if (appli_info->output_filler_enable == 1) {
 		return_code =
@@ -657,13 +653,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder, long case_no,
 			/*--- copy H.264 bitstream of the frame encoded now (one of the user application's own functions) ---*/
 			/* output AU delimiter */
 			if (extra_stream_buff != NULL) {
-				cat_output_stream(appli_info, context,
-						  (char *)
-						  &my_extra_stream_buff[0],
-						  slice_stat.
-						  avcbe_AU_unit_bytes);
-				fwrite((char *) &my_extra_stream_buff[0],
-				       slice_stat.avcbe_AU_unit_bytes, 1,
+				fwrite((char *) &my_extra_stream_buff[0], slice_stat.avcbe_AU_unit_bytes, 1,
 				       appli_info->output_file_fp);
 			}
 
@@ -698,18 +688,8 @@ long encode_picture_unit(SHCodecs_Encoder * encoder, long case_no,
 					    slice_stat.
 					    avcbe_SPS_unit_bytes;
 					/* concatenate the SPS data */
-					cat_output_stream(appli_info,
-							  context,
-							  (char *)
-							  my_sps_stream_buff_info.
-							  buff_top,
-							  slice_stat.
-							  avcbe_SPS_unit_bytes);
-					fwrite((char *)
-					       my_sps_stream_buff_info.
-					       buff_top, 1,
-					       slice_stat.
-					       avcbe_SPS_unit_bytes,
+					fwrite((char *)my_sps_stream_buff_info.buff_top, 1,
+					       slice_stat.avcbe_SPS_unit_bytes,
 					       appli_info->output_file_fp);
 				} else {
 					sprintf(messeage_buf,
@@ -750,18 +730,8 @@ long encode_picture_unit(SHCodecs_Encoder * encoder, long case_no,
 					    slice_stat.
 					    avcbe_PPS_unit_bytes;
 					/* concatenate the PPS data */
-					cat_output_stream(appli_info,
-							  context,
-							  (char *)
-							  my_pps_stream_buff_info.
-							  buff_top,
-							  slice_stat.
-							  avcbe_PPS_unit_bytes);
-					fwrite((char *)
-					       my_pps_stream_buff_info.
-					       buff_top, 1,
-					       slice_stat.
-					       avcbe_PPS_unit_bytes,
+					fwrite((char *)my_pps_stream_buff_info.buff_top, 1,
+					       slice_stat.avcbe_PPS_unit_bytes,
 					       appli_info->output_file_fp);
 				} else {
 					sprintf(messeage_buf,
@@ -778,21 +748,10 @@ long encode_picture_unit(SHCodecs_Encoder * encoder, long case_no,
 
 				/* output SPS data and PPS data after AU Delimiter */
 				/* concatenate the SPS data */
-				cat_output_stream(appli_info, context,
-						  (char *)
-						  &my_sps_stream_buff[0],
-						  slice_stat.
-						  avcbe_SPS_unit_bytes);
-				fwrite((char *) my_sps_stream_buff_info.
-				       buff_top,
+				fwrite((char *) my_sps_stream_buff_info.buff_top,
 				       slice_stat.avcbe_SPS_unit_bytes, 1,
 				       appli_info->output_file_fp);
 				/* concatenate the PPS data */
-				cat_output_stream(appli_info, context,
-						  (char *)
-						  &my_pps_stream_buff[0],
-						  slice_stat.
-						  avcbe_PPS_unit_bytes);
 				fwrite((char *) my_pps_stream_buff_info.
 				       buff_top,
 				       slice_stat.avcbe_PPS_unit_bytes, 1,
@@ -823,11 +782,6 @@ long encode_picture_unit(SHCodecs_Encoder * encoder, long case_no,
 			/* concatenate Filler data(if CPB Buffer overflow) */
 			if ((appli_info->output_filler_enable == 1)
 			    && (appli_info->output_filler_data > 0)) {
-				cat_output_stream(appli_info, context,
-						  (char *)
-						  &my_filler_data_buff[0],
-						  appli_info->
-						  output_filler_data);
 				fwrite((char *) &my_filler_data_buff[0],
 				       appli_info->output_filler_data, 1,
 				       appli_info->output_file_fp);
@@ -837,9 +791,6 @@ long encode_picture_unit(SHCodecs_Encoder * encoder, long case_no,
 			streamsize_per_frame =
 			    ((slice_stat.avcbe_encoded_slice_bits +
 			      7) >> 3);
-			cat_output_stream(appli_info, context,
-					  (char *) &my_stream_buff[0],
-					  streamsize_per_frame);
 			fwrite((char *) &my_stream_buff[0], 1,
 			       streamsize_per_frame,
 			       appli_info->output_file_fp);
@@ -1277,16 +1228,10 @@ long encode_nal_unit(SHCodecs_Encoder * encoder, long case_no,
 			/*--- copy H.264 bitstream of the frame encoded now (one of the user application's own functions) ---*/
 			/* output AU delimiter */
 			if (extra_stream_buff != NULL) {
-				cat_output_stream(appli_info, context,
-						  (char *)
-						  &my_extra_stream_buff[0],
-						  slice_stat.
-						  avcbe_AU_unit_bytes);
 				fwrite((char *) &my_extra_stream_buff[0],
 				       slice_stat.avcbe_AU_unit_bytes, 1,
 				       appli_info->output_file_fp);
-				DisplayMessage("Put Access Unit Delimiter",
-					       1);
+				DisplayMessage("Put Access Unit Delimiter", 1);
 			}
 
 			/* If the type is IDR-picture, output SPS and PPS data (for 2nd frame and later) */
@@ -1323,18 +1268,9 @@ long encode_nal_unit(SHCodecs_Encoder * encoder, long case_no,
 					    avcbe_SPS_unit_bytes;
 
 					/* concatenate the SPS data */
-					cat_output_stream(appli_info,
-							  context,
-							  (char *)
-							  &my_sps_stream_buff
-							  [0],
-							  slice_stat.
-							  avcbe_SPS_unit_bytes);
 					fwrite((char *)
-					       my_sps_stream_buff_info.
-					       buff_top,
-					       slice_stat.
-					       avcbe_SPS_unit_bytes, 1,
+					       my_sps_stream_buff_info.buff_top,
+					       slice_stat.avcbe_SPS_unit_bytes, 1,
 					       appli_info->output_file_fp);
 
 				} else {
@@ -1378,18 +1314,8 @@ long encode_nal_unit(SHCodecs_Encoder * encoder, long case_no,
 					    avcbe_PPS_unit_bytes;
 
 					/* concatenate the PPS data */
-					cat_output_stream(appli_info,
-							  context,
-							  (char *)
-							  &my_pps_stream_buff
-							  [0],
-							  slice_stat.
-							  avcbe_PPS_unit_bytes);
-					fwrite((char *)
-					       my_pps_stream_buff_info.
-					       buff_top,
-					       slice_stat.
-					       avcbe_PPS_unit_bytes, 1,
+					fwrite((char *)my_pps_stream_buff_info.buff_top,
+					       slice_stat.avcbe_PPS_unit_bytes, 1,
 					       appli_info->output_file_fp);
 
 				} else {
@@ -1407,23 +1333,11 @@ long encode_nal_unit(SHCodecs_Encoder * encoder, long case_no,
 			} else if (header_output_flag == 1) {
 				/* output SPS data and PPS data after AU Delimiter */
 				/* concatenate the SPS data */
-				cat_output_stream(appli_info, context,
-						  (char *)
-						  &my_sps_stream_buff[0],
-						  slice_stat.
-						  avcbe_SPS_unit_bytes);
-				fwrite((char *) my_sps_stream_buff_info.
-				       buff_top,
+				fwrite((char *) my_sps_stream_buff_info.buff_top,
 				       slice_stat.avcbe_SPS_unit_bytes, 1,
 				       appli_info->output_file_fp);
 				/* concatenate the PPS data */
-				cat_output_stream(appli_info, context,
-						  (char *)
-						  &my_pps_stream_buff[0],
-						  slice_stat.
-						  avcbe_PPS_unit_bytes);
-				fwrite((char *) my_pps_stream_buff_info.
-				       buff_top,
+				fwrite((char *) my_pps_stream_buff_info.buff_top,
 				       slice_stat.avcbe_PPS_unit_bytes, 1,
 				       appli_info->output_file_fp);
 				/* clear the 1st-frame-flag */
@@ -1450,11 +1364,6 @@ long encode_nal_unit(SHCodecs_Encoder * encoder, long case_no,
 			/* concatenate Filler data(if CPB Buffer overflow) */
 			if ((appli_info->output_filler_enable == 1)
 			    && (appli_info->output_filler_data > 0)) {
-				cat_output_stream(appli_info, context,
-						  (char *)
-						  &my_filler_data_buff[0],
-						  appli_info->
-						  output_filler_data);
 				fwrite((char *) &my_filler_data_buff[0],
 				       appli_info->output_filler_data, 1,
 				       appli_info->output_file_fp);
@@ -1465,11 +1374,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder, long case_no,
 			tmp_pic_total_bytes += tmp_slice_size;	/* total size of 1-frame */
 			dummy_nal_buf_addr += tmp_slice_size;	/* update the address of buffer for 1-slice */
 			/* concatenate slice header and slice data */
-			cat_output_stream(appli_info, context,
-					  dummy_nal_buf,
-					  tmp_pic_total_bytes);
-			fwrite(dummy_nal_buf, tmp_pic_total_bytes, 1,
-			       appli_info->output_file_fp);
+			fwrite(dummy_nal_buf, tmp_pic_total_bytes, 1, appli_info->output_file_fp);
 			/* clear the size of 1-frame */
 			tmp_pic_total_bytes = 0;
 			/* make the address which dummy_nal_buf_addr has, to the top address of dummy_nal_buf[] */
@@ -1520,9 +1425,6 @@ long output_SEI_parameters(APPLI_INFO * appli_info,
 					     sei_stream_buff_info);
 		/* concatenate SEI parameter (return_code means the size of SEI parameter in byte unit) */
 		if (return_code > 0) {
-			cat_output_stream(appli_info, context,
-					  (char *) sei_stream_buff_info->
-					  buff_top, return_code);
 			fwrite((char *) sei_stream_buff_info->buff_top,
 			       return_code, 1, appli_info->output_file_fp);
 			return_value = 0;
@@ -1542,9 +1444,6 @@ long output_SEI_parameters(APPLI_INFO * appli_info,
 					     sei_stream_buff_info);
 		/* concatenate SEI parameter (return_code means the size of SEI parameter in byte unit) */
 		if (return_code > 0) {
-			cat_output_stream(appli_info, context,
-					  (char *) sei_stream_buff_info->
-					  buff_top, return_code);
 			fwrite((char *) sei_stream_buff_info->buff_top,
 			       return_code, 1, appli_info->output_file_fp);
 			return_value = 0;
@@ -1564,9 +1463,6 @@ long output_SEI_parameters(APPLI_INFO * appli_info,
 					     sei_stream_buff_info);
 		/* concatenate SEI parameter (return_code means the size of SEI parameter in byte unit) */
 		if (return_code > 0) {
-			cat_output_stream(appli_info, context,
-					  (char *) sei_stream_buff_info->
-					  buff_top, return_code);
 			fwrite((char *) sei_stream_buff_info->buff_top,
 			       return_code, 1, appli_info->output_file_fp);
 			return_value = 0;
@@ -1586,9 +1482,6 @@ long output_SEI_parameters(APPLI_INFO * appli_info,
 					     sei_stream_buff_info);
 		/* concatenate SEI parameter (return_code means the size of SEI parameter in byte unit) */
 		if (return_code > 0) {
-			cat_output_stream(appli_info, context,
-					  (char *) sei_stream_buff_info->
-					  buff_top, return_code);
 			fwrite((char *) sei_stream_buff_info->buff_top,
 			       return_code, 1, appli_info->output_file_fp);
 			return_value = 0;
@@ -1608,9 +1501,6 @@ long output_SEI_parameters(APPLI_INFO * appli_info,
 					     sei_stream_buff_info);
 		/* concatenate SEI parameter (return_code means the size of SEI parameter in byte unit) */
 		if (return_code > 0) {
-			cat_output_stream(appli_info, context,
-					  (char *) sei_stream_buff_info->
-					  buff_top, return_code);
 			fwrite((char *) &sei_stream_buff_info->buff_top,
 			       return_code, 1, appli_info->output_file_fp);
 			return_value = 0;

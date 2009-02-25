@@ -215,15 +215,6 @@ extern "C" {
 
 		/* Table to store an encoding result (MPEG-4 bitstream) */
 
-		/* for stream-1 */
-		unsigned char output_buf[OUTPUT_BUF_SIZE];
-
-		/* output_bufアドレスのバックアップ 但しNAL単位エンコードの場合にスキップした時のみ */
-		unsigned char *prev_output_buf_addr1;
-
-		/* output_bufアドレスのバックアップ 但しNAL単位エンコードの場合にスキップした時のみ */
-		unsigned char *prev_output_buf_addr2;
-
 		/* NAL単位エンコードの場合に使用 */
 		long frm;
 
@@ -291,7 +282,6 @@ extern "C" {
 		/* Output imformation in encoding */
 		long frame_counter;	/* The number of encoded frames */
 
-		unsigned char slice_output_buf[OUTPUT_BUF_SIZE];
 		unsigned long mb_num_of_picture;	/* total number of mb in picture */
 		unsigned long slice_mb_counter;	/* counter of mb_num_of_picture */
 		long SPS_PPS_header_bytes;	/* bytes of SPS and PPS */
