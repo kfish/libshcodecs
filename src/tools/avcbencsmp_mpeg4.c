@@ -228,7 +228,9 @@ int encode_1file_mpeg4(SHCodecs_Encoder * encoder, long case_no,
 
 		return (-16);
 	} else {
-		my_size = fwrite((unsigned char *) &my_end_code_buff[0], return_code, 1, appli_info->output_file_fp);
+                if (encoder->output) {
+                  my_size = encoder->output (encoder, (unsigned char *) &my_end_code_buff[0], return_code, encoder->output_user_data);
+                }
 	}
 
 	return (0);
@@ -771,7 +773,9 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder, long case_no,
 			/* get the size of bitstream (byte unit) */
 			streamsize_per_frame = (stream_bits / 8);
 
-			my_size = fwrite((unsigned char *) &my_stream_buff[0], 1, streamsize_per_frame, appli_info->output_file_fp);
+                        if (encoder->output) {
+                                my_size = encoder->output (encoder, (unsigned char *) &my_stream_buff[0], streamsize_per_frame, encoder->output_user_data);
+                        }
 		}
 		frm += appli_info->frame_no_increment;
 		appli_info->frame_counter++;
