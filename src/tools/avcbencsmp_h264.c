@@ -328,28 +328,18 @@ long encode_picture_unit(SHCodecs_Encoder * encoder, long case_no,
 			appli_info->error_return_code = return_code;
 			return (-112);
 		} else {
-			if (appli_info->other_API_enc_param.
-			    vui_main_param.avcbe_nal_hrd_parameters_present_flag
-			    == AVCBE_ON) {
-				appli_info->
-				    other_API_enc_param.vui_main_param.
-				    avcbe_nal_hrd_param.avcbe_cpb_size_scale
-				    = return_code;
+			if (encoder->other_API_enc_param.vui_main_param.avcbe_nal_hrd_parameters_present_flag == AVCBE_ON) {
+				encoder->other_API_enc_param.vui_main_param.avcbe_nal_hrd_param.avcbe_cpb_size_scale = return_code;
 
-			} else if (appli_info->
-				   other_API_enc_param.vui_main_param.avcbe_vcl_hrd_parameters_present_flag
-				   == AVCBE_ON) {
-				appli_info->
-				    other_API_enc_param.vui_main_param.
-				    avcbe_vcl_hrd_param.avcbe_cpb_size_scale
-				    = return_code;
+			} else if (encoder->other_API_enc_param.vui_main_param.avcbe_vcl_hrd_parameters_present_flag == AVCBE_ON) {
+				encoder-> other_API_enc_param.vui_main_param.avcbe_vcl_hrd_param.avcbe_cpb_size_scale = return_code;
 			}
 		}
-		appli_info->other_API_enc_param.vui_main_param.avcbe_video_signal_type_present_flag = AVCBE_OFF;	//@061215 AVCBE_ON;
+		encoder->other_API_enc_param.vui_main_param.avcbe_video_signal_type_present_flag = AVCBE_OFF;	//@061215 AVCBE_ON;
 		return_code =
 		    avcbe_set_VUI_parameters(context,
 					     &
-					     (appli_info->other_API_enc_param.vui_main_param));
+					     (encoder->other_API_enc_param.vui_main_param));
 		if (return_code != 0) {
 			appli_info->error_return_function = -113;
 			appli_info->error_return_code = return_code;
@@ -889,28 +879,16 @@ long encode_nal_unit(SHCodecs_Encoder * encoder, long case_no,
 			appli_info->error_return_code = return_code;
 			return (-112);
 		} else {
-			if (appli_info->other_API_enc_param.
-			    vui_main_param.avcbe_nal_hrd_parameters_present_flag
-			    == AVCBE_ON) {
-				appli_info->
-				    other_API_enc_param.vui_main_param.
-				    avcbe_nal_hrd_param.avcbe_cpb_size_scale
-				    = return_code;
+			if (encoder->other_API_enc_param.vui_main_param.avcbe_nal_hrd_parameters_present_flag == AVCBE_ON) {
+				encoder->other_API_enc_param.vui_main_param.avcbe_nal_hrd_param.avcbe_cpb_size_scale = return_code;
 
-			} else if (appli_info->
-				   other_API_enc_param.vui_main_param.avcbe_vcl_hrd_parameters_present_flag
-				   == AVCBE_ON) {
-				appli_info->
-				    other_API_enc_param.vui_main_param.
-				    avcbe_vcl_hrd_param.avcbe_cpb_size_scale
-				    = return_code;
+			} else if (encoder->other_API_enc_param.vui_main_param.avcbe_vcl_hrd_parameters_present_flag == AVCBE_ON) {
+				encoder->other_API_enc_param.vui_main_param.avcbe_vcl_hrd_param.avcbe_cpb_size_scale = return_code;
 			}
 		}
 
 		return_code =
-		    avcbe_set_VUI_parameters(context,
-					     &
-					     (appli_info->other_API_enc_param.vui_main_param));
+		    avcbe_set_VUI_parameters(context, &(encoder->other_API_enc_param.vui_main_param));
 		if (return_code != 0) {
 			appli_info->error_return_function = -113;
 			appli_info->error_return_code = return_code;
@@ -1487,15 +1465,13 @@ long output_SEI_parameters(SHCodecs_Encoder * encoder,
 	long return_value = 0;
 
 	/* output SEI parameter (step1) */
-	if (appli_info->other_API_enc_param.out_buffering_period_SEI ==
-	    AVCBE_ON) {
+	if (encoder->other_API_enc_param.out_buffering_period_SEI == AVCBE_ON) {
 		return_code =
 		    avcbe_put_SEI_parameters(context,
 					     AVCBE_SEI_MESSAGE_BUFFERING_PERIOD,
 					     (void *)
 					     &
-					     (appli_info->other_API_enc_param.sei_buffering_period_param),
-					     sei_stream_buff_info);
+					     (encoder->other_API_enc_param.sei_buffering_period_param), sei_stream_buff_info);
 		/* concatenate SEI parameter (return_code means the size of SEI parameter in byte unit) */
 		if (return_code > 0) {
 			if (encoder->output) {
@@ -1512,13 +1488,13 @@ long output_SEI_parameters(SHCodecs_Encoder * encoder,
 	}
 
 	/* output SEI parameter (step2) */
-	if (appli_info->other_API_enc_param.out_pic_timing_SEI == AVCBE_ON) {
+	if (encoder->other_API_enc_param.out_pic_timing_SEI == AVCBE_ON) {
 		return_code =
 		    avcbe_put_SEI_parameters(context,
 					     AVCBE_SEI_MESSAGE_PIC_TIMING,
 					     (void *)
 					     &
-					     (appli_info->other_API_enc_param.sei_pic_timing_param),
+					     (encoder->other_API_enc_param.sei_pic_timing_param),
 					     sei_stream_buff_info);
 		/* concatenate SEI parameter (return_code means the size of SEI parameter in byte unit) */
 		if (return_code > 0) {
@@ -1535,15 +1511,13 @@ long output_SEI_parameters(SHCodecs_Encoder * encoder,
 		}
 	}
 	/* output SEI parameter (step3) */
-	if (appli_info->other_API_enc_param.out_pan_scan_rect_SEI ==
-	    AVCBE_ON) {
+	if (encoder->other_API_enc_param.out_pan_scan_rect_SEI == AVCBE_ON) {
 		return_code =
 		    avcbe_put_SEI_parameters(context,
 					     AVCBE_SEI_MESSAGE_PAN_SCAN_RECT,
 					     (void *)
 					     &
-					     (appli_info->other_API_enc_param.sei_pan_scan_rect_param),
-					     sei_stream_buff_info);
+					     (encoder->other_API_enc_param.sei_pan_scan_rect_param), sei_stream_buff_info);
 		/* concatenate SEI parameter (return_code means the size of SEI parameter in byte unit) */
 		if (return_code > 0) {
 			if (encoder->output) {
@@ -1559,15 +1533,13 @@ long output_SEI_parameters(SHCodecs_Encoder * encoder,
 		}
 	}
 	/* output SEI parameter (step4) */
-	if (appli_info->other_API_enc_param.out_filler_payload_SEI ==
-	    AVCBE_ON) {
+	if (encoder->other_API_enc_param.out_filler_payload_SEI == AVCBE_ON) {
 		return_code =
 		    avcbe_put_SEI_parameters(context,
 					     AVCBE_SEI_MESSAGE_FILLER_PAYLOAD,
 					     (void *)
 					     &
-					     (appli_info->other_API_enc_param.sei_filler_payload_param),
-					     sei_stream_buff_info);
+					     (encoder->other_API_enc_param.sei_filler_payload_param), sei_stream_buff_info);
 		/* concatenate SEI parameter (return_code means the size of SEI parameter in byte unit) */
 		if (return_code > 0) {
 			if (encoder->output) {
@@ -1583,14 +1555,12 @@ long output_SEI_parameters(SHCodecs_Encoder * encoder,
 		}
 	}
 	/* output SEI parameter (step5) */
-	if (appli_info->other_API_enc_param.out_recovery_point_SEI ==
-	    AVCBE_ON) {
+	if (encoder->other_API_enc_param.out_recovery_point_SEI == AVCBE_ON) {
 		return_code =
 		    avcbe_put_SEI_parameters(context,
 					     AVCBE_SEI_MESSAGE_RECOVERY_POINT,
 					     (void *)
-					     &
-					     (appli_info->other_API_enc_param.sei_recovery_point_param),
+					     &(encoder->other_API_enc_param.sei_recovery_point_param),
 					     sei_stream_buff_info);
 		/* concatenate SEI parameter (return_code means the size of SEI parameter in byte unit) */
 		if (return_code > 0) {

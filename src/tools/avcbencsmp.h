@@ -268,7 +268,6 @@ extern "C" {
 		avcbe_other_options_h264 other_options_h264;	/* parameters to control details */
 		avcbe_other_options_mpeg4 other_options_mpeg4;	/* parameters to control details */
 
-		OTHER_API_ENC_PARAM other_API_enc_param;	/* FILE_USEからはずす *//* 050121 */
 #if 1
 		ENC_EXEC_INFO enc_exec_info;	/* FILE_USEからはずす *//* 050121 */
 

@@ -9,6 +9,35 @@
 
 #include "encoder_private.h"
 
+int
+init_other_API_enc_param (OTHER_API_ENC_PARAM * other_API_enc_param)
+{
+	other_API_enc_param->out_local_decode_file = 0;
+	other_API_enc_param->put_local_decode_when_frameskip = 1;
+	other_API_enc_param->out_capt_file = 0;
+	other_API_enc_param->out_rate_log_file = 0;
+
+	memset(&(other_API_enc_param->vui_main_param), 0, sizeof(avcbe_vui_main_param));
+
+	other_API_enc_param->out_buffering_period_SEI = 0;
+	other_API_enc_param->out_pic_timing_SEI = 0;
+	other_API_enc_param->out_pan_scan_rect_SEI = 0;
+	other_API_enc_param->out_filler_payload_SEI = 0;
+	other_API_enc_param->out_recovery_point_SEI = 0;
+	other_API_enc_param->out_dec_ref_pic_marking_repetition_SEI = 0;
+
+	memset(& (other_API_enc_param->sei_buffering_period_param), 0,
+	       sizeof(avcbe_sei_buffering_period_param));
+	memset(&(other_API_enc_param->sei_pic_timing_param), 0,
+	       sizeof(avcbe_sei_pic_timing_param));
+	memset(&(other_API_enc_param->sei_pan_scan_rect_param),
+	       0, sizeof(avcbe_sei_pan_scan_rect_param));
+	memset(&(other_API_enc_param->sei_filler_payload_param),
+	       0, sizeof(avcbe_sei_filler_payload_param));
+	memset(&(other_API_enc_param->sei_recovery_point_param),
+	       0, sizeof(avcbe_sei_recovery_point_param));
+}
+
 /**
  * Initialize the VPU4 for encoding a given video format.
  * \param width The video image width
@@ -54,6 +83,8 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 #endif
 		return NULL;
 	}
+
+        init_other_API_enc_param (&encoder->other_API_enc_param);
 
 	return encoder;
 }

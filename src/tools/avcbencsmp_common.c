@@ -233,37 +233,6 @@ int select_inputfile_set_param(long case_no, APPLI_INFO * appli_info)
 //      appli_info->input_file_name_buf[0] = '\0';
 	//appli_info->input_yuv_fp = NULL;
 
-	appli_info->other_API_enc_param.out_local_decode_file = 0;
-	appli_info->other_API_enc_param.put_local_decode_when_frameskip =
-	    1;
-	appli_info->other_API_enc_param.out_capt_file = 0;
-	appli_info->other_API_enc_param.out_rate_log_file = 0;
-
-	memset(&(appli_info->other_API_enc_param.vui_main_param), 0,
-	       sizeof(avcbe_vui_main_param));
-
-	appli_info->other_API_enc_param.out_buffering_period_SEI = 0;
-	appli_info->other_API_enc_param.out_pic_timing_SEI = 0;
-	appli_info->other_API_enc_param.out_pan_scan_rect_SEI = 0;
-	appli_info->other_API_enc_param.out_filler_payload_SEI = 0;
-	appli_info->other_API_enc_param.out_recovery_point_SEI = 0;
-	appli_info->other_API_enc_param.
-	    out_dec_ref_pic_marking_repetition_SEI = 0;
-
-	memset(&
-	       (appli_info->other_API_enc_param.
-		sei_buffering_period_param), 0,
-	       sizeof(avcbe_sei_buffering_period_param));
-	memset(&(appli_info->other_API_enc_param.sei_pic_timing_param), 0,
-	       sizeof(avcbe_sei_pic_timing_param));
-	memset(&(appli_info->other_API_enc_param.sei_pan_scan_rect_param),
-	       0, sizeof(avcbe_sei_pan_scan_rect_param));
-	memset(&(appli_info->other_API_enc_param.sei_filler_payload_param),
-	       0, sizeof(avcbe_sei_filler_payload_param));
-	memset(&(appli_info->other_API_enc_param.sei_recovery_point_param),
-	       0, sizeof(avcbe_sei_recovery_point_param));
-
-
 	appli_info->set_intra = AVCBE_ANY_VOP;
 	appli_info->output_type = AVCBE_OUTPUT_NONE;
 	appli_info->frame_no_increment = 1;
