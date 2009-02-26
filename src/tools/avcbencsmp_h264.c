@@ -205,7 +205,7 @@ long init_for_encoder_h264(SHCodecs_Encoder * encoder, long case_no,
 		     90);
 	}
 	return_code =
-	    avcbe_init_encode(&(appli_info->param), &(appli_info->paramR),
+	    avcbe_init_encode(&(appli_info->param), &(encoder->paramR),
 			      &(appli_info->other_options_h264),
 			      (avcbe_buf_continue_userproc_ptr) NULL,
 			      &WORK_ARRY[0], &WORK_ARRY[1], context);

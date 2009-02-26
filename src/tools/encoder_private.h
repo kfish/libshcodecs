@@ -52,6 +52,7 @@ struct _SHCodecs_Encoder {
 	void *output_user_data;
 
         /* Encoder internals */
+        avcbe_encoding_property paramR;	/* for stream-1 */
         M4IPH_VPU4_INIT_OPTION vpu4_param;	/* parameters of VPU4 */
 };
 

@@ -285,7 +285,7 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO
 
 #ifndef VPU4IP
 	return_code = avcbe_init_encode(&(appli_info->param),
-					&(appli_info->paramR),
+					&(encoder->paramR),
 					&(appli_info->other_options_mpeg4),
 					// RSM (avcbe_buf_continue_userproc_ptr)NULL, &WORK_ARRY[0], 
 					(avcbe_buf_continue_userproc_ptr)
@@ -293,7 +293,7 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO
 					&WORK_ARRY[1], context);
 #else
 	return_code = avcbe_init_encode(&(appli_info->param),
-					&(appli_info->paramR),
+					&(encoder->paramR),
 					&(appli_info->other_options_mpeg4),
 					// RSM (avcbe_buf_continue_userproc_ptr)NULL, &WORK_ARRY[0], NULL, 
 					(avcbe_buf_continue_userproc_ptr)
@@ -325,7 +325,7 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO
 	return_code =
 	    GetFromCtrlFtoEncParamAfterInitEncode
 	    (appli_info->ctrl_file_name_buf, *context,
-	     &(appli_info->other_API_enc_param), &(appli_info->paramR));
+	     &(appli_info->other_API_enc_param), &(encoder->paramR));
 	printf("GetFromCtrlFtoEncParamAfterInitEncode=%d\n", return_code);
 	if (appli_info->other_options_mpeg4.avcbe_quant_type == 1) {	/* add @061121 */
 		printf("avcbe_set_quant_type1()\n");

@@ -263,7 +263,7 @@ extern "C" {
 		long put_local_decode_when_frameskip;	/* フレームスキップしたときにローカルデコード画像を出力するか */
 
 		/* encoding parameters */
-		avcbe_encoding_property param, paramR;	/* for stream-1 */
+		avcbe_encoding_property param;	/* for stream-1 */
 
 		avcbe_other_options_h264 other_options_h264;	/* parameters to control details */
 		avcbe_other_options_mpeg4 other_options_mpeg4;	/* parameters to control details */
