@@ -327,8 +327,6 @@ int main(int argc, char *argv[])
 	sh_ceu_stop_capturing(ainfo.ceu);
 
 	m4iph_sdr_free(sdr_base, width_height * (max_frame + 3));
-	m4iph_sdr_free(ainfo.vpu4_param.m4iph_temporary_buff_address,
-		       MY_STREAM_BUFF_SIZE);
 
 	shcodecs_encoder_close(encoder);
 

@@ -20,8 +20,10 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 					SHCodecs_Format format)
 {
 	SHCodecs_Encoder *encoder;
+        long return_code;
 
 	encoder = malloc(sizeof(SHCodecs_Encoder));
+        if (encoder == NULL) return NULL;
 
 	m4iph_vpu_open();
 	m4iph_sdr_open();
@@ -35,6 +37,24 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 
 	m4iph_sleep_time_init();
 
+	/*--- set the parameters of VPU4 (one of the user application's own functions) ---*/
+	set_VPU4_param(&(encoder->vpu4_param));
+
+	/*--- The MPEG-4&H.264 Encoder Library API (common to MPEG-4&H.264 Decoder) 
+	 * (required-1)@initialize VPU4 ---*/
+	/* needs be called only once */
+	return_code = m4iph_vpu4_init(&(encoder->vpu4_param));
+	if (return_code < 0) {	/* error */
+		if (return_code == -1) {
+			fprintf (stderr, "encode_1file_mpeg4:m4iph_vpu4_init PARAMETER ERROR!\n");
+		}
+#if 0
+		appli_info->error_return_function = -1;
+		appli_info->error_return_code = return_code;
+#endif
+		return NULL;
+	}
+
 	return encoder;
 }
 
@@ -45,6 +65,8 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
  */
 void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
 {
+	m4iph_sdr_free(encoder->vpu4_param.m4iph_temporary_buff_address, MY_STREAM_BUFF_SIZE);
+
 	m4iph_sdr_close();
 	m4iph_vpu_close();
 

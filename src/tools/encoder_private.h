@@ -50,6 +50,9 @@ struct _SHCodecs_Encoder {
 
 	SHCodecs_Encoder_Output output;
 	void *output_user_data;
+
+        /* Encoder internals */
+        M4IPH_VPU4_INIT_OPTION vpu4_param;	/* parameters of VPU4 */
 };
 
 /* Internal prototypes of functions using SHCodecs_Encoder */

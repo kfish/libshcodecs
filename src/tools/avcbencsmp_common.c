@@ -155,13 +155,12 @@ unsigned long avcbe_insert_filler_data_for_cpb_buffer(unsigned long
 /*----------------------------------------------------------------------------------------------*/
 /* set the parameters of VPU4 */
 /*----------------------------------------------------------------------------------------------*/
-void set_VPU4_param(int case_no, M4IPH_VPU4_INIT_OPTION * vpu4_param)
+void set_VPU4_param(M4IPH_VPU4_INIT_OPTION * vpu4_param)
 {
 	unsigned long tb;
 
 	/* VPU4 Base Address For SH-Mobile 3A */
 	vpu4_param->m4iph_vpu_base_address = 0xFE900000;
-
 
 	/* Endian */
 #ifdef _LIT

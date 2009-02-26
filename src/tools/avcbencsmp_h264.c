@@ -73,23 +73,6 @@ int encode_1file_h264(SHCodecs_Encoder * encoder, long case_no,
 
 	DisplayMessage("H.264 Encode Start! ", 1);
 
-	/*--- set the parameters of VPU4 (one of the user application's own functions) ---*/
-	set_VPU4_param(case_no, &(appli_info->vpu4_param));
-
-	/*--- The MPEG-4&H.264 Encoder Library API (common to MPEG-4&H.264 Decoder) (required-1)@initialize VPU4 ---*/
-	/* needs be called only once */
-	return_code = m4iph_vpu4_init(&(appli_info->vpu4_param));
-	if (return_code < 0) {	/* error */
-		if (return_code == -1) {
-			DisplayMessage
-			    (" encode_1file_h264:m4iph_vpu4_init PARAMETER ERROR! ",
-			     1);
-		}
-		appli_info->error_return_function = -101;
-		appli_info->error_return_code = return_code;
-		return (-101);
-	}
-
 	/*--- The MPEG-4 Encoder Library API(required-2)@start encoding ---*/
 	avcbe_start_encoding();	/* needs be called only once */
 
