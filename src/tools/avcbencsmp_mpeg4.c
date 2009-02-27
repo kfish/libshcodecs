@@ -423,7 +423,6 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 	appli_info->frame_counter = 0;
 	appli_info->frame_skip_num = 0;
 
-	appli_info->output_write_size = 0;
 	streamsize_total = 0;
 
 	appli_info->set_intra = AVCBE_ANY_VOP;	/* Forced intra-mode flag */

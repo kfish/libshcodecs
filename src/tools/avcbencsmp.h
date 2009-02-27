@@ -209,8 +209,6 @@ extern "C" {
 		/* Table to store an encoding result (MPEG-4 bitstream) */
 
 		/* Size of encoding result (byte unit) */
-		/* for stream-1 */
-		long output_write_size;
 
 		/* Input imformation in encoding */
 

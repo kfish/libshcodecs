@@ -360,7 +360,6 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 	frm = 0;		/* Frame number to be encoded (for avcbe_encode_picture function) */
 	appli_info->frame_counter = 0;
 	appli_info->frame_skip_num = 0;
-	appli_info->output_write_size = 0;
 	streamsize_total = 0;
 	appli_info->set_intra = AVCBE_ANY_VOP;	/* Forced intra-mode flag */
 	appli_info->slice_mb_counter = 0;
@@ -912,7 +911,6 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 	appli_info->frame_counter = 0;
 	appli_info->frame_skip_num = 0;
 
-	appli_info->output_write_size = 0;
 	streamsize_total = 0;
 
 	appli_info->set_intra = AVCBE_ANY_VOP;	/* Forced intra-mode flag */
