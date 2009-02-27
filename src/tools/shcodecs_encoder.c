@@ -9,6 +9,22 @@
 
 #include "encoder_private.h"
 
+unsigned long *my_frame_memory_capt[19];
+
+unsigned long *my_frame_memory_ldec1;
+unsigned long *my_frame_memory_ldec2;
+unsigned long *my_frame_memory_ldec3;
+unsigned long *my_stream_buff;
+unsigned long *my_end_code_buff;
+unsigned long *my_stream_buff_bak;
+unsigned long *my_end_code_buff_bak;
+long width_height, max_frame;
+unsigned long *kernel_memory_for_vpu_top;
+
+extern unsigned long *my_work_area;
+
+u_int32_t sdr_base;
+
 int init_other_API_enc_param(OTHER_API_ENC_PARAM * other_API_enc_param)
 {
 	other_API_enc_param->out_local_decode_file = 0;
@@ -38,75 +54,6 @@ int init_other_API_enc_param(OTHER_API_ENC_PARAM * other_API_enc_param)
 	       0, sizeof(avcbe_sei_recovery_point_param));
 }
 
-int init_mpeg4(SHCodecs_Encoder * encoder)
-{
-	/* This was commented out in the original sample code */
-#if 0
-	/*** avcbe_other_options_mpeg4 ***/
-	encoder->other_options_mpeg4.avcbe_out_vos = AVCBE_ON;
-	encoder->other_options_mpeg4.avcbe_out_gov = AVCBE_ON;
-	encoder->other_options_mpeg4.avcbe_aspect_ratio_info_type =
-	    AVCBE_AUTO;
-	encoder->other_options_mpeg4.avcbe_aspect_ratio_info_value = 3;
-
-	encoder->other_options_mpeg4.avcbe_vos_profile_level_type =
-	    AVCBE_AUTO;
-	encoder->other_options_mpeg4.avcbe_vos_profile_level_value = 1;
-	encoder->other_options_mpeg4.avcbe_out_visual_object_identifier =
-	    AVCBE_OFF;
-	encoder->other_options_mpeg4.avcbe_visual_object_verid = 0;
-	encoder->other_options_mpeg4.avcbe_visual_object_priority = 7;
-	encoder->other_options_mpeg4.avcbe_video_object_type_indication =
-	    0;
-	encoder->other_options_mpeg4.avcbe_out_object_layer_identifier =
-	    AVCBE_OFF;
-	encoder->other_options_mpeg4.avcbe_video_object_layer_verid = 0;
-	encoder->other_options_mpeg4.avcbe_video_object_layer_priority = 7;
-
-	/* 'AVCBE_ERM_VIDEO_PACKET' -> 'AVCBE_ERM_NORMAL' changed at Version2 */
-	encoder->other_options_mpeg4.avcbe_error_resilience_mode =
-	    AVCBE_ERM_NORMAL;
-	encoder->other_options_mpeg4.avcbe_video_packet_size_mb = 0;
-	encoder->other_options_mpeg4.avcbe_video_packet_size_bit = 0;
-	encoder->other_options_mpeg4.avcbe_video_packet_header_extention =
-	    AVCBE_OFF;
-	/* 'AVCBE_ON' -> 'AVCBE_OFF' changed at Version2 */
-	encoder->other_options_mpeg4.avcbe_data_partitioned = AVCBE_OFF;
-	encoder->other_options_mpeg4.avcbe_reversible_vlc = AVCBE_OFF;
-
-	encoder->other_options_mpeg4.avcbe_high_quality = AVCBE_HQ_QUALITY;
-	encoder->other_options_mpeg4.avcbe_param_changeable = AVCBE_OFF;
-	encoder->other_options_mpeg4.avcbe_changeable_max_bitrate = 0;
-	encoder->other_options_mpeg4.avcbe_Ivop_quant_initial_value = 16;
-	encoder->other_options_mpeg4.avcbe_Pvop_quant_initial_value = 16;
-	encoder->other_options_mpeg4.avcbe_use_dquant = AVCBE_ON;
-	/* '10' -> '4' changed at Version2 */
-	encoder->other_options_mpeg4.avcbe_clip_dquant_frame = 4;
-	encoder->other_options_mpeg4.avcbe_quant_min = 6;
-	/* added at Version2 */
-	encoder->other_options_mpeg4.avcbe_quant_min_Ivop_under_range = 2;
-	encoder->other_options_mpeg4.avcbe_quant_max = 26;	/* '31' -> '26' changed at Version2 */
-
-	encoder->other_options_mpeg4.avcbe_ratecontrol_vbv_skipcheck_enable = AVCBE_ON;	/* added at Version2 */
-	encoder->other_options_mpeg4.avcbe_ratecontrol_vbv_Ivop_noskip = AVCBE_ON;	/* added at Version2 */
-	encoder->other_options_mpeg4.avcbe_ratecontrol_vbv_remain_zero_skip_enable = AVCBE_ON;	/* added at Version2 */
-
-	encoder->other_options_mpeg4.avcbe_ratecontrol_vbv_buffer_unit_size = 16384;	/* added at Version2 */
-	encoder->other_options_mpeg4.avcbe_ratecontrol_vbv_buffer_mode = AVCBE_AUTO;	/* added at Version2 */
-	encoder->other_options_mpeg4.avcbe_ratecontrol_vbv_max_size = 70;	/* added at Version2 */
-	encoder->other_options_mpeg4.avcbe_ratecontrol_vbv_offset = 20;	/* added at Version2 */
-	encoder->other_options_mpeg4.avcbe_ratecontrol_vbv_offset_rate = 50;	/* added at Version2 */
-
-	encoder->other_options_mpeg4.avcbe_quant_type =
-	    AVCBE_QUANTISATION_TYPE_2;
-	encoder->other_options_mpeg4.avcbe_use_AC_prediction = AVCBE_ON;
-	encoder->other_options_mpeg4.avcbe_vop_min_mode = AVCBE_MANUAL;	/* added at Version2 */
-	encoder->other_options_mpeg4.avcbe_vop_min_size = 0;
-	encoder->other_options_mpeg4.avcbe_intra_thr = 6000;
-	encoder->other_options_mpeg4.avcbe_b_vop_num = 0;
-#endif
-}
-
 /**
  * Initialize the VPU4 for encoding a given video format.
  * \param width The video image width
@@ -115,10 +62,12 @@ int init_mpeg4(SHCodecs_Encoder * encoder)
  * \return encoder The SHCodecs_Encoder* handle
  */
 SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
-					SHCodecs_Format format)
+					SHCodecs_Format format,
+                                        APPLI_INFO * ainfo)
 {
 	SHCodecs_Encoder *encoder;
 	long return_code;
+        int i;
 
 	encoder = malloc(sizeof(SHCodecs_Encoder));
 	if (encoder == NULL)
@@ -162,7 +111,41 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 
 	init_other_API_enc_param(&encoder->other_API_enc_param);
 
-	init_mpeg4(encoder);
+	/* stream buffer 0 clear */
+//      memset(sdr_read_my_stream_buff,0,sizeof(sdr_read_my_stream_buff));
+	encode_time_init();
+	vpu4_clock_on();
+	width_height = ainfo->enc_exec_info.xpic * ainfo->enc_exec_info.ypic;
+	width_height += (width_height / 2);
+	max_frame = 2;
+	sdr_base = m4iph_sdr_malloc(width_height * (max_frame + 3), 32);
+	if (sdr_base == NULL)
+		exit(1);
+	kernel_memory_for_vpu_top = (unsigned long *) sdr_base;
+	for (i = 0; i < max_frame; i++) {
+		my_frame_memory_capt[i] =
+		    (unsigned long *) (sdr_base + width_height * i);
+		printf("my_frame_memory_capt[%d]=%x\n", i,
+		       my_frame_memory_capt[i]);
+	}
+	my_frame_memory_ldec1 =
+	    (unsigned long *) (sdr_base + width_height * i);
+	i++;
+	my_frame_memory_ldec2 =
+	    (unsigned long *) (sdr_base + width_height * i);
+	i++;
+	my_frame_memory_ldec3 =
+	    (unsigned long *) (sdr_base + width_height * i);
+	my_stream_buff_bak = malloc(MY_STREAM_BUFF_SIZE + 31);
+	my_stream_buff = ALIGN(my_stream_buff_bak, 32);
+	my_end_code_buff_bak = malloc(MY_END_CODE_BUFF_SIZE + 31);
+	my_end_code_buff = ALIGN(my_end_code_buff_bak, 32);
+
+	if (encoder->format == SHCodecs_Format_H264) {
+		encode_init_h264 (encoder, ainfo, AVCBE_H264);
+	} else {
+		encode_init_mpeg4 (encoder, ainfo, AVCBE_MPEG4);
+	}
 
 	return encoder;
 }
@@ -174,6 +157,8 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
  */
 void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
 {
+	m4iph_sdr_free(sdr_base, width_height * (max_frame + 3));
+
 	m4iph_sdr_free(encoder->vpu4_param.m4iph_temporary_buff_address,
 		       MY_STREAM_BUFF_SIZE);
 
@@ -182,6 +167,10 @@ void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
 
 	if (encoder)
 		free(encoder);
+
+	free(my_stream_buff_bak);
+	free(my_end_code_buff_bak);
+	free(my_work_area);
 
 	return;
 }

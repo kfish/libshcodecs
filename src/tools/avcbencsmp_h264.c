@@ -59,18 +59,14 @@ extern long tmp_pic_total_bytes;
 extern long tmp_slice_size;
 
 /*-------------------------------------------------------------------------------*/
-/*    encode on each case (for H.264)                                            */
-/*-------------------------------------------------------------------------------*/
-int encode_1file_h264(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
-		      long stream_type)
+
+int encode_init_h264 (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long stream_type)
 {
 	long return_code;
 	TAVCBE_STREAM_BUFF my_end_code_buff_info;
 
 	appli_info->error_return_function = 0;
 	appli_info->error_return_code = 0;
-
-	DisplayMessage("H.264 Encode Start! ", 1);
 
 	/*--- The MPEG-4 Encoder Library API(required-2)@start encoding ---*/
 	avcbe_start_encoding();	/* needs be called only once */
@@ -82,6 +78,21 @@ int encode_1file_h264(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
 	if (return_code != 0) {
 		return (-114);
 	}
+
+        return 0;
+}
+
+int encode_1file_h264(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
+		      long stream_type)
+{
+	long return_code;
+	TAVCBE_STREAM_BUFF my_end_code_buff_info;
+
+	appli_info->error_return_function = 0;
+	appli_info->error_return_code = 0;
+
+	DisplayMessage("H.264 Encode Start! ", 1);
+
 	/* encode process function for H.264 (call avcbe_encode_picture func.) */
 	if ((appli_info->other_options_h264.avcbe_use_slice == AVCBE_ON) &&
 	    (appli_info->other_options_h264.avcbe_call_unit ==

@@ -54,18 +54,6 @@ extern avcbe_stream_info *my_context;
 extern TAVCBE_FMEM LDEC_ARRY[];
 extern TAVCBE_FMEM CAPTF_ARRY[];
 
-unsigned long *my_frame_memory_capt[19];
-
-unsigned long *my_frame_memory_ldec1;
-unsigned long *my_frame_memory_ldec2;
-unsigned long *my_frame_memory_ldec3;
-unsigned long *my_stream_buff;
-unsigned long *my_end_code_buff;
-unsigned long *my_stream_buff_bak;
-unsigned long *my_end_code_buff_bak;
-extern unsigned long *my_work_area;	/* 4 bytes alignment */
-
-
 int open_input_image_file(APPLI_INFO *);
 int open_output_file(APPLI_INFO *);
 void disp_context_info(void *context);
@@ -78,12 +66,9 @@ extern int GetFromCtrlFTop(const char *control_filepath,
 /*int mpeg4_enc(void) */
 APPLI_INFO ainfo;		/* User Application Data */
 
-u_int32_t sdr_base;
-
 unsigned long m4iph_vpu4_reg_base = 0xfe900000;
 #define KERNEL_MEMORY_FOR_VPU_BOTTOM 0xadffffff
 
-unsigned long *kernel_memory_for_vpu_top;
 void get_new_stream_buf(avcbe_stream_info * context,
 			char *previous_stream_buff, long output_size,
 			char **next_stream_buff, long *stream_buff_size);
@@ -130,10 +115,10 @@ static int write_output(SHCodecs_Encoder * encoder,
 
 int main(int argc, char *argv[])
 {
-	int encode_return_code, success_count, i;
+	int encode_return_code;
 	char message_buf[256];
 	int return_code;
-	long stream_type, width_height, max_frame;	/* 041201 */
+	long stream_type;
 	SHCodecs_Encoder *encoder;
 
 	if (argc == 2) {	/* 第1引数=コントロールファイル */
@@ -197,46 +182,11 @@ int main(int argc, char *argv[])
 
 	encoder =
 	    shcodecs_encoder_init(ainfo.enc_exec_info.xpic,
-				  ainfo.enc_exec_info.ypic, stream_type);
+				  ainfo.enc_exec_info.ypic, stream_type, &ainfo);
 
 	shcodecs_encoder_set_input_callback(encoder, get_input, &ainfo);
 	shcodecs_encoder_set_output_callback(encoder, write_output,
 					     &ainfo);
-
-	/* stream buffer 0 clear */
-//      memset(sdr_read_my_stream_buff,0,sizeof(sdr_read_my_stream_buff));
-	encode_time_init();
-	vpu4_clock_on();
-	width_height = ainfo.enc_exec_info.xpic * ainfo.enc_exec_info.ypic;
-	width_height += (width_height / 2);
-
-	printf("width_height: %d\n", width_height);
-
-	max_frame = 2;
-	sdr_base = m4iph_sdr_malloc(width_height * (max_frame + 3), 32);
-	if (sdr_base == NULL)
-		exit(1);
-	kernel_memory_for_vpu_top = (unsigned long *) sdr_base;
-	for (i = 0; i < max_frame; i++) {
-		my_frame_memory_capt[i] =
-		    (unsigned long *) (sdr_base + width_height * i);
-		printf("my_frame_memory_capt[%d]=%x\n", i,
-		       my_frame_memory_capt[i]);
-	}
-	my_frame_memory_ldec1 =
-	    (unsigned long *) (sdr_base + width_height * i);
-	i++;
-	my_frame_memory_ldec2 =
-	    (unsigned long *) (sdr_base + width_height * i);
-	i++;
-	my_frame_memory_ldec3 =
-	    (unsigned long *) (sdr_base + width_height * i);
-	my_stream_buff_bak = malloc(MY_STREAM_BUFF_SIZE + 31);
-	my_stream_buff = ALIGN(my_stream_buff_bak, 32);
-	my_end_code_buff_bak = malloc(MY_END_CODE_BUFF_SIZE + 31);
-	my_end_code_buff = ALIGN(my_end_code_buff_bak, 32);
-	success_count = 0;
-
 	/*--- open output file (one of the user application's own functions) ---*/
 	return_code = open_output_file(&ainfo);
 	if (return_code != 0) {	/* error */
@@ -256,18 +206,12 @@ int main(int argc, char *argv[])
 	} else {		/* encode success */
 		sprintf(message_buf, "Encode Success ");
 		DisplayMessage(message_buf, 1);
-		success_count++;
 	}
 
 	sh_ceu_stop_capturing(ainfo.ceu);
 
-	m4iph_sdr_free(sdr_base, width_height * (max_frame + 3));
-
 	shcodecs_encoder_close(encoder);
 
-	free(my_stream_buff_bak);
-	free(my_end_code_buff_bak);
-	free(my_work_area);
 	free(dummy_nal_buf);
 	printf("Total encode time = %d(msec)\n", encode_time_get());
 	printf("Total sleep  time = %d(msec)\n", m4iph_sleep_time_get());
