@@ -276,7 +276,6 @@ extern "C" {
 
 		long error_return_function;	/* ID of the API function when error ocuured *//* add at Version2 */
 		long error_return_code;	/* return_value of the API function when error ocuured *//* add at Version2 */
-		long frame_skip_num;
 		long output_filler_data;	/* for FillerData(CPB  Buffer) *//* add at Version2 */
 		FILE *output_file_fp;	/* for output stream-2 */
 

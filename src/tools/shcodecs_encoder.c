@@ -135,6 +135,7 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	encoder->output = NULL;
 
         encoder->frm = 0;
+        encoder->frame_skip_num = 0;
 
 	m4iph_sleep_time_init();
 

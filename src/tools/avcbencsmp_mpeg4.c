@@ -421,7 +421,7 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 	frm = 0;		/* Frame number to be encoded (for avcbe_encode_picture function) */
 
 	appli_info->frame_counter = 0;
-	appli_info->frame_skip_num = 0;
+	encoder->frame_skip_num = 0;
 
 	streamsize_total = 0;
 
@@ -613,7 +613,7 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 			DisplayMessage(messeage_buf, 1);
 			/* the second parameter 'ldec' value must NOT be changed *
 			 * when the avcbe_set_image_pointer function is called on next time. */
-			appli_info->frame_skip_num++;
+			encoder->frame_skip_num++;
 		} else if (return_code == AVCBE_EMPTY_VOP_OUTPUTTED) {	/* 2 */
 			sprintf(messeage_buf,
 				" encode_1file_mpeg4:avcbe_encode_picture EMPTY VOP CREATED  frm=%d,seq_no=%d ",

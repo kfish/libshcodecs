@@ -359,7 +359,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 	ref1 = ref2 = 0;
 	frm = 0;		/* Frame number to be encoded (for avcbe_encode_picture function) */
 	appli_info->frame_counter = 0;
-	appli_info->frame_skip_num = 0;
+	encoder->frame_skip_num = 0;
 	streamsize_total = 0;
 	appli_info->set_intra = AVCBE_ANY_VOP;	/* Forced intra-mode flag */
 	appli_info->slice_mb_counter = 0;
@@ -605,7 +605,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 			DisplayMessage(messeage_buf, 1);
 
 			/* the second parameter 'ldec' value must NOT be changed when the avcbe_set_image_pointer function is called on next time. */
-			appli_info->frame_skip_num++;
+			encoder->frame_skip_num++;
 
 		} else if (return_code == AVCBE_SLICE_REMAIN) {	/* 5 */
 			sprintf(messeage_buf,
@@ -909,7 +909,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 	frm = 0;		/* Frame number to be encoded (for avcbe_encode_picture function) */
 
 	appli_info->frame_counter = 0;
-	appli_info->frame_skip_num = 0;
+	encoder->frame_skip_num = 0;
 
 	streamsize_total = 0;
 
@@ -1173,7 +1173,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 				(int) appli_info->frame_counter);
 			DisplayMessage(messeage_buf, 1);
 			/* the second parameter 'ldec' value must NOT be changed when the avcbe_set_image_pointer function is called on next time. */
-			appli_info->frame_skip_num++;
+			encoder->frame_skip_num++;
 
 		} else if (return_code == AVCBE_SLICE_REMAIN) {	/* 5 */
 			sprintf(messeage_buf,
@@ -1221,7 +1221,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 			appli_info->slice_mb_counter = 0;
 
 			/* the second parameter 'ldec' value must NOT be changed when the m4vse_set_image_pointer function is called on next time. */
-			appli_info->frame_skip_num++;
+			encoder->frame_skip_num++;
 
 		} else if (return_code == AVCBE_ENCODE_SUCCESS) {	/* 0 */
 
