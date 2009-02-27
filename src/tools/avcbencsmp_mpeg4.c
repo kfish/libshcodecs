@@ -79,8 +79,6 @@ extern unsigned long *my_end_code_buff_bak;
 extern unsigned long *my_work_area;	/* 4 bytes alignment */
 
 
-extern long frame_counter_of_input;	/* the number of input frames for stream-1 */
-
 void disp_context_info(void *context);
 
 long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
@@ -213,8 +211,6 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder,
 		appli_info->error_return_code = return_code;
 		return (-3);
 	}
-
-	frame_counter_of_input = 0;
 
 	/* Capt Image Memory Size Check */
 	if (WIDTH_HEIGHT_1_5 < (encoder->width * encoder->height * 3 / 2)) {

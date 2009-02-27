@@ -60,8 +60,6 @@ unsigned long *my_end_code_buff_bak;
 extern unsigned long *my_work_area;	/* 4 bytes alignment */
 
 
-extern long frame_counter_of_input;	/* the number of input frames for stream-1 */
-
 int open_input_image_file(APPLI_INFO *);
 int open_output_file(APPLI_INFO *);
 void disp_context_info(void *context);

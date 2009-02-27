@@ -30,7 +30,8 @@
 #include <linux/videodev2.h>	/* For pixel formats */
 
 extern unsigned long my_yuv_data[];	/* array for input YUV data */
-extern long frame_counter_of_input;	/* the number of input frames for stream-1 */
+
+long frame_counter_of_input;	/* the number of input frames for stream-1 */
 
 int open_input_image_file(APPLI_INFO * appli_info)
 {

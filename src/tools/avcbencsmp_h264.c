@@ -47,7 +47,6 @@ extern TAVCBE_STREAM_BUFF my_pps_stream_buff_info;	/* for PPS */
 extern TAVCBE_STREAM_BUFF my_sei_stream_buff_info;	/* for SEI */
 extern TAVCBE_STREAM_BUFF my_filler_data_buff_info;	/* for FillerData(CPB  Buffer) */
 
-extern long frame_counter_of_input;	/* the number of input frames for stream-1 */
 extern long encode_time;
 
 /*----------------------------------------------------------*/
@@ -167,8 +166,6 @@ long init_for_encoder_h264(SHCodecs_Encoder * encoder,
 		appli_info->error_return_code = return_code;
 		return (-103);
 	}
-
-	frame_counter_of_input = 0;
 
 	/* Capt Image Memory Size Check */
 	if (WIDTH_HEIGHT_1_5 < (encoder->width * encoder->height * 3 / 2)) {

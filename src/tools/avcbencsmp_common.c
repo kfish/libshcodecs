@@ -90,7 +90,6 @@ unsigned long my_sei_stream_buff[MY_SEI_STREAM_BUFF_SIZE / 4];	/* for SEI */
 /*----------------------------------------------------------------------------------------------*/
 //unsigned long my_yuv_data[MY_INPUT_YUV_DATA_BUFF_SIZE/4];     /* array for input YUV data. */   
 
-long frame_counter_of_input;	/* the number of input frames for stream-1 */
 /*----------------------------------------------------------------------------------------------*/
 
 #ifndef DISABLE_INT
