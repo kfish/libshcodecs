@@ -129,23 +129,23 @@ extern "C" {
 
 
 /* レートコントロール関係のグローバル変数 */
-	/*extern unsigned long	avcbe_g_cpb_check_flg;*//* Add 040730 Y.Funabashi */
-	/*extern unsigned long	avcbe_g_cpb_buffer_units;*//* Add 040729 Y.Funabashi */
-	/*extern float			avcbe_g_cpb_offset;*//* Add 041206 *//* cpb_init_delayの代わり */
-	/*extern float			avcbe_g_cpb_offset_rate;*//* Add 041213 *//* cpb buffer に対するcpb_lowerの範囲とcpb_minの範囲の比率 */
-	/*extern float			avcbe_g_cpb_stack_rate;*//* Add 050126 *//* cpb buffer に開始時点で貯めておく割合 */
+	/*extern unsigned long  avcbe_g_cpb_check_flg; *//* Add 040730 Y.Funabashi */
+	/*extern unsigned long  avcbe_g_cpb_buffer_units; *//* Add 040729 Y.Funabashi */
+	/*extern float                  avcbe_g_cpb_offset; *//* Add 041206 *//* cpb_init_delayの代わり */
+	/*extern float                  avcbe_g_cpb_offset_rate; *//* Add 041213 *//* cpb buffer に対するcpb_lowerの範囲とcpb_minの範囲の比率 */
+	/*extern float                  avcbe_g_cpb_stack_rate; *//* Add 050126 *//* cpb buffer に開始時点で貯めておく割合 */
 	extern float avcbe_g_cpb_offset_start_rate;	/* 050601 */
 
 	extern unsigned long avcbe_g_skip_limit_max;	/* Add 041207 *//* skip_limitの最大値 */
 	extern unsigned long avcbe_g_skip_limit_min;	/* Add 041207 *//* skip_limitの最小値 */
 	extern float avcbe_g_add_skip_value;	/* Add 041207 *//* skip_counterの加算値 */
 	extern float avcbe_g_sub_skip_value;	/* Add 041207 *//* skip_counterの減算値 */
-	/*extern unsigned long	avcbe_g_I_vop_skip_value;*//* Del 050421 *//* I-VOPをスキップした場合の値をセット */
-	/*extern unsigned long	avcbe_g_filler_data_size;*//* Del 050428 */
+	/*extern unsigned long  avcbe_g_I_vop_skip_value; *//* Del 050421 *//* I-VOPをスキップした場合の値をセット */
+	/*extern unsigned long  avcbe_g_filler_data_size; *//* Del 050428 */
 	extern unsigned long avcbe_g_start_bits_factor;	/* Add 040915 Y.Funabashi */
 	extern float avcbe_g_total_bits_clear_factor;	/* Add 040916 Y.Funabashi */
-	/*extern unsigned long	avcbe_g_cpb_buffer_mode;*//* 041213 */
-	/*extern long				avcbe_g_cpb_max_size;*//* Add 041227 */
+	/*extern unsigned long  avcbe_g_cpb_buffer_mode; *//* 041213 */
+	/*extern long                           avcbe_g_cpb_max_size; *//* Add 041227 */
 /*extern long				avcbe_g_remain_sum;	050427 */
 /*extern long				avcbe_g_cpb_buff_per_frm_over_cnt; 050427 */
 	extern long avcbe_g_stuffing_insert_vbv_buffer_rate_mpeg4;	/* 050524 */
@@ -162,7 +162,7 @@ extern "C" {
 /*extern long				avcbe_g_5_thr; 050425 */
 	extern float avcbe_g_q_change_plus_res4;	/* Add 041227 */
 	extern float avcbe_g_q_change_plus_res5;	/* Add 041227 */
-	/*extern unsigned long	avcbe_rate_ctrl_type;*//* Add 041208 Y.Funabashi */
+	/*extern unsigned long  avcbe_rate_ctrl_type; *//* Add 041208 Y.Funabashi */
 /*extern long				avcbe_g_qunat_max_thr1; 050425 */
 /*extern long				avcbe_g_qunat_max_thr2; 050425 */
 /*extern long				avcbe_g_qunat_max_thr3; 050425 */
@@ -177,7 +177,7 @@ extern "C" {
 	extern long avcbe_g_I_quant_offset_limit;	/* Add 050124 */
 	extern long avcbe_g_I_quant_offset_limit_mpeg4;	/* MPEG-4専用 *//* Add 050428 */
 
-	/*extern long				avcbe_g_cost_mv_multiplier;	*//* Del 050421 */
+	/*extern long                           avcbe_g_cost_mv_multiplier;     *//* Del 050421 */
 /*extern long				avcbe_g_prev_remain_buff; 050425 */
 /*extern long				avcbe_g_prev_I_pic_flag;	DEL 050421 */
 /*extern long				avcbe_g_prev_I_quant_value;		DEL 050421 */
@@ -188,13 +188,13 @@ extern "C" {
 	extern long avcbe_g_ncram_q_thr_mpeg4;	/* 050427 */
 	/**extern long				avcbe_g_ncram_control_flag;	**//* Add 050115 */
 	extern long avcbe_g_intra_inter_sad_diff_ncram_value;	/* Add 050115 */
-	/*extern long				avcbe_g_me_control_filter_reg_on;	*//* Del 050421 */
-	/*extern long				avcbe_g_me_control_filter;	*//* Del 050421 */
+	/*extern long                           avcbe_g_me_control_filter_reg_on;       *//* Del 050421 */
+	/*extern long                           avcbe_g_me_control_filter;      *//* Del 050421 */
 
-	/*extern char			avcbe_g_nc_ram_matrix[2][1620];	*//* Add 050407 *//* Del 050518 */
-	/*extern char			avcbe_g_nc_ram_matrix_4S[2][5120];*//* Add 050425 *//* for VPU4S *//* Del 050518 */
-	/*extern char				avcbe_g_nc_ram_end;	*//* Add 050407 *//* Del 050524 */
-	/*extern char				avcbe_g_median_filter_end; *//* Add 050407 *//* Del 050524 */
+	/*extern char                   avcbe_g_nc_ram_matrix[2][1620]; *//* Add 050407 *//* Del 050518 */
+	/*extern char                   avcbe_g_nc_ram_matrix_4S[2][5120]; *//* Add 050425 *//* for VPU4S *//* Del 050518 */
+	/*extern char                           avcbe_g_nc_ram_end;     *//* Add 050407 *//* Del 050524 */
+	/*extern char                           avcbe_g_median_filter_end; *//* Add 050407 *//* Del 050524 */
 
 	extern long avcbe_g_active_Q_control_enable;
 	extern long avcbe_g_mq_act_enable;

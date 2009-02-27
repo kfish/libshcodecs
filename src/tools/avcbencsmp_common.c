@@ -21,7 +21,7 @@
 #include "avcbencsmp.h"		/* User Application Sample Header */
 #include "m4driverif.h"
 
-#include "encoder_private.h" /* XXX */
+#include "encoder_private.h"	/* XXX */
 
 
 extern unsigned long sdr_base;
@@ -208,7 +208,8 @@ void set_VPU4_param(M4IPH_VPU4_INIT_OPTION * vpu4_param)
 /*----------------------------------------------------------------------------------------------*/
 /* set parameters for using in encoding */
 /*----------------------------------------------------------------------------------------------*/
-int select_inputfile_set_param(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info)
+int select_inputfile_set_param(SHCodecs_Encoder * encoder,
+			       APPLI_INFO * appli_info)
 {
 	int return_code;
 
@@ -255,7 +256,7 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder, APPLI_INFO * appli_in
 //              strcpy(&appli_info->input_file_name_buf[0], "sample.yuv");
 //              strcpy(&appli_info->output_file_name_buf[0], "output.264");
 
-		/* number of encoding frame */
+	/* number of encoding frame */
 //              appli_info->frame_number_to_encode = 10; /* 10 is the frame-number of 'stream.yuv' */ 
 
 		/*** avcbe_encoding_property ***/
@@ -282,15 +283,15 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder, APPLI_INFO * appli_in
 
 //13            appli_info->param.avcbe_ratecontrol_respect_type = AVCBE_RESPECT_BITRATE;       /* added at Version2 */
 
-		/*      appli_info->param.avcbe_ratecontrol_rcperiod_skipcheck_enable = AVCBE_ON;       deleted at Version2 */
-		/*      appli_info->param.avcbe_ratecontrol_rcperiod_ivop_noskip = AVCBE_ON;            deleted at Version2 */
-		/*      appli_info->param.avcbe_ratecontrol_vbv_skipcheck_enable = AVCBE_OFF;           deleted at Version2 */
-		/*      appli_info->param.avcbe_ratecontrol_vbv_ivop_noskip = AVCBE_ON;                         deleted at Version2 */
+	/*      appli_info->param.avcbe_ratecontrol_rcperiod_skipcheck_enable = AVCBE_ON;       deleted at Version2 */
+	/*      appli_info->param.avcbe_ratecontrol_rcperiod_ivop_noskip = AVCBE_ON;            deleted at Version2 */
+	/*      appli_info->param.avcbe_ratecontrol_vbv_skipcheck_enable = AVCBE_OFF;           deleted at Version2 */
+	/*      appli_info->param.avcbe_ratecontrol_vbv_ivop_noskip = AVCBE_ON;                         deleted at Version2 */
 
 //14            appli_info->param.avcbe_ratecontrol_intra_thr_changeable = AVCBE_OFF;
 //15            appli_info->param.avcbe_control_bitrate_length = 0;
 //16            appli_info->param.avcbe_intra_macroblock_refresh_cycle = 0;
-		/* 'AVCBE_MPEG4_NTSC' -> 'AVCBE_VIDEO_FORMAT_NTSC' changed at Version2 */
+	/* 'AVCBE_MPEG4_NTSC' -> 'AVCBE_VIDEO_FORMAT_NTSC' changed at Version2 */
 //17            appli_info->param.avcbe_video_format = AVCBE_VIDEO_FORMAT_NTSC;
 //18            appli_info->param.avcbe_frame_num_resolution = 30;
 //19            appli_info->param.avcbe_noise_reduction = 0;
@@ -328,34 +329,34 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder, APPLI_INFO * appli_in
 //20                    appli_info->other_options_h264.avcbe_regularly_inserted_I_type = 
 //                                                              AVCBE_I_PIC;
 #if 0
-			if (case_no == CASE1_H264_001) {
-				appli_info->other_options_h264.
-				    avcbe_call_unit = AVCBE_CALL_PER_PIC;
-				appli_info->other_options_h264.
-				    avcbe_use_slice = AVCBE_OFF;
-				appli_info->other_options_h264.
-				    avcbe_slice_size_mb = 0;
-				appli_info->other_options_h264.
-				    avcbe_slice_size_bit = 0;
-			} else if (case_no == CASE2_H264_002) {
-				appli_info->other_options_h264.
-				    avcbe_call_unit = AVCBE_CALL_PER_PIC;
-				appli_info->other_options_h264.
-				    avcbe_use_slice = AVCBE_ON;
-				appli_info->other_options_h264.
-				    avcbe_slice_size_mb = 100;
-				appli_info->other_options_h264.
-				    avcbe_slice_size_bit = 0;
-			} else if (case_no == CASE3_H264_003) {
-				appli_info->other_options_h264.
-				    avcbe_call_unit = AVCBE_CALL_PER_NAL;
-				appli_info->other_options_h264.
-				    avcbe_use_slice = AVCBE_ON;
-				appli_info->other_options_h264.
-				    avcbe_slice_size_mb = 100;
-				appli_info->other_options_h264.
-				    avcbe_slice_size_bit = 0;
-			}
+		if (case_no == CASE1_H264_001) {
+			appli_info->other_options_h264.avcbe_call_unit =
+			    AVCBE_CALL_PER_PIC;
+			appli_info->other_options_h264.avcbe_use_slice =
+			    AVCBE_OFF;
+			appli_info->
+			    other_options_h264.avcbe_slice_size_mb = 0;
+			appli_info->
+			    other_options_h264.avcbe_slice_size_bit = 0;
+		} else if (case_no == CASE2_H264_002) {
+			appli_info->other_options_h264.avcbe_call_unit =
+			    AVCBE_CALL_PER_PIC;
+			appli_info->other_options_h264.avcbe_use_slice =
+			    AVCBE_ON;
+			appli_info->
+			    other_options_h264.avcbe_slice_size_mb = 100;
+			appli_info->
+			    other_options_h264.avcbe_slice_size_bit = 0;
+		} else if (case_no == CASE3_H264_003) {
+			appli_info->other_options_h264.avcbe_call_unit =
+			    AVCBE_CALL_PER_NAL;
+			appli_info->other_options_h264.avcbe_use_slice =
+			    AVCBE_ON;
+			appli_info->
+			    other_options_h264.avcbe_slice_size_mb = 100;
+			appli_info->
+			    other_options_h264.avcbe_slice_size_bit = 0;
+		}
 #endif
 //25                    appli_info->other_options_h264.avcbe_slice_type_value_pattern = 
 //                                                              AVCBE_SLICE_TYPE_VALUE_HIGH;
@@ -375,7 +376,7 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder, APPLI_INFO * appli_in
 //34                    appli_info->other_options_h264.avcbe_param_changeable = AVCBE_OFF;
 //35                    appli_info->other_options_h264.avcbe_changeable_max_bitrate = 0;
 
-			/* SequenceHeaderParameter */
+		/* SequenceHeaderParameter */
 //36                    appli_info->other_options_h264.avcbe_seq_param_set_id = 0;
 //37                    appli_info->other_options_h264.avcbe_profile =
 //                                                              AVCBE_H264_PROFILE_BASELINE;
@@ -384,7 +385,7 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder, APPLI_INFO * appli_in
 //40                    appli_info->other_options_h264.avcbe_level_value = 10;
 //41                    appli_info->other_options_h264.avcbe_out_vui_parameters = AVCBE_OFF;
 
-			/* Picture Header Parameter */
+		/* Picture Header Parameter */
 //42                    appli_info->other_options_h264.avcbe_chroma_qp_index_offset = 0;
 //43                    appli_info->other_options_h264.avcbe_constrained_intra_pred = AVCBE_OFF;
 	}
@@ -425,13 +426,13 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder, APPLI_INFO * appli_in
 	       (int) appli_info->param.avcbe_ratecontrol_respect_type);
 
 	printf("(14) ratecontrol_intra_thr_changeable = %d\n",
-	       (int) appli_info->param.
-	       avcbe_ratecontrol_intra_thr_changeable);
+	       (int) appli_info->
+	       param.avcbe_ratecontrol_intra_thr_changeable);
 	printf("(15) control_bitrate_lengt            = %d\n",
 	       (int) appli_info->param.avcbe_control_bitrate_length);
 	printf("(16) intra_macroblock_refresh_cycle   = %d\n",
-	       (int) appli_info->param.
-	       avcbe_intra_macroblock_refresh_cycle);
+	       (int) appli_info->
+	       param.avcbe_intra_macroblock_refresh_cycle);
 
 	printf("(17) video_format                     = %d\n",
 	       (int) appli_info->param.avcbe_video_format);
@@ -448,52 +449,52 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder, APPLI_INFO * appli_in
 #if 0
 /*----- avcbe_other_options_h264 (H.264 Only) -----*/
 	printf("(01) Ivop_quant_initial_value                  = %d\n",
-	       (int) appli_info->other_options_h264.
-	       avcbe_Ivop_quant_initial_value);
+	       (int) appli_info->
+	       other_options_h264.avcbe_Ivop_quant_initial_value);
 	printf("(02) Pvop_quant_initial_value                  = %d\n",
-	       (int) appli_info->other_options_h264.
-	       avcbe_Pvop_quant_initial_value);
+	       (int) appli_info->
+	       other_options_h264.avcbe_Pvop_quant_initial_value);
 	printf("(03) use_dquant   = %d\n",
 	       (int) appli_info->other_options_h264.avcbe_use_dquant);
 	printf("(04) clip_dquant_next_mb                       = %d\n",
-	       (int) appli_info->other_options_h264.
-	       avcbe_clip_dquant_next_mb);
+	       (int) appli_info->
+	       other_options_h264.avcbe_clip_dquant_next_mb);
 	printf("(05) clip_dquant_frame                         = %d\n",
-	       (int) appli_info->other_options_h264.
-	       avcbe_clip_dquant_frame);
+	       (int) appli_info->
+	       other_options_h264.avcbe_clip_dquant_frame);
 	printf("(06) quant_min                                 = %d\n",
 	       (int) appli_info->other_options_h264.avcbe_quant_min);
 	printf("(07) Ivop_under_range                          = %d\n",
-	       (int) appli_info->other_options_h264.
-	       avcbe_quant_min_Ivop_under_range);
+	       (int) appli_info->
+	       other_options_h264.avcbe_quant_min_Ivop_under_range);
 	printf("(08) quant_max                                 = %d\n",
 	       (int) appli_info->other_options_h264.avcbe_quant_max);
 
 	printf("(09) ratecontrol_cpb_skipcheck_enable          = %d\n",
-	       (int) appli_info->other_options_h264.
-	       avcbe_ratecontrol_cpb_skipcheck_enable);
+	       (int) appli_info->
+	       other_options_h264.avcbe_ratecontrol_cpb_skipcheck_enable);
 	printf("(10) ratecontrol_cpb_Ivop_noskip               = %d\n",
-	       (int) appli_info->other_options_h264.
-	       avcbe_ratecontrol_cpb_Ivop_noskip);
+	       (int) appli_info->
+	       other_options_h264.avcbe_ratecontrol_cpb_Ivop_noskip);
 	printf("(11) ratecontrol_cpb_remain_zero_skip_enable   = %d\n",
-	       (int) appli_info->other_options_h264.
-	       avcbe_ratecontrol_cpb_remain_zero_skip_enable);
+	       (int) appli_info->
+	       other_options_h264.avcbe_ratecontrol_cpb_remain_zero_skip_enable);
 
 	printf("(12) ratecontrol_cpb_buffer_unit_size          = %d\n",
-	       (int) appli_info->other_options_h264.
-	       avcbe_ratecontrol_cpb_buffer_unit_size);
+	       (int) appli_info->
+	       other_options_h264.avcbe_ratecontrol_cpb_buffer_unit_size);
 	printf("(13) ratecontrol_cpb_buffer_mode               = %d\n",
-	       (int) appli_info->other_options_h264.
-	       avcbe_ratecontrol_cpb_buffer_mode);
+	       (int) appli_info->
+	       other_options_h264.avcbe_ratecontrol_cpb_buffer_mode);
 	printf("(14) ratecontrol_cpb_max_size                  = %d\n",
-	       (int) appli_info->other_options_h264.
-	       avcbe_ratecontrol_cpb_max_size);
+	       (int) appli_info->
+	       other_options_h264.avcbe_ratecontrol_cpb_max_size);
 	printf("(15) ratecontrol_cpb_offset                    = %d\n",
-	       (int) appli_info->other_options_h264.
-	       avcbe_ratecontrol_cpb_offset);
+	       (int) appli_info->
+	       other_options_h264.avcbe_ratecontrol_cpb_offset);
 	printf("(16) ratecontrol_cpb_offset_rate               = %d\n",
-	       (int) appli_info->other_options_h264.
-	       avcbe_ratecontrol_cpb_offset_rate);
+	       (int) appli_info->
+	       other_options_h264.avcbe_ratecontrol_cpb_offset_rate);
 
 	printf("(17) intra_thr_1                               = %d\n",
 	       (int) appli_info->other_options_h264.avcbe_intra_thr_1);
@@ -503,8 +504,8 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder, APPLI_INFO * appli_in
 	       (int) appli_info->other_options_h264.avcbe_sad_intra_bias);
 
 	printf("(20) regularly_inserted_I_type                 = %d\n",
-	       (int) appli_info->other_options_h264.
-	       avcbe_regularly_inserted_I_type);
+	       (int) appli_info->
+	       other_options_h264.avcbe_regularly_inserted_I_type);
 	printf("(21) call_unit                                 = %d\n",
 	       (int) appli_info->other_options_h264.avcbe_call_unit);
 	printf("(22) use_slice                                 = %d\n",
@@ -514,61 +515,61 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder, APPLI_INFO * appli_in
 	printf("(24) slice_size_bit                            = %d\n",
 	       (int) appli_info->other_options_h264.avcbe_slice_size_bit);
 	printf("(25) slice_type_value_pattern                  = %d\n",
-	       (int) appli_info->other_options_h264.
-	       avcbe_slice_type_value_pattern);
+	       (int) appli_info->
+	       other_options_h264.avcbe_slice_type_value_pattern);
 	printf("(26) use_mb_partition                          = %d\n",
-	       (int) appli_info->other_options_h264.
-	       avcbe_use_mb_partition);
+	       (int) appli_info->
+	       other_options_h264.avcbe_use_mb_partition);
 	printf("(27) mb_partition_vector_thr                   = %d\n",
-	       (int) appli_info->other_options_h264.
-	       avcbe_mb_partition_vector_thr);
+	       (int) appli_info->
+	       other_options_h264.avcbe_mb_partition_vector_thr);
 	printf("(28) deblocking_mode                           = %d\n",
 	       (int) appli_info->other_options_h264.avcbe_deblocking_mode);
 	printf("(29) use_deblocking_filter_control             = %d\n",
-	       (int) appli_info->other_options_h264.
-	       avcbe_use_deblocking_filter_control);
+	       (int) appli_info->
+	       other_options_h264.avcbe_use_deblocking_filter_control);
 	printf("(30) deblocking_alpha_offset                   = %d\n",
-	       (int) appli_info->other_options_h264.
-	       avcbe_deblocking_alpha_offset);
+	       (int) appli_info->
+	       other_options_h264.avcbe_deblocking_alpha_offset);
 	printf("(31) deblocking_beta_offset                    = %d\n",
-	       (int) appli_info->other_options_h264.
-	       avcbe_deblocking_beta_offset);
+	       (int) appli_info->
+	       other_options_h264.avcbe_deblocking_beta_offset);
 
 	printf("(32) me_skip_mode                              = %d\n",
 	       (int) appli_info->other_options_h264.avcbe_me_skip_mode);
 	printf("(33) put_start_code                            = %d\n",
 	       (int) appli_info->other_options_h264.avcbe_put_start_code);
 	printf("(34) param_changeable                          = %d\n",
-	       (int) appli_info->other_options_h264.
-	       avcbe_param_changeable);
+	       (int) appli_info->
+	       other_options_h264.avcbe_param_changeable);
 	printf("(35) changeable_max_bitrate                    = %d\n",
-	       (int) appli_info->other_options_h264.
-	       avcbe_changeable_max_bitrate);
+	       (int) appli_info->
+	       other_options_h264.avcbe_changeable_max_bitrate);
 
 	/* SequenceHeaderParameter */
 	printf("(36) seq_param_set_id                          = %d\n",
-	       (int) appli_info->other_options_h264.
-	       avcbe_seq_param_set_id);
+	       (int) appli_info->
+	       other_options_h264.avcbe_seq_param_set_id);
 	printf("(37) profile                                   = %d\n",
 	       (int) appli_info->other_options_h264.avcbe_profile);
 	printf("(38) constraint_set_flag                       = %d\n",
-	       (int) appli_info->other_options_h264.
-	       avcbe_constraint_set_flag);
+	       (int) appli_info->
+	       other_options_h264.avcbe_constraint_set_flag);
 	printf("(39) level_type                                = %d\n",
 	       (int) appli_info->other_options_h264.avcbe_level_type);
 	printf("(40) level_value                               = %d\n",
 	       (int) appli_info->other_options_h264.avcbe_level_value);
 	printf("(41) out_vui_parameters                        = %d\n",
-	       (int) appli_info->other_options_h264.
-	       avcbe_out_vui_parameters);
+	       (int) appli_info->
+	       other_options_h264.avcbe_out_vui_parameters);
 
 	/* PictureHeaderParameter */
 	printf("(42) chroma_qp_index_offset                    = %d\n",
-	       (int) appli_info->other_options_h264.
-	       avcbe_chroma_qp_index_offset);
+	       (int) appli_info->
+	       other_options_h264.avcbe_chroma_qp_index_offset);
 	printf("(43) constrained_intra_pred                    = %d\n",
-	       (int) appli_info->other_options_h264.
-	       avcbe_constrained_intra_pred);
+	       (int) appli_info->
+	       other_options_h264.avcbe_constrained_intra_pred);
 #endif
 
 	return (return_code);

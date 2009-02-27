@@ -207,7 +207,7 @@ extern "C" {
 
 	} AVCBE_SLICE_INFO;
 
-	/* avcbe.hから移動　ここから（外部に見せないため）*//* 050218 */
+	/* avcbe.hから移動　ここから（外部に見せないため） *//* 050218 */
 
 /* API関数avcbe_set_weightedQ()に渡すための構造体(3)avcbe_weightedQ_mode = AVCBE_WEIGHTEDQ_BY_USERのときに使用する */
 	typedef struct {
@@ -253,7 +253,7 @@ extern "C" {
 		unsigned long used_work_area_size_previous;	/* １回前にアロケートしたときに使用していたバイト数 */
 	} AVCBE_WORK_AREA_INFO_t;
 
-	/* avcbe.hから移動　ここまで（外部に見せないため）*//* 050218 */
+	/* avcbe.hから移動　ここまで（外部に見せないため） *//* 050218 */
 
 
 /*----- avcbe_H264_stream_info_t構造体 -----*/
@@ -329,7 +329,7 @@ extern "C" {
 
 		long avcbe_set_intra;
 
-		/*	long avcbe_quant_mod_ratio;*//* 100%増減 *//* 使用しないので削除 050518 */
+		/*      long avcbe_quant_mod_ratio; *//* 100%増減 *//* 使用しないので削除 050518 */
 
 		long avcbe_frm_interval;	/* 構造体avcbe_frame_statのメンバのうち必要なもの 040909 */
 		avcbe_slice_stat avcbe_last_slice_stat;
@@ -345,7 +345,7 @@ extern "C" {
 
 
 		/* ストリーム出力バッファ不足が発生したときに呼び出すべきユーザ作成関数 */
-		avcbe_buf_continue_userproc_ptr
+		 avcbe_buf_continue_userproc_ptr
 		    avcbe_buf_continue_userproc;
 		long avcbe_slice_header_output_bits;	/* ストリーム出力バッファにソフトで出力したサイズ（ビット単位）ストリーム出力バッファ不足のときに使用する *//* 050628 */
 
@@ -390,7 +390,7 @@ extern "C" {
 
 
 		char avcbe_use_multi_ref;	/* マルチリファレンスか否かの区別 */
-		/* 050408	char avcbe_put_three_byte;	*//* prevention_emulation_three_byteを挿入するか（デフォルト値はAVCBE_ON=する） */
+		/* 050408       char avcbe_put_three_byte;      *//* prevention_emulation_three_byteを挿入するか（デフォルト値はAVCBE_ON=する） */
 
 		/* レートコントロール関連 */
 		char avcbe_pic_type;	/* 今回のフレームのピクチャの種類（AVCBE_IDR_PIC/AVCBE_I_PIC/AVCBE_P_PIC） */
@@ -414,7 +414,7 @@ extern "C" {
 		long avcbe_prev_remain_buff;	/* ストリームごとに持たせる 050425 */
 		float avcbe_f_cpb_offset;	/* エンコードパラメータavcbe_ratecontrol_cpb_offset(long型)の値を1/10した値を入れる 050520 */
 		float avcbe_f_cpb_offset_rate;	/* cpb buffer に対するcpb_lowerの範囲とcpb_minの範囲の比率 *//* エンコードパラメータavcbe_ratecontrol_cpb_offset_rate(long型)の値を1/10した値を入れる 050520 */
-		/*	float avcbe_cpb_stack_rate;*//* cpb buffer に開始時点で貯めておく割合 *//* avcbe_g_cpb_offsetの値はエンコードパラメータで指定するように変更したので不要 050520 */
+		/*      float avcbe_cpb_stack_rate; *//* cpb buffer に開始時点で貯めておく割合 *//* avcbe_g_cpb_offsetの値はエンコードパラメータで指定するように変更したので不要 050520 */
 
 		long avcbe_remain_sum;	/* ストリームごとに持たせる 050427 */
 		long avcbe_cpb_buff_per_frm_over_cnt;	/* ストリームごとに持たせる 050427 */

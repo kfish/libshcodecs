@@ -51,36 +51,42 @@ struct _SHCodecs_Encoder {
 	SHCodecs_Encoder_Output output;
 	void *output_user_data;
 
-        /* Encoder internals */
-        avcbe_encoding_property paramR;	/* for stream-1 */
-        M4IPH_VPU4_INIT_OPTION vpu4_param; /* parameters of VPU4 */
+	/* Encoder internals */
+	avcbe_encoding_property paramR;	/* for stream-1 */
+	M4IPH_VPU4_INIT_OPTION vpu4_param;	/* parameters of VPU4 */
 	OTHER_API_ENC_PARAM other_API_enc_param;
-        avcbe_other_options_mpeg4 other_options_mpeg4;	/* parameters to control details */
+	avcbe_other_options_mpeg4 other_options_mpeg4;	/* parameters to control details */
 };
 
 /* Internal prototypes of functions using SHCodecs_Encoder */
 
-int encode_1file_h264(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long stream_type);
-long init_for_encoder_h264(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long stream_type,
-		           avcbe_stream_info ** context);
-long encode_picture_unit(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long stream_type,
+int encode_1file_h264(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
+		      long stream_type);
+long init_for_encoder_h264(SHCodecs_Encoder * encoder,
+			   APPLI_INFO * appli_info, long stream_type,
+			   avcbe_stream_info ** context);
+long encode_picture_unit(SHCodecs_Encoder * encoder,
+			 APPLI_INFO * appli_info, long stream_type,
 			 avcbe_stream_info * context);
-long encode_nal_unit(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long stream_type,
-		     avcbe_stream_info * context);
-long output_SEI_parameters(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
+long encode_nal_unit(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
+		     long stream_type, avcbe_stream_info * context);
+long output_SEI_parameters(SHCodecs_Encoder * encoder,
+			   APPLI_INFO * appli_info,
 			   avcbe_stream_info * context,
 			   TAVCBE_STREAM_BUFF * stream_buff_info);
 
-int encode_1file_mpeg4(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long stream_type);
-long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
-			    long stream_type,
+int encode_1file_mpeg4(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
+		       long stream_type);
+long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder,
+			    APPLI_INFO * appli_info, long stream_type,
 			    avcbe_stream_info ** context);
 long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 			      APPLI_INFO * appli_info, long stream_type,
 			      avcbe_stream_info * context);
 
 /* XXX: Move back out of encoder_private.h to appli code */
-int select_inputfile_set_param(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info);
+int select_inputfile_set_param(SHCodecs_Encoder * encoder,
+			       APPLI_INFO * appli_info);
 
 /* Other internal functions */
 void m4iph_sleep_time_init(void);

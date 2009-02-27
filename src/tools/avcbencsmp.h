@@ -91,9 +91,9 @@ extern "C" {
 /*----------------------------------------------------------*/
 /*       SEI-stream-output buffer size                      */
 /*----------------------------------------------------------*/
-	/*#define MY_SEI_STREAM_BUFF_SIZE	175000 *//* Level 1 */
-	/*#define MY_SEI_STREAM_BUFF_SIZE	2000000 *//* Level 2 */
-	/*#define MY_SEI_STREAM_BUFF_SIZE	10000000*//* Level 3 */
+	/*#define MY_SEI_STREAM_BUFF_SIZE       175000 *//* Level 1 */
+	/*#define MY_SEI_STREAM_BUFF_SIZE       2000000 *//* Level 2 */
+	/*#define MY_SEI_STREAM_BUFF_SIZE       10000000 *//* Level 3 */
 #define MY_SEI_STREAM_BUFF_SIZE	100000
 
 /*----------------------------------------------------------*/

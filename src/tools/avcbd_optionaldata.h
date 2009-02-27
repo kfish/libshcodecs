@@ -116,7 +116,7 @@ extern "C" {
 		char pic_struct;
 		long cpb_removal_delay;	/* 24bits by default. */
 		long dpb_output_delay;	/* 24bits by default. */
-		TAVCBD_SEI_PIC_TIMING_TIMESTAMP
+		 TAVCBD_SEI_PIC_TIMING_TIMESTAMP
 		    timestamp[AVCBD_MAX_CLOCK_TS];
 	} TAVCBD_SEI_PIC_TIMING;
 
@@ -169,7 +169,7 @@ extern "C" {
 		TAVCBD_SEI_PIC_TIMING pic_timing;
 		TAVCBD_SEI_PAN_SCAN_RECT pan_scan_rect;
 		TAVCBD_SEI_RECOVERY_POINT recovery_point;
-		TAVCBD_SEI_DEC_REF_PIC_MARKING_REPETITION
+		 TAVCBD_SEI_DEC_REF_PIC_MARKING_REPETITION
 		    marking_repetition;
 	} TAVCBD_SEI;
 

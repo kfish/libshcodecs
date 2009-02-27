@@ -210,9 +210,14 @@ int encode_1file_mpeg4(SHCodecs_Encoder * encoder,
 
 		return (-16);
 	} else {
-                if (encoder->output) {
-                  my_size = encoder->output (encoder, (unsigned char *) &my_end_code_buff[0], return_code, encoder->output_user_data);
-                }
+		if (encoder->output) {
+			my_size =
+			    encoder->output(encoder,
+					    (unsigned char *)
+					    &my_end_code_buff[0],
+					    return_code,
+					    encoder->output_user_data);
+		}
 	}
 
 	return (0);
@@ -221,8 +226,9 @@ int encode_1file_mpeg4(SHCodecs_Encoder * encoder,
 /*--------------------------------------------------------------*/
 /* init for encoder						*/
 /*--------------------------------------------------------------*/
-long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
-			    long stream_type, avcbe_stream_info ** context)
+long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder,
+			    APPLI_INFO * appli_info, long stream_type,
+			    avcbe_stream_info ** context)
 {
 	long return_code = 0;
 	unsigned long nrefframe, nldecfmem, addr_temp;
@@ -235,8 +241,7 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
 	/* can be called only once or for the number of streams */
 	return_code =
 	    avcbe_set_default_param(stream_type, AVCBE_RATE_NORMAL,
-				    &(appli_info->param),
-				    (void *)
+				    &(appli_info->param), (void *)
 				    &(encoder->other_options_mpeg4));
 	if (return_code != 0) {	/* error */
 		DisplayMessage
@@ -263,8 +268,7 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
 	frame_counter_of_input = 0;
 
 	/* Capt Image Memory Size Check */
-	if (WIDTH_HEIGHT_1_5 <
-	    (encoder->width * encoder->height * 3 / 2)) {
+	if (WIDTH_HEIGHT_1_5 < (encoder->width * encoder->height * 3 / 2)) {
 		while (1);
 	}
 
@@ -754,9 +758,15 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 			/* get the size of bitstream (byte unit) */
 			streamsize_per_frame = (stream_bits / 8);
 
-                        if (encoder->output) {
-                                my_size = encoder->output (encoder, (unsigned char *) &my_stream_buff[0], streamsize_per_frame, encoder->output_user_data);
-                        }
+			if (encoder->output) {
+				my_size =
+				    encoder->output(encoder,
+						    (unsigned char *)
+						    &my_stream_buff[0],
+						    streamsize_per_frame,
+						    encoder->
+						    output_user_data);
+			}
 		}
 		frm += appli_info->frame_no_increment;
 		appli_info->frame_counter++;

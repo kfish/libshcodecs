@@ -15,7 +15,7 @@
 /* 独自の量子化行列を設定する関数群 */
 /* （ファイル名の拡張子は、「.c」でも、「.cpp」でもＯＫです。） */
 
-			/*#include "stdafx.h"*//* 必要に応じてコメント化すること */
+					       /*#include "stdafx.h" *//* 必要に応じてコメント化すること */
 
 #include <stdio.h>
 #include <string.h>
@@ -187,8 +187,7 @@ int SetQuantMatrix(avcbe_stream_info * context, int qmattype_for_Intra,
 	/* NonIntra用の行列選択 */
 	switch (qmattype_for_NonIntra) {
 	case QMAT_MPEG_TYPE_DEFAULT_NONINTRA:
-		matrix_ptr =
-		    (char *)
+		matrix_ptr = (char *)
 		    &Qmat_for_NonIntra_MPEG4_quanttype1_default[0];
 		break;
 	case QMAT_MPEG_TYPE_ANIME1_NONINTRA:

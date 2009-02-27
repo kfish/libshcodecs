@@ -128,7 +128,7 @@ extern int GetFromCtrlFTop(const char *control_filepath,
 
 /* Top of the user application sample source to encode */
 /*int mpeg4_enc(void) */
-APPLI_INFO ainfo;	/* User Application Data */
+APPLI_INFO ainfo;		/* User Application Data */
 
 u_int32_t sdr_base;
 
@@ -173,9 +173,8 @@ static int get_input(SHCodecs_Encoder * encoder,
 }
 
 /* SHCodecs_Encoder_Output callback for writing encoded data to the output file */
-static int write_output (SHCodecs_Encoder * encoder,
-                         unsigned char * data, int length,
-                         void *user_data)
+static int write_output(SHCodecs_Encoder * encoder,
+			unsigned char *data, int length, void *user_data)
 {
 	APPLI_INFO *appli_info = (APPLI_INFO *) user_data;
 	return fwrite(data, 1, length, appli_info->output_file_fp);
@@ -192,8 +191,8 @@ int main(int argc, char *argv[])
 	if (argc == 2) {	/* 第1引数=コントロールファイル */
 		strcpy(ainfo.ctrl_file_name_buf, argv[1]);
 		return_code =
-		    GetFromCtrlFTop((const char *) ainfo.
-				    ctrl_file_name_buf,
+		    GetFromCtrlFTop((const char *)
+				    ainfo.ctrl_file_name_buf,
 				    &(ainfo.enc_exec_info), &stream_type);
 		if (return_code < 0) {
 			printf("Can't Open to Ctrolfile : %s\n", ainfo.ctrl_file_name_buf);	/* 041217 */
@@ -253,7 +252,8 @@ int main(int argc, char *argv[])
 				  ainfo.enc_exec_info.ypic, stream_type);
 
 	shcodecs_encoder_set_input_callback(encoder, get_input, &ainfo);
-        shcodecs_encoder_set_output_callback (encoder, write_output, &ainfo);
+	shcodecs_encoder_set_output_callback(encoder, write_output,
+					     &ainfo);
 
 	/* stream buffer 0 clear */
 //      memset(sdr_read_my_stream_buff,0,sizeof(sdr_read_my_stream_buff));
@@ -292,7 +292,8 @@ int main(int argc, char *argv[])
 	/*--- open output file (one of the user application's own functions) ---*/
 	return_code = open_output_file(&ainfo);
 	if (return_code != 0) {	/* error */
-		DisplayMessage("  encode_1file:open_output_file ERROR! ", 1);
+		DisplayMessage("  encode_1file:open_output_file ERROR! ",
+			       1);
 		return (-6);
 	}
 
@@ -301,9 +302,10 @@ int main(int argc, char *argv[])
 	encode_return_code = shcodecs_encoder_run(encoder, &ainfo);
 
 	if (encode_return_code < 0) {	/* encode error */
-		sprintf(message_buf, "Encode Error  code=%d ", encode_return_code);
+		sprintf(message_buf, "Encode Error  code=%d ",
+			encode_return_code);
 		DisplayMessage(message_buf, 1);
-	} else {	/* encode success */
+	} else {		/* encode success */
 		sprintf(message_buf, "Encode Success ");
 		DisplayMessage(message_buf, 1);
 		success_count++;

@@ -119,11 +119,11 @@ extern void *video_grabber(void *);
 
 extern int GetFromCtrlFTop(const char *control_filepath,
 			   ENC_EXEC_INFO * enc_exec_info,
-			   long *stream_type);
+			   long *stream_type);
 
 /* Top of the user application sample source to encode */
 /*int mpeg4_enc(void) */
-APPLI_INFO ainfo;	/* User Application Data */
+APPLI_INFO ainfo;		/* User Application Data */
 
 u_int32_t sdr_base;
 
@@ -138,25 +138,25 @@ void get_new_stream_buf(avcbe_stream_info * context,
 void file_name_copy(void)
 {
 	strcpy(ainfo.file_path_buf_1, ainfo.enc_exec_info.buf_input_yuv_file_with_path);	/* 入力ディレクトリ */
-	strcpy(ainfo.file_path_buf_2, ainfo.enc_exec_info.buf_output_directry);	/* 出力ディレクトリ */
+	strcpy(ainfo.file_path_buf_2, ainfo.enc_exec_info.buf_output_directry);	/* 出力ディレクトリ */
 	strcpy(ainfo.input_file_name_buf, ainfo.file_path_buf_1);
-	strcat(ainfo.input_file_name_buf, "\\");
-	strcpy(ainfo.output_file_name_buf, ainfo.file_path_buf_2);
-	strcat(ainfo.output_file_name_buf, "\\");
-	strcpy(ainfo.local_decode_file_name_buf, ainfo.file_path_buf_2);
-	strcat(ainfo.local_decode_file_name_buf, "\\");
-	strcpy(ainfo.log_file_name_buf, ainfo.file_path_buf_2);
+	strcat(ainfo.input_file_name_buf, "\\");
+	strcpy(ainfo.output_file_name_buf, ainfo.file_path_buf_2);
+	strcat(ainfo.output_file_name_buf, "\\");
+	strcpy(ainfo.local_decode_file_name_buf, ainfo.file_path_buf_2);
+	strcat(ainfo.local_decode_file_name_buf, "\\");
+	strcpy(ainfo.log_file_name_buf, ainfo.file_path_buf_2);
 //              strcat(ainfo.log_file_name_buf, "\\");  // <--- NG
 	strcpy(ainfo.capt_file_name_buf, ainfo.file_path_buf_2);
-	strcat(ainfo.capt_file_name_buf, "\\");
-	strcpy(ainfo.rate_log_file_name_buf, ainfo.file_path_buf_2);
-	strcat(ainfo.rate_log_file_name_buf, "\\");
+	strcat(ainfo.capt_file_name_buf, "\\");
+	strcpy(ainfo.rate_log_file_name_buf, ainfo.file_path_buf_2);
+	strcat(ainfo.rate_log_file_name_buf, "\\");
 
 	printf("ainfo.input_file_name_buf = %s \n",
 	       ainfo.input_file_name_buf);
-	printf("ainfo.output_file_name_buf = %s \n",
-		ainfo.output_file_name_buf);
-}
+	printf("ainfo.output_file_name_buf = %s \n",
+	       ainfo.output_file_name_buf);
+}
 
 /* SHCodecs_Encoder_Input callback for acquiring an image from the input file */
 static int get_input(SHCodecs_Encoder * encoder,
@@ -168,9 +168,8 @@ static int get_input(SHCodecs_Encoder * encoder,
 }
 
 /* SHCodecs_Encoder_Output callback for writing encoded data to the output file */
-static int write_output (SHCodecs_Encoder * encoder,
-                         unsigned char * data, int length,
-                         void *user_data)
+static int write_output(SHCodecs_Encoder * encoder,
+			unsigned char *data, int length, void *user_data)
 {
 	APPLI_INFO *appli_info = (APPLI_INFO *) user_data;
 	return fwrite(data, 1, length, appli_info->output_file_fp);
@@ -181,65 +180,66 @@ int main(int argc, char *argv[])
 	int encode_return_code, success_count, i;
 	char message_buf[256];
 	int return_code;
-	long stream_type, width_height, max_frame;	/* 041201 */
-	SHCodecs_Encoder * encoder;
+	long stream_type, width_height, max_frame;	/* 041201 */
+	SHCodecs_Encoder *encoder;
 
 	if (argc == 2) {	/* 第1引数=コントロールファイル */
-		strcpy(ainfo.ctrl_file_name_buf, argv[1]);
+		strcpy(ainfo.ctrl_file_name_buf, argv[1]);
 		return_code =
-		    GetFromCtrlFTop((const char *) ainfo.
-				    ctrl_file_name_buf,
+		    GetFromCtrlFTop((const char *)
+				    ainfo.ctrl_file_name_buf,
 				    &(ainfo.enc_exec_info), &stream_type);
-		if (return_code < 0) {
-			printf("Can't Open to Ctrolfile : %s\n", ainfo.ctrl_file_name_buf);	/* 041217 */
-			return (-1);
-		}
+		if (return_code < 0) {
+			printf("Can't Open to Ctrolfile : %s\n", ainfo.ctrl_file_name_buf);	/* 041217 */
+			return (-1);
+		}
 #if 1
 		strcpy(ainfo.file_path_buf_1, ainfo.enc_exec_info.buf_input_yuv_file_with_path);	/* 入力ディレクトリ */
-		strcpy(ainfo.file_path_buf_2, ainfo.enc_exec_info.buf_output_directry);	/* 出力ディレクトリ */
+		strcpy(ainfo.file_path_buf_2, ainfo.enc_exec_info.buf_output_directry);	/* 出力ディレクトリ */
 		strcpy(ainfo.input_file_name_buf, ainfo.file_path_buf_1);
-		strcat(ainfo.input_file_name_buf, "/");
+		strcat(ainfo.input_file_name_buf, "/");
 		strcat(ainfo.input_file_name_buf,
 		       ainfo.enc_exec_info.buf_input_yuv_file);
 		strcpy(ainfo.output_file_name_buf, ainfo.file_path_buf_2);
-		strcat(ainfo.output_file_name_buf, "/");
-		strcat(ainfo.output_file_name_buf,
-			ainfo.enc_exec_info.buf_output_stream_file);
+		strcat(ainfo.output_file_name_buf, "/");
+		strcat(ainfo.output_file_name_buf,
+		       ainfo.enc_exec_info.buf_output_stream_file);
 #if 1
 		strcpy(ainfo.local_decode_file_name_buf,
 		       ainfo.file_path_buf_2);
-		strcat(ainfo.local_decode_file_name_buf, "/");
-		strcpy(ainfo.log_file_name_buf, ainfo.file_path_buf_2);
+		strcat(ainfo.local_decode_file_name_buf, "/");
+		strcpy(ainfo.log_file_name_buf, ainfo.file_path_buf_2);
 //              strcat(ainfo.log_file_name_buf, "/");   // <--- NG
 		strcpy(ainfo.capt_file_name_buf, ainfo.file_path_buf_2);
-		strcat(ainfo.capt_file_name_buf, "/");
-		strcpy(ainfo.rate_log_file_name_buf,
-			ainfo.file_path_buf_2);
-		strcat(ainfo.rate_log_file_name_buf, "/");
+		strcat(ainfo.capt_file_name_buf, "/");
+		strcpy(ainfo.rate_log_file_name_buf,
+		       ainfo.file_path_buf_2);
+		strcat(ainfo.rate_log_file_name_buf, "/");
 		printf
 		    ("!!!!!!!! ainfo.rate_log_file_name_buf = %s !!!!!!!!\n",
 		     ainfo.rate_log_file_name_buf);
 		printf("ainfo.input_file_name_buf = %s \n",
 		       ainfo.input_file_name_buf);
-		printf("ainfo.output_file_name_buf = %s \n",
-			ainfo.output_file_name_buf);
+		printf("ainfo.output_file_name_buf = %s \n",
+		       ainfo.output_file_name_buf);
 #endif
-		
+
 #else
 		file_name_copy();
-#endif	/*  */
+#endif				/*  */
 	} else {
-		DisplayMessage
+		DisplayMessage
 		    ("usage argv[0] case_number input_base_dir output_base_dir",
 		     1);
-		return -1;
-	}
-	encoder =
+		return -1;
+	}
+	encoder =
 	    shcodecs_encoder_init(ainfo.enc_exec_info.xpic,
 				  ainfo.enc_exec_info.ypic, stream_type);
 
 	shcodecs_encoder_set_input_callback(encoder, get_input, &ainfo);
-        shcodecs_encoder_set_output_callback (encoder, write_output, &ainfo);
+	shcodecs_encoder_set_output_callback(encoder, write_output,
+					     &ainfo);
 
 	/* stream buffer 0 clear */
 //      memset(sdr_read_my_stream_buff,0,sizeof(sdr_read_my_stream_buff));
@@ -281,16 +281,18 @@ int main(int argc, char *argv[])
 	/*--- open output file (one of the user application's own functions) ---*/
 	return_code = open_output_file(&ainfo);
 	if (return_code != 0) {	/* error */
-		DisplayMessage("  encode_1file:open_output_file ERROR! ", 1);
+		DisplayMessage("  encode_1file:open_output_file ERROR! ",
+			       1);
 		return (-6);
 	}
 
 	encode_return_code = shcodecs_encoder_run(encoder, &ainfo);
 
 	if (encode_return_code < 0) {	/* encode error */
-		sprintf(message_buf, "Encode Error  code=%d ", encode_return_code);
+		sprintf(message_buf, "Encode Error  code=%d ",
+			encode_return_code);
 		DisplayMessage(message_buf, 1);
-	} else {	/* encode success */
+	} else {		/* encode success */
 		sprintf(message_buf, "Encode Success ");
 		DisplayMessage(message_buf, 1);
 		success_count++;

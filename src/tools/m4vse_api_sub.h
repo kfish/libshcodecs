@@ -16,10 +16,10 @@
 #ifndef	M4VSE_API_SUB_H
 #define	M4VSE_API_SUB_H
 
-			/*#include "avcbe.h" *//* 050119 */
-			   /*#include "mpeg4venc.h"*//* 050119 */
-			      /*#include "m4vse_inner.h" *//* コンパイルが通らないので参照しない */
-					    /*#include "m4iph_vpu4.h"*//* 040714追加 *//* 050119 */
+					       /*#include "avcbe.h" *//* 050119 */
+						     /*#include "mpeg4venc.h" *//* 050119 */
+							   /*#include "m4vse_inner.h" *//* コンパイルが通らないので参照しない */
+										       /*#include "m4iph_vpu4.h" *//* 040714追加 *//* 050119 */
 
 	/* 汎用関数m4vse_get_address_of_stream()の引数address_typeに指定する種類 */
 enum { M4VSE_ADDRESS_WORK_AREA_INFO = 0,

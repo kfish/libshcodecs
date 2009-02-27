@@ -95,7 +95,7 @@
 #define AVCBE_CALL_PER_PIC		1
 #define AVCBE_CALL_PER_NAL		2
 
-		  /* video_format *//* changed at Version2 */
+				    /* video_format *//* changed at Version2 */
 #define AVCBE_VIDEO_FORMAT_COMPONENT		0
 #define AVCBE_VIDEO_FORMAT_PAL				1
 #define AVCBE_VIDEO_FORMAT_NTSC				2

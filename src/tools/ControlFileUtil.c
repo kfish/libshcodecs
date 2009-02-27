@@ -15,7 +15,7 @@
 /* コントロールファイルからの読み出し関数群 */
 /* （ファイル名の拡張子は、「.c」でも、「.cpp」でもＯＫです。） */
 
-			/*#include "stdafx.h"*//* 必要に応じてコメント化すること */
+					       /*#include "stdafx.h" *//* 必要に応じてコメント化すること */
 
 #include <stdio.h>
 #include <string.h>
@@ -171,7 +171,7 @@ int GetFromCtrlFtoEncParamAfterInitEncode(const char *control_filepath,
 	FILE *fp_in;
 	avcbe_H264_stream_info_t *stream_info_h264;
 	M4IPH_VPU4_ENC *vpu4_enc;
-	avcbe_other_options_h264 *other_options_h264=NULL;
+	avcbe_other_options_h264 *other_options_h264 = NULL;
 
 	if ((control_filepath == NULL) || (context == NULL)) {
 		return (-1);
@@ -195,8 +195,7 @@ int GetFromCtrlFtoEncParamAfterInitEncode(const char *control_filepath,
 		   (context->stream_type == AVCBE_H263)) {
 #if 0
 		other_options_h264 = NULL;
-		other_options_mpeg4 =
-		    (avcbe_other_options_mpeg4 *)
+		other_options_mpeg4 = (avcbe_other_options_mpeg4 *)
 		    m4vse_get_address_of_stream((void *) context->streamp,
 						M4VSE_ADDRESS_ENCODE_OTHER_OPT_MPEG4);
 #endif
@@ -204,8 +203,7 @@ int GetFromCtrlFtoEncParamAfterInitEncode(const char *control_filepath,
 		/*      vpu4_enc = m4vse_get_vpu4_enc_info((void *)(context->streamp)); 040914変更 */
 		vpu4_enc =
 		    (M4IPH_VPU4_ENC *) m4vse_get_address_of_stream((void *)
-								   context->
-								   streamp,
+								   context->streamp,
 								   M4VSE_ADDRESS_VPU4_ENC_INFO);
 	}
 
@@ -605,8 +603,8 @@ int GetFromCtrlFtoOther_options_H264(FILE * fp_in,
 
 	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_cpb_skipcheck_enable ", &status_flag);	/* 050524 */
 	if (status_flag == 1) {
-		other_options_h264->
-		    avcbe_ratecontrol_cpb_skipcheck_enable = return_value;
+		other_options_h264->avcbe_ratecontrol_cpb_skipcheck_enable
+		    = return_value;
 	}
 
 	return_value =
@@ -619,9 +617,8 @@ int GetFromCtrlFtoOther_options_H264(FILE * fp_in,
 
 	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_cpb_remain_zero_skip_enable", &status_flag);	/* 050524 */
 	if (status_flag == 1) {
-		other_options_h264->
-		    avcbe_ratecontrol_cpb_remain_zero_skip_enable =
-		    return_value;
+		other_options_h264->avcbe_ratecontrol_cpb_remain_zero_skip_enable
+		    = return_value;
 	}
 
 	return_value =
@@ -660,8 +657,8 @@ int GetFromCtrlFtoOther_options_H264(FILE * fp_in,
 	    GetValueFromCtrlFile(fp_in, "rate_ctrl_cpb_buffer_unit_size",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->
-		    avcbe_ratecontrol_cpb_buffer_unit_size = return_value;
+		other_options_h264->avcbe_ratecontrol_cpb_buffer_unit_size
+		    = return_value;
 	}
 
 	return_value =
@@ -1090,15 +1087,15 @@ int GetFromCtrlFtoOther_options_MPEG4(FILE * fp_in,
 	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_rcperiod_Ivop_noskip", &status_flag);
 	if (status_flag == 1) {
 		other_options_mpeg4->avcbe_ratecontrol_rcperiod_Ivop_noskip = return_value;
-		}
+			}
 *//* 050603 パラメータから削除されたので */
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_skipcheck_enable",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->
-		    avcbe_ratecontrol_vbv_skipcheck_enable = return_value;
+		other_options_mpeg4->avcbe_ratecontrol_vbv_skipcheck_enable
+		    = return_value;
 	}
 
 	return_value =
@@ -1111,15 +1108,14 @@ int GetFromCtrlFtoOther_options_MPEG4(FILE * fp_in,
 
 	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_remain_zero_skip_enable", &status_flag);	/* 050524 */
 	if (status_flag == 1) {
-		other_options_mpeg4->
-		    avcbe_ratecontrol_vbv_remain_zero_skip_enable =
-		    return_value;
+		other_options_mpeg4->avcbe_ratecontrol_vbv_remain_zero_skip_enable
+		    = return_value;
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_buffer_unit_size", &status_flag);	/* 順序変更 050601 */
 	if (status_flag == 1) {
-		other_options_mpeg4->
-		    avcbe_ratecontrol_vbv_buffer_unit_size = return_value;
+		other_options_mpeg4->avcbe_ratecontrol_vbv_buffer_unit_size
+		    = return_value;
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_buffer_mode", &status_flag);	/* 順序変更 050601 */
@@ -1232,61 +1228,67 @@ int GetFromCtrlFtoOTHER_API_ENC_PARAM(FILE * fp_in,
 		    GetValueFromCtrlFile(fp_in, "wq_USER_weight_type",
 					 &status_flag);
 		if (status_flag == 1) {
-			other_API_enc_param->weightedQ_info_user.
-			    avcbe_weight_type = return_value;
+			other_API_enc_param->
+			    weightedQ_info_user.avcbe_weight_type =
+			    return_value;
 		}
 
 		return_value =
 		    GetValueFromCtrlFile(fp_in, "wq_USER_mode_for_bit1",
 					 &status_flag);
 		if (status_flag == 1) {
-			other_API_enc_param->weightedQ_info_user.
-			    avcbe_mode_for_bit1 = return_value;
+			other_API_enc_param->
+			    weightedQ_info_user.avcbe_mode_for_bit1 =
+			    return_value;
 		}
 
 		return_value =
 		    GetValueFromCtrlFile(fp_in, "wq_USER_mode_for_bit2",
 					 &status_flag);
 		if (status_flag == 1) {
-			other_API_enc_param->weightedQ_info_user.
-			    avcbe_mode_for_bit2 = return_value;
+			other_API_enc_param->
+			    weightedQ_info_user.avcbe_mode_for_bit2 =
+			    return_value;
 		}
 
 		return_value =
 		    GetValueFromCtrlFile(fp_in, "wq_USER_mode_for_bit3",
 					 &status_flag);
 		if (status_flag == 1) {
-			other_API_enc_param->weightedQ_info_user.
-			    avcbe_mode_for_bit3 = return_value;
+			other_API_enc_param->
+			    weightedQ_info_user.avcbe_mode_for_bit3 =
+			    return_value;
 		}
 
 		return_value =
 		    GetValueFromCtrlFile(fp_in, "wq_USER_Qweight_for_bit1",
 					 &status_flag);
 		if (status_flag == 1) {
-			other_API_enc_param->weightedQ_info_user.
-			    avcbe_Qweight_for_bit1 = return_value;
+			other_API_enc_param->
+			    weightedQ_info_user.avcbe_Qweight_for_bit1 =
+			    return_value;
 		}
 
 		return_value =
 		    GetValueFromCtrlFile(fp_in, "wq_USER_Qweight_for_bit2",
 					 &status_flag);
 		if (status_flag == 1) {
-			other_API_enc_param->weightedQ_info_user.
-			    avcbe_Qweight_for_bit2 = return_value;
+			other_API_enc_param->
+			    weightedQ_info_user.avcbe_Qweight_for_bit2 =
+			    return_value;
 		}
 
 		return_value =
 		    GetValueFromCtrlFile(fp_in, "wq_USER_Qweight_for_bit3",
 					 &status_flag);
 		if (status_flag == 1) {
-			other_API_enc_param->weightedQ_info_user.
-			    avcbe_Qweight_for_bit3 = return_value;
+			other_API_enc_param->
+			    weightedQ_info_user.avcbe_Qweight_for_bit3 =
+			    return_value;
 		}
 
 		GetStringFromCtrlFile(fp_in, "wq_USER_table_filepath",
-				      other_API_enc_param->
-				      weightedQ_table_filepath,
+				      other_API_enc_param->weightedQ_table_filepath,
 				      &status_flag);
 
 	}
@@ -1299,15 +1301,17 @@ int GetFromCtrlFtoOTHER_API_ENC_PARAM(FILE * fp_in,
 		    GetValueFromCtrlFile(fp_in, "wq_CENTER_zone_size",
 					 &status_flag);
 		if (status_flag == 1) {
-			other_API_enc_param->weightedQ_info_center.
-			    avcbe_zone_size = return_value;
+			other_API_enc_param->
+			    weightedQ_info_center.avcbe_zone_size =
+			    return_value;
 		}
 		return_value =
 		    GetValueFromCtrlFile(fp_in, "wq_CENTER_Qweight_range",
 					 &status_flag);
 		if (status_flag == 1) {
-			other_API_enc_param->weightedQ_info_center.
-			    avcbe_Qweight_range = return_value;
+			other_API_enc_param->
+			    weightedQ_info_center.avcbe_Qweight_range =
+			    return_value;
 		}
 
 	}
@@ -1319,8 +1323,9 @@ int GetFromCtrlFtoOTHER_API_ENC_PARAM(FILE * fp_in,
 		    GetValueFromCtrlFile(fp_in, "wq_RECT_zone_num",
 					 &status_flag);
 		if (status_flag == 1) {
-			other_API_enc_param->weightedQ_info_rect.
-			    avcbe_zone_num = return_value;
+			other_API_enc_param->
+			    weightedQ_info_rect.avcbe_zone_num =
+			    return_value;
 		}
 
 		return_value =
@@ -1328,35 +1333,36 @@ int GetFromCtrlFtoOTHER_API_ENC_PARAM(FILE * fp_in,
 					 "wq_RECT_zone1_pos_left_column",
 					 &status_flag);
 		if (status_flag == 1) {
-			other_API_enc_param->weightedQ_info_rect.
-			    avcbe_zone1_pos.avcbe_left_column =
-			    return_value;
+			other_API_enc_param->
+			    weightedQ_info_rect.avcbe_zone1_pos.
+			    avcbe_left_column = return_value;
 		}
 		return_value =
 		    GetValueFromCtrlFile(fp_in,
 					 "wq_RECT_zone1_pos_top_row",
 					 &status_flag);
 		if (status_flag == 1) {
-			other_API_enc_param->weightedQ_info_rect.
-			    avcbe_zone1_pos.avcbe_top_row = return_value;
+			other_API_enc_param->
+			    weightedQ_info_rect.avcbe_zone1_pos.
+			    avcbe_top_row = return_value;
 		}
 		return_value =
 		    GetValueFromCtrlFile(fp_in,
 					 "wq_RECT_zone1_pos_right_column",
 					 &status_flag);
 		if (status_flag == 1) {
-			other_API_enc_param->weightedQ_info_rect.
-			    avcbe_zone1_pos.avcbe_right_column =
-			    return_value;
+			other_API_enc_param->
+			    weightedQ_info_rect.avcbe_zone1_pos.
+			    avcbe_right_column = return_value;
 		}
 		return_value =
 		    GetValueFromCtrlFile(fp_in,
 					 "wq_RECT_zone1_pos_bottom_row",
 					 &status_flag);
 		if (status_flag == 1) {
-			other_API_enc_param->weightedQ_info_rect.
-			    avcbe_zone1_pos.avcbe_bottom_row =
-			    return_value;
+			other_API_enc_param->
+			    weightedQ_info_rect.avcbe_zone1_pos.
+			    avcbe_bottom_row = return_value;
 		}
 
 		return_value =
@@ -1364,35 +1370,36 @@ int GetFromCtrlFtoOTHER_API_ENC_PARAM(FILE * fp_in,
 					 "wq_RECT_zone2_pos_left_column",
 					 &status_flag);
 		if (status_flag == 1) {
-			other_API_enc_param->weightedQ_info_rect.
-			    avcbe_zone2_pos.avcbe_left_column =
-			    return_value;
+			other_API_enc_param->
+			    weightedQ_info_rect.avcbe_zone2_pos.
+			    avcbe_left_column = return_value;
 		}
 		return_value =
 		    GetValueFromCtrlFile(fp_in,
 					 "wq_RECT_zone2_pos_top_row",
 					 &status_flag);
 		if (status_flag == 1) {
-			other_API_enc_param->weightedQ_info_rect.
-			    avcbe_zone2_pos.avcbe_top_row = return_value;
+			other_API_enc_param->
+			    weightedQ_info_rect.avcbe_zone2_pos.
+			    avcbe_top_row = return_value;
 		}
 		return_value =
 		    GetValueFromCtrlFile(fp_in,
 					 "wq_RECT_zone2_pos_right_column",
 					 &status_flag);
 		if (status_flag == 1) {
-			other_API_enc_param->weightedQ_info_rect.
-			    avcbe_zone2_pos.avcbe_right_column =
-			    return_value;
+			other_API_enc_param->
+			    weightedQ_info_rect.avcbe_zone2_pos.
+			    avcbe_right_column = return_value;
 		}
 		return_value =
 		    GetValueFromCtrlFile(fp_in,
 					 "wq_RECT_zone2_pos_bottom_row",
 					 &status_flag);
 		if (status_flag == 1) {
-			other_API_enc_param->weightedQ_info_rect.
-			    avcbe_zone2_pos.avcbe_bottom_row =
-			    return_value;
+			other_API_enc_param->
+			    weightedQ_info_rect.avcbe_zone2_pos.
+			    avcbe_bottom_row = return_value;
 		}
 
 		return_value =
@@ -1400,16 +1407,18 @@ int GetFromCtrlFtoOTHER_API_ENC_PARAM(FILE * fp_in,
 					 "wq_RECT_zone1_Qweight_range",
 					 &status_flag);
 		if (status_flag == 1) {
-			other_API_enc_param->weightedQ_info_rect.
-			    avcbe_zone1_Qweight_range = return_value;
+			other_API_enc_param->
+			    weightedQ_info_rect.avcbe_zone1_Qweight_range =
+			    return_value;
 		}
 		return_value =
 		    GetValueFromCtrlFile(fp_in,
 					 "wq_RECT_zone2_Qweight_type",
 					 &status_flag);
 		if (status_flag == 1) {
-			other_API_enc_param->weightedQ_info_rect.
-			    avcbe_zone2_Qweight_type = return_value;
+			other_API_enc_param->
+			    weightedQ_info_rect.avcbe_zone2_Qweight_type =
+			    return_value;
 		}
 	}
 
@@ -1450,9 +1459,9 @@ int GetFromCtrlFtoOTHER_API_ENC_PARAM(FILE * fp_in,
 #ifdef __cplusplus
 extern "C"
 #endif
- void GetFromCtrlFtoOTHER_API_ENC_PARAM_VUI(FILE * fp_in,
-					    OTHER_API_ENC_PARAM *
-					    other_API_enc_param)
+void GetFromCtrlFtoOTHER_API_ENC_PARAM_VUI(FILE * fp_in,
+					   OTHER_API_ENC_PARAM *
+					   other_API_enc_param)
 {
 	int status_flag;
 	long return_value;
@@ -1595,62 +1604,65 @@ extern "C"
 #if 1				/* こっちで使用すること */
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_nal_hrd_param_avcbe_schedsel_table[0]_avcbe_bit_rate_value_minus1", &status_flag);	/* (21-4-1) */
 	if (status_flag == 1) {
-		vui_main_param->avcbe_nal_hrd_param.
-		    avcbe_schedsel_table[0].avcbe_bit_rate_value_minus1 =
-		    return_value;
+		vui_main_param->
+		    avcbe_nal_hrd_param.avcbe_schedsel_table[0].
+		    avcbe_bit_rate_value_minus1 = return_value;
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_nal_hrd_param_avcbe_schedsel_table[0]_avcbe_cpb_size_value_minus1", &status_flag);	/* (21-4-2) */
 	if (status_flag == 1) {
-		vui_main_param->avcbe_nal_hrd_param.
-		    avcbe_schedsel_table[0].avcbe_cpb_size_value_minus1 =
-		    return_value;
+		vui_main_param->
+		    avcbe_nal_hrd_param.avcbe_schedsel_table[0].
+		    avcbe_cpb_size_value_minus1 = return_value;
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_nal_hrd_param_avcbe_schedsel_table[0]_avcbe_cbr_flag", &status_flag);	/* (21-4-3) */
 	if (status_flag == 1) {
-		vui_main_param->avcbe_nal_hrd_param.
-		    avcbe_schedsel_table[0].avcbe_cbr_flag = return_value;
+		vui_main_param->
+		    avcbe_nal_hrd_param.avcbe_schedsel_table[0].
+		    avcbe_cbr_flag = return_value;
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_nal_hrd_param_avcbe_schedsel_table[1]_avcbe_bit_rate_value_minus1", &status_flag);	/* (21-4-1) */
 	if (status_flag == 1) {
-		vui_main_param->avcbe_nal_hrd_param.
-		    avcbe_schedsel_table[1].avcbe_bit_rate_value_minus1 =
-		    return_value;
+		vui_main_param->
+		    avcbe_nal_hrd_param.avcbe_schedsel_table[1].
+		    avcbe_bit_rate_value_minus1 = return_value;
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_nal_hrd_param_avcbe_schedsel_table[1]_avcbe_cpb_size_value_minus1", &status_flag);	/* (21-4-2) */
 	if (status_flag == 1) {
-		vui_main_param->avcbe_nal_hrd_param.
-		    avcbe_schedsel_table[1].avcbe_cpb_size_value_minus1 =
-		    return_value;
+		vui_main_param->
+		    avcbe_nal_hrd_param.avcbe_schedsel_table[1].
+		    avcbe_cpb_size_value_minus1 = return_value;
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_nal_hrd_param_avcbe_schedsel_table[1]_avcbe_cbr_flag", &status_flag);	/* (21-4-3) */
 	if (status_flag == 1) {
-		vui_main_param->avcbe_nal_hrd_param.
-		    avcbe_schedsel_table[1].avcbe_cbr_flag = return_value;
+		vui_main_param->
+		    avcbe_nal_hrd_param.avcbe_schedsel_table[1].
+		    avcbe_cbr_flag = return_value;
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_nal_hrd_param_avcbe_schedsel_table[2]_avcbe_bit_rate_value_minus1", &status_flag);	/* (21-4-1) */
 	if (status_flag == 1) {
-		vui_main_param->avcbe_nal_hrd_param.
-		    avcbe_schedsel_table[2].avcbe_bit_rate_value_minus1 =
-		    return_value;
+		vui_main_param->
+		    avcbe_nal_hrd_param.avcbe_schedsel_table[2].
+		    avcbe_bit_rate_value_minus1 = return_value;
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_nal_hrd_param_avcbe_schedsel_table[2]_avcbe_cpb_size_value_minus1", &status_flag);	/* (21-4-2) */
 	if (status_flag == 1) {
-		vui_main_param->avcbe_nal_hrd_param.
-		    avcbe_schedsel_table[2].avcbe_cpb_size_value_minus1 =
-		    return_value;
+		vui_main_param->
+		    avcbe_nal_hrd_param.avcbe_schedsel_table[2].
+		    avcbe_cpb_size_value_minus1 = return_value;
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_nal_hrd_param_avcbe_schedsel_table[2]_avcbe_cbr_flag", &status_flag);	/* (21-4-3) */
 	if (status_flag == 1) {
-		vui_main_param->avcbe_nal_hrd_param.
-		    avcbe_schedsel_table[2].avcbe_cbr_flag = return_value;
+		vui_main_param->
+		    avcbe_nal_hrd_param.avcbe_schedsel_table[2].
+		    avcbe_cbr_flag = return_value;
 	}
 #else
 	{
@@ -1658,29 +1670,31 @@ extern "C"
 
 		for (loop_index = 0;
 		     loop_index <=
-		     vui_main_param->avcbe_nal_hrd_param.
-		     avcbe_cpb_cnt_minus1; loop_index++) {
+		     vui_main_param->
+		     avcbe_nal_hrd_param.avcbe_cpb_cnt_minus1;
+		     loop_index++) {
 			return_value = GetValueFromCtrlFile(fp_in, "VUI_nal_hrd_param_avcbe_schedsel_table[loop_index]_avcbe_bit_rate_value_minus1", &status_flag);	/* (21-4-1) */
 			if (status_flag == 1) {
-				vui_main_param->avcbe_nal_hrd_param.
-				    avcbe_schedsel_table[loop_index].
-				    avcbe_bit_rate_value_minus1 =
-				    return_value;
+				vui_main_param->
+				    avcbe_nal_hrd_param.avcbe_schedsel_table
+				    [loop_index].avcbe_bit_rate_value_minus1
+				    = return_value;
 			}
 
 			return_value = GetValueFromCtrlFile(fp_in, "VUI_nal_hrd_param_avcbe_schedsel_table[loop_index]_avcbe_cpb_size_value_minus1", &status_flag);	/* (21-4-2) */
 			if (status_flag == 1) {
-				vui_main_param->avcbe_nal_hrd_param.
-				    avcbe_schedsel_table[loop_index].
-				    avcbe_cpb_size_value_minus1 =
-				    return_value;
+				vui_main_param->
+				    avcbe_nal_hrd_param.avcbe_schedsel_table
+				    [loop_index].avcbe_cpb_size_value_minus1
+				    = return_value;
 			}
 
 			return_value = GetValueFromCtrlFile(fp_in, "VUI_nal_hrd_param_avcbe_schedsel_table[loop_index]_avcbe_cbr_flag", &status_flag);	/* (21-4-3) */
 			if (status_flag == 1) {
-				vui_main_param->avcbe_nal_hrd_param.
-				    avcbe_schedsel_table[loop_index].
-				    avcbe_cbr_flag = return_value;
+				vui_main_param->
+				    avcbe_nal_hrd_param.avcbe_schedsel_table
+				    [loop_index].avcbe_cbr_flag =
+				    return_value;
 			}
 		}
 	}
@@ -1688,27 +1702,30 @@ extern "C"
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_nal_hrd_param_avcbe_initial_cpb_removal_delay_length_minus1", &status_flag);	/* (21-5) */
 	if (status_flag == 1) {
-		vui_main_param->avcbe_nal_hrd_param.
-		    avcbe_initial_cpb_removal_delay_length_minus1 =
-		    return_value;
+		vui_main_param->
+		    avcbe_nal_hrd_param.avcbe_initial_cpb_removal_delay_length_minus1
+		    = return_value;
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_nal_hrd_param_avcbe_cpb_removal_delay_length_minus1", &status_flag);	/* (21-6) */
 	if (status_flag == 1) {
-		vui_main_param->avcbe_nal_hrd_param.
-		    avcbe_cpb_removal_delay_length_minus1 = return_value;
+		vui_main_param->
+		    avcbe_nal_hrd_param.avcbe_cpb_removal_delay_length_minus1
+		    = return_value;
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_nal_hrd_param_avcbe_dpb_output_delay_length_minus1", &status_flag);	/* (21-7) */
 	if (status_flag == 1) {
-		vui_main_param->avcbe_nal_hrd_param.
-		    avcbe_dpb_output_delay_length_minus1 = return_value;
+		vui_main_param->
+		    avcbe_nal_hrd_param.avcbe_dpb_output_delay_length_minus1
+		    = return_value;
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_nal_hrd_param_avcbe_time_offset_length", &status_flag);	/* (21-8) */
 	if (status_flag == 1) {
-		vui_main_param->avcbe_nal_hrd_param.
-		    avcbe_time_offset_length = return_value;
+		vui_main_param->
+		    avcbe_nal_hrd_param.avcbe_time_offset_length =
+		    return_value;
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_use_vcl_hrd_parameters", &status_flag);	/* (22) */
@@ -1738,62 +1755,65 @@ extern "C"
 #if 1				/* こっちで使用すること */
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_vcl_hrd_param_avcbe_schedsel_table[0]_avcbe_bit_rate_value_minus1", &status_flag);	/* (23-4-1) */
 	if (status_flag == 1) {
-		vui_main_param->avcbe_vcl_hrd_param.
-		    avcbe_schedsel_table[0].avcbe_bit_rate_value_minus1 =
-		    return_value;
+		vui_main_param->
+		    avcbe_vcl_hrd_param.avcbe_schedsel_table[0].
+		    avcbe_bit_rate_value_minus1 = return_value;
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_vcl_hrd_param_avcbe_schedsel_table[0]_avcbe_cpb_size_value_minus1", &status_flag);	/* (23-4-2) */
 	if (status_flag == 1) {
-		vui_main_param->avcbe_vcl_hrd_param.
-		    avcbe_schedsel_table[0].avcbe_cpb_size_value_minus1 =
-		    return_value;
+		vui_main_param->
+		    avcbe_vcl_hrd_param.avcbe_schedsel_table[0].
+		    avcbe_cpb_size_value_minus1 = return_value;
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_vcl_hrd_param_avcbe_schedsel_table[0]_avcbe_cbr_flag", &status_flag);	/* (23-4-3) */
 	if (status_flag == 1) {
-		vui_main_param->avcbe_vcl_hrd_param.
-		    avcbe_schedsel_table[0].avcbe_cbr_flag = return_value;
+		vui_main_param->
+		    avcbe_vcl_hrd_param.avcbe_schedsel_table[0].
+		    avcbe_cbr_flag = return_value;
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_vcl_hrd_param_avcbe_schedsel_table[1]_avcbe_bit_rate_value_minus1", &status_flag);	/* (23-4-1) */
 	if (status_flag == 1) {
-		vui_main_param->avcbe_vcl_hrd_param.
-		    avcbe_schedsel_table[1].avcbe_bit_rate_value_minus1 =
-		    return_value;
+		vui_main_param->
+		    avcbe_vcl_hrd_param.avcbe_schedsel_table[1].
+		    avcbe_bit_rate_value_minus1 = return_value;
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_vcl_hrd_param_avcbe_schedsel_table[1]_avcbe_cpb_size_value_minus1", &status_flag);	/* (23-4-2) */
 	if (status_flag == 1) {
-		vui_main_param->avcbe_vcl_hrd_param.
-		    avcbe_schedsel_table[1].avcbe_cpb_size_value_minus1 =
-		    return_value;
+		vui_main_param->
+		    avcbe_vcl_hrd_param.avcbe_schedsel_table[1].
+		    avcbe_cpb_size_value_minus1 = return_value;
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_vcl_hrd_param_avcbe_schedsel_table[1]_avcbe_cbr_flag", &status_flag);	/* (23-4-3) */
 	if (status_flag == 1) {
-		vui_main_param->avcbe_vcl_hrd_param.
-		    avcbe_schedsel_table[1].avcbe_cbr_flag = return_value;
+		vui_main_param->
+		    avcbe_vcl_hrd_param.avcbe_schedsel_table[1].
+		    avcbe_cbr_flag = return_value;
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_vcl_hrd_param_avcbe_schedsel_table[2]_avcbe_bit_rate_value_minus1", &status_flag);	/* (23-4-1) */
 	if (status_flag == 1) {
-		vui_main_param->avcbe_vcl_hrd_param.
-		    avcbe_schedsel_table[2].avcbe_bit_rate_value_minus1 =
-		    return_value;
+		vui_main_param->
+		    avcbe_vcl_hrd_param.avcbe_schedsel_table[2].
+		    avcbe_bit_rate_value_minus1 = return_value;
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_vcl_hrd_param_avcbe_schedsel_table[2]_avcbe_cpb_size_value_minus1", &status_flag);	/* (23-4-2) */
 	if (status_flag == 1) {
-		vui_main_param->avcbe_vcl_hrd_param.
-		    avcbe_schedsel_table[2].avcbe_cpb_size_value_minus1 =
-		    return_value;
+		vui_main_param->
+		    avcbe_vcl_hrd_param.avcbe_schedsel_table[2].
+		    avcbe_cpb_size_value_minus1 = return_value;
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_vcl_hrd_param_avcbe_schedsel_table[2]_avcbe_cbr_flag", &status_flag);	/* (23-4-3) */
 	if (status_flag == 1) {
-		vui_main_param->avcbe_vcl_hrd_param.
-		    avcbe_schedsel_table[2].avcbe_cbr_flag = return_value;
+		vui_main_param->
+		    avcbe_vcl_hrd_param.avcbe_schedsel_table[2].
+		    avcbe_cbr_flag = return_value;
 	}
 #else
 	{
@@ -1801,30 +1821,32 @@ extern "C"
 
 		for (loop_index = 0;
 		     loop_index <=
-		     vui_main_param->avcbe_vcl_hrd_param.
-		     avcbe_cpb_cnt_minus1; loop_index++) {
+		     vui_main_param->
+		     avcbe_vcl_hrd_param.avcbe_cpb_cnt_minus1;
+		     loop_index++) {
 
 			return_value = GetValueFromCtrlFile(fp_in, "VUI_vcl_hrd_param_avcbe_schedsel_table[loop_index]_avcbe_bit_rate_value_minus1", &status_flag);	/* (23-4-1) */
 			if (status_flag == 1) {
-				vui_main_param->avcbe_vcl_hrd_param.
-				    avcbe_schedsel_table[loop_index].
-				    avcbe_bit_rate_value_minus1 =
-				    return_value;
+				vui_main_param->
+				    avcbe_vcl_hrd_param.avcbe_schedsel_table
+				    [loop_index].avcbe_bit_rate_value_minus1
+				    = return_value;
 			}
 
 			return_value = GetValueFromCtrlFile(fp_in, "VUI_vcl_hrd_param_avcbe_schedsel_table[loop_index]_avcbe_cpb_size_value_minus1", &status_flag);	/* (23-4-2) */
 			if (status_flag == 1) {
-				vui_main_param->avcbe_vcl_hrd_param.
-				    avcbe_schedsel_table[loop_index].
-				    avcbe_cpb_size_value_minus1 =
-				    return_value;
+				vui_main_param->
+				    avcbe_vcl_hrd_param.avcbe_schedsel_table
+				    [loop_index].avcbe_cpb_size_value_minus1
+				    = return_value;
 			}
 
 			return_value = GetValueFromCtrlFile(fp_in, "VUI_vcl_hrd_param_avcbe_schedsel_table[loop_index]_avcbe_cbr_flag", &status_flag);	/* (23-4-3) */
 			if (status_flag == 1) {
-				vui_main_param->avcbe_vcl_hrd_param.
-				    avcbe_schedsel_table[loop_index].
-				    avcbe_cbr_flag = return_value;
+				vui_main_param->
+				    avcbe_vcl_hrd_param.avcbe_schedsel_table
+				    [loop_index].avcbe_cbr_flag =
+				    return_value;
 			}
 		}
 	}
@@ -1832,27 +1854,30 @@ extern "C"
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_vcl_hrd_param_avcbe_initial_cpb_removal_delay_length_minus1", &status_flag);	/* (23-5) */
 	if (status_flag == 1) {
-		vui_main_param->avcbe_vcl_hrd_param.
-		    avcbe_initial_cpb_removal_delay_length_minus1 =
-		    return_value;
+		vui_main_param->
+		    avcbe_vcl_hrd_param.avcbe_initial_cpb_removal_delay_length_minus1
+		    = return_value;
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_vcl_hrd_param_avcbe_cpb_removal_delay_length_minus1", &status_flag);	/* (23-6) */
 	if (status_flag == 1) {
-		vui_main_param->avcbe_vcl_hrd_param.
-		    avcbe_cpb_removal_delay_length_minus1 = return_value;
+		vui_main_param->
+		    avcbe_vcl_hrd_param.avcbe_cpb_removal_delay_length_minus1
+		    = return_value;
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_vcl_hrd_param_avcbe_dpb_output_delay_length_minus1", &status_flag);	/* (23-7) */
 	if (status_flag == 1) {
-		vui_main_param->avcbe_vcl_hrd_param.
-		    avcbe_dpb_output_delay_length_minus1 = return_value;
+		vui_main_param->
+		    avcbe_vcl_hrd_param.avcbe_dpb_output_delay_length_minus1
+		    = return_value;
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_vcl_hrd_param_avcbe_time_offset_length", &status_flag);	/* (23-8) */
 	if (status_flag == 1) {
-		vui_main_param->avcbe_vcl_hrd_param.
-		    avcbe_time_offset_length = return_value;
+		vui_main_param->
+		    avcbe_vcl_hrd_param.avcbe_time_offset_length =
+		    return_value;
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_low_delay_hrd_flag", &status_flag);	/* (24) */
@@ -1872,9 +1897,8 @@ extern "C"
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_motion_vectors_over_pic_boundaries_flag", &status_flag);	/* (27) */
 	if (status_flag == 1) {
-		vui_main_param->
-		    avcbe_motion_vectors_over_pic_boundaries_flag =
-		    return_value;
+		vui_main_param->avcbe_motion_vectors_over_pic_boundaries_flag
+		    = return_value;
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "VUI_max_bytes_per_pic_denom", &status_flag);	/* (28) */
@@ -1971,16 +1995,19 @@ void GetFromCtrlFtoOTHER_API_ENC_PARAM_SEI(FILE * fp_in,
 		    GetValueFromCtrlFile(fp_in, "SEI_BUFF_NAL_DELAY",
 					 &status_flag);
 		if (status_flag == 1) {
-			sei_buffering_period_param->avcbe_NalHrdBp[0].
-			    avcbe_initial_cpb_removal_delay = return_value;
+			sei_buffering_period_param->
+			    avcbe_NalHrdBp
+			    [0].avcbe_initial_cpb_removal_delay =
+			    return_value;
 		}
 
 		return_value =
 		    GetValueFromCtrlFile(fp_in, "SEI_BUFF_NAL_OFFSET",
 					 &status_flag);
 		if (status_flag == 1) {
-			sei_buffering_period_param->avcbe_NalHrdBp[0].
-			    avcbe_initial_cpb_removal_delay_offset =
+			sei_buffering_period_param->
+			    avcbe_NalHrdBp
+			    [0].avcbe_initial_cpb_removal_delay_offset =
 			    return_value;
 		}
 
@@ -1988,16 +2015,19 @@ void GetFromCtrlFtoOTHER_API_ENC_PARAM_SEI(FILE * fp_in,
 		    GetValueFromCtrlFile(fp_in, "SEI_BUFF_VCL_DELAY",
 					 &status_flag);
 		if (status_flag == 1) {
-			sei_buffering_period_param->avcbe_VclHrdBp[0].
-			    avcbe_initial_cpb_removal_delay = return_value;
+			sei_buffering_period_param->
+			    avcbe_VclHrdBp
+			    [0].avcbe_initial_cpb_removal_delay =
+			    return_value;
 		}
 
 		return_value =
 		    GetValueFromCtrlFile(fp_in, "SEI_BUFF_VCL_OFFSET",
 					 &status_flag);
 		if (status_flag == 1) {
-			sei_buffering_period_param->avcbe_VclHrdBp[0].
-			    avcbe_initial_cpb_removal_delay_offset =
+			sei_buffering_period_param->
+			    avcbe_VclHrdBp
+			    [0].avcbe_initial_cpb_removal_delay_offset =
 			    return_value;
 		}
 	}
@@ -2052,16 +2082,18 @@ void GetFromCtrlFtoOTHER_API_ENC_PARAM_SEI(FILE * fp_in,
 						 "SEI_PICTIM_CT_TYPE",
 						 &status_flag);
 			if (status_flag == 1) {
-				sei_pic_timing_param->avcbe_clockts[index].
-				    avcbe_ct_type = return_value;
+				sei_pic_timing_param->
+				    avcbe_clockts[index].avcbe_ct_type =
+				    return_value;
 			}
 
 			return_value =
 			    GetValueFromCtrlFile(fp_in, "SEI_PICTIM_NUNIT",
 						 &status_flag);
 			if (status_flag == 1) {
-				sei_pic_timing_param->avcbe_clockts[index].
-				    avcbe_nuit_field_based_flag =
+				sei_pic_timing_param->
+				    avcbe_clockts
+				    [index].avcbe_nuit_field_based_flag =
 				    return_value;
 			}
 
@@ -2070,8 +2102,10 @@ void GetFromCtrlFtoOTHER_API_ENC_PARAM_SEI(FILE * fp_in,
 						 "SEI_PICTIM_COUNTING",
 						 &status_flag);
 			if (status_flag == 1) {
-				sei_pic_timing_param->avcbe_clockts[index].
-				    avcbe_counting_type = return_value;
+				sei_pic_timing_param->
+				    avcbe_clockts
+				    [index].avcbe_counting_type =
+				    return_value;
 			}
 
 			return_value =
@@ -2079,8 +2113,9 @@ void GetFromCtrlFtoOTHER_API_ENC_PARAM_SEI(FILE * fp_in,
 						 "SEI_PICTIM_FULLTMSTM",
 						 &status_flag);
 			if (status_flag == 1) {
-				sei_pic_timing_param->avcbe_clockts[index].
-				    avcbe_full_timestamp_flag =
+				sei_pic_timing_param->
+				    avcbe_clockts
+				    [index].avcbe_full_timestamp_flag =
 				    return_value;
 			}
 
@@ -2089,8 +2124,9 @@ void GetFromCtrlFtoOTHER_API_ENC_PARAM_SEI(FILE * fp_in,
 						 "SEI_PICTIM_DISCONT",
 						 &status_flag);
 			if (status_flag == 1) {
-				sei_pic_timing_param->avcbe_clockts[index].
-				    avcbe_discontinuity_flag =
+				sei_pic_timing_param->
+				    avcbe_clockts
+				    [index].avcbe_discontinuity_flag =
 				    return_value;
 			}
 
@@ -2099,8 +2135,10 @@ void GetFromCtrlFtoOTHER_API_ENC_PARAM_SEI(FILE * fp_in,
 						 "SEI_PICTIM_CNT_DROP",
 						 &status_flag);
 			if (status_flag == 1) {
-				sei_pic_timing_param->avcbe_clockts[index].
-				    avcbe_cnt_dropped_flag = return_value;
+				sei_pic_timing_param->
+				    avcbe_clockts
+				    [index].avcbe_cnt_dropped_flag =
+				    return_value;
 			}
 
 			return_value =
@@ -2108,8 +2146,9 @@ void GetFromCtrlFtoOTHER_API_ENC_PARAM_SEI(FILE * fp_in,
 						 "SEI_PICTIM_N_FRAMES",
 						 &status_flag);
 			if (status_flag == 1) {
-				sei_pic_timing_param->avcbe_clockts[index].
-				    avcbe_n_frames = return_value;
+				sei_pic_timing_param->
+				    avcbe_clockts[index].avcbe_n_frames =
+				    return_value;
 			}
 
 			return_value =
@@ -2125,8 +2164,10 @@ void GetFromCtrlFtoOTHER_API_ENC_PARAM_SEI(FILE * fp_in,
 						 "SEI_PICTIM_SEC_VAL",
 						 &status_flag);
 			if (status_flag == 1) {
-				sei_pic_timing_param->avcbe_clockts[index].
-				    avcbe_seconds_value = return_value;
+				sei_pic_timing_param->
+				    avcbe_clockts
+				    [index].avcbe_seconds_value =
+				    return_value;
 			}
 
 			return_value =
@@ -2142,8 +2183,10 @@ void GetFromCtrlFtoOTHER_API_ENC_PARAM_SEI(FILE * fp_in,
 						 "SEI_PICTIM_MINU_VAL",
 						 &status_flag);
 			if (status_flag == 1) {
-				sei_pic_timing_param->avcbe_clockts[index].
-				    avcbe_minutes_value = return_value;
+				sei_pic_timing_param->
+				    avcbe_clockts
+				    [index].avcbe_minutes_value =
+				    return_value;
 			}
 
 			return_value =
@@ -2159,8 +2202,9 @@ void GetFromCtrlFtoOTHER_API_ENC_PARAM_SEI(FILE * fp_in,
 						 "SEI_PICTIM_HOUR_VAL",
 						 &status_flag);
 			if (status_flag == 1) {
-				sei_pic_timing_param->avcbe_clockts[index].
-				    avcbe_hours_value = return_value;
+				sei_pic_timing_param->
+				    avcbe_clockts[index].avcbe_hours_value
+				    = return_value;
 			}
 
 			return_value =
@@ -2168,8 +2212,9 @@ void GetFromCtrlFtoOTHER_API_ENC_PARAM_SEI(FILE * fp_in,
 						 "SEI_PICTIM_TIME_OFFSET",
 						 &status_flag);
 			if (status_flag == 1) {
-				sei_pic_timing_param->avcbe_clockts[index].
-				    avcbe_time_offset = return_value;
+				sei_pic_timing_param->
+				    avcbe_clockts[index].avcbe_time_offset
+				    = return_value;
 			}
 		}
 		/* ここまでは、pic_structの値に応じてavcbe_clockts[]の要素数を決めること */
@@ -2197,32 +2242,35 @@ void GetFromCtrlFtoOTHER_API_ENC_PARAM_SEI(FILE * fp_in,
 		    GetValueFromCtrlFile(fp_in, "SEI_PANSCAN_CANCEL",
 					 &status_flag);
 		if (status_flag == 1) {
-			sei_pan_scan_rect_param->
-			    avcbe_pan_scan_rect_cancel_flag = return_value;
+			sei_pan_scan_rect_param->avcbe_pan_scan_rect_cancel_flag
+			    = return_value;
 		}
 
 		return_value =
 		    GetValueFromCtrlFile(fp_in, "SEI_PANSCAN_CNT_MINUS1",
 					 &status_flag);
 		if (status_flag == 1) {
-			sei_pan_scan_rect_param->
-			    avcbe_pan_scan_cnt_minus1 = return_value;
+			sei_pan_scan_rect_param->avcbe_pan_scan_cnt_minus1
+			    = return_value;
 		}
 
 		return_value =
 		    GetValueFromCtrlFile(fp_in, "SEI_PANSCAN_LEFT",
 					 &status_flag);
 		if (status_flag == 1) {
-			sei_pan_scan_rect_param->avcbe_rect_offset[0].
-			    avcbe_pan_scan_rect_left_offset = return_value;
+			sei_pan_scan_rect_param->
+			    avcbe_rect_offset
+			    [0].avcbe_pan_scan_rect_left_offset =
+			    return_value;
 		}
 
 		return_value =
 		    GetValueFromCtrlFile(fp_in, "SEI_PANSCAN_RIGHT",
 					 &status_flag);
 		if (status_flag == 1) {
-			sei_pan_scan_rect_param->avcbe_rect_offset[0].
-			    avcbe_pan_scan_rect_right_offset =
+			sei_pan_scan_rect_param->
+			    avcbe_rect_offset
+			    [0].avcbe_pan_scan_rect_right_offset =
 			    return_value;
 		}
 
@@ -2230,16 +2278,19 @@ void GetFromCtrlFtoOTHER_API_ENC_PARAM_SEI(FILE * fp_in,
 		    GetValueFromCtrlFile(fp_in, "SEI_PANSCAN_TOP",
 					 &status_flag);
 		if (status_flag == 1) {
-			sei_pan_scan_rect_param->avcbe_rect_offset[0].
-			    avcbe_pan_scan_rect_top_offset = return_value;
+			sei_pan_scan_rect_param->
+			    avcbe_rect_offset
+			    [0].avcbe_pan_scan_rect_top_offset =
+			    return_value;
 		}
 
 		return_value =
 		    GetValueFromCtrlFile(fp_in, "SEI_PANSCAN_BOTTOM",
 					 &status_flag);
 		if (status_flag == 1) {
-			sei_pan_scan_rect_param->avcbe_rect_offset[0].
-			    avcbe_pan_scan_rect_bottom_offset =
+			sei_pan_scan_rect_param->
+			    avcbe_rect_offset
+			    [0].avcbe_pan_scan_rect_bottom_offset =
 			    return_value;
 		}
 
@@ -2247,9 +2298,8 @@ void GetFromCtrlFtoOTHER_API_ENC_PARAM_SEI(FILE * fp_in,
 		    GetValueFromCtrlFile(fp_in, "SEI_PANSCAN_RECT_REPET",
 					 &status_flag);
 		if (status_flag == 1) {
-			sei_pan_scan_rect_param->
-			    avcbe_pan_scan_rect_repetition_period =
-			    return_value;
+			sei_pan_scan_rect_param->avcbe_pan_scan_rect_repetition_period
+			    = return_value;
 		}
 	}
 
@@ -2268,8 +2318,8 @@ void GetFromCtrlFtoOTHER_API_ENC_PARAM_SEI(FILE * fp_in,
 		    GetValueFromCtrlFile(fp_in, "SEI_FILLER_SIZE",
 					 &status_flag);
 		if (status_flag == 1) {
-			sei_filler_payload_param->
-			    avcbe_filler_payload_size = return_value;
+			sei_filler_payload_param->avcbe_filler_payload_size
+			    = return_value;
 		}
 	}
 
@@ -2327,8 +2377,8 @@ void GetFromCtrlFtoOTHER_API_ENC_PARAM_SEI(FILE * fp_in,
 				 &status_flag);
 	if ((status_flag == 1) && (return_value == 1)) {
 
-		other_API_enc_param->
-		    out_dec_ref_pic_marking_repetition_SEI = AVCBE_ON;
+		other_API_enc_param->out_dec_ref_pic_marking_repetition_SEI
+		    = AVCBE_ON;
 
 		/* original idr flag */
 		/* 内部で設定する *//* 041214 */
@@ -2803,15 +2853,15 @@ int ReadUntilKeyMatch(FILE * fp_in, const char *key_word, char *buf_value)
 			pos = strchr(&buf_line[keyword_length], '=');
 			if (pos == NULL) {
 				return (-2);
-				    /* キーワードに一致する行は見つかったが、"="が見つからなかった */
-				    ;
+				/* キーワードに一致する行は見つかったが、"="が見つからなかった */
+				;
 			}
 			strcpy(buf_work_value, (pos + 2));
 			pos = strchr(&buf_work_value[1], ';');
 			if (pos == NULL) {
 				return (-3);
-				    /* キーワードに一致する行は見つかったが、";"が見つからなかった */
-				    ;
+				/* キーワードに一致する行は見つかったが、";"が見つからなかった */
+				;
 			} else {
 				*pos = '\0';
 			}
