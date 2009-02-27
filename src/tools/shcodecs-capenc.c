@@ -32,23 +32,7 @@
 
 #define DEBUG
 
-extern char *dummy_nal_buf;
 #define USE_BVOP
-
-/*** Stream-output buffer to receive an encoding result in every one frame ***/
-
-//static unsigned long sdr_read_my_stream_buff[MY_STREAM_BUFF_SIZE/4];          /* 4 bytes alignmen */   
-
-/*** Other work-field area ***/
-// #ifdef MULTI_STREAM             /* In the case of multiple streams */
-// #define MY_MB_WORK_AREA_SIZE       78000   /* QCIF size DataPartioning=ON, Bitrate=64000/256000 : (6500 + 21500) + (9500 + 40000 + more) */
-// #else   /* In the case of the number of the streams to encode is one */
-// #define MY_MB_WORK_AREA_SIZE       28000   /* QCIF size DataPartioning=ON, Bitrate=64000 : 6500 + 21500 */
-// #endif /* MULTI_STREAM */
-
-//#define MY_MB_WORK_AREA_SIZE  76800  /*TODO hardcoded, remove later */
-//static unsigned long my_mb_work_area[MY_MB_WORK_AREA_SIZE/4]; /* 4 bytes alignmen */
-//#define my_sdr_mb_work_area sdr_base+(MY_MB_WORK_AREA_SIZE*2) /* 4 bytes alignmen */
 
 extern avcbe_stream_info *my_context;
 extern TAVCBE_FMEM LDEC_ARRY[];
@@ -62,8 +46,6 @@ extern int GetFromCtrlFTop(const char *control_filepath,
 			   ENC_EXEC_INFO * enc_exec_info,
 			   long *stream_type);
 
-/* Top of the user application sample source to encode */
-/*int mpeg4_enc(void) */
 APPLI_INFO ainfo;		/* User Application Data */
 
 unsigned long m4iph_vpu4_reg_base = 0xfe900000;
@@ -212,7 +194,6 @@ int main(int argc, char *argv[])
 
 	shcodecs_encoder_close(encoder);
 
-	free(dummy_nal_buf);
 	printf("Total encode time = %d(msec)\n", encode_time_get());
 	printf("Total sleep  time = %d(msec)\n", m4iph_sleep_time_get());
 	/* TODO vpu4_reg_close(); */

@@ -9,6 +9,8 @@
 
 #include "encoder_private.h"
 
+extern char *dummy_nal_buf;
+
 unsigned long *my_frame_memory_capt[19];
 
 unsigned long *my_frame_memory_ldec1;
@@ -171,6 +173,7 @@ void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
 	free(my_stream_buff_bak);
 	free(my_end_code_buff_bak);
 	free(my_work_area);
+	free(dummy_nal_buf);
 
 	return;
 }
