@@ -56,6 +56,7 @@ struct _SHCodecs_Encoder {
 	long frame_skip_num; /* Number of frames skipped */
 	long frame_counter; /* The number of encoded frames */
 	long set_intra;	/* Forced intra-mode flag for m4vse_encode_picture function */
+	long output_type;	/* Header insertion flag for m4vse_encode_picture function */
 	avcbe_encoding_property paramR;	/* for stream-1 */
 	M4IPH_VPU4_INIT_OPTION vpu4_param;	/* parameters of VPU4 */
 	OTHER_API_ENC_PARAM other_API_enc_param;

@@ -402,11 +402,11 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 		/* output SPS and PPS for 1st frame */
 		if (header_output_flag == 1) {
 			/* output SPS data */
-			appli_info->output_type = AVCBE_OUTPUT_SPS;
+			encoder->output_type = AVCBE_OUTPUT_SPS;
 			return_code =
 			    avcbe_encode_picture(context, frm,
 						 encoder->set_intra,
-						 appli_info->output_type,
+						 encoder->output_type,
 						 &my_sps_stream_buff_info,
 						 NULL);
 			if (return_code == AVCBE_SPS_OUTPUTTED) {	/* 6 */
@@ -435,11 +435,11 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 			}
 
 			/* output PPS data */
-			appli_info->output_type = AVCBE_OUTPUT_PPS;
+			encoder->output_type = AVCBE_OUTPUT_PPS;
 			return_code =
 			    avcbe_encode_picture(context, frm,
 						 encoder->set_intra,
-						 appli_info->output_type,
+						 encoder->output_type,
 						 &my_pps_stream_buff_info,
 						 NULL);
 			if (return_code == AVCBE_PPS_OUTPUTTED) {	/* 7 */
@@ -523,14 +523,14 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 			return (-109);
 		}
 		/* set to output slice header and slice data */
-		appli_info->output_type = AVCBE_OUTPUT_SLICE;	/* Header insertion flag */
+		encoder->output_type = AVCBE_OUTPUT_SLICE;	/* Header insertion flag */
 		/*--- The MPEG-4 Encoder Library API (required-8)@encode each screen of display data ---*/
 //              printf("enc_pic0=%ld,",tv.tv_usec);
 		gettimeofday(&tv, &tz);
 		return_code =
 		    avcbe_encode_picture(context, frm,
 					 encoder->set_intra,
-					 appli_info->output_type,
+					 encoder->output_type,
 					 &my_stream_buff_info,
 					 extra_stream_buff);
 		gettimeofday(&tv1, &tz);
@@ -650,12 +650,12 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 			    && (slice_stat.avcbe_encoded_pic_type ==
 				AVCBE_IDR_PIC)) {
 				/* set to output SPS data */
-				appli_info->output_type = AVCBE_OUTPUT_SPS;
+				encoder->output_type = AVCBE_OUTPUT_SPS;
 				return_code =
 				    avcbe_encode_picture(context, frm,
 							 encoder->
 							 set_intra,
-							 appli_info->
+							 encoder->
 							 output_type,
 							 &my_sps_stream_buff_info,
 							 NULL);
@@ -696,12 +696,12 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 				}
 
 				/* set to output PPS data */
-				appli_info->output_type = AVCBE_OUTPUT_PPS;
+				encoder->output_type = AVCBE_OUTPUT_PPS;
 				return_code =
 				    avcbe_encode_picture(context, frm,
 							 encoder->
 							 set_intra,
-							 appli_info->
+							 encoder->
 							 output_type,
 							 &my_pps_stream_buff_info,
 							 NULL);
@@ -966,11 +966,11 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 		/* output SPS and PPS for 1st frame */
 		if (header_output_flag == 1) {
 			/* output SPS data */
-			appli_info->output_type = AVCBE_OUTPUT_SPS;
+			encoder->output_type = AVCBE_OUTPUT_SPS;
 			return_code =
 			    avcbe_encode_picture(context, frm,
 						 encoder->set_intra,
-						 appli_info->output_type,
+						 encoder->output_type,
 						 &my_sps_stream_buff_info,
 						 NULL);
 
@@ -999,11 +999,11 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 				return (-111);
 			}
 			/* output PPS data */
-			appli_info->output_type = AVCBE_OUTPUT_PPS;
+			encoder->output_type = AVCBE_OUTPUT_PPS;
 			return_code =
 			    avcbe_encode_picture(context, frm,
 						 encoder->set_intra,
-						 appli_info->output_type,
+						 encoder->output_type,
 						 &my_pps_stream_buff_info,
 						 NULL);
 			if (return_code == AVCBE_PPS_OUTPUTTED) {	/* 7 */
@@ -1093,14 +1093,14 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 		}
 
 		/* set to output slice header and slice data */
-		appli_info->output_type = AVCBE_OUTPUT_SLICE;	/* Header insertion flag */
+		encoder->output_type = AVCBE_OUTPUT_SLICE;	/* Header insertion flag */
 		gettimeofday(&tv, &tz);
 		printf("enc_pic0=%ld,", tv.tv_usec);
 		/*--- The MPEG-4 Encoder Library API (required-8)@encode each screen of display data ---*/
 		return_code =
 		    avcbe_encode_picture(context, frm,
 					 encoder->set_intra,
-					 appli_info->output_type,
+					 encoder->output_type,
 					 &my_stream_buff_info,
 					 extra_stream_buff);
 		gettimeofday(&tv1, &tz);
@@ -1257,13 +1257,13 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 			    && (slice_stat.avcbe_encoded_pic_type ==
 				AVCBE_IDR_PIC)) {
 				/* set to output SPS data */
-				appli_info->output_type = AVCBE_OUTPUT_SPS;
+				encoder->output_type = AVCBE_OUTPUT_SPS;
 
 				return_code =
 				    avcbe_encode_picture(context, frm,
 							 encoder->
 							 set_intra,
-							 appli_info->
+							 encoder->
 							 output_type,
 							 &my_sps_stream_buff_info,
 							 NULL);
@@ -1308,12 +1308,12 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 				}
 
 				/* set to output PPS data */
-				appli_info->output_type = AVCBE_OUTPUT_PPS;
+				encoder->output_type = AVCBE_OUTPUT_PPS;
 				return_code =
 				    avcbe_encode_picture(context, frm,
 							 encoder->
 							 set_intra,
-							 appli_info->
+							 encoder->
 							 output_type,
 							 &my_pps_stream_buff_info,
 							 NULL);

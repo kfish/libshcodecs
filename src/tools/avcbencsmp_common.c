@@ -230,7 +230,6 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder,
 //      appli_info->input_file_name_buf[0] = '\0';
 	//appli_info->input_yuv_fp = NULL;
 
-	appli_info->output_type = AVCBE_OUTPUT_NONE;
 	appli_info->frame_no_increment = 1;
 	appli_info->b_vop_num = 0;
 
