@@ -183,7 +183,7 @@ static int write_output (SHCodecs_Encoder * encoder,
 
 int main(int argc, char *argv[])
 {
-	int encode_return_code, loop_index, success_count, i;
+	int encode_return_code, success_count, i;
 	char message_buf[256];
 	int return_code, case_no = 0;
 	long stream_type, width_height, max_frame;	/* 041201 */
@@ -298,30 +298,15 @@ int main(int argc, char *argv[])
 
 	sh_ceu_start_capturing(ainfo.ceu);
 
-	for (loop_index = 0; loop_index < 1; loop_index++) {
-#if 0
-		/* encode on each case */
-		if (stream_type == AVCBE_H264) {
-			encode_return_code =
-			    encode_1file_h264(ainfo.case_no, &ainfo,
-					      AVCBE_H264);
-		} else {
-			encode_return_code =
-			    encode_1file_mpeg4(encoder, ainfo.case_no,
-					       &ainfo, stream_type);
-		}
-#endif
-		encode_return_code = shcodecs_encoder_run(encoder, &ainfo);
+	encode_return_code = shcodecs_encoder_run(encoder, &ainfo);
 
-		if (encode_return_code < 0) {	/* encode error */
-			sprintf(message_buf, "Encode Error  code=%d ",
-				encode_return_code);
-			DisplayMessage(message_buf, 1);
-		} else {	/* encode success */
-			sprintf(message_buf, "Encode Success ");
-			DisplayMessage(message_buf, 1);
-			success_count++;
-		}
+	if (encode_return_code < 0) {	/* encode error */
+		sprintf(message_buf, "Encode Error  code=%d ", encode_return_code);
+		DisplayMessage(message_buf, 1);
+	} else {	/* encode success */
+		sprintf(message_buf, "Encode Success ");
+		DisplayMessage(message_buf, 1);
+		success_count++;
 	}
 
 	sh_ceu_stop_capturing(ainfo.ceu);
