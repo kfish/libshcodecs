@@ -416,7 +416,7 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 	ref1 = ref2 = 0;
 	frm = 0;		/* Frame number to be encoded (for avcbe_encode_picture function) */
 
-	appli_info->frame_counter = 0;
+	encoder->frame_counter = 0;
 	encoder->frame_skip_num = 0;
 
 	streamsize_total = 0;
@@ -433,7 +433,7 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 	while (1) {	/*---- Repeating by frame numbers -------------------------*/
 		printf("while---");
 		if (appli_info->frame_number_to_encode ==
-		    appli_info->frame_counter) {
+		    encoder->frame_counter) {
 			break;
 		}
 #ifdef USE_BVOP			/* 050106 */
@@ -598,14 +598,14 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 		} else if (return_code == AVCBE_ENCODE_SUCCESS) {	/* 0 */
 			sprintf(messeage_buf,
 				" encode_1file_mpeg4:avcbe_encode_picture SUCCESS  frm=%d,seq_no=%d ",
-				frm, appli_info->frame_counter);
+				frm, encoder->frame_counter);
 			DisplayMessage(messeage_buf, 1);
 			/* the second parameter 'ldec' value must be changed when *
 			 * the avcbe_set_image_pointer function is called on next time. */
 		} else if (return_code == AVCBE_FRAME_SKIPPED) {	/* 1 */
 			sprintf(messeage_buf,
 				" encode_1file_mpeg4:avcbe_encode_picture THIS FRAME SKIPPED(Not Encoded)  frm=%d,seq_no=%d ",
-				frm, appli_info->frame_counter);
+				frm, encoder->frame_counter);
 			DisplayMessage(messeage_buf, 1);
 			/* the second parameter 'ldec' value must NOT be changed *
 			 * when the avcbe_set_image_pointer function is called on next time. */
@@ -613,7 +613,7 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 		} else if (return_code == AVCBE_EMPTY_VOP_OUTPUTTED) {	/* 2 */
 			sprintf(messeage_buf,
 				" encode_1file_mpeg4:avcbe_encode_picture EMPTY VOP CREATED  frm=%d,seq_no=%d ",
-				frm, appli_info->frame_counter);
+				frm, encoder->frame_counter);
 			DisplayMessage(messeage_buf, 1);
 			/* the second parameter 'ldec' value must NOT be changed *
 			 * when the avcbe_set_image_pointer function is called on next time. */
@@ -621,14 +621,14 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 		} else if (return_code == AVCBE_B_VOP_OUTPUTTED) {	/* 4 */
 			sprintf(messeage_buf,
 				" encode_1file_mpeg4:avcbe_encode_picture B-VOP OUTPUTTED  frm=%d,seq_no=%d ",
-				frm, appli_info->frame_counter);
+				frm, encoder->frame_counter);
 			DisplayMessage(messeage_buf, 1);
 			/* the second parameter 'ldec' value is ignored when B-VOP is used */
 		} else {
 			sprintf(messeage_buf,
 				" encode_1file_mpeg4:avcbe_encode_picture UNKNOWN RETURN CODE=%d  frm=%d,seq_no=%d ",
 				return_code, frm,
-				appli_info->frame_counter);
+				encoder->frame_counter);
 			DisplayMessage(messeage_buf, 1);
 		}
 		avcbe_get_last_frame_stat(context, &frame_stat);
@@ -661,8 +661,8 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 			}
 		}
 		frm += appli_info->frame_no_increment;
-		appli_info->frame_counter++;
-//printf("appli_info->frame_counter=%d\n",appli_info->frame_counter);
+		encoder->frame_counter++;
+//printf("encoder->frame_counter=%d\n",encoder->frame_counter);
 	}			/* while */
 
 	/*------ End of repeating by frame numbers ------------*/

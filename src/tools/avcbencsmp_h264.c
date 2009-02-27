@@ -355,7 +355,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 	ldec = 0;		/* Index number of the image-work-field area (0 to N-1) (for avcbe_set_image */
 	ref1 = ref2 = 0;
 	frm = 0;		/* Frame number to be encoded (for avcbe_encode_picture function) */
-	appli_info->frame_counter = 0;
+	encoder->frame_counter = 0;
 	encoder->frame_skip_num = 0;
 	streamsize_total = 0;
 	appli_info->set_intra = AVCBE_ANY_VOP;	/* Forced intra-mode flag */
@@ -394,7 +394,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 	    appli_info->enc_exec_info.frame_number_to_encode;
 	while (1) {	/*--------------------- Repeating by frame numbers --------------------------*/
 		if (appli_info->frame_number_to_encode ==
-		    appli_info->frame_counter) {
+		    encoder->frame_counter) {
 			break;
 		}
 		appli_info->output_filler_data = 0;	/* for Filler data(CPB Buffer) */
@@ -414,7 +414,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 				sprintf(messeage_buf,
 					" encode_1file_h264:avcbe_encode_picture OUTPUT SEQUENCE PARAMETER SET frm=%d,seq_no=%d ",
 					(int) frm,
-					(int) appli_info->frame_counter);
+					(int) encoder->frame_counter);
 				DisplayMessage(messeage_buf, 1);
 #endif
 				/* get the size of SPS data in byte unit */
@@ -444,11 +444,11 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 						 NULL);
 			if (return_code == AVCBE_PPS_OUTPUTTED) {	/* 7 */
 				//sprintf(messeage_buf, " encode_1file:avcbe_encode_picture OUTPUT PICTURE PARAMETER SET frm=%d,seq_no=%d ",
-				//                       (int)frm, (int)appli_info->frame_counter);
+				//                       (int)frm, (int)encoder->frame_counter);
 				sprintf(messeage_buf,
 					"Encoded frame %5d, sequence no %5d",
 					(int) frm,
-					(int) appli_info->frame_counter);
+					(int) encoder->frame_counter);
 				DisplayMessage(messeage_buf, 1);
 
 				/* get the size of PPS data in byte unit */
@@ -592,13 +592,13 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 			return (-111);
 
 		} else if (return_code == AVCBE_ENCODE_SUCCESS) {	/* 0 */
-//                      sprintf(messeage_buf, " encode_1file_h264:avcbe_encode_picture SUCCESS  frm=%d,seq_no=%d ", (int)frm, (int)appli_info->frame_counter);
+//                      sprintf(messeage_buf, " encode_1file_h264:avcbe_encode_picture SUCCESS  frm=%d,seq_no=%d ", (int)frm, (int)encoder->frame_counter);
 //                      DisplayMessage(messeage_buf, 1);
 		} else if (return_code == AVCBE_FRAME_SKIPPED) {	/* 1 */
 			sprintf(messeage_buf,
 				" encode_1file_h264:avcbe_encode_picture THIS FRAME SKIPPED(Not Encoded)  frm=%d,seq_no=%d ",
 				(int) frm,
-				(int) appli_info->frame_counter);
+				(int) encoder->frame_counter);
 			DisplayMessage(messeage_buf, 1);
 
 			/* the second parameter 'ldec' value must NOT be changed when the avcbe_set_image_pointer function is called on next time. */
@@ -608,13 +608,13 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 			sprintf(messeage_buf,
 				" encode_1file_h264:avcbe_encode_picture YET 1 PICTURE NOT FINISHED frm=%d,seq_no=%d ",
 				(int) frm,
-				(int) appli_info->frame_counter);
+				(int) encoder->frame_counter);
 			DisplayMessage(messeage_buf, 1);
 		} else {
 			sprintf(messeage_buf,
 				" encode_1file_h264:avcbe_encode_picture UNKNOWN RETURN CODE=%d  frm=%d,seq_no=%d ",
 				(int) return_code, (int) frm,
-				(int) appli_info->frame_counter);
+				(int) encoder->frame_counter);
 			DisplayMessage(messeage_buf, 1);
 		}
 		/* get the information about the just encoded frame (slice) */
@@ -664,7 +664,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 					sprintf(messeage_buf,
 						" encode_1file_h264:avcbe_encode_picture OUTPUT SEQUENCE PARAMETER SET frm=%d,seq_no=%d ",
 						(int) frm, (int)
-						appli_info->frame_counter);
+						encoder->frame_counter);
 					DisplayMessage(messeage_buf, 1);
 #endif
 
@@ -707,11 +707,11 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 							 NULL);
 				if (return_code == AVCBE_PPS_OUTPUTTED) {	/* 7 */
 					//sprintf(messeage_buf, " encode_1file_h264:avcbe_encode_picture OUTPUT PICTURE PARAMETER SET frm=%d,seq_no=%d ",
-					//                       (int)frm, (int)appli_info->frame_counter);
+					//                       (int)frm, (int)encoder->frame_counter);
 					sprintf(messeage_buf,
 						"Encoded frame %5d, sequence no %5d",
 						(int) frm, (int)
-						appli_info->frame_counter);
+						encoder->frame_counter);
 					DisplayMessage(messeage_buf, 1);
 
 					/* get the size of PPS data in byte unit */
@@ -809,7 +809,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 #if 0
 			sprintf(messeage_buf,
 				" encode_1file_h264:avcbe_encode_picture SUCCESS  frm=%d,seq_no=%d,size=%d ",
-				(int) frm, (int) appli_info->frame_counter,
+				(int) frm, (int) encoder->frame_counter,
 				streamsize_per_frame);
 			DisplayMessage(messeage_buf, 1);
 #endif
@@ -819,7 +819,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 			    (slice_stat.avcbe_encoded_slice_bits / 8);
 		}
 		frm += appli_info->frame_no_increment;
-		appli_info->frame_counter++;
+		encoder->frame_counter++;
 	}			/* while */
 	/*---------------------- End of repeating by frame numbers -----------------------------*/
 #ifdef DEBUG
@@ -905,7 +905,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 	ref1 = ref2 = 0;
 	frm = 0;		/* Frame number to be encoded (for avcbe_encode_picture function) */
 
-	appli_info->frame_counter = 0;
+	encoder->frame_counter = 0;
 	encoder->frame_skip_num = 0;
 
 	streamsize_total = 0;
@@ -955,7 +955,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 		/*--------------------- Repeating by frame numbers --------------------------*/
 
 		if (appli_info->frame_number_to_encode ==
-		    appli_info->frame_counter) {
+		    encoder->frame_counter) {
 			break;
 		}
 		appli_info->output_filler_data = 0;	/* for Filler data(CPB Buffer) */
@@ -979,7 +979,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 				sprintf(messeage_buf,
 					" encode_1file:avcbe_encode_picture OUTPUT SEQUENCE PARAMETER SET frm=%d,seq_no=%d ",
 					(int) frm,
-					(int) appli_info->frame_counter);
+					(int) encoder->frame_counter);
 				DisplayMessage(messeage_buf, 1);
 #endif
 
@@ -1008,11 +1008,11 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 						 NULL);
 			if (return_code == AVCBE_PPS_OUTPUTTED) {	/* 7 */
 				//sprintf(messeage_buf, " encode_1file:avcbe_encode_picture OUTPUT PICTURE PARAMETER SET frm=%d,seq_no=%d ",
-				//                       (int)frm, (int)appli_info->frame_counter);
+				//                       (int)frm, (int)encoder->frame_counter);
 				sprintf(messeage_buf,
 					"Encoded frame %5d, sequence no %5d",
 					(int) frm,
-					(int) appli_info->frame_counter);
+					(int) encoder->frame_counter);
 				DisplayMessage(messeage_buf, 1);
 
 				/* get the size of PPS data in byte unit */
@@ -1160,14 +1160,14 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 			sprintf(messeage_buf,
 				" encode_1file_h264:avcbe_encode_picture SUCCESS  frm=%d,seq_no=%d ",
 				(int) frm,
-				(int) appli_info->frame_counter);
+				(int) encoder->frame_counter);
 			DisplayMessage(messeage_buf, 1);
 
 		} else if (return_code == AVCBE_FRAME_SKIPPED) {	/* 1 */
 			sprintf(messeage_buf,
 				" encode_1file_h264:avcbe_encode_picture THIS FRAME SKIPPED(Not Encoded)  frm=%d,seq_no=%d ",
 				(int) frm,
-				(int) appli_info->frame_counter);
+				(int) encoder->frame_counter);
 			DisplayMessage(messeage_buf, 1);
 			/* the second parameter 'ldec' value must NOT be changed when the avcbe_set_image_pointer function is called on next time. */
 			encoder->frame_skip_num++;
@@ -1176,14 +1176,14 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 			sprintf(messeage_buf,
 				" encode_1file_h264:avcbe_encode_picture YET 1 PICTURE NOT FINISHED frm=%d,seq_no=%d ",
 				(int) frm,
-				(int) appli_info->frame_counter);
+				(int) encoder->frame_counter);
 			DisplayMessage(messeage_buf, 1);
 
 		} else {
 			sprintf(messeage_buf,
 				" encode_1file_h264:avcbe_encode_picture UNKNOWN RETURN CODE=%d  frm=%d,seq_no=%d ",
 				(int) return_code, (int) frm,
-				(int) appli_info->frame_counter);
+				(int) encoder->frame_counter);
 			DisplayMessage(messeage_buf, 1);
 		}
 
@@ -1214,7 +1214,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 			tmp_pic_total_bytes = 0;
 
 			frm += appli_info->frame_no_increment;
-			appli_info->frame_counter++;
+			encoder->frame_counter++;
 			appli_info->slice_mb_counter = 0;
 
 			/* the second parameter 'ldec' value must NOT be changed when the m4vse_set_image_pointer function is called on next time. */
@@ -1273,7 +1273,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 					sprintf(messeage_buf,
 						" encode_1file:avcbe_encode_picture OUTPUT SEQUENCE PARAMETER SET frm=%d,seq_no=%d ",
 						(int) frm, (int)
-						appli_info->frame_counter);
+						encoder->frame_counter);
 					DisplayMessage(messeage_buf, 1);
 #endif
 
@@ -1319,11 +1319,11 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 							 NULL);
 				if (return_code == AVCBE_PPS_OUTPUTTED) {	/* 7 */
 					//sprintf(messeage_buf, " encode_1file:avcbe_encode_picture OUTPUT PICTURE PARAMETER SET frm=%d,seq_no=%d ", 
-					//                      (int)frm, (int)appli_info->frame_counter);
+					//                      (int)frm, (int)encoder->frame_counter);
 					sprintf(messeage_buf,
 						"Encoded frame %5d, sequence no %5d",
 						(int) frm, (int)
-						appli_info->frame_counter);
+						encoder->frame_counter);
 					DisplayMessage(messeage_buf, 1);
 
 					/* set to output PPS data */
@@ -1430,7 +1430,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 		if ((appli_info->other_options_h264.avcbe_use_slice == AVCBE_ON) && (appli_info->other_options_h264.avcbe_call_unit == AVCBE_CALL_PER_NAL)) {	/* when the avcbe_encode_picture function returns on each 1-slice */
 			if (appli_info->slice_mb_counter == appli_info->mb_num_of_picture) {	/* when all slices of 1-picture are finished */
 				frm += appli_info->frame_no_increment;
-				appli_info->frame_counter++;
+				encoder->frame_counter++;
 				appli_info->slice_mb_counter = 0;
 			}
 		}

@@ -237,8 +237,6 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder,
 
 	appli_info->output_filler_enable = 0;	/* add at Version2 */
 
-	appli_info->frame_counter = 0;
-
 	appli_info->error_return_function = 0;	/* add at Version2 */
 	appli_info->error_return_code = 0;	/* add at Version2 */
 

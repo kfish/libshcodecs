@@ -263,7 +263,6 @@ extern "C" {
 		long b_vop_num;	/* The number of B-VOP to insert */
 
 		/* Output imformation in encoding */
-		long frame_counter;	/* The number of encoded frames */
 
 		unsigned long mb_num_of_picture;	/* total number of mb in picture */
 		unsigned long slice_mb_counter;	/* counter of mb_num_of_picture */
