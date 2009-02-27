@@ -92,7 +92,7 @@ extern long frame_counter_of_input;	/* the number of input frames for stream-1 *
 
 void disp_context_info(void *context);
 
-long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder, long case_no,
+long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 			      APPLI_INFO * appli_info, long stream_type,
 			      avcbe_stream_info * context);
 
@@ -153,7 +153,7 @@ void get_new_stream_buf(avcbe_stream_info * context,
 /*---------------------------------------------------------------------*/
 /*    encode on each case (for MPEG-4 or H.263) 					   */
 /*---------------------------------------------------------------------*/
-int encode_1file_mpeg4(SHCodecs_Encoder * encoder, long case_no,
+int encode_1file_mpeg4(SHCodecs_Encoder * encoder,
 		       APPLI_INFO * appli_info, long stream_type)
 {
 	long return_code;
@@ -176,7 +176,7 @@ int encode_1file_mpeg4(SHCodecs_Encoder * encoder, long case_no,
 	/* Initialize Function Of Encoder(avcbe_set_default_param, avcbe_init_encode, 
 	 * avcbe_init_memory) */
 	return_code =
-	    init_for_encoder_mpeg4(encoder, case_no, appli_info, stream_type,
+	    init_for_encoder_mpeg4(encoder, appli_info, stream_type,
 				   &my_context);
 	if (return_code != 0) {
 		return (-14);
@@ -184,7 +184,7 @@ int encode_1file_mpeg4(SHCodecs_Encoder * encoder, long case_no,
 
 	/* encode process function for mpeg-4/H.263 (call avcbe_encode_picture func.) */
 	return_code =
-	    encode_picture_for_mpeg4(encoder, case_no, appli_info,
+	    encode_picture_for_mpeg4(encoder, appli_info,
 				     stream_type, my_context);
 	if (return_code != 0) {
 		return (-15);
@@ -221,7 +221,7 @@ int encode_1file_mpeg4(SHCodecs_Encoder * encoder, long case_no,
 /*--------------------------------------------------------------*/
 /* init for encoder						*/
 /*--------------------------------------------------------------*/
-long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO * appli_info,
+long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
 			    long stream_type, avcbe_stream_info ** context)
 {
 	long return_code = 0;
@@ -251,8 +251,7 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO
 
 	/*--- set parameters for use in encoding (one of the user application's 
 	 * own functions) ---*/
-	return_code = select_inputfile_set_param(case_no, encoder, appli_info);
-	/* add case_no at Version2 */
+	return_code = select_inputfile_set_param(encoder, appli_info);
 	if (return_code == -1) {	/* error */
 		printf
 		    (" encode_1file_mpeg4:select_inputfile_set_param ERROR! \n");
@@ -420,7 +419,7 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO
 /*------------------------------------------------------------------------*/
 /* Encode process function for MPEG-4/H.263                               */
 /*------------------------------------------------------------------------*/
-long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder, long case_no,
+long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 			      APPLI_INFO * appli_info, long stream_type,
 			      avcbe_stream_info * context)
 {

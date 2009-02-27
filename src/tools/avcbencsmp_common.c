@@ -208,11 +208,9 @@ void set_VPU4_param(M4IPH_VPU4_INIT_OPTION * vpu4_param)
 /*----------------------------------------------------------------------------------------------*/
 /* set parameters for using in encoding */
 /*----------------------------------------------------------------------------------------------*/
-int select_inputfile_set_param(long case_no, SHCodecs_Encoder * encoder, APPLI_INFO * appli_info)
-{				/* add case_no at Version2 */
+int select_inputfile_set_param(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info)
+{
 	int return_code;
-
-	return_code = case_no;
 
 	return_code =
 	    GetFromCtrlFtoEncParam(appli_info->ctrl_file_name_buf,
@@ -230,7 +228,6 @@ int select_inputfile_set_param(long case_no, SHCodecs_Encoder * encoder, APPLI_I
 	/* same parameters to case No. */
 	appli_info->frm = 0;
 	appli_info->output_write_size = 0;
-	appli_info->case_no = case_no;
 	appli_info->frame_number_to_encode = 1;
 //      appli_info->input_file_name_buf[0] = '\0';
 	//appli_info->input_yuv_fp = NULL;
@@ -255,11 +252,6 @@ int select_inputfile_set_param(long case_no, SHCodecs_Encoder * encoder, APPLI_I
 	appli_info->output_filler_data = 0;	/* add at Version2 */
 
 	/* same parameters to stream_type */
-	switch (case_no) {
-	case CASE0_MPEG4_001:
-	case CASE1_H264_001:
-	case CASE2_H264_002:
-	case CASE3_H264_003:
 //              strcpy(&appli_info->input_file_name_buf[0], "sample.yuv");
 //              strcpy(&appli_info->output_file_name_buf[0], "output.264");
 
@@ -304,24 +296,11 @@ int select_inputfile_set_param(long case_no, SHCodecs_Encoder * encoder, APPLI_I
 //19            appli_info->param.avcbe_noise_reduction = 0;
 //20            appli_info->param.avcbe_reaction_param_coeff = 10;
 //21            appli_info->param.avcbe_weightedQ_mode = AVCBE_WEIGHTEDQ_NONE;
-		break;
-	default:
-		return_code = -1;
-		break;
-	}
 
 	/* parameters depend on stream_type */
 	if ((appli_info->param.avcbe_stream_type == AVCBE_MPEG4) ||
 	    (appli_info->param.avcbe_stream_type == AVCBE_H263)) {
-		switch (case_no) {
-		case CASE0_MPEG4_001:
-			break;
-		}		/* end of 'switch (case_no)' */
 	} else if (appli_info->param.avcbe_stream_type == AVCBE_H264) {	/* added at Version2 */
-		switch (case_no) {
-		case CASE1_H264_001:
-		case CASE2_H264_002:
-		case CASE3_H264_003:
 			/*** avcbe_other_options_h264 ***/
 //01                    appli_info->other_options_h264.avcbe_Ivop_quant_initial_value = 30;
 //02                    appli_info->other_options_h264.avcbe_Pvop_quant_initial_value = 30;
@@ -337,8 +316,7 @@ int select_inputfile_set_param(long case_no, SHCodecs_Encoder * encoder, APPLI_I
 //11                    appli_info->other_options_h264.avcbe_ratecontrol_cpb_remain_zero_skip_enable = AVCBE_ON;
 
 //12                    appli_info->other_options_h264.avcbe_ratecontrol_cpb_buffer_unit_size = 1000;
-//13                    appli_info->other_options_h264.avcbe_ratecontrol_cpb_buffer_mode = 
-			AVCBE_AUTO;
+//13                    appli_info->other_options_h264.avcbe_ratecontrol_cpb_buffer_mode = AVCBE_AUTO;
 //14                    appli_info->other_options_h264.avcbe_ratecontrol_cpb_max_size = 1152;
 //15                    appli_info->other_options_h264.avcbe_ratecontrol_cpb_offset = 20;
 //16                    appli_info->other_options_h264.avcbe_ratecontrol_cpb_offset_rate = 50;
@@ -409,8 +387,6 @@ int select_inputfile_set_param(long case_no, SHCodecs_Encoder * encoder, APPLI_I
 			/* Picture Header Parameter */
 //42                    appli_info->other_options_h264.avcbe_chroma_qp_index_offset = 0;
 //43                    appli_info->other_options_h264.avcbe_constrained_intra_pred = AVCBE_OFF;
-			break;
-		}		/* end of 'switch (case_no)' */
 	}
 	/* end of 'if (stream_type == AVCBE_H264)' */
 	appli_info->frame_no_increment =

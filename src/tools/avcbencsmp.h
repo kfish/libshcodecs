@@ -20,13 +20,6 @@
 
 #define CAPTURE_VGA 1
 
-enum {				/* case_no */
-	CASE0_MPEG4_001 = 0,
-	CASE1_H264_001,
-	CASE2_H264_002,
-	CASE3_H264_003,
-};
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -223,8 +216,6 @@ extern "C" {
 		long output_write_size;
 
 		/* Input imformation in encoding */
-		/* case No. */
-		long case_no;
 
 		/* The number of frames to encode. */
 		long frame_number_to_encode;
@@ -303,8 +294,7 @@ extern "C" {
 /*-------------- proto-type declaration ----------------------------*/
 /*--- the functions in avcbencsmp_common.c ---*/
 	int avcbe_enc(long stream_type);
-	int encode_1file(long case_no, APPLI_INFO * appli_info,
-			 long stream_type);
+	int encode_1file(APPLI_INFO * appli_info, long stream_type);
 	void set_VPU4_param(M4IPH_VPU4_INIT_OPTION * vpu4_param);
 	void cat_output_stream(APPLI_INFO * appli_info,
 			       avcbe_stream_info * context,

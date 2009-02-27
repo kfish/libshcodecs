@@ -180,7 +180,7 @@ int main(int argc, char *argv[])
 {
 	int encode_return_code, success_count, i;
 	char message_buf[256];
-	int return_code, case_no = 0;
+	int return_code;
 	long stream_type, width_height, max_frame;	/* 041201 */
 	SHCodecs_Encoder * encoder;
 

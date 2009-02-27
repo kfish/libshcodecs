@@ -62,8 +62,7 @@ extern long tmp_slice_size;
 /*-------------------------------------------------------------------------------*/
 /*    encode on each case (for H.264)                                            */
 /*-------------------------------------------------------------------------------*/
-int encode_1file_h264(SHCodecs_Encoder * encoder, long case_no,
-		      APPLI_INFO * appli_info, long stream_type)
+int encode_1file_h264(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long stream_type)
 {
 	long return_code;
 	TAVCBE_STREAM_BUFF my_end_code_buff_info;
@@ -78,7 +77,7 @@ int encode_1file_h264(SHCodecs_Encoder * encoder, long case_no,
 
 	/* Initialize Function Of Encoder(avcbe_set_default_param, avcbe_init_encode, avcbe_init_memory) */
 	return_code =
-	    init_for_encoder_h264(encoder, case_no, appli_info,
+	    init_for_encoder_h264(encoder, appli_info,
 				  stream_type, &my_context);
 	if (return_code != 0) {
 		return (-114);
@@ -88,11 +87,11 @@ int encode_1file_h264(SHCodecs_Encoder * encoder, long case_no,
 	    (appli_info->other_options_h264.avcbe_call_unit ==
 	     AVCBE_CALL_PER_NAL)) {
 		return_code =
-		    encode_nal_unit(encoder, case_no, appli_info,
+		    encode_nal_unit(encoder, appli_info,
 				    stream_type, my_context);
 	} else {
 		return_code =
-		    encode_picture_unit(encoder, case_no, appli_info,
+		    encode_picture_unit(encoder, appli_info,
 					stream_type, my_context);
 	}
 	if (return_code != 0) {
@@ -135,7 +134,7 @@ int encode_1file_h264(SHCodecs_Encoder * encoder, long case_no,
 /*-------------------------------------------------------------------------------*/
 /* init for encoder                                                              */
 /*-------------------------------------------------------------------------------*/
-long init_for_encoder_h264(SHCodecs_Encoder * encoder, long case_no,
+long init_for_encoder_h264(SHCodecs_Encoder * encoder,
 			   APPLI_INFO * appli_info, long stream_type,
 			   avcbe_stream_info ** context)
 {
@@ -161,7 +160,7 @@ long init_for_encoder_h264(SHCodecs_Encoder * encoder, long case_no,
 		return (-102);
 	}
 	/*--- set parameters for use in encoding (one of the user application's own functions) ---*/
-	return_code = select_inputfile_set_param(case_no, encoder, appli_info);
+	return_code = select_inputfile_set_param(encoder, appli_info);
 	if (return_code == -1) {	/* error */
 		DisplayMessage
 		    (" encode_1file_h264:select_inputfile_set_param ERROR! ",
@@ -290,7 +289,7 @@ long init_for_encoder_h264(SHCodecs_Encoder * encoder, long case_no,
 /*----------------------------------------------------------------------------------------------*/
 /* Encode by 1 picture unit without/with using slice division for H.264                         */
 /*----------------------------------------------------------------------------------------------*/
-long encode_picture_unit(SHCodecs_Encoder * encoder, long case_no,
+long encode_picture_unit(SHCodecs_Encoder * encoder,
 			 APPLI_INFO * appli_info, long stream_type,
 			 avcbe_stream_info * context)
 {
@@ -839,7 +838,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder, long case_no,
 /*----------------------------------------------------------------------------------------------*/
 /* Encode by NAL unit for H.264                                                                 */
 /*----------------------------------------------------------------------------------------------*/
-long encode_nal_unit(SHCodecs_Encoder * encoder, long case_no,
+long encode_nal_unit(SHCodecs_Encoder * encoder,
 		     APPLI_INFO * appli_info, long stream_type,
 		     avcbe_stream_info * context)
 {
