@@ -256,7 +256,6 @@ extern "C" {
 #if 1
 		ENC_EXEC_INFO enc_exec_info;	/* FILE_USEからはずす *//* 050121 */
 
-		long set_intra;	/* Forced intra-mode flag for m4vse_encode_picture function */
 		long output_type;	/* Header insertion flag for m4vse_encode_picture function */
 		long frame_no_increment;	/* Increment value of Frame number to be encoded for 
 						   m4vse_encode_picture function */

@@ -421,7 +421,7 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 
 	streamsize_total = 0;
 
-	appli_info->set_intra = AVCBE_ANY_VOP;	/* Forced intra-mode flag */
+	encoder->set_intra = AVCBE_ANY_VOP;	/* Forced intra-mode flag */
 	appli_info->output_type = AVCBE_OUTPUT_NONE;	/* Header insertion flag */
 
 	captfmem.Y_fmemp = (unsigned char *) CAPTF_ARRY[0].Y_fmemp;
@@ -521,7 +521,7 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 #ifdef DEBUG
 		printf
 		    ("encode_picture_for_mpeg4: avcbe_encode_picture (%x, %ld, %ld, %ld, {%ld, %x})\n",
-		     context, frm, appli_info->set_intra,
+		     context, frm, encoder->set_intra,
 		     appli_info->output_type,
 		     my_stream_buff_info.buff_size,
 		     my_stream_buff_info.buff_top);
@@ -531,7 +531,7 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 //printf("enc_pic0=%ld,",tv.tv_usec);
 		return_code =
 		    avcbe_encode_picture(context, frm,
-					 appli_info->set_intra,
+					 encoder->set_intra,
 					 appli_info->output_type,
 					 &my_stream_buff_info, NULL);
 		gettimeofday(&tv1, &tz);

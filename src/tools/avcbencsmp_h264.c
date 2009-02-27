@@ -358,7 +358,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 	encoder->frame_counter = 0;
 	encoder->frame_skip_num = 0;
 	streamsize_total = 0;
-	appli_info->set_intra = AVCBE_ANY_VOP;	/* Forced intra-mode flag */
+	encoder->set_intra = AVCBE_ANY_VOP;	/* Forced intra-mode flag */
 	appli_info->slice_mb_counter = 0;
 	appli_info->mb_num_of_picture = 0;
 	header_output_flag = 1;	/* set to output SPS and PPS for 1st frame */
@@ -405,7 +405,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 			appli_info->output_type = AVCBE_OUTPUT_SPS;
 			return_code =
 			    avcbe_encode_picture(context, frm,
-						 appli_info->set_intra,
+						 encoder->set_intra,
 						 appli_info->output_type,
 						 &my_sps_stream_buff_info,
 						 NULL);
@@ -438,7 +438,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 			appli_info->output_type = AVCBE_OUTPUT_PPS;
 			return_code =
 			    avcbe_encode_picture(context, frm,
-						 appli_info->set_intra,
+						 encoder->set_intra,
 						 appli_info->output_type,
 						 &my_pps_stream_buff_info,
 						 NULL);
@@ -529,7 +529,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 		gettimeofday(&tv, &tz);
 		return_code =
 		    avcbe_encode_picture(context, frm,
-					 appli_info->set_intra,
+					 encoder->set_intra,
 					 appli_info->output_type,
 					 &my_stream_buff_info,
 					 extra_stream_buff);
@@ -653,7 +653,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 				appli_info->output_type = AVCBE_OUTPUT_SPS;
 				return_code =
 				    avcbe_encode_picture(context, frm,
-							 appli_info->
+							 encoder->
 							 set_intra,
 							 appli_info->
 							 output_type,
@@ -699,7 +699,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 				appli_info->output_type = AVCBE_OUTPUT_PPS;
 				return_code =
 				    avcbe_encode_picture(context, frm,
-							 appli_info->
+							 encoder->
 							 set_intra,
 							 appli_info->
 							 output_type,
@@ -910,7 +910,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 
 	streamsize_total = 0;
 
-	appli_info->set_intra = AVCBE_ANY_VOP;	/* Forced intra-mode flag */
+	encoder->set_intra = AVCBE_ANY_VOP;	/* Forced intra-mode flag */
 
 	appli_info->slice_mb_counter = 0;
 	appli_info->mb_num_of_picture = 0;
@@ -969,7 +969,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 			appli_info->output_type = AVCBE_OUTPUT_SPS;
 			return_code =
 			    avcbe_encode_picture(context, frm,
-						 appli_info->set_intra,
+						 encoder->set_intra,
 						 appli_info->output_type,
 						 &my_sps_stream_buff_info,
 						 NULL);
@@ -1002,7 +1002,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 			appli_info->output_type = AVCBE_OUTPUT_PPS;
 			return_code =
 			    avcbe_encode_picture(context, frm,
-						 appli_info->set_intra,
+						 encoder->set_intra,
 						 appli_info->output_type,
 						 &my_pps_stream_buff_info,
 						 NULL);
@@ -1099,7 +1099,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 		/*--- The MPEG-4 Encoder Library API (required-8)@encode each screen of display data ---*/
 		return_code =
 		    avcbe_encode_picture(context, frm,
-					 appli_info->set_intra,
+					 encoder->set_intra,
 					 appli_info->output_type,
 					 &my_stream_buff_info,
 					 extra_stream_buff);
@@ -1261,7 +1261,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 
 				return_code =
 				    avcbe_encode_picture(context, frm,
-							 appli_info->
+							 encoder->
 							 set_intra,
 							 appli_info->
 							 output_type,
@@ -1311,7 +1311,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 				appli_info->output_type = AVCBE_OUTPUT_PPS;
 				return_code =
 				    avcbe_encode_picture(context, frm,
-							 appli_info->
+							 encoder->
 							 set_intra,
 							 appli_info->
 							 output_type,

@@ -136,6 +136,7 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 
         encoder->frm = 0;
         encoder->frame_skip_num = 0;
+	encoder->set_intra = AVCBE_ANY_VOP;
 
 	m4iph_sleep_time_init();
 
