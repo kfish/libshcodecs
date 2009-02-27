@@ -27,15 +27,6 @@
 
 #include <shcodecs/shcodecs_encoder.h>
 
-#ifdef CAPT_INPUT
-#if 0
-#include	"cpu_sh73380.h"
-#include	"lcd.h"
-#endif
-#if 1
-#include <pthread.h>
-#endif
-#endif				/* CAPT_INPUT */
 extern char *dummy_nal_buf;
 
 /*** Stream-output buffer to receive an encoding result in every one frame ***/
@@ -74,48 +65,6 @@ extern long frame_counter_of_input;	/* the number of input frames for stream-1 *
 int open_input_image_file(APPLI_INFO *);
 int open_output_file(APPLI_INFO *);
 void disp_context_info(void *context);
-
-#ifdef CAPT_INPUT
-/*------------------------------------------------------------------------------*/
-/*   For input camera															*/
-/*------------------------------------------------------------------------------*/
-#define SCENE_CHANGE_THR	150000
-#define ComplexValueMax		600
-
-unsigned long ComplexValue;
-#if 0
-extern unsigned long ComplexValue;
-extern void vio_init(unsigned long Y_save_addr,
-		     unsigned long CrCb_save_addr,
-		     unsigned long RGB_save_addr);
-extern long camera_capture(void);
-#endif
-unsigned long ComplexValueSave[ComplexValueMax];
-unsigned long ComplexDiffSave[ComplexValueMax];
-unsigned long swap_long(unsigned long ul_val);
-unsigned long cnt;
-long tmp;
-
-void cnvs_data(void);
-
-
-typedef struct {
-	int video_buffer_size_max;
-	volatile int video_buffer_size_current;
-	unsigned char **video_ringbuffer;
-	volatile int video_head;
-	volatile int video_tail;
-	volatile int video_cnt;
-	pthread_t video_grabber_thread;
-	pthread_mutex_t video_buffer_mutex;
-
-} common;
-
-common common_buf;
-
-extern void *video_grabber(void *);
-
-#endif				/* CAPT_INPUT */
 
 extern int GetFromCtrlFTop(const char *control_filepath,
 			   ENC_EXEC_INFO * enc_exec_info,

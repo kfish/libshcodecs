@@ -29,15 +29,6 @@
 
 /* #define DEBUG */
 
-#ifdef CAPT_INPUT
-#if 0
-#include	"cpu_sh73380.h"
-#include	"lcd.h"
-#endif
-#if 1
-#include <pthread.h>
-#endif
-#endif				/* CAPT_INPUT */
 extern char *dummy_nal_buf;
 #define USE_BVOP
 
@@ -95,48 +86,6 @@ void disp_context_info(void *context);
 long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 			      APPLI_INFO * appli_info, long stream_type,
 			      avcbe_stream_info * context);
-
-#ifdef CAPT_INPUT
-/*------------------------------------------------------------------------------*/
-/*   For input camera															*/
-/*------------------------------------------------------------------------------*/
-#define SCENE_CHANGE_THR	150000
-#define ComplexValueMax		600
-
-unsigned long ComplexValue;
-#if 0
-extern unsigned long ComplexValue;
-extern void vio_init(unsigned long Y_save_addr,
-		     unsigned long CrCb_save_addr,
-		     unsigned long RGB_save_addr);
-extern long camera_capture(void);
-#endif
-unsigned long ComplexValueSave[ComplexValueMax];
-unsigned long ComplexDiffSave[ComplexValueMax];
-unsigned long swap_long(unsigned long ul_val);
-unsigned long cnt;
-long tmp;
-
-void cnvs_data(void);
-
-
-typedef struct {
-	int video_buffer_size_max;
-	volatile int video_buffer_size_current;
-	unsigned char **video_ringbuffer;
-	volatile int video_head;
-	volatile int video_tail;
-	volatile int video_cnt;
-	pthread_t video_grabber_thread;
-	pthread_mutex_t video_buffer_mutex;
-
-} common;
-
-common common_buf;
-
-extern void *video_grabber(void *);
-
-#endif				/* CAPT_INPUT */
 
 extern int GetFromCtrlFTop(const char *control_filepath,
 			   ENC_EXEC_INFO * enc_exec_info,
@@ -447,14 +396,6 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 	AVCBE_FRAME_CHECK frame_check_array[17];
 #endif				/* USE_BVOP */
 
-#ifdef CAPT_INPUT
-	long intra_judge;
-	long ercd;
-#if 1
-	int i;
-#endif
-#endif				/* CAPT_INPUT */
-
 	addr_y = (unsigned long *) CAPTF_ARRY[0].Y_fmemp;
 	addr_c = (unsigned long *) CAPTF_ARRY[0].C_fmemp;
 
@@ -487,50 +428,6 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 
 	appli_info->set_intra = AVCBE_ANY_VOP;	/* Forced intra-mode flag */
 	appli_info->output_type = AVCBE_OUTPUT_NONE;	/* Header insertion flag */
-
-#ifdef CAPT_INPUT
-#if 0
-	port_and_power_setting();
-
-	IIC_Init();
-	Lcd_Init();
-
-	Lcd_Set_DisplayOn();
-	vio_init((unsigned long) &VRAM_Buff1[0][0],
-		 (unsigned long) &VRAM_Buff2[0][0],
-		 (unsigned long) &VRAM_Buff3[0][0]);
-#endif
-#if 1
-	common_buf.video_buffer_size_max = 8;
-	common_buf.video_ringbuffer =
-	    (unsigned char **) malloc(common_buf.video_buffer_size_max *
-				      sizeof(unsigned char *));
-	if (!common_buf.video_ringbuffer) {
-		DisplayMessage("cannot allocate video buffer\n", 1);
-		return -1;
-	}
-	for (i = 0; i < common_buf.video_buffer_size_max; i++)
-		common_buf.video_ringbuffer[i] = NULL;
-
-	common_buf.video_head = 0;
-	common_buf.video_tail = 0;
-	common_buf.video_cnt = 0;
-
-	common_buf.video_buffer_size_current = 0;
-
-	pthread_mutex_init(&common_buf.video_buffer_mutex, NULL);
-	pthread_create(&common_buf.video_grabber_thread, NULL,
-		       video_grabber, &common_buf);
-
-#endif
-	cnt = 1;
-	ComplexValue = 0;
-
-	/* Capture-image */
-//      CAPTF_ARRY[0].Y_fmemp = (unsigned char *)&VRAM_Buff1[0][0];
-//      CAPTF_ARRY[0].C_fmemp = (unsigned char *)&VRAM_Buff2[0][0];
-
-#endif				/* CAPT_INPUT */
 
 	captfmem.Y_fmemp = (unsigned char *) CAPTF_ARRY[0].Y_fmemp;
 	captfmem.C_fmemp = (unsigned char *) CAPTF_ARRY[0].C_fmemp;
@@ -773,20 +670,6 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 //printf("appli_info->frame_counter=%d\n",appli_info->frame_counter);
 	}			/* while */
 
-#ifdef CAPT_INPUT
-#if 1
-	pthread_join(common_buf.video_grabber_thread, NULL);
-	pthread_mutex_destroy(&common_buf.video_buffer_mutex);
-
-	if (common_buf.video_ringbuffer) {
-		int i;
-		for (i = 0; i < common_buf.video_buffer_size_current; i++) {
-			free(common_buf.video_ringbuffer[i]);
-		}
-		free(common_buf.video_ringbuffer);
-	}
-#endif
-#endif
 	/*------ End of repeating by frame numbers ------------*/
 
 	return (0);
