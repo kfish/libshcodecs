@@ -21,6 +21,8 @@
 #include "avcbencsmp.h"		/* User Application Sample Header */
 #include "m4driverif.h"
 
+#include "encoder_private.h" /* XXX */
+
 
 extern unsigned long sdr_base;
 
@@ -206,7 +208,7 @@ void set_VPU4_param(M4IPH_VPU4_INIT_OPTION * vpu4_param)
 /*----------------------------------------------------------------------------------------------*/
 /* set parameters for using in encoding */
 /*----------------------------------------------------------------------------------------------*/
-int select_inputfile_set_param(long case_no, APPLI_INFO * appli_info)
+int select_inputfile_set_param(long case_no, SHCodecs_Encoder * encoder, APPLI_INFO * appli_info)
 {				/* add case_no at Version2 */
 	int return_code;
 
@@ -217,7 +219,7 @@ int select_inputfile_set_param(long case_no, APPLI_INFO * appli_info)
 				   &appli_info->enc_exec_info,
 				   &appli_info->param,
 				   &appli_info->other_options_h264,
-				   &appli_info->other_options_mpeg4);
+				   &encoder->other_options_mpeg4);
 	if (return_code == -1) {
 		printf("Control file not found !\n");
 		/* コントロールファイルが見つからないなどのエラー */
@@ -313,96 +315,6 @@ int select_inputfile_set_param(long case_no, APPLI_INFO * appli_info)
 	    (appli_info->param.avcbe_stream_type == AVCBE_H263)) {
 		switch (case_no) {
 		case CASE0_MPEG4_001:
-#if 0
-			/*** avcbe_other_options_mpeg4 ***/
-			appli_info->other_options_mpeg4.avcbe_out_vos =
-			    AVCBE_ON;
-			appli_info->other_options_mpeg4.avcbe_out_gov =
-			    AVCBE_ON;
-			appli_info->other_options_mpeg4.
-			    avcbe_aspect_ratio_info_type = AVCBE_AUTO;
-			appli_info->other_options_mpeg4.
-			    avcbe_aspect_ratio_info_value = 3;
-
-			appli_info->other_options_mpeg4.
-			    avcbe_vos_profile_level_type = AVCBE_AUTO;
-			appli_info->other_options_mpeg4.
-			    avcbe_vos_profile_level_value = 1;
-			appli_info->other_options_mpeg4.
-			    avcbe_out_visual_object_identifier = AVCBE_OFF;
-			appli_info->other_options_mpeg4.
-			    avcbe_visual_object_verid = 0;
-			appli_info->other_options_mpeg4.
-			    avcbe_visual_object_priority = 7;
-			appli_info->other_options_mpeg4.
-			    avcbe_video_object_type_indication = 0;
-			appli_info->other_options_mpeg4.
-			    avcbe_out_object_layer_identifier = AVCBE_OFF;
-			appli_info->other_options_mpeg4.
-			    avcbe_video_object_layer_verid = 0;
-			appli_info->other_options_mpeg4.
-			    avcbe_video_object_layer_priority = 7;
-
-			/* 'AVCBE_ERM_VIDEO_PACKET' -> 'AVCBE_ERM_NORMAL' changed at Version2 */
-			appli_info->other_options_mpeg4.
-			    avcbe_error_resilience_mode = AVCBE_ERM_NORMAL;
-			appli_info->other_options_mpeg4.
-			    avcbe_video_packet_size_mb = 0;
-			appli_info->other_options_mpeg4.
-			    avcbe_video_packet_size_bit = 0;
-			appli_info->other_options_mpeg4.
-			    avcbe_video_packet_header_extention =
-			    AVCBE_OFF;
-			/* 'AVCBE_ON' -> 'AVCBE_OFF' changed at Version2 */
-			appli_info->other_options_mpeg4.
-			    avcbe_data_partitioned = AVCBE_OFF;
-			appli_info->other_options_mpeg4.
-			    avcbe_reversible_vlc = AVCBE_OFF;
-
-			appli_info->other_options_mpeg4.
-			    avcbe_high_quality = AVCBE_HQ_QUALITY;
-			appli_info->other_options_mpeg4.
-			    avcbe_param_changeable = AVCBE_OFF;
-			appli_info->other_options_mpeg4.
-			    avcbe_changeable_max_bitrate = 0;
-			appli_info->other_options_mpeg4.
-			    avcbe_Ivop_quant_initial_value = 16;
-			appli_info->other_options_mpeg4.
-			    avcbe_Pvop_quant_initial_value = 16;
-			appli_info->other_options_mpeg4.avcbe_use_dquant =
-			    AVCBE_ON;
-			/* '10' -> '4' changed at Version2 */
-			appli_info->other_options_mpeg4.
-			    avcbe_clip_dquant_frame = 4;
-			appli_info->other_options_mpeg4.avcbe_quant_min =
-			    6;
-			/* added at Version2 */
-			appli_info->other_options_mpeg4.
-			    avcbe_quant_min_Ivop_under_range = 2;
-			appli_info->other_options_mpeg4.avcbe_quant_max = 26;	/* '31' -> '26' changed at Version2 */
-
-			appli_info->other_options_mpeg4.avcbe_ratecontrol_vbv_skipcheck_enable = AVCBE_ON;	/* added at Version2 */
-			appli_info->other_options_mpeg4.avcbe_ratecontrol_vbv_Ivop_noskip = AVCBE_ON;	/* added at Version2 */
-			appli_info->other_options_mpeg4.avcbe_ratecontrol_vbv_remain_zero_skip_enable = AVCBE_ON;	/* added at Version2 */
-
-			appli_info->other_options_mpeg4.avcbe_ratecontrol_vbv_buffer_unit_size = 16384;	/* added at Version2 */
-			appli_info->other_options_mpeg4.avcbe_ratecontrol_vbv_buffer_mode = AVCBE_AUTO;	/* added at Version2 */
-			appli_info->other_options_mpeg4.avcbe_ratecontrol_vbv_max_size = 70;	/* added at Version2 */
-			appli_info->other_options_mpeg4.avcbe_ratecontrol_vbv_offset = 20;	/* added at Version2 */
-			appli_info->other_options_mpeg4.avcbe_ratecontrol_vbv_offset_rate = 50;	/* added at Version2 */
-
-			appli_info->other_options_mpeg4.avcbe_quant_type =
-			    AVCBE_QUANTISATION_TYPE_2;
-			appli_info->other_options_mpeg4.
-			    avcbe_use_AC_prediction = AVCBE_ON;
-			appli_info->other_options_mpeg4.avcbe_vop_min_mode = AVCBE_MANUAL;	/* added at Version2 */
-			appli_info->other_options_mpeg4.
-			    avcbe_vop_min_size = 0;
-			appli_info->other_options_mpeg4.avcbe_intra_thr =
-			    6000;
-			appli_info->other_options_mpeg4.avcbe_b_vop_num =
-			    0;
-#endif
 			break;
 		}		/* end of 'switch (case_no)' */
 	} else if (appli_info->param.avcbe_stream_type == AVCBE_H264) {	/* added at Version2 */

@@ -266,7 +266,6 @@ extern "C" {
 		avcbe_encoding_property param;	/* for stream-1 */
 
 		avcbe_other_options_h264 other_options_h264;	/* parameters to control details */
-		avcbe_other_options_mpeg4 other_options_mpeg4;	/* parameters to control details */
 
 #if 1
 		ENC_EXEC_INFO enc_exec_info;	/* FILE_USEからはずす *//* 050121 */
@@ -307,7 +306,6 @@ extern "C" {
 	int encode_1file(long case_no, APPLI_INFO * appli_info,
 			 long stream_type);
 	void set_VPU4_param(M4IPH_VPU4_INIT_OPTION * vpu4_param);
-	int select_inputfile_set_param(long case_no, APPLI_INFO * appli_info);	/* add case_no at Version2 */
 	void cat_output_stream(APPLI_INFO * appli_info,
 			       avcbe_stream_info * context,
 			       char *frame_stream_address,

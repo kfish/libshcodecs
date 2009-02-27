@@ -237,7 +237,7 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO
 	    avcbe_set_default_param(stream_type, AVCBE_RATE_NORMAL,
 				    &(appli_info->param),
 				    (void *)
-				    &(appli_info->other_options_mpeg4));
+				    &(encoder->other_options_mpeg4));
 	if (return_code != 0) {	/* error */
 		DisplayMessage
 		    (" encode_1file_mpeg4:avcbe_set_default_param ERROR! ",
@@ -251,7 +251,7 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO
 
 	/*--- set parameters for use in encoding (one of the user application's 
 	 * own functions) ---*/
-	return_code = select_inputfile_set_param(case_no, appli_info);
+	return_code = select_inputfile_set_param(case_no, encoder, appli_info);
 	/* add case_no at Version2 */
 	if (return_code == -1) {	/* error */
 		printf
@@ -286,7 +286,7 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO
 #ifndef VPU4IP
 	return_code = avcbe_init_encode(&(appli_info->param),
 					&(encoder->paramR),
-					&(appli_info->other_options_mpeg4),
+					&(encoder->other_options_mpeg4),
 					// RSM (avcbe_buf_continue_userproc_ptr)NULL, &WORK_ARRY[0], 
 					(avcbe_buf_continue_userproc_ptr)
 					get_new_stream_buf, &WORK_ARRY[0],
@@ -294,7 +294,7 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO
 #else
 	return_code = avcbe_init_encode(&(appli_info->param),
 					&(encoder->paramR),
-					&(appli_info->other_options_mpeg4),
+					&(encoder->other_options_mpeg4),
 					// RSM (avcbe_buf_continue_userproc_ptr)NULL, &WORK_ARRY[0], NULL, 
 					(avcbe_buf_continue_userproc_ptr)
 					get_new_stream_buf, &WORK_ARRY[0],
@@ -327,7 +327,7 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO
 	    (appli_info->ctrl_file_name_buf, *context,
 	     &(encoder->other_API_enc_param), &(encoder->paramR));
 	printf("GetFromCtrlFtoEncParamAfterInitEncode=%d\n", return_code);
-	if (appli_info->other_options_mpeg4.avcbe_quant_type == 1) {	/* add @061121 */
+	if (encoder->other_options_mpeg4.avcbe_quant_type == 1) {	/* add @061121 */
 		printf("avcbe_set_quant_type1()\n");
 		return_code =
 		    SetQuantMatrix(*context, QMAT_MPEG_TYPE_ANIME1_INTRA,
@@ -368,10 +368,10 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO
 	CAPTF_ARRY[0].Y_fmemp = (unsigned char *) addr_y;
 	CAPTF_ARRY[0].C_fmemp = (unsigned char *) addr_c;
 #ifdef USE_BVOP			/* 050106 */
-	if (appli_info->other_options_mpeg4.avcbe_b_vop_num > 0) {
+	if (encoder->other_options_mpeg4.avcbe_b_vop_num > 0) {
 		for (i = 0;
 		     i <
-		     appli_info->other_options_mpeg4.avcbe_b_vop_num + 1;
+		     encoder->other_options_mpeg4.avcbe_b_vop_num + 1;
 		     i++) {
 			addr_temp =
 			    (unsigned long) my_frame_memory_capt[i];
@@ -383,7 +383,7 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO
 			CAPTF_ARRY[i].C_fmemp = (unsigned char *) addr_c;
 			printf("addr_y=%x,addr_c=%x\n", addr_y, addr_c);
 		}
-		nldecfmem = appli_info->other_options_mpeg4.avcbe_b_vop_num;	/* LDEC_ARRY[2]AB-VOP[JfR[ho 050106 */
+		nldecfmem = encoder->other_options_mpeg4.avcbe_b_vop_num;	/* LDEC_ARRY[2]AB-VOP[JfR[ho 050106 */
 		printf("b_vop_num=%d\n", nldecfmem);
 //              m4vse_output_local_image_of_b_vop = AVCBE_ON; /* 050302 */
 	}
@@ -462,7 +462,7 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder, long case_no,
 #ifdef USE_BVOP			/* 050106 */
 	for (index = 0;
 	     index <
-	     (long) (appli_info->other_options_mpeg4.avcbe_b_vop_num + 1);
+	     (long) (encoder->other_options_mpeg4.avcbe_b_vop_num + 1);
 	     index++) {
 		addr_y_tbl[index] =
 		    (unsigned long *) CAPTF_ARRY[index].Y_fmemp;
@@ -542,7 +542,7 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder, long case_no,
 			break;
 		}
 #ifdef USE_BVOP			/* 050106 */
-		if (appli_info->other_options_mpeg4.avcbe_b_vop_num > 0) {
+		if (encoder->other_options_mpeg4.avcbe_b_vop_num > 0) {
 			return_code =
 			    avcbe_get_buffer_check(context,
 						   &frame_check_array[0]);
@@ -554,7 +554,7 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder, long case_no,
 				}
 				return (-14);
 			}
-			for (index = 0; index < (long) (appli_info->other_options_mpeg4.avcbe_b_vop_num + 1); index++) {	/* 050121 */
+			for (index = 0; index < (long) (encoder->other_options_mpeg4.avcbe_b_vop_num + 1); index++) {	/* 050121 */
 //                      for (index=0; index < 3; index++) { /* 050121 */
 				if (frame_check_array[index].avcbe_status
 				    == AVCBE_UNLOCK) {

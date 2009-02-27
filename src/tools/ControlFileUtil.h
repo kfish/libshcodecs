@@ -72,9 +72,7 @@ extern "C" {
 					      avcbe_encoding_property *
 					      encoding_property,
 					      avcbe_other_options_h264 *
-					      other_options_h264,
-					      avcbe_other_options_mpeg4 *
-					      other_options_mpeg4);
+					      other_options_h264);
 
 	void GetFromCtrlFtoOTHER_API_ENC_PARAM_VUI(FILE * fp_in,
 						   OTHER_API_ENC_PARAM *

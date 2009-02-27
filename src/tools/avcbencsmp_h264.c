@@ -161,7 +161,7 @@ long init_for_encoder_h264(SHCodecs_Encoder * encoder, long case_no,
 		return (-102);
 	}
 	/*--- set parameters for use in encoding (one of the user application's own functions) ---*/
-	return_code = select_inputfile_set_param(case_no, appli_info);
+	return_code = select_inputfile_set_param(case_no, encoder, appli_info);
 	if (return_code == -1) {	/* error */
 		DisplayMessage
 		    (" encode_1file_h264:select_inputfile_set_param ERROR! ",

@@ -55,6 +55,7 @@ struct _SHCodecs_Encoder {
         avcbe_encoding_property paramR;	/* for stream-1 */
         M4IPH_VPU4_INIT_OPTION vpu4_param; /* parameters of VPU4 */
 	OTHER_API_ENC_PARAM other_API_enc_param;
+        avcbe_other_options_mpeg4 other_options_mpeg4;	/* parameters to control details */
 };
 
 /* Internal prototypes of functions using SHCodecs_Encoder */
@@ -82,6 +83,9 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder, long case_no, APPLI_INFO
 long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder, long case_no,
 			      APPLI_INFO * appli_info, long stream_type,
 			      avcbe_stream_info * context);
+
+/* XXX: Move back out of encoder_private.h to appli code */
+int select_inputfile_set_param(long case_no, SHCodecs_Encoder * encoder, APPLI_INFO * appli_info);	/* add case_no at Version2 */
 
 /* Other internal functions */
 void m4iph_sleep_time_init(void);

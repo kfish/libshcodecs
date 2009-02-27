@@ -171,8 +171,7 @@ int GetFromCtrlFtoEncParamAfterInitEncode(const char *control_filepath,
 	FILE *fp_in;
 	avcbe_H264_stream_info_t *stream_info_h264;
 	M4IPH_VPU4_ENC *vpu4_enc;
-	avcbe_other_options_h264 *other_options_h264;
-	avcbe_other_options_mpeg4 *other_options_mpeg4;
+	avcbe_other_options_h264 *other_options_h264=NULL;
 
 	if ((control_filepath == NULL) || (context == NULL)) {
 		return (-1);
@@ -189,18 +188,18 @@ int GetFromCtrlFtoEncParamAfterInitEncode(const char *control_filepath,
 
 		other_options_h264 =
 		    &(stream_info_h264->avcbe_encode_other_opt_h264);
-		other_options_mpeg4 = NULL;
 
 		vpu4_enc = &(stream_info_h264->avcbe_vpu4_enc_info);
 
 	} else if ((context->stream_type == AVCBE_MPEG4) ||
 		   (context->stream_type == AVCBE_H263)) {
-
+#if 0
 		other_options_h264 = NULL;
 		other_options_mpeg4 =
 		    (avcbe_other_options_mpeg4 *)
 		    m4vse_get_address_of_stream((void *) context->streamp,
 						M4VSE_ADDRESS_ENCODE_OTHER_OPT_MPEG4);
+#endif
 
 		/*      vpu4_enc = m4vse_get_vpu4_enc_info((void *)(context->streamp)); 040914変更 */
 		vpu4_enc =
@@ -213,8 +212,7 @@ int GetFromCtrlFtoEncParamAfterInitEncode(const char *control_filepath,
 	/*** avebe_init_encode()以外のAPI関数で設定するもの ***/
 	GetFromCtrlFtoOTHER_API_ENC_PARAM(fp_in, other_API_enc_param,
 					  encoding_property,
-					  other_options_h264,
-					  other_options_mpeg4);
+					  other_options_h264);
 
 	/*** エンコーダミドルで非公開のVPU4エンコードパラメータ ***/
 	/* ここで設定すると初期済みのドライバのメンバに設定してる値が上書きされる */
@@ -1206,9 +1204,7 @@ int GetFromCtrlFtoOTHER_API_ENC_PARAM(FILE * fp_in,
 				      avcbe_encoding_property *
 				      encoding_property,
 				      avcbe_other_options_h264 *
-				      other_options_h264,
-				      avcbe_other_options_mpeg4 *
-				      other_options_mpeg4)
+				      other_options_h264)
 {
 	int status_flag;
 	long return_value;
