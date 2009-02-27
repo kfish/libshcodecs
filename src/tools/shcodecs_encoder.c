@@ -134,6 +134,8 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	encoder->input = NULL;
 	encoder->output = NULL;
 
+        encoder->frm = 0;
+
 	m4iph_sleep_time_init();
 
 	/*--- set the parameters of VPU4 (one of the user application's own functions) ---*/

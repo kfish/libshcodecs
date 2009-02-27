@@ -966,7 +966,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 		appli_info->output_filler_data = 0;	/* for Filler data(CPB Buffer) */
 
 		/*--- The MPEG-4 Encoder Library API (Not required) sets the target stream ---*/
-		appli_info->frm = frm;
+		encoder->frm = frm;
 
 		/* output SPS and PPS for 1st frame */
 		if (header_output_flag == 1) {

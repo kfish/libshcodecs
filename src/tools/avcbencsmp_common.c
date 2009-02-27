@@ -227,7 +227,6 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder,
 	printf("Control file read OK!\n");
 
 	/* same parameters to case No. */
-	appli_info->frm = 0;
 	appli_info->output_write_size = 0;
 	appli_info->frame_number_to_encode = 1;
 //      appli_info->input_file_name_buf[0] = '\0';

@@ -650,7 +650,7 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 				}
 			}
 
-			appli_info->frm = frm;
+			encoder->frm = frm;
 			stream_bits = frame_stat.avcbe_frame_n_bits;
 			/* get the size of bitstream (byte unit) */
 			streamsize_per_frame = (stream_bits / 8);
