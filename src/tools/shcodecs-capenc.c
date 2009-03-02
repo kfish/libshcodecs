@@ -51,10 +51,6 @@ APPLI_INFO ainfo;		/* User Application Data */
 unsigned long m4iph_vpu4_reg_base = 0xfe900000;
 #define KERNEL_MEMORY_FOR_VPU_BOTTOM 0xadffffff
 
-void get_new_stream_buf(avcbe_stream_info * context,
-			char *previous_stream_buff, long output_size,
-			char **next_stream_buff, long *stream_buff_size);
-
 void file_name_copy(void)
 {
 	strcpy(ainfo.file_path_buf_1, ainfo.enc_exec_info.buf_input_yuv_file_with_path);	/* 入力ディレクトリ */
@@ -67,10 +63,6 @@ void file_name_copy(void)
 	strcat(ainfo.local_decode_file_name_buf, "\\");
 	strcpy(ainfo.log_file_name_buf, ainfo.file_path_buf_2);
 //              strcat(ainfo.log_file_name_buf, "\\");  // <--- NG
-	strcpy(ainfo.capt_file_name_buf, ainfo.file_path_buf_2);
-	strcat(ainfo.capt_file_name_buf, "\\");
-	strcpy(ainfo.rate_log_file_name_buf, ainfo.file_path_buf_2);
-	strcat(ainfo.rate_log_file_name_buf, "\\");
 
 	printf("ainfo.input_file_name_buf = %s \n",
 	       ainfo.input_file_name_buf);
@@ -115,11 +107,12 @@ int main(int argc, char *argv[])
 		}
 #if 1
 		strcpy(ainfo.file_path_buf_1, ainfo.enc_exec_info.buf_input_yuv_file_with_path);	/* 入力ディレクトリ */
-		strcpy(ainfo.file_path_buf_2, ainfo.enc_exec_info.buf_output_directry);	/* 出力ディレクトリ */
 		strcpy(ainfo.input_file_name_buf, ainfo.file_path_buf_1);
 		strcat(ainfo.input_file_name_buf, "/");
 		strcat(ainfo.input_file_name_buf,
 		       ainfo.enc_exec_info.buf_input_yuv_file);
+
+		strcpy(ainfo.file_path_buf_2, ainfo.enc_exec_info.buf_output_directry);	/* 出力ディレクトリ */
 		strcpy(ainfo.output_file_name_buf, ainfo.file_path_buf_2);
 		strcat(ainfo.output_file_name_buf, "/");
 		strcat(ainfo.output_file_name_buf,
@@ -130,14 +123,6 @@ int main(int argc, char *argv[])
 		strcat(ainfo.local_decode_file_name_buf, "/");
 		strcpy(ainfo.log_file_name_buf, ainfo.file_path_buf_2);
 //              strcat(ainfo.log_file_name_buf, "/");   // <--- NG
-		strcpy(ainfo.capt_file_name_buf, ainfo.file_path_buf_2);
-		strcat(ainfo.capt_file_name_buf, "/");
-		strcpy(ainfo.rate_log_file_name_buf,
-		       ainfo.file_path_buf_2);
-		strcat(ainfo.rate_log_file_name_buf, "/");
-		printf
-		    ("!!!!!!!! ainfo.rate_log_file_name_buf = %s !!!!!!!!\n",
-		     ainfo.rate_log_file_name_buf);
 		printf("ainfo.input_file_name_buf = %s \n",
 		       ainfo.input_file_name_buf);
 		printf("ainfo.output_file_name_buf = %s \n",

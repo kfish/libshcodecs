@@ -31,8 +31,6 @@ int init_other_API_enc_param(OTHER_API_ENC_PARAM * other_API_enc_param)
 {
 	other_API_enc_param->out_local_decode_file = 0;
 	other_API_enc_param->put_local_decode_when_frameskip = 1;
-	other_API_enc_param->out_capt_file = 0;
-	other_API_enc_param->out_rate_log_file = 0;
 
 	memset(&(other_API_enc_param->vui_main_param), 0,
 	       sizeof(avcbe_vui_main_param));
@@ -104,10 +102,6 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 			fprintf(stderr,
 				"encode_1file_mpeg4:m4iph_vpu4_init PARAMETER ERROR!\n");
 		}
-#if 0
-		appli_info->error_return_function = -1;
-		appli_info->error_return_code = return_code;
-#endif
 		return NULL;
 	}
 

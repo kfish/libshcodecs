@@ -309,11 +309,6 @@ int GetFromCtrlFtoEncExecInfo(FILE * fp_in, ENC_EXEC_INFO * enc_exec_info)
 	GetStringFromCtrlFile(fp_in, "local_decode_file",
 			      enc_exec_info->buf_local_decode_file,
 			      &status_flag);
-	GetStringFromCtrlFile(fp_in, "capt_file",
-			      enc_exec_info->buf_capt_file, &status_flag);
-	GetStringFromCtrlFile(fp_in, "rate_log_file",
-			      enc_exec_info->buf_rate_log_file,
-			      &status_flag);
 	GetStringFromCtrlFile(fp_in, "debug_log_file",
 			      enc_exec_info->buf_debug_log_file,
 			      &status_flag);
@@ -344,16 +339,6 @@ int GetFromCtrlFtoEncExecInfo(FILE * fp_in, ENC_EXEC_INFO * enc_exec_info)
 	if (status_flag == 1) {
 		enc_exec_info->put_local_decode_when_frameskip =
 		    (char) return_value;
-	}
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "out_capt_file", &status_flag);
-	if (status_flag == 1) {
-		enc_exec_info->out_capt_file = (char) return_value;
-	}
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "out_rate_log_file", &status_flag);
-	if (status_flag == 1) {
-		enc_exec_info->out_rate_log_file = (char) return_value;
 	}
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "out_debug_log_file",

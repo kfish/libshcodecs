@@ -121,8 +121,6 @@ extern "C" {
 	typedef struct {	/* add at Version2 */
 		char out_local_decode_file;
 		char put_local_decode_when_frameskip;
-		char out_capt_file;
-		char out_rate_log_file;
 
 		/* Table to set encoding parameter (for H.264 bitstream) */
 		avcbe_vui_main_param vui_main_param;	/* the parameter of the avcbe_set_VUI_parameters function */
@@ -150,8 +148,6 @@ extern "C" {
 
 		char out_local_decode_file;
 		char put_local_decode_when_frameskip;
-		char out_capt_file;
-		char out_rate_log_file;
 
 		/* Table to set encoding parameter (for H.264 bitstream) */
 		avcbe_vui_main_param vui_main_param;	/* the parameter of the avcbe_set_VUI_parameters function */
@@ -184,8 +180,6 @@ extern "C" {
 
 		char out_local_decode_file;	/* ローカルデコードファイルを出力するか(1:する、0:しない) */
 		char put_local_decode_when_frameskip;	/* フレームスキップしたときにローカルデコード画像を出力するか(1:する、0:しない) *//* 050601 */
-		char out_capt_file;	/* キャプチャ画像ファイルを出力するか */
-		char out_rate_log_file;	/* レートコントロールのログファイルを出力するか */
 		char out_debug_log_file;	/* デバッグ用ログファイルを出力するか */
 
 		char buf_input_yuv_file_with_path[256 + 8];	/* 入力YUVファイル名（パス付き） *//* 041201 */
@@ -195,8 +189,6 @@ extern "C" {
 		char buf_output_stream_file[64 + 8];	/* 出力ストリームファイル名（パスなし） */
 		char buf_log_file[64 + 8];	/* 出力エンコードログファイル名（パスなし） */
 		char buf_local_decode_file[64 + 8];	/* 出力ローカルデコードファイル名（パスなし） */
-		char buf_capt_file[64 + 8];	/* 出力キャプチャ画像ファイル名（パスなし） */
-		char buf_rate_log_file[64 + 8];	/* 出力レートコントロールのログファイル名（パスなし） */
 		char buf_debug_log_file[64 + 8];	/* 出力デバッグ用ログファイル名（パスなし） */
 		unsigned char ref_frame_num;	/* 参照フレーム数（1 or 2) (H.264のみ） */
 		long xpic;
@@ -243,8 +235,6 @@ extern "C" {
 		char ctrl_file_name_buf[256];	/* 入力YUVファイル名 */
 		char local_decode_file_name_buf[256];	/* ローカルデコード出力ファイル名 */
 		char log_file_name_buf[256];	/* ログファイル名 */
-		char capt_file_name_buf[256];	/* キャプチャ画像ファイル名 */
-		char rate_log_file_name_buf[256];	/* レートコントロールログファイル名 */
 
 		long put_local_decode_when_frameskip;	/* フレームスキップしたときにローカルデコード画像を出力するか */
 

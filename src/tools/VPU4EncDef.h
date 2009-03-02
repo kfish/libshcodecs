@@ -66,8 +66,6 @@ typedef struct {
 
 	char out_local_decode_file;	/* ローカルデコードファイルを出力するか(1:する、0:しない) */
 	char put_local_decode_when_frameskip;	/* フレームスキップしたときにローカルデコード画像を出力するか(1:する、0:しない) *//* 050601 */
-	char out_capt_file;	/* キャプチャ画像ファイルを出力するか */
-	char out_rate_log_file;	/* レートコントロールのログファイルを出力するか */
 	char out_debug_log_file;	/* デバッグ用ログファイルを出力するか */
 
 	char buf_input_yuv_file_with_path[256 + 8];	/* 入力YUVファイル名（パス付き） *//* 041201 */
@@ -77,8 +75,6 @@ typedef struct {
 	char buf_output_stream_file[64 + 8];	/* 出力ストリームファイル名（パスなし） */
 	char buf_log_file[64 + 8];	/* 出力エンコードログファイル名（パスなし） */
 	char buf_local_decode_file[64 + 8];	/* 出力ローカルデコードファイル名（パスなし） */
-	char buf_capt_file[64 + 8];	/* 出力キャプチャ画像ファイル名（パスなし） */
-	char buf_rate_log_file[64 + 8];	/* 出力レートコントロールのログファイル名（パスなし） */
 	char buf_debug_log_file[64 + 8];	/* 出力デバッグ用ログファイル名（パスなし） */
 	unsigned char ref_frame_num;	/* 参照フレーム数（1 or 2) (H.264のみ） */
 	long xpic;
