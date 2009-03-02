@@ -303,17 +303,6 @@ int GetFromCtrlFtoEncExecInfo(FILE * fp_in, ENC_EXEC_INFO * enc_exec_info)
 	GetStringFromCtrlFile(fp_in, "output_stream_file",
 			      enc_exec_info->buf_output_stream_file,
 			      &status_flag);
-	GetStringFromCtrlFile(fp_in, "log_file",
-			      enc_exec_info->buf_log_file, &status_flag);
-	GetStringFromCtrlFile(fp_in, "debug_log_file",
-			      enc_exec_info->buf_debug_log_file,
-			      &status_flag);
-
-#ifdef CONV_TEST		/* 050113 */
-	GetStringFromCtrlFile(fp_in, "convtest_log_file",
-			      enc_exec_info->buf_conv_test_log_file,
-			      &status_flag);
-#endif				/* CONV_TEST */
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "calc_PSNR", &status_flag);
@@ -324,12 +313,6 @@ int GetFromCtrlFtoEncExecInfo(FILE * fp_in, ENC_EXEC_INFO * enc_exec_info)
 	if (status_flag == 1) {
 		printf("yuv_CbCr_format=%d\n", return_value);
 		enc_exec_info->yuv_CbCr_format = (char) return_value;
-	}
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "out_debug_log_file",
-				 &status_flag);
-	if (status_flag == 1) {
-		enc_exec_info->out_debug_log_file = (char) return_value;
 	}
 
 	return (1);		/* 正常終了 */

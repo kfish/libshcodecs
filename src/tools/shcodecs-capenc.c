@@ -59,8 +59,6 @@ void file_name_copy(void)
 	strcat(ainfo.input_file_name_buf, "\\");
 	strcpy(ainfo.output_file_name_buf, ainfo.file_path_buf_2);
 	strcat(ainfo.output_file_name_buf, "\\");
-	strcpy(ainfo.log_file_name_buf, ainfo.file_path_buf_2);
-//              strcat(ainfo.log_file_name_buf, "\\");  // <--- NG
 
 	printf("ainfo.input_file_name_buf = %s \n",
 	       ainfo.input_file_name_buf);
@@ -116,8 +114,6 @@ int main(int argc, char *argv[])
 		strcat(ainfo.output_file_name_buf,
 		       ainfo.enc_exec_info.buf_output_stream_file);
 #if 1
-		strcpy(ainfo.log_file_name_buf, ainfo.file_path_buf_2);
-//              strcat(ainfo.log_file_name_buf, "/");   // <--- NG
 		printf("ainfo.input_file_name_buf = %s \n",
 		       ainfo.input_file_name_buf);
 		printf("ainfo.output_file_name_buf = %s \n",
