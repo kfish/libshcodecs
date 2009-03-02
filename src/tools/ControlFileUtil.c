@@ -242,7 +242,6 @@ int GetFromCtrlFtoEncExecInfo(FILE * fp_in, ENC_EXEC_INFO * enc_exec_info)
 	enc_exec_info->frame_number_start_log_out = 0;	/* 050520 */
 	enc_exec_info->frame_number_end_log_out = 0;	/* 050520 */
 	enc_exec_info->yuv_CbCr_format = 2;	/* 指定されなかったときのデフォルト値(2:Cb0,Cr0,Cb1,Cr1,...) *//* 050520 */
-	enc_exec_info->put_local_decode_when_frameskip = 0;	/* フレームスキップしたときにローローカルデコード画像を出力する *//* 050601 */
 
 	/*** ENC_EXEC_INFO ***/
 /**	return_value = GetValueFromCtrlFile(fp_in, "debug_mode_flag", &status_flag); 041111
@@ -306,9 +305,6 @@ int GetFromCtrlFtoEncExecInfo(FILE * fp_in, ENC_EXEC_INFO * enc_exec_info)
 			      &status_flag);
 	GetStringFromCtrlFile(fp_in, "log_file",
 			      enc_exec_info->buf_log_file, &status_flag);
-	GetStringFromCtrlFile(fp_in, "local_decode_file",
-			      enc_exec_info->buf_local_decode_file,
-			      &status_flag);
 	GetStringFromCtrlFile(fp_in, "debug_log_file",
 			      enc_exec_info->buf_debug_log_file,
 			      &status_flag);
@@ -328,17 +324,6 @@ int GetFromCtrlFtoEncExecInfo(FILE * fp_in, ENC_EXEC_INFO * enc_exec_info)
 	if (status_flag == 1) {
 		printf("yuv_CbCr_format=%d\n", return_value);
 		enc_exec_info->yuv_CbCr_format = (char) return_value;
-	}
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "out_local_decode_file",
-				 &status_flag);
-	if (status_flag == 1) {
-		enc_exec_info->out_local_decode_file = (char) return_value;
-	}
-	return_value = GetValueFromCtrlFile(fp_in, "put_local_decode_when_frameskip", &status_flag);	/* 050601 */
-	if (status_flag == 1) {
-		enc_exec_info->put_local_decode_when_frameskip =
-		    (char) return_value;
 	}
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "out_debug_log_file",

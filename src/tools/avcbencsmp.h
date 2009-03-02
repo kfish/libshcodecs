@@ -119,9 +119,6 @@ extern "C" {
 
 #if 0
 	typedef struct {	/* add at Version2 */
-		char out_local_decode_file;
-		char put_local_decode_when_frameskip;
-
 		/* Table to set encoding parameter (for H.264 bitstream) */
 		avcbe_vui_main_param vui_main_param;	/* the parameter of the avcbe_set_VUI_parameters function */
 
@@ -145,10 +142,6 @@ extern "C" {
 /*************** michioka ******************/
 #if 1
 	typedef struct {	/* add at Version2 */
-
-		char out_local_decode_file;
-		char put_local_decode_when_frameskip;
-
 		/* Table to set encoding parameter (for H.264 bitstream) */
 		avcbe_vui_main_param vui_main_param;	/* the parameter of the avcbe_set_VUI_parameters function */
 
@@ -178,8 +171,6 @@ extern "C" {
 		char calc_PSNR_flag;	/* PSNRを算出するか AVCBE_ON(1)/AVCBE_OFF(0) */
 		char yuv_CbCr_format;	/* YUVデータ内（出力するローカルデコードファイルも）のCb,Crデータの並び順（1:Cb全部Cr全部、2:Cb0,Cr0,Cb1,Cr1,...、3:Cbの1ライン分,Crの1ライン分,...） *//* 050520 */
 
-		char out_local_decode_file;	/* ローカルデコードファイルを出力するか(1:する、0:しない) */
-		char put_local_decode_when_frameskip;	/* フレームスキップしたときにローカルデコード画像を出力するか(1:する、0:しない) *//* 050601 */
 		char out_debug_log_file;	/* デバッグ用ログファイルを出力するか */
 
 		char buf_input_yuv_file_with_path[256 + 8];	/* 入力YUVファイル名（パス付き） *//* 041201 */
@@ -188,7 +179,6 @@ extern "C" {
 		char buf_output_directry[256 + 8];	/* 出力先のディレクトリ *//* 041201 */
 		char buf_output_stream_file[64 + 8];	/* 出力ストリームファイル名（パスなし） */
 		char buf_log_file[64 + 8];	/* 出力エンコードログファイル名（パスなし） */
-		char buf_local_decode_file[64 + 8];	/* 出力ローカルデコードファイル名（パスなし） */
 		char buf_debug_log_file[64 + 8];	/* 出力デバッグ用ログファイル名（パスなし） */
 		unsigned char ref_frame_num;	/* 参照フレーム数（1 or 2) (H.264のみ） */
 		long xpic;
@@ -233,10 +223,7 @@ extern "C" {
 		char output_file_name_buf[256];	/* 出力m4vファイル名 */
 		char pf_file_name_buf[256];	/* 出力ポストフィルタ画像ファイル名 */
 		char ctrl_file_name_buf[256];	/* 入力YUVファイル名 */
-		char local_decode_file_name_buf[256];	/* ローカルデコード出力ファイル名 */
 		char log_file_name_buf[256];	/* ログファイル名 */
-
-		long put_local_decode_when_frameskip;	/* フレームスキップしたときにローカルデコード画像を出力するか */
 
 		/* encoding parameters */
 		avcbe_encoding_property param;	/* for stream-1 */

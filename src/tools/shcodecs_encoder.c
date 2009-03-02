@@ -29,9 +29,6 @@ u_int32_t sdr_base;
 
 int init_other_API_enc_param(OTHER_API_ENC_PARAM * other_API_enc_param)
 {
-	other_API_enc_param->out_local_decode_file = 0;
-	other_API_enc_param->put_local_decode_when_frameskip = 1;
-
 	memset(&(other_API_enc_param->vui_main_param), 0,
 	       sizeof(avcbe_vui_main_param));
 
