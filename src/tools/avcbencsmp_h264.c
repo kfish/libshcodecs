@@ -507,7 +507,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 			/* return_code = capture_image (appli_info, addr_y, addr_c); */
 			return_code =
 			    encoder->input(encoder, addr_y, addr_c,
-					   appli_info);
+					   encoder->input_user_data);
 			if (return_code < 0) {	/* error */
 				DisplayMessage
 				    (" encode_1file_h264: ERROR acquiring input image! ",
@@ -1069,7 +1069,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 				/* return_code = capture_image (appli_info, addr_y, addr_c); */
 				return_code =
 				    encoder->input(encoder, addr_y, addr_c,
-						   appli_info);
+						   encoder->input_user_data);
 				if (return_code < 0) {	/* error */
 					DisplayMessage
 					    (" encode_1file_h264: ERROR acquiring input image! ",

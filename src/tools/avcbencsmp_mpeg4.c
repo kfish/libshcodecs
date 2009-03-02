@@ -550,7 +550,7 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 			/* return_code = capture_image (appli_info, addr_y, addr_c); */
 			return_code =
 			    encoder->input(encoder, addr_y, addr_c,
-					   appli_info);
+					   encoder->input_user_data);
 			if (return_code < 0) {	/* error */
 				DisplayMessage
 				    (" encode_1file_mpeg4: ERROR acquiring input image! ",
