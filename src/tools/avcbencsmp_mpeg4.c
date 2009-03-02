@@ -446,6 +446,59 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder,
 	return (0);
 }
 
+
+int clip_image_data_for_H263(SHCodecs_Encoder * encoder,
+			     avcbe_stream_info * context,
+			     unsigned long *addr_y, unsigned long *addr_c)
+{
+	long width, height, index;
+	unsigned char *YCbCr_ptr;
+	int return_value = 0;
+	unsigned long *addr_y_2, *addr_c_2;
+
+	width = encoder->width;
+	height = encoder->height;
+	printf("clip_image: width=%d, height=%d,addr_y=%X,addr_c=%X\n",
+	       width, height, addr_y, addr_c);
+	addr_y_2 = malloc(width * height);
+	addr_c_2 = malloc(width * height / 2);
+	m4iph_sdr_read((unsigned char *) addr_y,
+		       (unsigned char *) addr_y_2, width * height);
+	/* Clip Y-data */
+	YCbCr_ptr = (unsigned char *) addr_y_2;
+	for (index = 0; index < (width * height); index++) {
+		if ((*YCbCr_ptr) < 1) {
+			*YCbCr_ptr = 1;
+			return_value = 1;	/* clipped */
+		} else if ((*YCbCr_ptr) > 254) {
+			*YCbCr_ptr = 254;
+			return_value = 1;	/* clipped */
+		}
+		YCbCr_ptr++;
+	}
+	m4iph_sdr_write((unsigned char *) addr_y,
+			(unsigned char *) addr_y_2, width * height);
+	/* Clip Cb-data, Cr-data */
+	m4iph_sdr_read((unsigned char *) addr_c,
+		       (unsigned char *) addr_c_2, width * height / 2);
+	YCbCr_ptr = (unsigned char *) addr_c_2;
+	for (index = 0; index < ((width * height) / 2); index++) {
+		if ((*YCbCr_ptr) < 1) {
+			*YCbCr_ptr = 1;
+			return_value = 1;	/* clipped */
+		} else if ((*YCbCr_ptr) > 254) {
+			*YCbCr_ptr = 254;
+			return_value = 1;	/* clipped */
+		}
+		YCbCr_ptr++;
+	}
+	m4iph_sdr_write((unsigned char *) addr_c,
+			(unsigned char *) addr_c_2, width * height / 2);
+	free(addr_y_2);
+	free(addr_c_2);
+	return (return_value);
+}
+
 /*------------------------------------------------------------------------*/
 /* Encode process function for MPEG-4/H.263                               */
 /*------------------------------------------------------------------------*/
@@ -566,7 +619,7 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 		 * address in the capture-image-field area ---*/
 		if (stream_type != AVCBE_MPEG4) {
 			return_code =
-			    clip_image_data_for_H263(appli_info, context,
+			    clip_image_data_for_H263(encoder, context,
 						     addr_y, addr_c);
 			printf("H.263...clip_image_sata=%d\n",
 			       return_code);
