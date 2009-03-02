@@ -401,11 +401,10 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 	my_filler_data_buff_info.buff_top =
 	    (unsigned char *) &my_filler_data_buff[0];
 	my_filler_data_buff_info.buff_size = MY_FILLER_DATA_BUFF_SIZE;
-	appli_info->frame_number_to_encode =
+	encoder->frame_number_to_encode =
 	    appli_info->enc_exec_info.frame_number_to_encode;
 	while (1) {	/*--------------------- Repeating by frame numbers --------------------------*/
-		if (appli_info->frame_number_to_encode ==
-		    encoder->frame_counter) {
+		if (encoder->frame_number_to_encode == encoder->frame_counter) {
 			break;
 		}
 		appli_info->output_filler_data = 0;	/* for Filler data(CPB Buffer) */
@@ -503,8 +502,6 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 
 		/*--- copy yuv data to the image-capture-field area each frame (one of the user application's own functions) ---*/
 		if (encoder->input) {
-			/* return_code = load_1frame_from_image_file(appli_info, addr_y, addr_c); */
-			/* return_code = capture_image (appli_info, addr_y, addr_c); */
 			return_code =
 			    encoder->input(encoder, addr_y, addr_c,
 					   encoder->input_user_data);
@@ -960,13 +957,12 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 	my_filler_data_buff_info.buff_size = MY_FILLER_DATA_BUFF_SIZE;
 
 	dummy_nal_buf_addr = dummy_nal_buf;
-	appli_info->frame_number_to_encode =
+	encoder->frame_number_to_encode =
 	    appli_info->enc_exec_info.frame_number_to_encode;
 	while (1) {
 		/*--------------------- Repeating by frame numbers --------------------------*/
 
-		if (appli_info->frame_number_to_encode ==
-		    encoder->frame_counter) {
+		if (encoder->frame_number_to_encode == encoder->frame_counter) {
 			break;
 		}
 		appli_info->output_filler_data = 0;	/* for Filler data(CPB Buffer) */
@@ -1065,8 +1061,6 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 	/*--- copy yuv data to the image-capture-field area each frame (one of the user application's own functions) ---*/
 		if (encoder->slice_mb_counter == 0) {
 			if (encoder->input) {
-				/* return_code = load_1frame_from_image_file(appli_info, addr_y, addr_c); */
-				/* return_code = capture_image (appli_info, addr_y, addr_c); */
 				return_code =
 				    encoder->input(encoder, addr_y, addr_c,
 						   encoder->input_user_data);

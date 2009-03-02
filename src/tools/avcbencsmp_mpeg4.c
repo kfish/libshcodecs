@@ -560,14 +560,13 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 
 	captfmem.Y_fmemp = (unsigned char *) CAPTF_ARRY[0].Y_fmemp;
 	captfmem.C_fmemp = (unsigned char *) CAPTF_ARRY[0].C_fmemp;
-	printf("appli_info->frame_number_to_encode=%d\n",
+	printf("encoder->frame_number_to_encode=%d\n",
 	       appli_info->enc_exec_info.frame_number_to_encode);
-	appli_info->frame_number_to_encode =
+	encoder->frame_number_to_encode =
 	    appli_info->enc_exec_info.frame_number_to_encode;
 	while (1) {	/*---- Repeating by frame numbers -------------------------*/
 		printf("while---");
-		if (appli_info->frame_number_to_encode ==
-		    encoder->frame_counter) {
+		if (encoder->frame_number_to_encode == encoder->frame_counter) {
 			break;
 		}
 #ifdef USE_BVOP			/* 050106 */
@@ -599,8 +598,6 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 #endif				/* USE_BVOP */
 
 		if (encoder->input) {
-			/* return_code = load_1frame_from_image_file(appli_info, addr_y, addr_c); */
-			/* return_code = capture_image (appli_info, addr_y, addr_c); */
 			return_code =
 			    encoder->input(encoder, addr_y, addr_c,
 					   encoder->input_user_data);

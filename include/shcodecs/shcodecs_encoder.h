@@ -93,4 +93,7 @@ shcodecs_encoder_set_input_callback (SHCodecs_Encoder * encoder,
 int
 shcodecs_encoder_run (SHCodecs_Encoder * encoder, void * ainfo);
 
+long
+shcodecs_encoder_get_frame_number_to_encode (SHCodecs_Encoder * encoder);
+
 #endif /* __SHCODECS_ENCODER_H__ */

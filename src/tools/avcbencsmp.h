@@ -186,9 +186,6 @@ extern "C" {
 
 		/* Input imformation in encoding */
 
-		/* The number of frames to encode. */
-		long frame_number_to_encode;
-
 		/* Input YUV file name and it's file pointer */
 		char input_file_name_buf[256];	/* for stream-1 */
 		FILE *input_yuv_fp;	/* for stream-1 */
@@ -237,13 +234,6 @@ extern "C" {
 			       char *frame_stream_address,
 			       long frame_stream_size);
 	void DisplayMessage(char *message_text, int line_feed_flag);
-
-/*--- the functions in avcbeinputuser.c ---*/
-	int open_input_image_file(APPLI_INFO * appli_info);
-// ORIG int load_1frame_from_image_file(APPLI_INFO *appli_info, avcbe_stream_info *context, unsigned long *addr_y, unsigned long *addr_c);
-	int load_1frame_from_image_file(APPLI_INFO * appli_info,
-					unsigned long *addr_y,
-					unsigned long *addr_c);
 
 #define ALIGN(a, w) (void *)(((unsigned long)(a) + (w) - 1) & ~((w) - 1))
 

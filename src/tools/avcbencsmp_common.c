@@ -226,7 +226,6 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder,
 	printf("Control file read OK!\n");
 
 	/* same parameters to case No. */
-	appli_info->frame_number_to_encode = 1;
 //      appli_info->input_file_name_buf[0] = '\0';
 	//appli_info->input_yuv_fp = NULL;
 
@@ -240,9 +239,6 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder,
 	/* same parameters to stream_type */
 //              strcpy(&appli_info->input_file_name_buf[0], "sample.yuv");
 //              strcpy(&appli_info->output_file_name_buf[0], "output.264");
-
-	/* number of encoding frame */
-//              appli_info->frame_number_to_encode = 10; /* 10 is the frame-number of 'stream.yuv' */ 
 
 		/*** avcbe_encoding_property ***/
 //01            appli_info->param.avcbe_stream_type = appli_info->param.avcbe_stream_type;

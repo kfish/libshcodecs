@@ -56,6 +56,7 @@ struct _SHCodecs_Encoder {
         long error_return_code;	/* return_value of the API function when error ocuured *//* add at Version2 */
 
 	/* Encoder internals */
+	long frame_number_to_encode;
 	long frm; /* Current frame */
 	long frame_skip_num; /* Number of frames skipped */
 	long frame_counter; /* The number of encoded frames */

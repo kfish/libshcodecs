@@ -83,6 +83,7 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
         encoder->error_return_function = 0;
         encoder->error_return_code = 0;
 
+        encoder->frame_number_to_encode = 1;
         encoder->frm = 0;
         encoder->frame_skip_num = 0;
 	encoder->set_intra = AVCBE_ANY_VOP;
@@ -222,4 +223,15 @@ int shcodecs_encoder_run(SHCodecs_Encoder * encoder, APPLI_INFO * ainfo)
 	} else {
 		return encode_1file_mpeg4(encoder, ainfo, AVCBE_MPEG4);
 	}
+}
+
+/**
+ * Get the "frame_number_to_encode" field
+ */
+long
+shcodecs_encoder_get_frame_number_to_encode (SHCodecs_Encoder * encoder)
+{
+  if (encoder == NULL) return -1;
+
+  return encoder->frame_number_to_encode;
 }

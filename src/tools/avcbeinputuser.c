@@ -27,6 +27,8 @@
 
 #include "veu_colorspace.h"
 
+#include <shcodecs/shcodecs_encoder.h>
+
 #include <linux/videodev2.h>	/* For pixel formats */
 
 extern unsigned long my_yuv_data[];	/* array for input YUV data */
@@ -319,7 +321,8 @@ int capture_image(APPLI_INFO * appli_info, unsigned long *addr_y,
 }
 
 /* copy yuv data to the image-capture-field area each frame */
-int load_1frame_from_image_file(APPLI_INFO * appli_info,
+int load_1frame_from_image_file(SHCodecs_Encoder * encoder,
+                                APPLI_INFO * appli_info,
 				unsigned long *addr_y,
 				unsigned long *addr_c)
 {
@@ -331,7 +334,7 @@ int load_1frame_from_image_file(APPLI_INFO * appli_info,
 	unsigned long wnum;
 	unsigned char *CbCr_ptr, *Cb_buf_ptr, *Cr_buf_ptr, *ptr;
 
-	if (frame_counter_of_input == appli_info->frame_number_to_encode) {
+	if (frame_counter_of_input == shcodecs_encoder_get_frame_number_to_encode(encoder)) {
 		return (0);
 	}
 	input_yuv_fp = appli_info->input_yuv_fp;

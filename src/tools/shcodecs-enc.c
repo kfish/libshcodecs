@@ -28,6 +28,11 @@
 #include <shcodecs/shcodecs_encoder.h>
 
 int open_input_image_file(APPLI_INFO *);
+int load_1frame_from_image_file(SHCodecs_Encoder * encoder,
+                                APPLI_INFO * appli_info,
+				unsigned long *addr_y,
+				unsigned long *addr_c);
+
 int open_output_file(APPLI_INFO *);
 
 extern int GetFromCtrlFTop(const char *control_filepath,
@@ -42,7 +47,7 @@ static int get_input(SHCodecs_Encoder * encoder,
 		     void *user_data)
 {
 	APPLI_INFO *appli_info = (APPLI_INFO *) user_data;
-	return load_1frame_from_image_file(appli_info, addr_y, addr_c);
+	return load_1frame_from_image_file(encoder, appli_info, addr_y, addr_c);
 }
 
 /* SHCodecs_Encoder_Output callback for writing encoded data to the output file */
