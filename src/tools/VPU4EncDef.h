@@ -56,7 +56,6 @@ typedef struct {
 typedef struct {
 
 	long frame_number_to_encode;	/* エンコードするフレーム数 */
-	long frame_number_read_skip;	/* 入力のYUVファイルを読み飛ばすときのフレーム数（0：読み飛ばしなし、1〜5:読み飛ばすフレーム数） *//* 050520 */
 	long frame_number_start_log_out;	/* 出力のログファイルを出力し始めるフレーム番号（0;最初のフレームから出力する） *//* 050520 */
 	long frame_number_end_log_out;	/* 出力のログファイルを出力し終えるフレーム番号（0;最後のフレームまで出力する） *//* 050520 */
 
