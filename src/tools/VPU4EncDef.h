@@ -58,7 +58,6 @@ typedef struct {
 	long frame_number_to_encode;	/* エンコードするフレーム数 */
 
 	long output_filler_enable;	/* CPBバッファのオーバーフロー時にFillerを挿入するかどうか *//* 050519 */
-	char calc_PSNR_flag;	/* PSNRを算出するか AVCBE_ON(1)/AVCBE_OFF(0) */
 	char yuv_CbCr_format;	/* YUVデータ内（出力するローカルデコードファイルも）のCb,Crデータの並び順（1:Cb全部Cr全部、2:Cb0,Cr0,Cb1,Cr1,...、3:Cbの1ライン分,Crの1ライン分,...） *//* 050520 */
 
 	char buf_input_yuv_file_with_path[256 + 8];	/* 入力YUVファイル名（パス付き） *//* 041201 */

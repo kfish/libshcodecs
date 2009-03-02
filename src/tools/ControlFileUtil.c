@@ -277,11 +277,6 @@ int GetFromCtrlFtoEncExecInfo(FILE * fp_in, ENC_EXEC_INFO * enc_exec_info)
 			      enc_exec_info->buf_output_stream_file,
 			      &status_flag);
 
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "calc_PSNR", &status_flag);
-	if (status_flag == 1) {
-		enc_exec_info->calc_PSNR_flag = (char) return_value;
-	}
 	return_value = GetValueFromCtrlFile(fp_in, "yuv_CbCr_format", &status_flag);	/* 050520 */
 	if (status_flag == 1) {
 		printf("yuv_CbCr_format=%d\n", return_value);
