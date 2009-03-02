@@ -65,8 +65,8 @@ int encode_init_h264 (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long 
 	long return_code;
 	TAVCBE_STREAM_BUFF my_end_code_buff_info;
 
-	appli_info->error_return_function = 0;
-	appli_info->error_return_code = 0;
+	encoder->error_return_function = 0;
+	encoder->error_return_code = 0;
 
 	/*--- The MPEG-4 Encoder Library API(required-2)@start encoding ---*/
 	avcbe_start_encoding();	/* needs be called only once */
@@ -88,8 +88,8 @@ int encode_1file_h264(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
 	long return_code;
 	TAVCBE_STREAM_BUFF my_end_code_buff_info;
 
-	appli_info->error_return_function = 0;
-	appli_info->error_return_code = 0;
+	encoder->error_return_function = 0;
+	encoder->error_return_code = 0;
 
 	DisplayMessage("H.264 Encode Start! ", 1);
 
@@ -121,8 +121,8 @@ int encode_1file_h264(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
 			    (" encode_1file_h264:avcbe_close_encode OUTPUT BUFFER SIZE SHORT ERROR! ",
 			     1);
 		}
-		appli_info->error_return_function = -116;
-		appli_info->error_return_code = return_code;
+		encoder->error_return_function = -116;
+		encoder->error_return_code = return_code;
 		return (-116);
 	} else {
 		if (encoder->output) {
@@ -163,8 +163,8 @@ long init_for_encoder_h264(SHCodecs_Encoder * encoder,
 		DisplayMessage
 		    (" encode_1file_h264:avcbe_set_default_param ERROR! ",
 		     1);
-		appli_info->error_return_function = -102;
-		appli_info->error_return_code = return_code;
+		encoder->error_return_function = -102;
+		encoder->error_return_code = return_code;
 		return (-102);
 	}
 	/*--- set parameters for use in encoding (one of the user application's own functions) ---*/
@@ -173,8 +173,8 @@ long init_for_encoder_h264(SHCodecs_Encoder * encoder,
 		DisplayMessage
 		    (" encode_1file_h264:select_inputfile_set_param ERROR! ",
 		     1);
-		appli_info->error_return_function = -103;
-		appli_info->error_return_code = return_code;
+		encoder->error_return_function = -103;
+		encoder->error_return_code = return_code;
 		return (-103);
 	}
 
@@ -234,8 +234,8 @@ long init_for_encoder_h264(SHCodecs_Encoder * encoder,
 			    (" encode_1file_h264:avcbe_init_encode WORK-AREA SIZE SHORT ERROR! ",
 			     1);
 		}
-		appli_info->error_return_function = -106;
-		appli_info->error_return_code = return_code;
+		encoder->error_return_function = -106;
+		encoder->error_return_code = return_code;
 		return (-106);
 	}
 	nrefframe = appli_info->enc_exec_info.ref_frame_num;
@@ -287,8 +287,8 @@ long init_for_encoder_h264(SHCodecs_Encoder * encoder,
 			    (" encode_1file_h264:avcbe_init_encode WORK-AREA SIZE SHORT ERROR! ",
 			     1);
 		}
-		appli_info->error_return_function = -107;
-		appli_info->error_return_code = return_code;
+		encoder->error_return_function = -107;
+		encoder->error_return_code = return_code;
 		return (-107);
 	}
 	return (0);
@@ -331,8 +331,8 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 		/* get the size of CPB-buffer to set 'cpb_size_scale' of HRD */
 		return_code = avcbe_get_cpb_buffer_size(context);
 		if (return_code <= 0) {
-			appli_info->error_return_function = -112;
-			appli_info->error_return_code = return_code;
+			encoder->error_return_function = -112;
+			encoder->error_return_code = return_code;
 			return (-112);
 		} else {
 			if (encoder->other_API_enc_param.vui_main_param.
@@ -358,8 +358,8 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 					     (encoder->other_API_enc_param.
 					      vui_main_param));
 		if (return_code != 0) {
-			appli_info->error_return_function = -113;
-			appli_info->error_return_code = return_code;
+			encoder->error_return_function = -113;
+			encoder->error_return_code = return_code;
 			return (-113);
 		}
 	}
@@ -439,8 +439,8 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 					__FUNCTION__, __LINE__,
 					(int) return_code);
 				DisplayMessage(messeage_buf, 1);
-				appli_info->error_return_function = -111;
-				appli_info->error_return_code =
+				encoder->error_return_function = -111;
+				encoder->error_return_code =
 				    return_code;
 				return (-111);
 			}
@@ -472,8 +472,8 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 					" ERROR OUTPUT PICTURE PARAMETER SET return_code=%d ",
 					(int) return_code);
 				DisplayMessage(messeage_buf, 1);
-				appli_info->error_return_function = -111;
-				appli_info->error_return_code =
+				encoder->error_return_function = -111;
+				encoder->error_return_code =
 				    return_code;
 				return (-111);
 			}
@@ -512,8 +512,8 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 				DisplayMessage
 				    (" encode_1file_h264: ERROR acquiring input image! ",
 				     1);
-				appli_info->error_return_function = -108;
-				appli_info->error_return_code =
+				encoder->error_return_function = -108;
+				encoder->error_return_code =
 				    return_code;
 				return (-108);
 			}
@@ -529,8 +529,8 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 				    (" encode_1file_h264:avcbe_set_image_pointer PARAMETER ERROR! ",
 				     1);
 			}
-			appli_info->error_return_function = -109;
-			appli_info->error_return_code = return_code;
+			encoder->error_return_function = -109;
+			encoder->error_return_code = return_code;
 			return (-109);
 		}
 		/* set to output slice header and slice data */
@@ -598,8 +598,8 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 				     1);
 
 			}
-			appli_info->error_return_function = -111;
-			appli_info->error_return_code = return_code;
+			encoder->error_return_function = -111;
+			encoder->error_return_code = return_code;
 			return (-111);
 
 		} else if (return_code == AVCBE_ENCODE_SUCCESS) {	/* 0 */
@@ -699,9 +699,9 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 						" ERROR OUTPUT SEQUENCE PARAMETER SET return_code=%d ",
 						(int) return_code);
 					DisplayMessage(messeage_buf, 1);
-					appli_info->error_return_function =
+					encoder->error_return_function =
 					    -111;
-					appli_info->error_return_code =
+					encoder->error_return_code =
 					    return_code;
 					return (-111);
 				}
@@ -745,9 +745,9 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 						" ERROR OUTPUT PICTURE PARAMETER SET return_code=%d ",
 						(int) return_code);
 					DisplayMessage(messeage_buf, 1);
-					appli_info->error_return_function =
+					encoder->error_return_function =
 					    -111;
-					appli_info->error_return_code =
+					encoder->error_return_code =
 					    return_code;
 					return (-111);
 				}
@@ -879,8 +879,8 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 		return_code = avcbe_get_cpb_buffer_size(context);
 
 		if (return_code <= 0) {
-			appli_info->error_return_function = -112;
-			appli_info->error_return_code = return_code;
+			encoder->error_return_function = -112;
+			encoder->error_return_code = return_code;
 			return (-112);
 		} else {
 			if (encoder->other_API_enc_param.vui_main_param.
@@ -906,8 +906,8 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 					       other_API_enc_param.
 					       vui_main_param));
 		if (return_code != 0) {
-			appli_info->error_return_function = -113;
-			appli_info->error_return_code = return_code;
+			encoder->error_return_function = -113;
+			encoder->error_return_code = return_code;
 			return (-113);
 		}
 	}
@@ -1004,8 +1004,8 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 					" ERROR OUTPUT SEQUENCE PARAMETER SET return_code=%d ",
 					(int) return_code);
 				DisplayMessage(messeage_buf, 1);
-				appli_info->error_return_function = -111;
-				appli_info->error_return_code =
+				encoder->error_return_function = -111;
+				encoder->error_return_code =
 				    return_code;
 				return (-111);
 			}
@@ -1036,8 +1036,8 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 					" ERROR OUTPUT PICTURE PARAMETER SET return_code=%d ",
 					(int) return_code);
 				DisplayMessage(messeage_buf, 1);
-				appli_info->error_return_function = -111;
-				appli_info->error_return_code =
+				encoder->error_return_function = -111;
+				encoder->error_return_code =
 				    return_code;
 				return (-111);
 			}
@@ -1074,9 +1074,9 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 					DisplayMessage
 					    (" encode_1file_h264: ERROR acquiring input image! ",
 					     1);
-					appli_info->error_return_function =
+					encoder->error_return_function =
 					    -108;
-					appli_info->error_return_code =
+					encoder->error_return_code =
 					    return_code;
 					return (-108);
 				}
@@ -1096,8 +1096,8 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 					    (" encode_1file_h264:avcbe_set_image_pointer PARAMETER ERROR! ",
 					     1);
 				}
-				appli_info->error_return_function = -109;
-				appli_info->error_return_code =
+				encoder->error_return_function = -109;
+				encoder->error_return_code =
 				    return_code;
 				return (-109);
 			}
@@ -1163,8 +1163,8 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 
 			}
 
-			appli_info->error_return_function = -111;
-			appli_info->error_return_code = return_code;
+			encoder->error_return_function = -111;
+			encoder->error_return_code = return_code;
 			return (-111);
 
 		} else if (return_code == AVCBE_ENCODE_SUCCESS) {	/* 0 */
@@ -1311,9 +1311,9 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 						__FUNCTION__,
 						(int) return_code);
 					DisplayMessage(messeage_buf, 1);
-					appli_info->error_return_function =
+					encoder->error_return_function =
 					    -111;
-					appli_info->error_return_code =
+					encoder->error_return_code =
 					    return_code;
 					return (-111);
 				}
@@ -1359,9 +1359,9 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 						" ERROR OUTPUT PICTURE PARAMETER SET return_code=%d ",
 						(int) return_code);
 					DisplayMessage(messeage_buf, 1);
-					appli_info->error_return_function =
+					encoder->error_return_function =
 					    -111;
-					appli_info->error_return_code =
+					encoder->error_return_code =
 					    return_code;
 					return (-111);
 				}

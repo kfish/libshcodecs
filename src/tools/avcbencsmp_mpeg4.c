@@ -173,8 +173,8 @@ int encode_init_mpeg4 (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long
 	TAVCBE_STREAM_BUFF my_end_code_buff_info;
 	long my_size = 0;
 
-	appli_info->error_return_function = 0;	/* add at Version2 */
-	appli_info->error_return_code = 0;	/* add at Version2 */
+	encoder->error_return_function = 0;	/* add at Version2 */
+	encoder->error_return_code = 0;	/* add at Version2 */
 
         init_other_options_mpeg4 (encoder);
 
@@ -199,8 +199,8 @@ int encode_1file_mpeg4(SHCodecs_Encoder * encoder,
 	TAVCBE_STREAM_BUFF my_end_code_buff_info;
 	long my_size = 0;
 
-	appli_info->error_return_function = 0;	/* add at Version2 */
-	appli_info->error_return_code = 0;	/* add at Version2 */
+	encoder->error_return_function = 0;	/* add at Version2 */
+	encoder->error_return_code = 0;	/* add at Version2 */
 
 	if (stream_type == AVCBE_MPEG4) {
 		DisplayMessage("MPEG-4 Encode Start! ", 1);
@@ -233,8 +233,8 @@ int encode_1file_mpeg4(SHCodecs_Encoder * encoder,
 			    (" encode_1file_mpeg4:avcbe_close_encode OUTPUT BUFFER SIZE SHORT ERROR! ",
 			     1);
 		}
-		appli_info->error_return_function = -16;
-		appli_info->error_return_code = return_code;
+		encoder->error_return_function = -16;
+		encoder->error_return_code = return_code;
 
 		return (-16);
 	} else {
@@ -277,8 +277,8 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder,
 		     1);
 		printf
 		    (" encode_1file_mpeg4:avcbe_set_default_param ERROR! \n");
-		appli_info->error_return_function = -2;
-		appli_info->error_return_code = return_code;
+		encoder->error_return_function = -2;
+		encoder->error_return_code = return_code;
 		return (-2);
 	}
 
@@ -288,8 +288,8 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder,
 	if (return_code == -1) {	/* error */
 		printf
 		    (" encode_1file_mpeg4:select_inputfile_set_param ERROR! \n");
-		appli_info->error_return_function = -3;
-		appli_info->error_return_code = return_code;
+		encoder->error_return_function = -3;
+		encoder->error_return_code = return_code;
 		return (-3);
 	}
 
@@ -347,8 +347,8 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder,
 			    (" encode_1file_mpeg4:avcbe_init_encode WORK-AREA SIZE SHORT ERROR! ",
 			     1);
 		}
-		appli_info->error_return_function = -6;
-		appli_info->error_return_code = return_code;
+		encoder->error_return_function = -6;
+		encoder->error_return_code = return_code;
 		return (-6);
 	}
 	return_code =
@@ -438,8 +438,8 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder,
 			    (" encode_1file_mpeg4:avcbe_init_encode WORK-AREA SIZE SHORT ERROR! ",
 			     1);
 		}
-		appli_info->error_return_function = -7;
-		appli_info->error_return_code = return_code;
+		encoder->error_return_function = -7;
+		encoder->error_return_code = return_code;
 		return (-7);
 	}
 
@@ -555,8 +555,8 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 				DisplayMessage
 				    (" encode_1file_mpeg4: ERROR acquiring input image! ",
 				     1);
-				appli_info->error_return_function = -8;
-				appli_info->error_return_code =
+				encoder->error_return_function = -8;
+				encoder->error_return_code =
 				    return_code;
 				return (-8);
 			}
@@ -580,8 +580,8 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 				    (" encode_1file_mpeg4:avcbe_set_image_pointer PARAMETER ERROR! ",
 				     1);
 			}
-			appli_info->error_return_function = -9;
-			appli_info->error_return_code = return_code;
+			encoder->error_return_function = -9;
+			encoder->error_return_code = return_code;
 			return (-9);
 		}
 
@@ -673,8 +673,8 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 				    (" encode_1file_mpeg4:avcbe_encode_picture QUANT_MATRIX_NOT_SPECIFIED ERROR! ",
 				     1);
 			}
-			appli_info->error_return_function = -11;
-			appli_info->error_return_code = return_code;
+			encoder->error_return_function = -11;
+			encoder->error_return_code = return_code;
 			return (-11);
 		} else if (return_code == AVCBE_ENCODE_SUCCESS) {	/* 0 */
 			sprintf(messeage_buf,
