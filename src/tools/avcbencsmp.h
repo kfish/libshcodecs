@@ -171,15 +171,11 @@ extern "C" {
 		char calc_PSNR_flag;	/* PSNRを算出するか AVCBE_ON(1)/AVCBE_OFF(0) */
 		char yuv_CbCr_format;	/* YUVデータ内（出力するローカルデコードファイルも）のCb,Crデータの並び順（1:Cb全部Cr全部、2:Cb0,Cr0,Cb1,Cr1,...、3:Cbの1ライン分,Crの1ライン分,...） *//* 050520 */
 
-		char out_debug_log_file;	/* デバッグ用ログファイルを出力するか */
-
 		char buf_input_yuv_file_with_path[256 + 8];	/* 入力YUVファイル名（パス付き） *//* 041201 */
 		char buf_input_yuv_file[64 + 8];	/* 入力YUVファイル名（パスなし） */
 
 		char buf_output_directry[256 + 8];	/* 出力先のディレクトリ *//* 041201 */
 		char buf_output_stream_file[64 + 8];	/* 出力ストリームファイル名（パスなし） */
-		char buf_log_file[64 + 8];	/* 出力エンコードログファイル名（パスなし） */
-		char buf_debug_log_file[64 + 8];	/* 出力デバッグ用ログファイル名（パスなし） */
 		unsigned char ref_frame_num;	/* 参照フレーム数（1 or 2) (H.264のみ） */
 		long xpic;
 		long ypic;
@@ -219,9 +215,7 @@ extern "C" {
 					   3:Cbの1ライン分,Crの1ライン分,...） */
 
 		char output_file_name_buf[256];	/* 出力m4vファイル名 */
-		char pf_file_name_buf[256];	/* 出力ポストフィルタ画像ファイル名 */
 		char ctrl_file_name_buf[256];	/* 入力YUVファイル名 */
-		char log_file_name_buf[256];	/* ログファイル名 */
 
 		/* encoding parameters */
 		avcbe_encoding_property param;	/* for stream-1 */
