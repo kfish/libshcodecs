@@ -213,10 +213,6 @@ extern "C" {
 
 		/* Output imformation in encoding */
 
-		unsigned long mb_num_of_picture;	/* total number of mb in picture */
-		unsigned long slice_mb_counter;	/* counter of mb_num_of_picture */
-		long SPS_PPS_header_bytes;	/* bytes of SPS and PPS */
-
 		long return_code;	/* return_value of current frame or NAL *//* 041123 */
 
 		long output_filler_enable;	/* enable flag to put Filler Data for CPB Buffer Over *//* 050519 */

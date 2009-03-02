@@ -61,6 +61,12 @@ struct _SHCodecs_Encoder {
 	M4IPH_VPU4_INIT_OPTION vpu4_param;	/* parameters of VPU4 */
 	OTHER_API_ENC_PARAM other_API_enc_param;
 	avcbe_other_options_mpeg4 other_options_mpeg4;	/* parameters to control details */
+
+        /* H.264 specific internals */
+	unsigned long mb_num_of_picture;	/* total number of mb in picture */
+	unsigned long slice_mb_counter;	/* counter of mb_num_of_picture */
+	long SPS_PPS_header_bytes;	/* bytes of SPS and PPS */
+
 };
 
 /* Internal prototypes of functions using SHCodecs_Encoder */

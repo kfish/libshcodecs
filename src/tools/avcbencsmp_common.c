@@ -238,10 +238,6 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder,
 	appli_info->error_return_function = 0;	/* add at Version2 */
 	appli_info->error_return_code = 0;	/* add at Version2 */
 
-	appli_info->mb_num_of_picture = 0;	/* add at Version2 */
-	appli_info->slice_mb_counter = 0;	/* add at Version2 */
-	appli_info->SPS_PPS_header_bytes = 0;	/* add at Version2 */
-
 	appli_info->output_filler_data = 0;	/* add at Version2 */
 
 	/* same parameters to stream_type */

@@ -85,6 +85,10 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	encoder->set_intra = AVCBE_ANY_VOP;
 	encoder->output_type = AVCBE_OUTPUT_NONE;
 
+	encoder->mb_num_of_picture = 0;
+	encoder->slice_mb_counter = 0;
+	encoder->SPS_PPS_header_bytes = 0;
+
 	m4iph_sleep_time_init();
 
 	/*--- set the parameters of VPU4 (one of the user application's own functions) ---*/

@@ -370,8 +370,8 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 	encoder->frame_skip_num = 0;
 	streamsize_total = 0;
 	encoder->set_intra = AVCBE_ANY_VOP;	/* Forced intra-mode flag */
-	appli_info->slice_mb_counter = 0;
-	appli_info->mb_num_of_picture = 0;
+	encoder->slice_mb_counter = 0;
+	encoder->mb_num_of_picture = 0;
 	header_output_flag = 1;	/* set to output SPS and PPS for 1st frame */
 	/* stream-output-buffer */
 	my_stream_buff_info.buff_top =
@@ -431,7 +431,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 				/* get the size of SPS data in byte unit */
 				avcbe_get_last_slice_stat(context,
 							  &slice_stat);
-				appli_info->SPS_PPS_header_bytes =
+				encoder->SPS_PPS_header_bytes =
 				    slice_stat.avcbe_SPS_unit_bytes;
 			} else {
 				sprintf(messeage_buf,
@@ -465,7 +465,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 				/* get the size of PPS data in byte unit */
 				avcbe_get_last_slice_stat(context,
 							  &slice_stat);
-				appli_info->SPS_PPS_header_bytes +=
+				encoder->SPS_PPS_header_bytes +=
 				    slice_stat.avcbe_PPS_unit_bytes;
 			} else {
 				sprintf(messeage_buf,
@@ -630,9 +630,9 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 		}
 		/* get the information about the just encoded frame (slice) */
 		avcbe_get_last_slice_stat(context, &slice_stat);
-		appli_info->slice_mb_counter =
+		encoder->slice_mb_counter =
 		    slice_stat.avcbe_encoded_MB_num;
-		appli_info->mb_num_of_picture =
+		encoder->mb_num_of_picture =
 		    slice_stat.avcbe_total_MB_in_frame;
 		if (return_code == AVCBE_ENCODE_SUCCESS) {	/* If the return value of avcbe_encode_picture function is 1 */
 			/* 1 picture unit */
@@ -682,7 +682,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 					/* get the size of SPS data in byte unit */
 					avcbe_get_last_slice_stat(context,
 								  &slice_stat);
-					appli_info->SPS_PPS_header_bytes =
+					encoder->SPS_PPS_header_bytes =
 					    slice_stat.
 					    avcbe_SPS_unit_bytes;
 					/* concatenate the SPS data */
@@ -728,7 +728,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 					/* get the size of PPS data in byte unit */
 					avcbe_get_last_slice_stat(context,
 								  &slice_stat);
-					appli_info->SPS_PPS_header_bytes +=
+					encoder->SPS_PPS_header_bytes +=
 					    slice_stat.
 					    avcbe_PPS_unit_bytes;
 					/* concatenate the PPS data */
@@ -923,8 +923,8 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 
 	encoder->set_intra = AVCBE_ANY_VOP;	/* Forced intra-mode flag */
 
-	appli_info->slice_mb_counter = 0;
-	appli_info->mb_num_of_picture = 0;
+	encoder->slice_mb_counter = 0;
+	encoder->mb_num_of_picture = 0;
 
 	header_output_flag = 1;	/* set to output SPS and PPS for 1st frame */
 
@@ -997,7 +997,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 				/* get the size of SPS data in byte unit */
 				avcbe_get_last_slice_stat(context,
 							  &slice_stat);
-				appli_info->SPS_PPS_header_bytes =
+				encoder->SPS_PPS_header_bytes =
 				    slice_stat.avcbe_SPS_unit_bytes;
 			} else {
 				sprintf(messeage_buf,
@@ -1029,7 +1029,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 				/* get the size of PPS data in byte unit */
 				avcbe_get_last_slice_stat(context,
 							  &slice_stat);
-				appli_info->SPS_PPS_header_bytes +=
+				encoder->SPS_PPS_header_bytes +=
 				    slice_stat.avcbe_PPS_unit_bytes;
 			} else {
 				sprintf(messeage_buf,
@@ -1063,7 +1063,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 		}
 
 	/*--- copy yuv data to the image-capture-field area each frame (one of the user application's own functions) ---*/
-		if (appli_info->slice_mb_counter == 0) {
+		if (encoder->slice_mb_counter == 0) {
 			if (encoder->input) {
 				/* return_code = load_1frame_from_image_file(appli_info, addr_y, addr_c); */
 				/* return_code = capture_image (appli_info, addr_y, addr_c); */
@@ -1085,7 +1085,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 
 		/* If NAL unit, the avcbe_set_image_pointer function is called at 1st slice */
 		/*--- The MPEG-4 Encoder Library API(required-7)@specify the address in the capture-image-field area ---*/
-		if (appli_info->slice_mb_counter == 0) {
+		if (encoder->slice_mb_counter == 0) {
 			return_code =
 			    avcbe_set_image_pointer(context, &CAPTF_ARRY,
 						    ldec, ref1, ref2);
@@ -1200,9 +1200,9 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 
 		/* get the information about the just encoded slice */
 		avcbe_get_last_slice_stat(context, &slice_stat);
-		appli_info->slice_mb_counter =
+		encoder->slice_mb_counter =
 		    slice_stat.avcbe_encoded_MB_num;
-		appli_info->mb_num_of_picture =
+		encoder->mb_num_of_picture =
 		    slice_stat.avcbe_total_MB_in_frame;
 
 		/* get the size in bit unit about the just encoded slice */
@@ -1226,7 +1226,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 
 			frm += appli_info->frame_no_increment;
 			encoder->frame_counter++;
-			appli_info->slice_mb_counter = 0;
+			encoder->slice_mb_counter = 0;
 
 			/* the second parameter 'ldec' value must NOT be changed when the m4vse_set_image_pointer function is called on next time. */
 			encoder->frame_skip_num++;
@@ -1237,7 +1237,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 
 			if ((appli_info->other_options_h264.avcbe_use_slice == AVCBE_ON) && (appli_info->other_options_h264.avcbe_call_unit == AVCBE_CALL_PER_NAL)) {	/* when the avcbe_encode_picture function returns on each 1 slice */
 
-				if (appli_info->slice_mb_counter == appli_info->mb_num_of_picture) {	/* when all slices of 1-picture are finished */
+				if (encoder->slice_mb_counter == encoder->mb_num_of_picture) {	/* when all slices of 1-picture are finished */
 					if (ldec == 0) {
 						ldec = 1;
 						ref1 = 0;
@@ -1291,7 +1291,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 					/* get the size of SPS data in byte unit */
 					avcbe_get_last_slice_stat(context,
 								  &slice_stat);
-					appli_info->SPS_PPS_header_bytes =
+					encoder->SPS_PPS_header_bytes =
 					    slice_stat.
 					    avcbe_SPS_unit_bytes;
 
@@ -1340,7 +1340,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 					/* set to output PPS data */
 					avcbe_get_last_slice_stat(context,
 								  &slice_stat);
-					appli_info->SPS_PPS_header_bytes +=
+					encoder->SPS_PPS_header_bytes +=
 					    slice_stat.
 					    avcbe_PPS_unit_bytes;
 
@@ -1439,10 +1439,10 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 		    (slice_stat.avcbe_encoded_slice_bits / 8);
 		/* if the avcbe_encode_picture function returns on each 1-slice, when all slices of 1-picture are finished */
 		if ((appli_info->other_options_h264.avcbe_use_slice == AVCBE_ON) && (appli_info->other_options_h264.avcbe_call_unit == AVCBE_CALL_PER_NAL)) {	/* when the avcbe_encode_picture function returns on each 1-slice */
-			if (appli_info->slice_mb_counter == appli_info->mb_num_of_picture) {	/* when all slices of 1-picture are finished */
+			if (encoder->slice_mb_counter == encoder->mb_num_of_picture) {	/* when all slices of 1-picture are finished */
 				frm += appli_info->frame_no_increment;
 				encoder->frame_counter++;
-				appli_info->slice_mb_counter = 0;
+				encoder->slice_mb_counter = 0;
 			}
 		}
 	}			/* while */
