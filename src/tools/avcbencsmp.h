@@ -163,8 +163,6 @@ extern "C" {
 	typedef struct {
 
 		long frame_number_to_encode;	/* エンコードするフレーム数 */
-		long frame_number_start_log_out;	/* 出力のログファイルを出力し始めるフレーム番号（0;最初のフレームから出力する） *//* 050520 */
-		long frame_number_end_log_out;	/* 出力のログファイルを出力し終えるフレーム番号（0;最後のフレームまで出力する） *//* 050520 */
 
 		long output_filler_enable;	/* CPBバッファのオーバーフロー時にFillerを挿入するかどうか *//* 050519 */
 		char calc_PSNR_flag;	/* PSNRを算出するか AVCBE_ON(1)/AVCBE_OFF(0) */
@@ -191,12 +189,6 @@ extern "C" {
 
 		/* The number of frames to encode. */
 		long frame_number_to_encode;
-
-		/* 出力のログファイルを出力し始めるフレーム番号（0;最初のフレームから出力する） */
-		long frame_number_start_log_out;
-
-		/* 出力のログファイルを出力し終えるフレーム番号（0;最後のフレームまで出力する） */
-		long frame_number_end_log_out;
 
 #ifdef USE_PSNR
 		/* PSNRを算出するか（1:ON/0:OFF） */

@@ -238,8 +238,6 @@ int GetFromCtrlFtoEncExecInfo(FILE * fp_in, ENC_EXEC_INFO * enc_exec_info)
 	int status_flag;
 	long return_value;
 
-	enc_exec_info->frame_number_start_log_out = 0;	/* 050520 */
-	enc_exec_info->frame_number_end_log_out = 0;	/* 050520 */
 	enc_exec_info->yuv_CbCr_format = 2;	/* 指定されなかったときのデフォルト値(2:Cb0,Cr0,Cb1,Cr1,...) *//* 050520 */
 
 	/*** ENC_EXEC_INFO ***/
@@ -259,23 +257,6 @@ int GetFromCtrlFtoEncExecInfo(FILE * fp_in, ENC_EXEC_INFO * enc_exec_info)
 	if (status_flag == 1) {
 		enc_exec_info->frame_number_to_encode = return_value;
 	}
-
-	/* 050520 Add start */
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "frame_number_start_log_out",
-				 &status_flag);
-	if (status_flag == 1) {
-		enc_exec_info->frame_number_start_log_out = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "frame_number_end_log_out",
-				 &status_flag);
-	if (status_flag == 1) {
-		enc_exec_info->frame_number_end_log_out = return_value;
-	}
-
-	/* 050520 Add end */
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "filler_output_on", &status_flag);
