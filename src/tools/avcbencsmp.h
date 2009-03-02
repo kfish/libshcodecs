@@ -218,8 +218,6 @@ extern "C" {
 					   のCb,Crデータの並び順（1:Cb全部Cr全部、2:Cb0,Cr0,Cb1,Cr1,...、
 					   3:Cbの1ライン分,Crの1ライン分,...） */
 
-		char file_path_buf_1[256];	/* ファイルパス名 */
-		char file_path_buf_2[256];	/* ファイルパス名 */
 		char output_file_name_buf[256];	/* 出力m4vファイル名 */
 		char pf_file_name_buf[256];	/* 出力ポストフィルタ画像ファイル名 */
 		char ctrl_file_name_buf[256];	/* 入力YUVファイル名 */

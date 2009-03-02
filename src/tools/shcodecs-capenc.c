@@ -87,17 +87,15 @@ int main(int argc, char *argv[])
 			return (-1);
 		}
 
-		strcpy(ainfo.file_path_buf_1, ainfo.enc_exec_info.buf_input_yuv_file_with_path);	/* 入力ディレクトリ */
-		strcpy(ainfo.input_file_name_buf, ainfo.file_path_buf_1);
-		strcat(ainfo.input_file_name_buf, "/");
-		strcat(ainfo.input_file_name_buf,
-		       ainfo.enc_exec_info.buf_input_yuv_file);
+                /* 入力ディレクトリ */
+                snprintf (ainfo.input_file_name_buf, 256, "%s/%s",
+                          ainfo.enc_exec_info.buf_input_yuv_file_with_path,
+                          ainfo.enc_exec_info.buf_input_yuv_file);
 
-		strcpy(ainfo.file_path_buf_2, ainfo.enc_exec_info.buf_output_directry);	/* 出力ディレクトリ */
-		strcpy(ainfo.output_file_name_buf, ainfo.file_path_buf_2);
-		strcat(ainfo.output_file_name_buf, "/");
-		strcat(ainfo.output_file_name_buf,
-		       ainfo.enc_exec_info.buf_output_stream_file);
+                /* 出力ディレクトリ */
+                snprintf (ainfo.output_file_name_buf, 256, "%s/%s",
+                          ainfo.enc_exec_info.buf_output_directry,
+		          ainfo.enc_exec_info.buf_output_stream_file);
 
 		printf("ainfo.input_file_name_buf = %s \n",
 		       ainfo.input_file_name_buf);
