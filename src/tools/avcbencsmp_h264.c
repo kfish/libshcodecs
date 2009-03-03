@@ -479,7 +479,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 		/* output SEI data (if AU delimiter is NOT used) */
 		if (extra_stream_buff == NULL) {
 			return_code =
-			    output_SEI_parameters(encoder, appli_info,
+			    output_SEI_parameters(encoder,
 						  context,
 						  &my_sei_stream_buff_info);
 			if (return_code != 0) {
@@ -771,7 +771,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 
 			/* output SEI parameter (if AU delimiter is used, SEI parameter must be output after AU delimiter) */
 			return_code =
-			    output_SEI_parameters(encoder, appli_info,
+			    output_SEI_parameters(encoder,
 						  context,
 						  &my_sei_stream_buff_info);
 			if (return_code != 0) {
@@ -1037,7 +1037,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 		/* output SEI data (if AU delimiter is NOT used) */
 		if (extra_stream_buff == NULL) {
 			return_code =
-			    output_SEI_parameters(encoder, appli_info,
+			    output_SEI_parameters(encoder,
 						  context,
 						  &my_sei_stream_buff_info);
 			if (return_code != 0) {
@@ -1380,7 +1380,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 
 			/* output SEI parameter (if AU delimiter is used, SEI parameter must be output after AU delimiter) */
 			return_code =
-			    output_SEI_parameters(encoder, appli_info,
+			    output_SEI_parameters(encoder,
 						  context,
 						  &my_sei_stream_buff_info);
 			if (return_code != 0) {
@@ -1452,7 +1452,6 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 /*		   32:vout_dec_ref_pic_marking_repetition_SEI is OFF)		*/
 /*------------------------------------------------------------------*/
 long output_SEI_parameters(SHCodecs_Encoder * encoder,
-			   APPLI_INFO * appli_info,
 			   avcbe_stream_info * context,
 			   TAVCBE_STREAM_BUFF * sei_stream_buff_info)
 {
