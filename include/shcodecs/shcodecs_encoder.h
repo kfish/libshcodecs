@@ -91,7 +91,7 @@ shcodecs_encoder_set_input_callback (SHCodecs_Encoder * encoder,
  * \retval 0 Success
  */
 int
-shcodecs_encoder_run (SHCodecs_Encoder * encoder, void * ainfo);
+shcodecs_encoder_run (SHCodecs_Encoder * encoder);
 
 /*
  * \param encoder The SHCodecs_Encoder* handle
@@ -133,5 +133,12 @@ shcodecs_encoder_set_frame_no_increment (SHCodecs_Encoder * encoder, long frame_
  */
 int
 shcodecs_encoder_set_ref_frame_num (SHCodecs_Encoder * encoder, int ref_frame_num);
+
+/*
+ * Set the "output_filler_enable" field
+ * H.264 only
+ */
+int
+shcodecs_encoder_set_output_filler_enable (SHCodecs_Encoder * encoder, int output_filler_enable);
 
 #endif /* __SHCODECS_ENCODER_H__ */

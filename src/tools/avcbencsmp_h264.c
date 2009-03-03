@@ -82,8 +82,7 @@ int encode_init_h264 (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long 
         return 0;
 }
 
-int encode_1file_h264(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
-		      long stream_type)
+int encode_1file_h264(SHCodecs_Encoder * encoder, long stream_type)
 {
 	long return_code;
 	TAVCBE_STREAM_BUFF my_end_code_buff_info;
@@ -98,12 +97,10 @@ int encode_1file_h264(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
 	    (encoder->other_options_h264.avcbe_call_unit ==
 	     AVCBE_CALL_PER_NAL)) {
 		return_code =
-		    encode_nal_unit(encoder, appli_info,
-				    stream_type, my_context);
+		    encode_nal_unit(encoder, stream_type, my_context);
 	} else {
 		return_code =
-		    encode_picture_unit(encoder, appli_info,
-					stream_type, my_context);
+		    encode_picture_unit(encoder, stream_type, my_context);
 	}
 	if (return_code != 0) {
 		return (-115);
@@ -131,7 +128,7 @@ int encode_1file_h264(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
 					encoder->output_user_data);
 		}
 	}
-	if (appli_info->output_filler_enable == 1) {
+	if (encoder->output_filler_enable == 1) {
 		return_code =
 		    avcbe_put_filler_data(&my_stream_buff_info,
 					  encoder->other_options_h264.
@@ -298,7 +295,7 @@ long init_for_encoder_h264(SHCodecs_Encoder * encoder,
 /* Encode by 1 picture unit without/with using slice division for H.264                         */
 /*----------------------------------------------------------------------------------------------*/
 long encode_picture_unit(SHCodecs_Encoder * encoder,
-			 APPLI_INFO * appli_info, long stream_type,
+                         long stream_type,
 			 avcbe_stream_info * context)
 {
 
@@ -405,7 +402,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 		if (encoder->frame_number_to_encode == encoder->frame_counter) {
 			break;
 		}
-		appli_info->output_filler_data = 0;	/* for Filler data(CPB Buffer) */
+		encoder->output_filler_data = 0;	/* for Filler data(CPB Buffer) */
 
 		/* output SPS and PPS for 1st frame */
 		if (header_output_flag == 1) {
@@ -790,14 +787,14 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 			}
 
 			/* concatenate Filler data(if CPB Buffer overflow) */
-			if ((appli_info->output_filler_enable == 1)
-			    && (appli_info->output_filler_data > 0)) {
+			if ((encoder->output_filler_enable == 1)
+			    && (encoder->output_filler_data > 0)) {
 				if (encoder->output) {
 					encoder->output(encoder,
 							(unsigned char *)
 							&my_filler_data_buff
 							[0],
-							appli_info->output_filler_data,
+							encoder->output_filler_data,
 							encoder->output_user_data);
 				}
 			}
@@ -839,7 +836,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 /* Encode by NAL unit for H.264                                                                 */
 /*----------------------------------------------------------------------------------------------*/
 long encode_nal_unit(SHCodecs_Encoder * encoder,
-		     APPLI_INFO * appli_info, long stream_type,
+		     long stream_type,
 		     avcbe_stream_info * context)
 {
 	unsigned long ldec, ref1, ref2;
@@ -961,7 +958,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 		if (encoder->frame_number_to_encode == encoder->frame_counter) {
 			break;
 		}
-		appli_info->output_filler_data = 0;	/* for Filler data(CPB Buffer) */
+		encoder->output_filler_data = 0;	/* for Filler data(CPB Buffer) */
 
 		/*--- The MPEG-4 Encoder Library API (Not required) sets the target stream ---*/
 		encoder->frm = frm;
@@ -1397,14 +1394,14 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 			}
 
 			/* concatenate Filler data(if CPB Buffer overflow) */
-			if ((appli_info->output_filler_enable == 1)
-			    && (appli_info->output_filler_data > 0)) {
+			if ((encoder->output_filler_enable == 1)
+			    && (encoder->output_filler_data > 0)) {
 				if (encoder->output) {
 					encoder->output(encoder,
 							(unsigned char *)
 							&my_filler_data_buff
 							[0],
-							appli_info->output_filler_data,
+							encoder->output_filler_data,
 							encoder->output_user_data);
 				}
 			}

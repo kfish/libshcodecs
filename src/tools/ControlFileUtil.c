@@ -657,11 +657,6 @@ static int GetFromCtrlFtoEncExecInfo(FILE * fp_in, APPLI_INFO * appli_info)
 		appli_info->ctrl_file_version = return_value;
 	} **/
 
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "filler_output_on", &status_flag);
-	if (status_flag == 1) {
-		appli_info->output_filler_enable = return_value;
-	}
 	return_value = GetValueFromCtrlFile(fp_in, "yuv_CbCr_format", &status_flag);	/* 050520 */
 	if (status_flag == 1) {
 		printf("yuv_CbCr_format=%d\n", return_value);
@@ -2661,6 +2656,10 @@ int GetFromCtrlFtoEncParam(SHCodecs_Encoder * encoder,
 	        return_value = GetValueFromCtrlFile(fp_in, "ref_frame_num", &status_flag);
 	        if (status_flag == 1) {
 		        shcodecs_encoder_set_ref_frame_num (encoder, return_value);
+	        }
+	        return_value = GetValueFromCtrlFile(fp_in, "filler_output_on", &status_flag);
+	        if (status_flag == 1) {
+	        	shcodecs_encoder_set_output_filler_enable (encoder, return_value);
 	        }
 	} else if ((encoding_property->avcbe_stream_type == AVCBE_MPEG4) ||
 		   (encoding_property->avcbe_stream_type == AVCBE_H263)) {

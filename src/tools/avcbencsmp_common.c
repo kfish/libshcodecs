@@ -127,10 +127,8 @@ void m4iph_sdr_write_vpu4(unsigned char *address, unsigned char *buffer,
 unsigned long avcbe_insert_filler_data_for_cpb_buffer(unsigned long
 						      input_filler_size)
 {
-#if 1
-	return input_filler_size;
-#else
-	if (ainfo.output_filler_enable == 1) {
+#if 0
+	if (encoder->output_filler_enable == 1) {
 		/* Output Stream Buffer Infomation For Filler Data */
 		my_filler_data_buff_info.buff_top =
 		    (unsigned char *) &my_filler_data_buff[0];
@@ -140,13 +138,15 @@ unsigned long avcbe_insert_filler_data_for_cpb_buffer(unsigned long
 			input_filler_size = MY_FILLER_DATA_BUFF_SIZE;	/* clip to buffer max size */
 		}
 		/* Input Filler Data */
-		ainfo.output_filler_data =
+		encoder->output_filler_data =
 		    avcbe_put_filler_data(&my_filler_data_buff_info,
 					  AVCBE_ON, input_filler_size);
 	} else {
-		ainfo.output_filler_data = input_filler_size;
+		encoder->output_filler_data = input_filler_size;
 	}
-	return (ainfo.output_filler_data);
+	return (encoder->output_filler_data);
+#else
+	return input_filler_size;
 #endif
 }
 
@@ -232,10 +232,6 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder,
 
 	shcodecs_encoder_set_frame_no_increment(encoder, 1);
 	appli_info->b_vop_num = 0;
-
-	appli_info->output_filler_enable = 0;	/* add at Version2 */
-
-	appli_info->output_filler_data = 0;	/* add at Version2 */
 
 	/* same parameters to stream_type */
 #if 0

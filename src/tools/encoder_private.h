@@ -80,20 +80,22 @@ struct _SHCodecs_Encoder {
 	unsigned long slice_mb_counter;	/* counter of mb_num_of_picture */
 	long SPS_PPS_header_bytes;	/* bytes of SPS and PPS */
 	unsigned char ref_frame_num;	/* »²¾È¥Õ¥ì¡¼¥à¿ô¡Ê1 or 2) (H.264¤Î¤ß¡Ë */
+	long output_filler_enable;	/* enable flag to put Filler Data for CPB Buffer Over *//* 050519 */
+	long output_filler_data;	/* for FillerData(CPB  Buffer) *//* add at Version2 */
+
 };
 
 /* Internal prototypes of functions using SHCodecs_Encoder */
 
 int encode_init_h264 (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long stream_type);
-int encode_1file_h264(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
-		      long stream_type);
+int encode_1file_h264(SHCodecs_Encoder * encoder, long stream_type);
 long init_for_encoder_h264(SHCodecs_Encoder * encoder,
 			   APPLI_INFO * appli_info, long stream_type,
 			   avcbe_stream_info ** context);
 long encode_picture_unit(SHCodecs_Encoder * encoder,
-			 APPLI_INFO * appli_info, long stream_type,
+			 long stream_type,
 			 avcbe_stream_info * context);
-long encode_nal_unit(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
+long encode_nal_unit(SHCodecs_Encoder * encoder,
 		     long stream_type, avcbe_stream_info * context);
 long output_SEI_parameters(SHCodecs_Encoder * encoder,
 			   avcbe_stream_info * context,

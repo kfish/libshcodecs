@@ -85,6 +85,7 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 
         encoder->frame_number_to_encode = 1;
         encoder->frm = 0;
+        encoder->frame_no_increment = 1;
         encoder->frame_skip_num = 0;
 	encoder->set_intra = AVCBE_ANY_VOP;
 	encoder->output_type = AVCBE_OUTPUT_NONE;
@@ -92,6 +93,8 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	encoder->mb_num_of_picture = 0;
 	encoder->slice_mb_counter = 0;
 	encoder->SPS_PPS_header_bytes = 0;
+	encoder->output_filler_enable = 0;
+	encoder->output_filler_data = 0;
 
 	m4iph_sleep_time_init();
 
@@ -216,10 +219,10 @@ shcodecs_encoder_set_output_callback(SHCodecs_Encoder * encoder,
  * \param encoder The SHCodecs_Encoder* handle
  * \retval 0 Success
  */
-int shcodecs_encoder_run(SHCodecs_Encoder * encoder, APPLI_INFO * ainfo)
+int shcodecs_encoder_run(SHCodecs_Encoder * encoder)
 {
 	if (encoder->format == SHCodecs_Format_H264) {
-		return encode_1file_h264(encoder, ainfo, AVCBE_H264);
+		return encode_1file_h264(encoder, AVCBE_H264);
 	} else {
 		return encode_1file_mpeg4(encoder, AVCBE_MPEG4);
 	}
@@ -297,6 +300,23 @@ shcodecs_encoder_set_ref_frame_num (SHCodecs_Encoder * encoder, int ref_frame_nu
 
   old_value = encoder->ref_frame_num;
   encoder->ref_frame_num = ref_frame_num;
+
+  return old_value;
+}
+
+/*
+ * Set the "output_filler_enable" field
+ * H.264 only
+ */
+int
+shcodecs_encoder_set_output_filler_enable (SHCodecs_Encoder * encoder, int output_filler_enable)
+{
+  int old_value;
+
+  if (encoder == NULL) return -1;
+
+  old_value = encoder->output_filler_enable;
+  encoder->output_filler_enable = output_filler_enable;
 
   return old_value;
 }
