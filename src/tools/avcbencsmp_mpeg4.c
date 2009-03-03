@@ -82,7 +82,7 @@ extern unsigned long *my_work_area;	/* 4 bytes alignment */
 void disp_context_info(void *context);
 
 long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
-			      APPLI_INFO * appli_info, long stream_type,
+			      long stream_type,
 			      avcbe_stream_info * context);
 
 /* Top of the user application sample source to encode */
@@ -188,8 +188,7 @@ int encode_init_mpeg4 (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long
 
 }
 
-int encode_1file_mpeg4(SHCodecs_Encoder * encoder,
-		       APPLI_INFO * appli_info, long stream_type)
+int encode_1file_mpeg4(SHCodecs_Encoder * encoder, long stream_type)
 {
 	long return_code;
 	TAVCBE_STREAM_BUFF my_end_code_buff_info;
@@ -208,8 +207,7 @@ int encode_1file_mpeg4(SHCodecs_Encoder * encoder,
 
 	/* encode process function for mpeg-4/H.263 (call avcbe_encode_picture func.) */
 	return_code =
-	    encode_picture_for_mpeg4(encoder, appli_info,
-				     stream_type, my_context);
+	    encode_picture_for_mpeg4(encoder, stream_type, my_context);
 	if (return_code != 0) {
 		return (-15);
 	}
@@ -499,7 +497,7 @@ int clip_image_data_for_H263(SHCodecs_Encoder * encoder,
 /* Encode process function for MPEG-4/H.263                               */
 /*------------------------------------------------------------------------*/
 long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
-			      APPLI_INFO * appli_info, long stream_type,
+			      long stream_type,
 			      avcbe_stream_info * context)
 {
 	unsigned long ldec, ref1, ref2;

@@ -221,7 +221,7 @@ int shcodecs_encoder_run(SHCodecs_Encoder * encoder, APPLI_INFO * ainfo)
 	if (encoder->format == SHCodecs_Format_H264) {
 		return encode_1file_h264(encoder, ainfo, AVCBE_H264);
 	} else {
-		return encode_1file_mpeg4(encoder, ainfo, AVCBE_MPEG4);
+		return encode_1file_mpeg4(encoder, AVCBE_MPEG4);
 	}
 }
 
