@@ -163,8 +163,6 @@ typedef struct {
 	long xpic;
 	long ypic;
 
-	long b_vop_num;		/* The number of B-VOP to insert */
-
 	/* Output imformation in encoding */
 
 	long return_code;	/* return_value of current frame or NAL *//* 041123 */

@@ -231,7 +231,6 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder,
 	//appli_info->input_yuv_fp = NULL;
 
 	shcodecs_encoder_set_frame_no_increment(encoder, 1);
-	appli_info->b_vop_num = 0;
 
 	/* same parameters to stream_type */
 #if 0
