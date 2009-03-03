@@ -349,7 +349,7 @@ int load_1frame_from_image_file(SHCodecs_Encoder * encoder,
 		printf("malloc error \n");
 		exit(-1);
 	}
-	if (appli_info->enc_exec_info.yuv_CbCr_format == 1) {	/* 1:CbSCrS */
+	if (appli_info->yuv_CbCr_format == 1) {	/* 1:CbSCrS */
 		ptr = CbCr_ptr;
 		read_size =
 		    fread(Cb_buf_ptr, 1, (hsiz * ysiz / 4), input_yuv_fp);
@@ -359,14 +359,14 @@ int load_1frame_from_image_file(SHCodecs_Encoder * encoder,
 			*ptr++ = *(Cb_buf_ptr + index);
 			*ptr++ = *(Cr_buf_ptr + index);
 		}
-	} else if (appli_info->enc_exec_info.yuv_CbCr_format == 2) {	/* 2:Cb0,Cr0,Cb1,Cr1,... */
+	} else if (appli_info->yuv_CbCr_format == 2) {	/* 2:Cb0,Cr0,Cb1,Cr1,... */
 		read_size =
 		    fread(CbCr_ptr, 1, ((hsiz * ysiz / 4) * 2),
 			  input_yuv_fp);
 		if (read_size <= 1) {
 			return (-1);
 		}
-	} else if (appli_info->enc_exec_info.yuv_CbCr_format == 3) {	/* 3:Cb1C,Cr1C,... */
+	} else if (appli_info->yuv_CbCr_format == 3) {	/* 3:Cb1C,Cr1C,... */
 		ptr = CbCr_ptr;
 		for (index = 0; index < (ysiz / 2); index++) {
 			read_size =

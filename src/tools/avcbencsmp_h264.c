@@ -238,7 +238,7 @@ long init_for_encoder_h264(SHCodecs_Encoder * encoder,
 		encoder->error_return_code = return_code;
 		return (-106);
 	}
-	nrefframe = appli_info->enc_exec_info.ref_frame_num;
+	nrefframe = appli_info->ref_frame_num;
 	nldecfmem = 2;
 	/* Local-decode-image Y */
 	LDEC_ARRY[0].Y_fmemp = (unsigned char *) &my_frame_memory_ldec1[0];
@@ -401,8 +401,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 	my_filler_data_buff_info.buff_top =
 	    (unsigned char *) &my_filler_data_buff[0];
 	my_filler_data_buff_info.buff_size = MY_FILLER_DATA_BUFF_SIZE;
-	encoder->frame_number_to_encode =
-	    appli_info->enc_exec_info.frame_number_to_encode;
+	encoder->frame_number_to_encode = appli_info->frame_number_to_encode;
 	while (1) {	/*--------------------- Repeating by frame numbers --------------------------*/
 		if (encoder->frame_number_to_encode == encoder->frame_counter) {
 			break;
@@ -957,8 +956,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 	my_filler_data_buff_info.buff_size = MY_FILLER_DATA_BUFF_SIZE;
 
 	dummy_nal_buf_addr = dummy_nal_buf;
-	encoder->frame_number_to_encode =
-	    appli_info->enc_exec_info.frame_number_to_encode;
+	encoder->frame_number_to_encode = appli_info->frame_number_to_encode;
 	while (1) {
 		/*--------------------- Repeating by frame numbers --------------------------*/
 

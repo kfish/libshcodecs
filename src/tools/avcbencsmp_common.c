@@ -23,6 +23,7 @@
 
 #include "encoder_private.h"	/* XXX */
 
+#include "ControlFileUtil.h"
 
 extern unsigned long sdr_base;
 
@@ -214,7 +215,7 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder,
 
 	return_code =
 	    GetFromCtrlFtoEncParam(appli_info->ctrl_file_name_buf,
-				   &appli_info->enc_exec_info,
+				   appli_info,
 				   &encoder->encoding_property,
 				   &encoder->other_options_h264,
 				   &encoder->other_options_mpeg4);

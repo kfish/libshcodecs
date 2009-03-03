@@ -556,10 +556,8 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 
 	captfmem.Y_fmemp = (unsigned char *) CAPTF_ARRY[0].Y_fmemp;
 	captfmem.C_fmemp = (unsigned char *) CAPTF_ARRY[0].C_fmemp;
-	printf("encoder->frame_number_to_encode=%d\n",
-	       appli_info->enc_exec_info.frame_number_to_encode);
 	encoder->frame_number_to_encode =
-	    appli_info->enc_exec_info.frame_number_to_encode;
+	    appli_info->frame_number_to_encode;
 	while (1) {	/*---- Repeating by frame numbers -------------------------*/
 		printf("while---");
 		if (encoder->frame_number_to_encode == encoder->frame_counter) {

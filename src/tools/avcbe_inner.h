@@ -18,6 +18,8 @@
 #ifndef	AVCBE_INNER_H
 #define	AVCBE_INNER_H
 
+#include <setjmp.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

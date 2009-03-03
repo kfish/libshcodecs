@@ -28,7 +28,7 @@
 #include "avcbe_global.h"
 #include "m4vse_api_sub.h"
 
-#include "VPU4EncDef.h"
+#include "avcbencsmp.h"
 
 /* サブ関数 */
 /* キーワードが一致する行を探し、その行の"="と";"の間の文字列を引数buf_valueに入れて返す */
@@ -637,54 +637,54 @@ static void GetFromCtrlFtoOTHER_API_ENC_PARAM_SEI(FILE * fp_in,
  * Global Data		: 
  * Return Value		: 
  *****************************************************************************/
-static int GetFromCtrlFtoEncExecInfo(FILE * fp_in, ENC_EXEC_INFO * enc_exec_info)
+static int GetFromCtrlFtoEncExecInfo(FILE * fp_in, APPLI_INFO * appli_info)
 {
 	int status_flag;
 	long return_value;
 
-	enc_exec_info->yuv_CbCr_format = 2;	/* 指定されなかったときのデフォルト値(2:Cb0,Cr0,Cb1,Cr1,...) *//* 050520 */
+	appli_info->yuv_CbCr_format = 2;	/* 指定されなかったときのデフォルト値(2:Cb0,Cr0,Cb1,Cr1,...) *//* 050520 */
 
 	/*** ENC_EXEC_INFO ***/
 /**	return_value = GetValueFromCtrlFile(fp_in, "debug_mode_flag", &status_flag); 041111
 	if (status_flag == 1) {
-		enc_exec_info->debug_mode_flag = return_value;
+		appli_info->debug_mode_flag = return_value;
 	} **/
 
 /**	return_value = GetValueFromCtrlFile(fp_in, "ctrl_file_version", &status_flag); 041111
 	if (status_flag == 1) {
-		enc_exec_info->ctrl_file_version = return_value;
+		appli_info->ctrl_file_version = return_value;
 	} **/
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "frame_number_to_encode",
 				 &status_flag);
 	if (status_flag == 1) {
-		enc_exec_info->frame_number_to_encode = return_value;
+		appli_info->frame_number_to_encode = return_value;
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "filler_output_on", &status_flag);
 	if (status_flag == 1) {
-		enc_exec_info->output_filler_enable = return_value;
+		appli_info->output_filler_enable = return_value;
 	}
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "ref_frame_num", &status_flag);
 	if (status_flag == 1) {
-		enc_exec_info->ref_frame_num = return_value;
+		appli_info->ref_frame_num = return_value;
 	}
-	GetStringFromCtrlFile(fp_in, "input_yuv_path", enc_exec_info->buf_input_yuv_file_with_path, &status_flag);	/* 041111 */
+	GetStringFromCtrlFile(fp_in, "input_yuv_path", appli_info->buf_input_yuv_file_with_path, &status_flag);	/* 041111 */
 	GetStringFromCtrlFile(fp_in, "input_yuv_file",
-			      enc_exec_info->buf_input_yuv_file,
+			      appli_info->buf_input_yuv_file,
 			      &status_flag);
-	GetStringFromCtrlFile(fp_in, "output_directry", enc_exec_info->buf_output_directry, &status_flag);	/* 041111 */
+	GetStringFromCtrlFile(fp_in, "output_directry", appli_info->buf_output_directry, &status_flag);	/* 041111 */
 	GetStringFromCtrlFile(fp_in, "output_stream_file",
-			      enc_exec_info->buf_output_stream_file,
+			      appli_info->buf_output_stream_file,
 			      &status_flag);
 
 	return_value = GetValueFromCtrlFile(fp_in, "yuv_CbCr_format", &status_flag);	/* 050520 */
 	if (status_flag == 1) {
 		printf("yuv_CbCr_format=%d\n", return_value);
-		enc_exec_info->yuv_CbCr_format = (char) return_value;
+		appli_info->yuv_CbCr_format = (char) return_value;
 	}
 
 	return (1);		/* 正常終了 */
@@ -2587,14 +2587,14 @@ static int GetFromCtrlFtoVPU4_ENC(FILE * fp_in, M4IPH_VPU4_ENC * vpu4_enc,
  * Return Value		: 1: 正常終了、-1: エラー
  *****************************************************************************/
 int GetFromCtrlFTop(const char *control_filepath,
-		    ENC_EXEC_INFO * enc_exec_info, long *stream_type)
+		    APPLI_INFO * appli_info, long *stream_type)
 {
 	FILE *fp_in;
 	int status_flag;
 	long return_value;
 
 	if ((control_filepath == NULL) ||
-	    (enc_exec_info == NULL) || (stream_type == NULL)) {
+	    (appli_info == NULL) || (stream_type == NULL)) {
 		return (-1);
 	}
 
@@ -2604,7 +2604,7 @@ int GetFromCtrlFTop(const char *control_filepath,
 	}
 
 	/*** ENC_EXEC_INFO ***/
-	GetFromCtrlFtoEncExecInfo(fp_in, enc_exec_info);
+	GetFromCtrlFtoEncExecInfo(fp_in, appli_info);
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "stream_type", &status_flag);
@@ -2614,13 +2614,13 @@ int GetFromCtrlFTop(const char *control_filepath,
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "x_pic_size", &status_flag);
 	if (status_flag == 1) {
-		enc_exec_info->xpic = return_value;
+		appli_info->xpic = return_value;
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "y_pic_size", &status_flag);
 	if (status_flag == 1) {
-		enc_exec_info->ypic = return_value;
+		appli_info->ypic = return_value;
 	}
 	fclose(fp_in);
 
@@ -2638,7 +2638,7 @@ int GetFromCtrlFTop(const char *control_filepath,
  * Return Value		: 1: 正常終了、-1: エラー
  *****************************************************************************/
 int GetFromCtrlFtoEncParam(const char *control_filepath,
-			   ENC_EXEC_INFO * enc_exec_info,
+			   APPLI_INFO * appli_info,
 			   avcbe_encoding_property * encoding_property,
 			   avcbe_other_options_h264 * other_options_h264,
 			   avcbe_other_options_mpeg4 * other_options_mpeg4)
@@ -2646,7 +2646,7 @@ int GetFromCtrlFtoEncParam(const char *control_filepath,
 	FILE *fp_in;
 
 	if ((control_filepath == NULL) ||
-	    (enc_exec_info == NULL) ||
+	    (appli_info == NULL) ||
 	    (encoding_property == NULL) ||
 	    (other_options_h264 == NULL) ||
 	    (other_options_mpeg4 == NULL)) {
@@ -2659,7 +2659,7 @@ int GetFromCtrlFtoEncParam(const char *control_filepath,
 	}
 
 	/*** ENC_EXEC_INFO ***/
-	GetFromCtrlFtoEncExecInfo(fp_in, enc_exec_info);
+	GetFromCtrlFtoEncExecInfo(fp_in, appli_info);
 
 	/*** avcbe_encoding_property ***/
 	GetFromCtrlFtoEncoding_property(fp_in, encoding_property);

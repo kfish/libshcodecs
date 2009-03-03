@@ -116,7 +116,7 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 //      memset(sdr_read_my_stream_buff,0,sizeof(sdr_read_my_stream_buff));
 	encode_time_init();
 	vpu4_clock_on();
-	width_height = ainfo->enc_exec_info.xpic * ainfo->enc_exec_info.ypic;
+	width_height = ainfo->xpic * ainfo->ypic;
 	width_height += (width_height / 2);
 	max_frame = 2;
 	sdr_base = m4iph_sdr_malloc(width_height * (max_frame + 3), 32);

@@ -25,6 +25,8 @@
 #include "avcbe_inner.h"
 #include "QuantMatrix.h"
 
+#include "ControlFileUtil.h"
+
 #include <shcodecs/shcodecs_encoder.h>
 
 int open_input_image_file(APPLI_INFO *);
@@ -34,10 +36,6 @@ int load_1frame_from_image_file(SHCodecs_Encoder * encoder,
 				unsigned long *addr_c);
 
 int open_output_file(APPLI_INFO *);
-
-extern int GetFromCtrlFTop(const char *control_filepath,
-			   ENC_EXEC_INFO * enc_exec_info,
-			   long *stream_type);
 
 APPLI_INFO ainfo;		/* User Application Data */
 
@@ -73,7 +71,7 @@ int main(int argc, char *argv[])
 	strcpy(ainfo.ctrl_file_name_buf, argv[1]);
 	return_code = GetFromCtrlFTop((const char *)
 				      ainfo.ctrl_file_name_buf,
-				      &(ainfo.enc_exec_info),
+				      &ainfo,
 				      &stream_type);
 	if (return_code < 0) {
 		perror("Error opening control file");
@@ -82,13 +80,13 @@ int main(int argc, char *argv[])
 
 	/* 入力ディレクトリ */
 	snprintf(ainfo.input_file_name_buf, 256, "%s/%s",
-		 ainfo.enc_exec_info.buf_input_yuv_file_with_path,
-		 ainfo.enc_exec_info.buf_input_yuv_file);
+		 ainfo.buf_input_yuv_file_with_path,
+		 ainfo.buf_input_yuv_file);
 
 	/* 出力ディレクトリ */
 	snprintf(ainfo.output_file_name_buf, 256, "%s/%s",
-		 ainfo.enc_exec_info.buf_output_directry,
-		 ainfo.enc_exec_info.buf_output_stream_file);
+		 ainfo.buf_output_directry,
+		 ainfo.buf_output_stream_file);
 
 	printf("ainfo.input_file_name_buf = %s \n",
 	       ainfo.input_file_name_buf);
@@ -96,9 +94,8 @@ int main(int argc, char *argv[])
 	       ainfo.output_file_name_buf);
 
 	encoder =
-	    shcodecs_encoder_init(ainfo.enc_exec_info.xpic,
-				  ainfo.enc_exec_info.ypic, stream_type,
-				  &ainfo);
+	    shcodecs_encoder_init(ainfo.xpic, ainfo.ypic,
+                                  stream_type, &ainfo);
 
 	shcodecs_encoder_set_input_callback(encoder, get_input, &ainfo);
 	shcodecs_encoder_set_output_callback(encoder, write_output,

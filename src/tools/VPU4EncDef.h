@@ -47,6 +47,7 @@ typedef struct {
 
 } OTHER_API_ENC_PARAM;
 
+#if 0
 /* エンコード実行条件の構造体 */
 typedef struct {
 
@@ -64,5 +65,6 @@ typedef struct {
 	long xpic;
 	long ypic;
 } ENC_EXEC_INFO;
+#endif
 
 #endif				/* VPU4ENCDEF_H */

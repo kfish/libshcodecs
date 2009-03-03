@@ -28,6 +28,8 @@
 #include "capture.h"
 #include "veu_colorspace.h"
 
+#include "ControlFileUtil.h"
+
 #include <shcodecs/shcodecs_encoder.h>
 
 #define DEBUG
@@ -35,10 +37,6 @@
 #define USE_BVOP
 
 int open_output_file(APPLI_INFO *);
-
-extern int GetFromCtrlFTop(const char *control_filepath,
-			   ENC_EXEC_INFO * enc_exec_info,
-			   long *stream_type);
 
 APPLI_INFO ainfo;		/* User Application Data */
 
@@ -73,10 +71,8 @@ int main(int argc, char *argv[])
 	}
 
 	strcpy(ainfo.ctrl_file_name_buf, argv[1]);
-	return_code = GetFromCtrlFTop((const char *)
-				      ainfo.ctrl_file_name_buf,
-				      &(ainfo.enc_exec_info),
-				      &stream_type);
+	return_code = GetFromCtrlFTop((const char *) ainfo.ctrl_file_name_buf,
+				      &ainfo, &stream_type);
 	if (return_code < 0) {
 		perror("Error opening control file");
 		return (-1);
@@ -84,28 +80,26 @@ int main(int argc, char *argv[])
 
 	/* 入力ディレクトリ */
 	snprintf(ainfo.input_file_name_buf, 256, "%s/%s",
-		 ainfo.enc_exec_info.buf_input_yuv_file_with_path,
-		 ainfo.enc_exec_info.buf_input_yuv_file);
+		 ainfo.buf_input_yuv_file_with_path,
+		 ainfo.buf_input_yuv_file);
 
 	/* 出力ディレクトリ */
 	snprintf(ainfo.output_file_name_buf, 256, "%s/%s",
-		 ainfo.enc_exec_info.buf_output_directry,
-		 ainfo.enc_exec_info.buf_output_stream_file);
+		 ainfo.buf_output_directry,
+		 ainfo.buf_output_stream_file);
 
 	printf("ainfo.input_file_name_buf = %s \n",
 	       ainfo.input_file_name_buf);
 	printf("ainfo.output_file_name_buf = %s \n",
 	       ainfo.output_file_name_buf);
 	ainfo.ceu =
-	    sh_ceu_open("/dev/video0", ainfo.enc_exec_info.xpic,
-			ainfo.enc_exec_info.ypic);
+	    sh_ceu_open("/dev/video0", ainfo.xpic, ainfo.ypic);
 
 	sh_veu_open();
 
 	encoder =
-	    shcodecs_encoder_init(ainfo.enc_exec_info.xpic,
-				  ainfo.enc_exec_info.ypic, stream_type,
-				  &ainfo);
+	    shcodecs_encoder_init(ainfo.xpic, ainfo.ypic,
+                                  stream_type, &ainfo);
 
 	shcodecs_encoder_set_input_callback(encoder, get_input, &ainfo);
 	shcodecs_encoder_set_output_callback(encoder, write_output,

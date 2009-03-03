@@ -12,11 +12,13 @@
 #ifndef	CONTROL_FILE_UTIL_H
 #define	CONTROL_FILE_UTIL_H
 
+#include "avcbencsmp.h"
+
 int GetFromCtrlFTop(const char *control_filepath,
-		    ENC_EXEC_INFO * enc_exec_info, long *stream_type);
+		    APPLI_INFO * appli_info, long *stream_type);
 
 int GetFromCtrlFtoEncParam(const char *control_filepath,
-			   ENC_EXEC_INFO * enc_exec_info,
+			   APPLI_INFO * appli_info,
 			   avcbe_encoding_property *
 			   encoding_property,
 			   avcbe_other_options_h264 *
