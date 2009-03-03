@@ -26,7 +26,6 @@ noinst_HEADERS = \
 	m4vse_api_sub.h \
 	QuantMatrix.h \
 	sh7722_vpu.h \
-	VPU4EncDef.h \
 	veu_colorspace.h
 
 shcodecs_enc_SOURCES =  \

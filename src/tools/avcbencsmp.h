@@ -20,10 +20,6 @@
 
 #define CAPTURE_VGA 1
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifdef MAX_D1
 /*----------------------------------------------------------*/
 /*       Image width x Image height x 1.5                   */
@@ -91,9 +87,9 @@ extern "C" {
 /*----------------------------------------------------------*/
 /*       SEI-stream-output buffer size                      */
 /*----------------------------------------------------------*/
-	/*#define MY_SEI_STREAM_BUFF_SIZE       175000 *//* Level 1 */
-	/*#define MY_SEI_STREAM_BUFF_SIZE       2000000 *//* Level 2 */
-	/*#define MY_SEI_STREAM_BUFF_SIZE       10000000 *//* Level 3 */
+							 /*#define MY_SEI_STREAM_BUFF_SIZE       175000 *//* Level 1 */
+							  /*#define MY_SEI_STREAM_BUFF_SIZE       2000000 *//* Level 2 */
+							   /*#define MY_SEI_STREAM_BUFF_SIZE       10000000 *//* Level 3 */
 #define MY_SEI_STREAM_BUFF_SIZE	100000
 
 /*----------------------------------------------------------*/
@@ -117,27 +113,7 @@ extern "C" {
 
 /*----- structures -----*/
 
-#if 0
-	typedef struct {	/* add at Version2 */
-		/* Table to set encoding parameter (for H.264 bitstream) */
-		avcbe_vui_main_param vui_main_param;	/* the parameter of the avcbe_set_VUI_parameters function */
-
-		char out_buffering_period_SEI;	/* whether output buffering_period SEI message (1:output, 2:NOT outputj */
-		char out_pic_timing_SEI;	/* whether output picture_timing SEI message (1:output, 2:NOT outputj */
-		char out_pan_scan_rect_SEI;	/* whether output filler_payload SEI message (1:output, 2:NOT outputj */
-		char out_filler_payload_SEI;	/* whether output picture_timing SEI message (1:output, 2:NOT outputj */
-		char out_recovery_point_SEI;	/* whether output recovery_point SEI message (1:output, 2:NOT outputj */
-		char out_dec_ref_pic_marking_repetition_SEI;	/* whether output dec_ref_pic_marking_repetition SEI message (1:output, 2:NOT outputj */
-
-		avcbe_sei_buffering_period_param sei_buffering_period_param;	/* the parameter of the avcbe_put_SEI_parameters function (1) */
-		avcbe_sei_pic_timing_param sei_pic_timing_param;	/* the parameter of the avcbe_put_SEI_parameters function (2) */
-		avcbe_sei_pan_scan_rect_param sei_pan_scan_rect_param;	/* the parameter of the avcbe_put_SEI_parameters function (3) */
-		avcbe_sei_filler_payload_param sei_filler_payload_param;	/* the parameter of the avcbe_put_SEI_parameters function (4) */
-		avcbe_sei_recovery_point_param sei_recovery_point_param;	/* the parameter of the avcbe_put_SEI_parameters function (5) */
-	} OTHER_API_ENC_PARAM;
-//#else
-
-typedef struct {
+typedef struct {		/* add at Version2 */
 	unsigned char ref_frame_num;	/* 参照フレーム数（1 or 2) (H.264のみ） */
 
 	long weightdQ_enable;
@@ -146,117 +122,81 @@ typedef struct {
 	TAVCBE_WEIGHTEDQ_USER weightedQ_info_user;	/* API関数avcbe_set_weightedQ()に渡すための構造体(3) */
 	char weightedQ_table_filepath[256];	/* 重み付けテーブルファイルのパス名 */
 
-	avcbe_vui_main_param vui_main_param;	/* API関数avcbe_set_VUI_parameters()に渡すための構造体 (H.264のみ） */
+	/* Table to set encoding parameter (for H.264 bitstream) */
+	avcbe_vui_main_param vui_main_param;	/* the parameter of the avcbe_set_VUI_parameters function */
 
-	char out_buffering_period_SEI;	/* SEIメッセージの出力の有無（1:出力する） */
-	char out_pic_timing_SEI;
-	char out_pan_scan_rect_SEI;
-	char out_filler_payload_SEI;
-	char out_recovery_point_SEI;
-	char out_dec_ref_pic_marking_repetition_SEI;
+	char out_buffering_period_SEI;	/* whether output buffering_period SEI message (1:output, 2:NOT outputj */
+	char out_pic_timing_SEI;	/* whether output picture_timing SEI message (1:output, 2:NOT outputj */
+	char out_pan_scan_rect_SEI;	/* whether output filler_payload SEI message (1:output, 2:NOT outputj */
+	char out_filler_payload_SEI;	/* whether output picture_timing SEI message (1:output, 2:NOT outputj */
+	char out_recovery_point_SEI;	/* whether output recovery_point SEI message (1:output, 2:NOT outputj */
+	char out_dec_ref_pic_marking_repetition_SEI;	/* whether output dec_ref_pic_marking_repetition SEI message (1:output, 2:NOT outputj */
 
-	avcbe_sei_buffering_period_param sei_buffering_period_param;	/* API関数avcbe_put_SEI_parameters()に渡すための構造体(1) (H.264のみ） */
-	avcbe_sei_pic_timing_param sei_pic_timing_param;	/* API関数avcbe_put_SEI_parameters()に渡すための構造体(2) (H.264のみ） */
-	avcbe_sei_pan_scan_rect_param sei_pan_scan_rect_param;	/* API関数avcbe_put_SEI_parameters()に渡すための構造体(3) (H.264のみ） */
-	avcbe_sei_filler_payload_param sei_filler_payload_param;	/* API関数avcbe_put_SEI_parameters()に渡すための構造体(4) (H.264のみ） */
-	avcbe_sei_recovery_point_param sei_recovery_point_param;	/* API関数avcbe_put_SEI_parameters()に渡すための構造体(5) (H.264のみ） */
-
-	long use_I_PCM_flag;	/*I_PCMを出力するかどうか　041109 */
-
+	avcbe_sei_buffering_period_param sei_buffering_period_param;	/* the parameter of the avcbe_put_SEI_parameters function (1) */
+	avcbe_sei_pic_timing_param sei_pic_timing_param;	/* the parameter of the avcbe_put_SEI_parameters function (2) */
+	avcbe_sei_pan_scan_rect_param sei_pan_scan_rect_param;	/* the parameter of the avcbe_put_SEI_parameters function (3) */
+	avcbe_sei_filler_payload_param sei_filler_payload_param;	/* the parameter of the avcbe_put_SEI_parameters function (4) */
+	avcbe_sei_recovery_point_param sei_recovery_point_param;	/* the parameter of the avcbe_put_SEI_parameters function (5) */
 } OTHER_API_ENC_PARAM;
-#endif
 
-#if 1
-/*************** michioka ******************/
-	typedef struct {	/* add at Version2 */
-		unsigned char ref_frame_num;	/* 参照フレーム数（1 or 2) (H.264のみ） */
+typedef struct {
 
-		long weightdQ_enable;
-		TAVCBE_WEIGHTEDQ_CENTER weightedQ_info_center;	/* API関数avcbe_set_weightedQ()に渡すための構造体(1) */
-		TAVCBE_WEIGHTEDQ_RECT weightedQ_info_rect;	/* API関数avcbe_set_weightedQ()に渡すための構造体(2) */
-		TAVCBE_WEIGHTEDQ_USER weightedQ_info_user;	/* API関数avcbe_set_weightedQ()に渡すための構造体(3) */
-		char weightedQ_table_filepath[256];	/* 重み付けテーブルファイルのパス名 */
+	/* Table to store an encoding result (MPEG-4 bitstream) */
 
-		/* Table to set encoding parameter (for H.264 bitstream) */
-		avcbe_vui_main_param vui_main_param;	/* the parameter of the avcbe_set_VUI_parameters function */
+	/* Size of encoding result (byte unit) */
 
-		char out_buffering_period_SEI;	/* whether output buffering_period SEI message (1:output, 2:NOT outputj */
-		char out_pic_timing_SEI;	/* whether output picture_timing SEI message (1:output, 2:NOT outputj */
-		char out_pan_scan_rect_SEI;	/* whether output filler_payload SEI message (1:output, 2:NOT outputj */
-		char out_filler_payload_SEI;	/* whether output picture_timing SEI message (1:output, 2:NOT outputj */
-		char out_recovery_point_SEI;	/* whether output recovery_point SEI message (1:output, 2:NOT outputj */
-		char out_dec_ref_pic_marking_repetition_SEI;	/* whether output dec_ref_pic_marking_repetition SEI message (1:output, 2:NOT outputj */
+	/* Input imformation in encoding */
 
-		avcbe_sei_buffering_period_param sei_buffering_period_param;	/* the parameter of the avcbe_put_SEI_parameters function (1) */
-		avcbe_sei_pic_timing_param sei_pic_timing_param;	/* the parameter of the avcbe_put_SEI_parameters function (2) */
-		avcbe_sei_pan_scan_rect_param sei_pan_scan_rect_param;	/* the parameter of the avcbe_put_SEI_parameters function (3) */
-		avcbe_sei_filler_payload_param sei_filler_payload_param;	/* the parameter of the avcbe_put_SEI_parameters function (4) */
-		avcbe_sei_recovery_point_param sei_recovery_point_param;	/* the parameter of the avcbe_put_SEI_parameters function (5) */
-	} OTHER_API_ENC_PARAM;
-#endif
+	/* Input YUV file name and it's file pointer */
+	char input_file_name_buf[256];	/* for stream-1 */
+	FILE *input_yuv_fp;	/* for stream-1 */
+	long yuv_CbCr_format;	/* YUVデータ内（出力するローカルデコードファイルも）
+				   のCb,Crデータの並び順（1:Cb全部Cr全部、2:Cb0,Cr0,Cb1,Cr1,...、
+				   3:Cbの1ライン分,Crの1ライン分,...） */
 
-	typedef struct {
+	char output_file_name_buf[256];	/* 出力m4vファイル名 */
+	char ctrl_file_name_buf[256];	/* 入力YUVファイル名 */
 
-		/* Table to store an encoding result (MPEG-4 bitstream) */
+	long frame_number_to_encode;	/* エンコードするフレーム数 */
 
-		/* Size of encoding result (byte unit) */
+	char buf_input_yuv_file_with_path[256 + 8];	/* 入力YUVファイル名（パス付き） *//* 041201 */
+	char buf_input_yuv_file[64 + 8];	/* 入力YUVファイル名（パスなし） */
 
-		/* Input imformation in encoding */
+	char buf_output_directry[256 + 8];	/* 出力先のディレクトリ *//* 041201 */
+	char buf_output_stream_file[64 + 8];	/* 出力ストリームファイル名（パスなし） */
+	unsigned char ref_frame_num;	/* 参照フレーム数（1 or 2) (H.264のみ） */
+	long xpic;
+	long ypic;
 
-		/* Input YUV file name and it's file pointer */
-		char input_file_name_buf[256];	/* for stream-1 */
-		FILE *input_yuv_fp;	/* for stream-1 */
-		long yuv_CbCr_format;	/* YUVデータ内（出力するローカルデコードファイルも）
-					   のCb,Crデータの並び順（1:Cb全部Cr全部、2:Cb0,Cr0,Cb1,Cr1,...、
-					   3:Cbの1ライン分,Crの1ライン分,...） */
+	long frame_no_increment;	/* Increment value of Frame number to be encoded for 
+					   m4vse_encode_picture function */
+	long b_vop_num;		/* The number of B-VOP to insert */
 
-		char output_file_name_buf[256];	/* 出力m4vファイル名 */
-		char ctrl_file_name_buf[256];	/* 入力YUVファイル名 */
+	/* Output imformation in encoding */
 
-		long frame_number_to_encode;	/* エンコードするフレーム数 */
+	long return_code;	/* return_value of current frame or NAL *//* 041123 */
 
-		char buf_input_yuv_file_with_path[256 + 8];	/* 入力YUVファイル名（パス付き） *//* 041201 */
-		char buf_input_yuv_file[64 + 8];	/* 入力YUVファイル名（パスなし） */
+	long output_filler_enable;	/* enable flag to put Filler Data for CPB Buffer Over *//* 050519 */
 
-		char buf_output_directry[256 + 8];	/* 出力先のディレクトリ *//* 041201 */
-		char buf_output_stream_file[64 + 8];	/* 出力ストリームファイル名（パスなし） */
-		unsigned char ref_frame_num;	/* 参照フレーム数（1 or 2) (H.264のみ） */
-		long xpic;
-		long ypic;
+	long output_filler_data;	/* for FillerData(CPB  Buffer) *//* add at Version2 */
+	FILE *output_file_fp;	/* for output stream-2 */
 
-		long frame_no_increment;	/* Increment value of Frame number to be encoded for 
-						   m4vse_encode_picture function */
-		long b_vop_num;	/* The number of B-VOP to insert */
+	sh_ceu *ceu;
 
-		/* Output imformation in encoding */
-
-		long return_code;	/* return_value of current frame or NAL *//* 041123 */
-
-		long output_filler_enable;	/* enable flag to put Filler Data for CPB Buffer Over *//* 050519 */
-
-		long output_filler_data;	/* for FillerData(CPB  Buffer) *//* add at Version2 */
-		FILE *output_file_fp;	/* for output stream-2 */
-
-		sh_ceu *ceu;
-
-	} APPLI_INFO;
+} APPLI_INFO;
 
 
 
 /*-------------- proto-type declaration ----------------------------*/
 /*--- the functions in avcbencsmp_common.c ---*/
-	int avcbe_enc(long stream_type);
-	int encode_1file(APPLI_INFO * appli_info, long stream_type);
-	void set_VPU4_param(M4IPH_VPU4_INIT_OPTION * vpu4_param);
-	void cat_output_stream(APPLI_INFO * appli_info,
-			       avcbe_stream_info * context,
-			       char *frame_stream_address,
-			       long frame_stream_size);
-	void DisplayMessage(char *message_text, int line_feed_flag);
+int avcbe_enc(long stream_type);
+int encode_1file(APPLI_INFO * appli_info, long stream_type);
+void set_VPU4_param(M4IPH_VPU4_INIT_OPTION * vpu4_param);
+void cat_output_stream(APPLI_INFO * appli_info,
+		       avcbe_stream_info * context,
+		       char *frame_stream_address, long frame_stream_size);
+void DisplayMessage(char *message_text, int line_feed_flag);
 
 #define ALIGN(a, w) (void *)(((unsigned long)(a) + (w) - 1) & ~((w) - 1))
 
-#ifdef __cplusplus
-}
-#endif
 #endif				/* AVCBENCSMP */
