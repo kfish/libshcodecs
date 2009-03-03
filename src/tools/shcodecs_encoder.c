@@ -252,6 +252,22 @@ shcodecs_encoder_get_frame_number_to_encode (SHCodecs_Encoder * encoder)
   return encoder->frame_number_to_encode;
 }
 
+/**
+ * Set the "frame_number_to_encode" field
+ */
+long
+shcodecs_encoder_set_frame_number_to_encode (SHCodecs_Encoder * encoder, long frame_number_to_encode)
+{
+  long old_value;
+
+  if (encoder == NULL) return -1;
+
+  old_value = encoder->frame_number_to_encode;
+  encoder->frame_number_to_encode = frame_number_to_encode;
+
+  return old_value;
+}
+
 /*
  * Set the "ref_frame_num" field
  * H.264 only
@@ -259,7 +275,12 @@ shcodecs_encoder_get_frame_number_to_encode (SHCodecs_Encoder * encoder)
 int
 shcodecs_encoder_set_ref_frame_num (SHCodecs_Encoder * encoder, int ref_frame_num)
 {
+  int old_value;
+
   if (encoder == NULL) return -1;
 
+  old_value = encoder->ref_frame_num;
   encoder->ref_frame_num = ref_frame_num;
+
+  return old_value;
 }

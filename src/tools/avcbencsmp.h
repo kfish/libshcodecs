@@ -155,8 +155,6 @@ typedef struct {
 	char output_file_name_buf[256];	/* 出力m4vファイル名 */
 	char ctrl_file_name_buf[256];	/* 入力YUVファイル名 */
 
-	long frame_number_to_encode;	/* エンコードするフレーム数 */
-
 	char buf_input_yuv_file_with_path[256 + 8];	/* 入力YUVファイル名（パス付き） *//* 041201 */
 	char buf_input_yuv_file[64 + 8];	/* 入力YUVファイル名（パスなし） */
 

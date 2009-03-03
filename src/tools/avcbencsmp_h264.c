@@ -401,7 +401,6 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 	my_filler_data_buff_info.buff_top =
 	    (unsigned char *) &my_filler_data_buff[0];
 	my_filler_data_buff_info.buff_size = MY_FILLER_DATA_BUFF_SIZE;
-	encoder->frame_number_to_encode = appli_info->frame_number_to_encode;
 	while (1) {	/*--------------------- Repeating by frame numbers --------------------------*/
 		if (encoder->frame_number_to_encode == encoder->frame_counter) {
 			break;
@@ -956,7 +955,6 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 	my_filler_data_buff_info.buff_size = MY_FILLER_DATA_BUFF_SIZE;
 
 	dummy_nal_buf_addr = dummy_nal_buf;
-	encoder->frame_number_to_encode = appli_info->frame_number_to_encode;
 	while (1) {
 		/*--------------------- Repeating by frame numbers --------------------------*/
 
