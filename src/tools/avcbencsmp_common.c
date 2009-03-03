@@ -215,8 +215,8 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder,
 	return_code =
 	    GetFromCtrlFtoEncParam(appli_info->ctrl_file_name_buf,
 				   &appli_info->enc_exec_info,
-				   &appli_info->param,
-				   &appli_info->other_options_h264,
+				   &encoder->encoding_property,
+				   &encoder->other_options_h264,
 				   &encoder->other_options_mpeg4);
 	if (return_code == -1) {
 		printf("Control file not found !\n");
@@ -241,48 +241,48 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder,
 //              strcpy(&appli_info->output_file_name_buf[0], "output.264");
 
 		/*** avcbe_encoding_property ***/
-//01            appli_info->param.avcbe_stream_type = appli_info->param.avcbe_stream_type;
-//02            appli_info->param.avcbe_bitrate = 384000;
-//03            appli_info->param.avcbe_xpic_size = 320;
-//04            appli_info->param.avcbe_ypic_size = 240;
-//05            appli_info->param.avcbe_frame_rate = 150; 
+//01            encoder->encoding_property.avcbe_stream_type = encoder->encoding_property.avcbe_stream_type;
+//02            encoder->encoding_property.avcbe_bitrate = 384000;
+//03            encoder->encoding_property.avcbe_xpic_size = 320;
+//04            encoder->encoding_property.avcbe_ypic_size = 240;
+//05            encoder->encoding_property.avcbe_frame_rate = 150; 
 
 #ifdef CAPT_INPUT
-//06            appli_info->param.avcbe_I_vop_interval = 0;
+//06            encoder->encoding_property.avcbe_I_vop_interval = 0;
 #else
-//06            appli_info->param.avcbe_I_vop_interval = 30;
+//06            encoder->encoding_property.avcbe_I_vop_interval = 30;
 #endif				/* CAPT_INPUT */
 
-//07            appli_info->param.avcbe_mv_mode = AVCBE_WITH_UMV;
-//08            appli_info->param.avcbe_fcode_forward = AVCBE_MVR_FCODE_2; /* '1' -> '2' changed at Version2 */
+//07            encoder->encoding_property.avcbe_mv_mode = AVCBE_WITH_UMV;
+//08            encoder->encoding_property.avcbe_fcode_forward = AVCBE_MVR_FCODE_2; /* '1' -> '2' changed at Version2 */
 
-//09            appli_info->param.avcbe_search_mode = AVCBE_MVM_WEIGHT_10; /* 10 means 127 times */
-//10            appli_info->param.avcbe_search_time_fixed = AVCBE_ON;
+//09            encoder->encoding_property.avcbe_search_mode = AVCBE_MVM_WEIGHT_10; /* 10 means 127 times */
+//10            encoder->encoding_property.avcbe_search_time_fixed = AVCBE_ON;
 
-//11            appli_info->param.avcbe_ratecontrol_skip_enable = AVCBE_ON;
-//12            appli_info->param.avcbe_ratecontrol_use_prevquant = AVCBE_ON;
+//11            encoder->encoding_property.avcbe_ratecontrol_skip_enable = AVCBE_ON;
+//12            encoder->encoding_property.avcbe_ratecontrol_use_prevquant = AVCBE_ON;
 
-//13            appli_info->param.avcbe_ratecontrol_respect_type = AVCBE_RESPECT_BITRATE;       /* added at Version2 */
+//13            encoder->encoding_property.avcbe_ratecontrol_respect_type = AVCBE_RESPECT_BITRATE;       /* added at Version2 */
 
-	/*      appli_info->param.avcbe_ratecontrol_rcperiod_skipcheck_enable = AVCBE_ON;       deleted at Version2 */
-	/*      appli_info->param.avcbe_ratecontrol_rcperiod_ivop_noskip = AVCBE_ON;            deleted at Version2 */
-	/*      appli_info->param.avcbe_ratecontrol_vbv_skipcheck_enable = AVCBE_OFF;           deleted at Version2 */
-	/*      appli_info->param.avcbe_ratecontrol_vbv_ivop_noskip = AVCBE_ON;                         deleted at Version2 */
+	/*      encoder->encoding_property.avcbe_ratecontrol_rcperiod_skipcheck_enable = AVCBE_ON;       deleted at Version2 */
+	/*      encoder->encoding_property.avcbe_ratecontrol_rcperiod_ivop_noskip = AVCBE_ON;            deleted at Version2 */
+	/*      encoder->encoding_property.avcbe_ratecontrol_vbv_skipcheck_enable = AVCBE_OFF;           deleted at Version2 */
+	/*      encoder->encoding_property.avcbe_ratecontrol_vbv_ivop_noskip = AVCBE_ON;                         deleted at Version2 */
 
-//14            appli_info->param.avcbe_ratecontrol_intra_thr_changeable = AVCBE_OFF;
-//15            appli_info->param.avcbe_control_bitrate_length = 0;
-//16            appli_info->param.avcbe_intra_macroblock_refresh_cycle = 0;
+//14            encoder->encoding_property.avcbe_ratecontrol_intra_thr_changeable = AVCBE_OFF;
+//15            encoder->encoding_property.avcbe_control_bitrate_length = 0;
+//16            encoder->encoding_property.avcbe_intra_macroblock_refresh_cycle = 0;
 	/* 'AVCBE_MPEG4_NTSC' -> 'AVCBE_VIDEO_FORMAT_NTSC' changed at Version2 */
-//17            appli_info->param.avcbe_video_format = AVCBE_VIDEO_FORMAT_NTSC;
-//18            appli_info->param.avcbe_frame_num_resolution = 30;
-//19            appli_info->param.avcbe_noise_reduction = 0;
-//20            appli_info->param.avcbe_reaction_param_coeff = 10;
-//21            appli_info->param.avcbe_weightedQ_mode = AVCBE_WEIGHTEDQ_NONE;
+//17            encoder->encoding_property.avcbe_video_format = AVCBE_VIDEO_FORMAT_NTSC;
+//18            encoder->encoding_property.avcbe_frame_num_resolution = 30;
+//19            encoder->encoding_property.avcbe_noise_reduction = 0;
+//20            encoder->encoding_property.avcbe_reaction_param_coeff = 10;
+//21            encoder->encoding_property.avcbe_weightedQ_mode = AVCBE_WEIGHTEDQ_NONE;
 
 	/* parameters depend on stream_type */
-	if ((appli_info->param.avcbe_stream_type == AVCBE_MPEG4) ||
-	    (appli_info->param.avcbe_stream_type == AVCBE_H263)) {
-	} else if (appli_info->param.avcbe_stream_type == AVCBE_H264) {	/* added at Version2 */
+	if ((encoder->encoding_property.avcbe_stream_type == AVCBE_MPEG4) ||
+	    (encoder->encoding_property.avcbe_stream_type == AVCBE_H263)) {
+	} else if (encoder->encoding_property.avcbe_stream_type == AVCBE_H264) {	/* added at Version2 */
 			/*** avcbe_other_options_h264 ***/
 //01                    appli_info->other_options_h264.avcbe_Ivop_quant_initial_value = 30;
 //02                    appli_info->other_options_h264.avcbe_Pvop_quant_initial_value = 30;
@@ -372,59 +372,57 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder,
 	}
 	/* end of 'if (stream_type == AVCBE_H264)' */
 	appli_info->frame_no_increment =
-	    appli_info->param.avcbe_frame_num_resolution /
-	    (appli_info->param.avcbe_frame_rate / 10);
+	    encoder->encoding_property.avcbe_frame_num_resolution /
+	    (encoder->encoding_property.avcbe_frame_rate / 10);
 
 
 #if 1
 /*----- avcbe_encoding_property (common parameter for MPEG-4 & H.264) -----*/
 	printf("(01) stream_type                      = %d\n",
-	       (int) appli_info->param.avcbe_stream_type);
+	       (int) encoder->encoding_property.avcbe_stream_type);
 	printf("(02) bitrate                          = %d\n",
-	       (int) appli_info->param.avcbe_bitrate);
+	       (int) encoder->encoding_property.avcbe_bitrate);
 	printf("(03) xpic_size                        = %d\n",
-	       (int) appli_info->param.avcbe_xpic_size);
+	       (int) encoder->encoding_property.avcbe_xpic_size);
 	printf("(04) ypic_size                        = %d\n",
-	       (int) appli_info->param.avcbe_ypic_size);
+	       (int) encoder->encoding_property.avcbe_ypic_size);
 	printf("(05) frame_rate                       = %d\n",
-	       (int) appli_info->param.avcbe_frame_rate);
+	       (int) encoder->encoding_property.avcbe_frame_rate);
 	printf("(06) I_vop_interval                   = %d\n",
-	       (int) appli_info->param.avcbe_I_vop_interval);
+	       (int) encoder->encoding_property.avcbe_I_vop_interval);
 	printf("(07) mv_mode                          = %d\n",
-	       (int) appli_info->param.avcbe_mv_mode);
+	       (int) encoder->encoding_property.avcbe_mv_mode);
 	printf("(08) fcode_forward                    = %d\n",
-	       (int) appli_info->param.avcbe_fcode_forward);
+	       (int) encoder->encoding_property.avcbe_fcode_forward);
 	printf("(09) search_mode                      = %d\n",
-	       (int) appli_info->param.avcbe_search_mode);
+	       (int) encoder->encoding_property.avcbe_search_mode);
 	printf("(10) time_fixed                       = %d\n",
-	       (int) appli_info->param.avcbe_search_time_fixed);
+	       (int) encoder->encoding_property.avcbe_search_time_fixed);
 
 	printf("(11) skip_enable                      = %d\n",
-	       (int) appli_info->param.avcbe_ratecontrol_skip_enable);
+	       (int) encoder->encoding_property.avcbe_ratecontrol_skip_enable);
 	printf("(12) use_prevquant                    = %d\n",
-	       (int) appli_info->param.avcbe_ratecontrol_use_prevquant);
+	       (int) encoder->encoding_property.avcbe_ratecontrol_use_prevquant);
 	printf("(13) respect_type                     = %d\n",
-	       (int) appli_info->param.avcbe_ratecontrol_respect_type);
+	       (int) encoder->encoding_property.avcbe_ratecontrol_respect_type);
 
 	printf("(14) ratecontrol_intra_thr_changeable = %d\n",
-	       (int) appli_info->
-	       param.avcbe_ratecontrol_intra_thr_changeable);
+	       (int) encoder->encoding_property.avcbe_ratecontrol_intra_thr_changeable);
 	printf("(15) control_bitrate_lengt            = %d\n",
-	       (int) appli_info->param.avcbe_control_bitrate_length);
+	       (int) encoder->encoding_property.avcbe_control_bitrate_length);
 	printf("(16) intra_macroblock_refresh_cycle   = %d\n",
-	       (int) appli_info->
-	       param.avcbe_intra_macroblock_refresh_cycle);
+	       (int) encoder->encoding_property.avcbe_intra_macroblock_refresh_cycle);
 
 	printf("(17) video_format                     = %d\n",
-	       (int) appli_info->param.avcbe_video_format);
+	       (int) encoder->encoding_property.avcbe_video_format);
 	printf("(18) frame_num_resolution             = %d\n",
-	       (int) appli_info->param.avcbe_frame_num_resolution);
+	       (int) encoder->encoding_property.avcbe_frame_num_resolution);
 	printf("(19) noise_reduction                  = %d\n",
-	       (int) appli_info->param.avcbe_noise_reduction);
+	       (int) encoder->encoding_property.avcbe_noise_reduction);
 	printf("(20) reaction_param_coeff             = %d\n",
-	       (int) appli_info->param.avcbe_reaction_param_coeff);
+	       (int) encoder->encoding_property.avcbe_reaction_param_coeff);
 	printf("(21) weightedQ_mode                   = %d\n",
-	       (int) appli_info->param.avcbe_weightedQ_mode);
+	       (int) encoder->encoding_property.avcbe_weightedQ_mode);
 #endif
 
 #if 0

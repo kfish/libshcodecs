@@ -81,6 +81,7 @@ int open_output_file(APPLI_INFO * appli_info)
 }
 
 struct capture {
+	SHCodecs_Encoder *encoder;
 	APPLI_INFO *appli_info;
 	unsigned long *addr_y;
 	unsigned long *addr_c;
@@ -105,8 +106,8 @@ capture_image_cb(sh_ceu * ceu, const void *frame_data, size_t length,
 	unsigned int oy;
 	int ou, ov;
 
-	hsiz = cap->appli_info->param.avcbe_xpic_size;
-	ysiz = cap->appli_info->param.avcbe_ypic_size;
+	hsiz = shcodecs_encoder_get_width(cap->encoder);
+	ysiz = shcodecs_encoder_get_height(cap->encoder);
 
 	/* write memory data size offset make to multiples of 16 */
 	wnum = (((hsiz + 15) / 16) * 16) * (((ysiz + 15) / 16) * 16);
@@ -308,11 +309,12 @@ capture_image_cb(sh_ceu * ceu, const void *frame_data, size_t length,
 }
 
 /* capture yuv data to the image-capture-field area each frame */
-int capture_image(APPLI_INFO * appli_info, unsigned long *addr_y,
-		  unsigned long *addr_c)
+int capture_image(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
+                  unsigned long *addr_y, unsigned long *addr_c)
 {
 	struct capture cap;
 
+	cap.encoder = encoder;
 	cap.appli_info = appli_info;
 	cap.addr_y = addr_y;
 	cap.addr_c = addr_c;
@@ -338,8 +340,8 @@ int load_1frame_from_image_file(SHCodecs_Encoder * encoder,
 		return (0);
 	}
 	input_yuv_fp = appli_info->input_yuv_fp;
-	hsiz = appli_info->param.avcbe_xpic_size;
-	ysiz = appli_info->param.avcbe_ypic_size;
+	hsiz = shcodecs_encoder_get_width(encoder);
+	ysiz = shcodecs_encoder_get_height(encoder);
 	frame_counter_of_input++;
 
 	/* TODO MULTI_STREAM code remoevd */

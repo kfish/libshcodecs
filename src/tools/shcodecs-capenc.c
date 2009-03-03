@@ -49,7 +49,7 @@ static int get_input(SHCodecs_Encoder * encoder,
 		     void *user_data)
 {
 	APPLI_INFO *appli_info = (APPLI_INFO *) user_data;
-	return capture_image(appli_info, addr_y, addr_c);
+	return capture_image(encoder, appli_info, addr_y, addr_c);
 }
 
 /* SHCodecs_Encoder_Output callback for writing encoded data to the output file */

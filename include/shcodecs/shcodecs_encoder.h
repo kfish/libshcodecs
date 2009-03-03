@@ -93,7 +93,19 @@ shcodecs_encoder_set_input_callback (SHCodecs_Encoder * encoder,
 int
 shcodecs_encoder_run (SHCodecs_Encoder * encoder, void * ainfo);
 
-long
-shcodecs_encoder_get_frame_number_to_encode (SHCodecs_Encoder * encoder);
+/*
+ * \param encoder The SHCodecs_Encoder* handle
+ */
+int shcodecs_encoder_get_width (SHCodecs_Encoder * encoder);
+
+/*
+ * \param encoder The SHCodecs_Encoder* handle
+ */
+int shcodecs_encoder_get_height (SHCodecs_Encoder * encoder);
+
+/*
+ * \param encoder The SHCodecs_Encoder* handle
+ */
+long shcodecs_encoder_get_frame_number_to_encode (SHCodecs_Encoder * encoder);
 
 #endif /* __SHCODECS_ENCODER_H__ */

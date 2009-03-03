@@ -269,7 +269,7 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder,
 	/* can be called only once or for the number of streams */
 	return_code =
 	    avcbe_set_default_param(stream_type, AVCBE_RATE_NORMAL,
-				    &(appli_info->param), (void *)
+				    &(encoder->encoding_property), (void *)
 				    &(encoder->other_options_mpeg4));
 	if (return_code != 0) {	/* error */
 		DisplayMessage
@@ -313,7 +313,7 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder,
 #endif				/* VPU4IP */
 
 #ifndef VPU4IP
-	return_code = avcbe_init_encode(&(appli_info->param),
+	return_code = avcbe_init_encode(&(encoder->encoding_property),
 					&(encoder->paramR),
 					&(encoder->other_options_mpeg4),
 					// RSM (avcbe_buf_continue_userproc_ptr)NULL, &WORK_ARRY[0], 
@@ -321,7 +321,7 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder,
 					get_new_stream_buf, &WORK_ARRY[0],
 					&WORK_ARRY[1], context);
 #else
-	return_code = avcbe_init_encode(&(appli_info->param),
+	return_code = avcbe_init_encode(&(encoder->encoding_property),
 					&(encoder->paramR),
 					&(encoder->other_options_mpeg4),
 					// RSM (avcbe_buf_continue_userproc_ptr)NULL, &WORK_ARRY[0], NULL, 

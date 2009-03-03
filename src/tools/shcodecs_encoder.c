@@ -225,6 +225,22 @@ int shcodecs_encoder_run(SHCodecs_Encoder * encoder, APPLI_INFO * ainfo)
 	}
 }
 
+int
+shcodecs_encoder_get_width (SHCodecs_Encoder * encoder)
+{
+  if (encoder == NULL) return -1;
+
+  return encoder->width;
+}
+
+int
+shcodecs_encoder_get_height (SHCodecs_Encoder * encoder)
+{
+  if (encoder == NULL) return -1;
+
+  return encoder->height;
+}
+
 /**
  * Get the "frame_number_to_encode" field
  */

@@ -94,8 +94,8 @@ int encode_1file_h264(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
 	DisplayMessage("H.264 Encode Start! ", 1);
 
 	/* encode process function for H.264 (call avcbe_encode_picture func.) */
-	if ((appli_info->other_options_h264.avcbe_use_slice == AVCBE_ON) &&
-	    (appli_info->other_options_h264.avcbe_call_unit ==
+	if ((encoder->other_options_h264.avcbe_use_slice == AVCBE_ON) &&
+	    (encoder->other_options_h264.avcbe_call_unit ==
 	     AVCBE_CALL_PER_NAL)) {
 		return_code =
 		    encode_nal_unit(encoder, appli_info,
@@ -134,7 +134,7 @@ int encode_1file_h264(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
 	if (appli_info->output_filler_enable == 1) {
 		return_code =
 		    avcbe_put_filler_data(&my_stream_buff_info,
-					  appli_info->other_options_h264.
+					  encoder->other_options_h264.
 					  avcbe_put_start_code, 2);
 	}
 	return (0);
@@ -157,8 +157,8 @@ long init_for_encoder_h264(SHCodecs_Encoder * encoder,
 	/* can be called only once or for the number of streams */
 	return_code =
 	    avcbe_set_default_param(stream_type, AVCBE_RATE_NORMAL,
-				    &(appli_info->param), (void *)
-				    &(appli_info->other_options_h264));
+				    &(encoder->encoding_property), (void *)
+				    &(encoder->other_options_h264));
 	if (return_code != 0) {	/* error */
 		DisplayMessage
 		    (" encode_1file_h264:avcbe_set_default_param ERROR! ",
@@ -196,24 +196,24 @@ long init_for_encoder_h264(SHCodecs_Encoder * encoder,
 	WORK_ARRY[1].area_top = (unsigned char *) NULL;
 #endif				/* VPU4IP */
 
-	if (appli_info->other_options_h264.
+	if (encoder->other_options_h264.
 	    avcbe_ratecontrol_cpb_buffer_mode == AVCBE_MANUAL) {
-		appli_info->other_options_h264.
+		encoder->other_options_h264.
 		    avcbe_ratecontrol_cpb_offset = (unsigned long)
-		    avcbe_calc_cpb_buff_offset(appli_info->param.
+		    avcbe_calc_cpb_buff_offset(encoder->encoding_property.
 					       avcbe_bitrate,
-					       (appli_info->
+					       (encoder->
 						other_options_h264.
 						avcbe_ratecontrol_cpb_max_size
 						*
-						appli_info->
+						encoder->
 						other_options_h264.
 						avcbe_ratecontrol_cpb_buffer_unit_size),
 					       90);
 	}
 	return_code =
-	    avcbe_init_encode(&(appli_info->param), &(encoder->paramR),
-			      &(appli_info->other_options_h264),
+	    avcbe_init_encode(&(encoder->encoding_property), &(encoder->paramR),
+			      &(encoder->other_options_h264),
 			      (avcbe_buf_continue_userproc_ptr) NULL,
 			      &WORK_ARRY[0], &WORK_ARRY[1], context);
 	if (return_code < 0) {	/* error */
@@ -327,7 +327,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 	area_width = ((encoder->width + 15) / 16) * 16;	/* make it multiples of 16 */
 	area_height = ((encoder->height + 15) / 16) * 16;
 
-	if (appli_info->other_options_h264.avcbe_out_vui_parameters == AVCBE_ON) {	/* output VUI parameters */
+	if (encoder->other_options_h264.avcbe_out_vui_parameters == AVCBE_ON) {	/* output VUI parameters */
 		/* get the size of CPB-buffer to set 'cpb_size_scale' of HRD */
 		return_code = avcbe_get_cpb_buffer_size(context);
 		if (return_code <= 0) {
@@ -870,7 +870,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 	area_width = ((encoder->width + 15) / 16) * 16;	/* make it multiples of 16 */
 	area_height = ((encoder->height + 15) / 16) * 16;
 
-	if (appli_info->other_options_h264.avcbe_out_vui_parameters == AVCBE_ON) {	/* output VUI parameters */
+	if (encoder->other_options_h264.avcbe_out_vui_parameters == AVCBE_ON) {	/* output VUI parameters */
 
 		/* get the size of CPB-buffer to set 'cpb_size_scale' of HRD */
 		return_code = avcbe_get_cpb_buffer_size(context);
@@ -1229,7 +1229,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 
 			/* the second parameter 'ldec' value must be changed when the m4vse_set_image_pointer function is called on next time. */
 
-			if ((appli_info->other_options_h264.avcbe_use_slice == AVCBE_ON) && (appli_info->other_options_h264.avcbe_call_unit == AVCBE_CALL_PER_NAL)) {	/* when the avcbe_encode_picture function returns on each 1 slice */
+			if ((encoder->other_options_h264.avcbe_use_slice == AVCBE_ON) && (encoder->other_options_h264.avcbe_call_unit == AVCBE_CALL_PER_NAL)) {	/* when the avcbe_encode_picture function returns on each 1 slice */
 
 				if (encoder->slice_mb_counter == encoder->mb_num_of_picture) {	/* when all slices of 1-picture are finished */
 					if (ldec == 0) {
@@ -1432,7 +1432,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 		streamsize_total +=
 		    (slice_stat.avcbe_encoded_slice_bits / 8);
 		/* if the avcbe_encode_picture function returns on each 1-slice, when all slices of 1-picture are finished */
-		if ((appli_info->other_options_h264.avcbe_use_slice == AVCBE_ON) && (appli_info->other_options_h264.avcbe_call_unit == AVCBE_CALL_PER_NAL)) {	/* when the avcbe_encode_picture function returns on each 1-slice */
+		if ((encoder->other_options_h264.avcbe_use_slice == AVCBE_ON) && (encoder->other_options_h264.avcbe_call_unit == AVCBE_CALL_PER_NAL)) {	/* when the avcbe_encode_picture function returns on each 1-slice */
 			if (encoder->slice_mb_counter == encoder->mb_num_of_picture) {	/* when all slices of 1-picture are finished */
 				frm += appli_info->frame_no_increment;
 				encoder->frame_counter++;

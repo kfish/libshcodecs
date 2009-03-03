@@ -196,11 +196,6 @@ extern "C" {
 		char output_file_name_buf[256];	/* 出力m4vファイル名 */
 		char ctrl_file_name_buf[256];	/* 入力YUVファイル名 */
 
-		/* encoding parameters */
-		avcbe_encoding_property param;	/* for stream-1 */
-
-		avcbe_other_options_h264 other_options_h264;	/* parameters to control details */
-
 #if 1
 		ENC_EXEC_INFO enc_exec_info;	/* FILE_USEからはずす *//* 050121 */
 

@@ -62,12 +62,18 @@ struct _SHCodecs_Encoder {
 	long frame_counter; /* The number of encoded frames */
 	long set_intra;	/* Forced intra-mode flag for m4vse_encode_picture function */
 	long output_type;	/* Header insertion flag for m4vse_encode_picture function */
+
+	/* encoding parameters */
+	avcbe_encoding_property encoding_property;
 	avcbe_encoding_property paramR;	/* for stream-1 */
 	M4IPH_VPU4_INIT_OPTION vpu4_param;	/* parameters of VPU4 */
 	OTHER_API_ENC_PARAM other_API_enc_param;
+
+        /* MPEG-4 specific internals */
 	avcbe_other_options_mpeg4 other_options_mpeg4;	/* parameters to control details */
 
         /* H.264 specific internals */
+	avcbe_other_options_h264 other_options_h264;	/* parameters to control details */
 	unsigned long mb_num_of_picture;	/* total number of mb in picture */
 	unsigned long slice_mb_counter;	/* counter of mb_num_of_picture */
 	long SPS_PPS_header_bytes;	/* bytes of SPS and PPS */
