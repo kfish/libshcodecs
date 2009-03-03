@@ -238,7 +238,7 @@ long init_for_encoder_h264(SHCodecs_Encoder * encoder,
 		encoder->error_return_code = return_code;
 		return (-106);
 	}
-	nrefframe = appli_info->ref_frame_num;
+	nrefframe = encoder->ref_frame_num;
 	nldecfmem = 2;
 	/* Local-decode-image Y */
 	LDEC_ARRY[0].Y_fmemp = (unsigned char *) &my_frame_memory_ldec1[0];

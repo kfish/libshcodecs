@@ -108,4 +108,12 @@ int shcodecs_encoder_get_height (SHCodecs_Encoder * encoder);
  */
 long shcodecs_encoder_get_frame_number_to_encode (SHCodecs_Encoder * encoder);
 
+/*
+ * Set the "ref_frame_num" field
+ * H.264 only
+ * \param encoder The SHCodecs_Encoder* handle
+ */
+int
+shcodecs_encoder_set_ref_frame_num (SHCodecs_Encoder * encoder, int ref_frame_num);
+
 #endif /* __SHCODECS_ENCODER_H__ */

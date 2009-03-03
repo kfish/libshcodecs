@@ -162,7 +162,6 @@ typedef struct {
 
 	char buf_output_directry[256 + 8];	/* 出力先のディレクトリ *//* 041201 */
 	char buf_output_stream_file[64 + 8];	/* 出力ストリームファイル名（パスなし） */
-	unsigned char ref_frame_num;	/* 参照フレーム数（1 or 2) (H.264のみ） */
 	long xpic;
 	long ypic;
 

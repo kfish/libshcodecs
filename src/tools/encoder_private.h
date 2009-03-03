@@ -77,7 +77,7 @@ struct _SHCodecs_Encoder {
 	unsigned long mb_num_of_picture;	/* total number of mb in picture */
 	unsigned long slice_mb_counter;	/* counter of mb_num_of_picture */
 	long SPS_PPS_header_bytes;	/* bytes of SPS and PPS */
-
+	unsigned char ref_frame_num;	/* »²¾È¥Õ¥ì¡¼¥à¿ô¡Ê1 or 2) (H.264¤Î¤ß¡Ë */
 };
 
 /* Internal prototypes of functions using SHCodecs_Encoder */
