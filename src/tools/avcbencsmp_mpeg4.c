@@ -783,7 +783,7 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 						    output_user_data);
 			}
 		}
-		frm += appli_info->frame_no_increment;
+		frm += encoder->frame_no_increment;
 		encoder->frame_counter++;
 //printf("encoder->frame_counter=%d\n",encoder->frame_counter);
 	}			/* while */

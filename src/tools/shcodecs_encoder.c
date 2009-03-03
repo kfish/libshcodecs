@@ -269,6 +269,22 @@ shcodecs_encoder_set_frame_number_to_encode (SHCodecs_Encoder * encoder, long fr
 }
 
 /*
+ * Set the "frame_no_increment" field
+ */
+long
+shcodecs_encoder_set_frame_no_increment (SHCodecs_Encoder * encoder, long frame_no_increment)
+{
+  long old_value;
+
+  if (encoder == NULL) return -1;
+
+  old_value = encoder->frame_no_increment;
+  encoder->frame_no_increment = frame_no_increment;
+
+  return old_value;
+}
+
+/*
  * Set the "ref_frame_num" field
  * H.264 only
  */

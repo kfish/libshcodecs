@@ -163,8 +163,6 @@ typedef struct {
 	long xpic;
 	long ypic;
 
-	long frame_no_increment;	/* Increment value of Frame number to be encoded for 
-					   m4vse_encode_picture function */
 	long b_vop_num;		/* The number of B-VOP to insert */
 
 	/* Output imformation in encoding */

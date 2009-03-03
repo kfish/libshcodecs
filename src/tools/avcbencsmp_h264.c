@@ -824,7 +824,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 			streamsize_total +=
 			    (slice_stat.avcbe_encoded_slice_bits / 8);
 		}
-		frm += appli_info->frame_no_increment;
+		frm += encoder->frame_no_increment;
 		encoder->frame_counter++;
 	}			/* while */
 	/*---------------------- End of repeating by frame numbers -----------------------------*/
@@ -1214,7 +1214,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 			dummy_nal_buf_addr = dummy_nal_buf;
 			tmp_pic_total_bytes = 0;
 
-			frm += appli_info->frame_no_increment;
+			frm += encoder->frame_no_increment;
 			encoder->frame_counter++;
 			encoder->slice_mb_counter = 0;
 
@@ -1430,7 +1430,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 		/* if the avcbe_encode_picture function returns on each 1-slice, when all slices of 1-picture are finished */
 		if ((encoder->other_options_h264.avcbe_use_slice == AVCBE_ON) && (encoder->other_options_h264.avcbe_call_unit == AVCBE_CALL_PER_NAL)) {	/* when the avcbe_encode_picture function returns on each 1-slice */
 			if (encoder->slice_mb_counter == encoder->mb_num_of_picture) {	/* when all slices of 1-picture are finished */
-				frm += appli_info->frame_no_increment;
+				frm += encoder->frame_no_increment;
 				encoder->frame_counter++;
 				encoder->slice_mb_counter = 0;
 			}

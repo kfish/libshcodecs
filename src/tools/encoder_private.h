@@ -58,6 +58,8 @@ struct _SHCodecs_Encoder {
 	/* Encoder internals */
 	long frame_number_to_encode;
 	long frm; /* Current frame */
+	long frame_no_increment;	/* Increment value of Frame number to be encoded for 
+					   m4vse_encode_picture function */
 	long frame_skip_num; /* Number of frames skipped */
 	long frame_counter; /* The number of encoded frames */
 	long set_intra;	/* Forced intra-mode flag for m4vse_encode_picture function */

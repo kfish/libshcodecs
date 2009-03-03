@@ -230,7 +230,7 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder,
 //      appli_info->input_file_name_buf[0] = '\0';
 	//appli_info->input_yuv_fp = NULL;
 
-	appli_info->frame_no_increment = 1;
+	shcodecs_encoder_set_frame_no_increment(encoder, 1);
 	appli_info->b_vop_num = 0;
 
 	appli_info->output_filler_enable = 0;	/* add at Version2 */
@@ -376,9 +376,9 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder,
 #endif
 	}
 	/* end of 'if (stream_type == AVCBE_H264)' */
-	appli_info->frame_no_increment =
+	shcodecs_encoder_set_frame_no_increment(encoder,
 	    encoder->encoding_property.avcbe_frame_num_resolution /
-	    (encoder->encoding_property.avcbe_frame_rate / 10);
+	    (encoder->encoding_property.avcbe_frame_rate / 10));
 
 
 #if 1

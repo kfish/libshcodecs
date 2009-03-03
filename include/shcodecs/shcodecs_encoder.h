@@ -118,6 +118,14 @@ long shcodecs_encoder_get_frame_number_to_encode (SHCodecs_Encoder * encoder);
 long shcodecs_encoder_set_frame_number_to_encode (SHCodecs_Encoder * encoder, long frame_number_to_encode);
 
 /*
+ * Set the "frame_no_increment" field
+ * \param encoder The SHCodecs_Encoder* handle
+ * \retval -1 \a encoder invalid
+ */
+long
+shcodecs_encoder_set_frame_no_increment (SHCodecs_Encoder * encoder, long frame_no_increment);
+
+/*
  * Set the "ref_frame_num" field
  * H.264 only
  * \param encoder The SHCodecs_Encoder* handle
