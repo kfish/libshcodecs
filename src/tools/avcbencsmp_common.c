@@ -237,6 +237,7 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder,
 	appli_info->output_filler_data = 0;	/* add at Version2 */
 
 	/* same parameters to stream_type */
+#if 0
 //              strcpy(&appli_info->input_file_name_buf[0], "sample.yuv");
 //              strcpy(&appli_info->output_file_name_buf[0], "output.264");
 
@@ -278,12 +279,14 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder,
 //19            encoder->encoding_property.avcbe_noise_reduction = 0;
 //20            encoder->encoding_property.avcbe_reaction_param_coeff = 10;
 //21            encoder->encoding_property.avcbe_weightedQ_mode = AVCBE_WEIGHTEDQ_NONE;
+#endif
 
 	/* parameters depend on stream_type */
 	if ((encoder->encoding_property.avcbe_stream_type == AVCBE_MPEG4) ||
 	    (encoder->encoding_property.avcbe_stream_type == AVCBE_H263)) {
 	} else if (encoder->encoding_property.avcbe_stream_type == AVCBE_H264) {	/* added at Version2 */
 			/*** avcbe_other_options_h264 ***/
+#if 0
 //01                    appli_info->other_options_h264.avcbe_Ivop_quant_initial_value = 30;
 //02                    appli_info->other_options_h264.avcbe_Pvop_quant_initial_value = 30;
 //03                    appli_info->other_options_h264.avcbe_use_dquant = AVCBE_ON;     
@@ -369,6 +372,7 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder,
 		/* Picture Header Parameter */
 //42                    appli_info->other_options_h264.avcbe_chroma_qp_index_offset = 0;
 //43                    appli_info->other_options_h264.avcbe_constrained_intra_pred = AVCBE_OFF;
+#endif
 	}
 	/* end of 'if (stream_type == AVCBE_H264)' */
 	appli_info->frame_no_increment =

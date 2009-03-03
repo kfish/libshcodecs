@@ -42,7 +42,6 @@ typedef struct {
 	avcbe_sei_pan_scan_rect_param sei_pan_scan_rect_param;	/* API関数avcbe_put_SEI_parameters()に渡すための構造体(3) (H.264のみ） */
 	avcbe_sei_filler_payload_param sei_filler_payload_param;	/* API関数avcbe_put_SEI_parameters()に渡すための構造体(4) (H.264のみ） */
 	avcbe_sei_recovery_point_param sei_recovery_point_param;	/* API関数avcbe_put_SEI_parameters()に渡すための構造体(5) (H.264のみ） */
-//050222        avcbe_sei_dec_ref_pic_marking_repetition_param  sei_dec_ref_pic_marking_repetition_param; /* API関数avcbe_put_SEI_parameters()に渡すための構造体(6) (H.264のみ） */
 
 	long use_I_PCM_flag;	/*I_PCMを出力するかどうか　041109 */
 
@@ -66,16 +65,4 @@ typedef struct {
 	long ypic;
 } ENC_EXEC_INFO;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/*----- prototype -----*/
-
-
-
-
-#ifdef __cplusplus
-}
-#endif
 #endif				/* VPU4ENCDEF_H */

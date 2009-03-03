@@ -43,14 +43,6 @@ int open_input_image_file(APPLI_INFO * appli_info)
 		       appli_info->input_file_name_buf);
 		return (-1);
 	}
-// #ifdef MULTI_STREAM          /* In the case of multiple streams */
-	// appli_info->input_yuv_fp_2 = NULL;
-	// appli_info->input_yuv_fp_2 = fopen(appli_info->input_file_name_buf_2, "rb" );
-
-	// if (appli_info->input_yuv_fp_2 == NULL) {
-	// return (-1);
-	// }
-// #endif /* MULTI_STREAM */
 
 	return (0);
 }
@@ -64,14 +56,6 @@ int open_output_file(APPLI_INFO * appli_info)
 	if (appli_info->output_file_fp == NULL) {
 		return (-1);
 	}
-// #ifdef MULTI_STREAM          /* In the case of multiple streams */
-	// appli_info->output_file_fp_2 = NULL;
-	// appli_info->output_file_fp_2 = fopen(appli_info->output_file_name_buf_2, "wb" );
-// 
-	// if (appli_info->output_file_fp_2 == NULL) {
-	// return (-1);
-	// }
-// #endif /* MULTI_STREAM */
 
 	return (0);
 }
@@ -327,7 +311,6 @@ int load_1frame_from_image_file(SHCodecs_Encoder * encoder,
 	int read_size;
 	long hsiz, ysiz, index, index2;
 	FILE *input_yuv_fp;
-//      unsigned long w_addr_yuv[320*240/8*3];
 	unsigned long *w_addr_yuv;
 	unsigned long wnum;
 	unsigned char *CbCr_ptr, *Cb_buf_ptr, *Cr_buf_ptr, *ptr;
@@ -340,14 +323,11 @@ int load_1frame_from_image_file(SHCodecs_Encoder * encoder,
 	ysiz = shcodecs_encoder_get_height(encoder);
 	frame_counter_of_input++;
 
-	/* TODO MULTI_STREAM code remoevd */
-
 	if (input_yuv_fp == NULL) {
 		return (-1);
 	}
 	/* Input file data to user memory */
 	w_addr_yuv = malloc(hsiz * ysiz * 2);
-//printf("x=%d,y=%d,addr_y=%X,addr_c=%X,",hsiz,ysiz,addr_y,addr_c);
 	if (w_addr_yuv == NULL) {
 		printf("load_1frame_from_image_file: malloc error.\n");
 		exit(-1);
@@ -369,9 +349,7 @@ int load_1frame_from_image_file(SHCodecs_Encoder * encoder,
 		printf("malloc error \n");
 		exit(-1);
 	}
-//printf("appli_info->enc_exec_info.yuv_CbCr_format == %d\n",appli_info->enc_exec_info.yuv_CbCr_format);
 	if (appli_info->enc_exec_info.yuv_CbCr_format == 1) {	/* 1:CbSCrS */
-//printf("appli_info->yuv_CbCr_format == 1\n");
 		ptr = CbCr_ptr;
 		read_size =
 		    fread(Cb_buf_ptr, 1, (hsiz * ysiz / 4), input_yuv_fp);
@@ -382,7 +360,6 @@ int load_1frame_from_image_file(SHCodecs_Encoder * encoder,
 			*ptr++ = *(Cr_buf_ptr + index);
 		}
 	} else if (appli_info->enc_exec_info.yuv_CbCr_format == 2) {	/* 2:Cb0,Cr0,Cb1,Cr1,... */
-//printf("appli_info->yuv_CbCr_format == 2\n");
 		read_size =
 		    fread(CbCr_ptr, 1, ((hsiz * ysiz / 4) * 2),
 			  input_yuv_fp);
@@ -390,7 +367,6 @@ int load_1frame_from_image_file(SHCodecs_Encoder * encoder,
 			return (-1);
 		}
 	} else if (appli_info->enc_exec_info.yuv_CbCr_format == 3) {	/* 3:Cb1C,Cr1C,... */
-//printf("appli_info->yuv_CbCr_format == 3\n");
 		ptr = CbCr_ptr;
 		for (index = 0; index < (ysiz / 2); index++) {
 			read_size =
@@ -405,7 +381,6 @@ int load_1frame_from_image_file(SHCodecs_Encoder * encoder,
 			}
 		}
 	} else {
-//printf("appli_info->yuv_CbCr_format == else\n");
 		read_size =
 		    fread(CbCr_ptr, 1, ((hsiz * ysiz / 4) * 2),
 			  input_yuv_fp);
@@ -434,12 +409,6 @@ void close_input_image_file(APPLI_INFO * appli_info)
 		fclose(appli_info->input_yuv_fp);
 		appli_info->input_yuv_fp = NULL;
 	}
-// #ifdef MULTI_STREAM          /* In the case of multiple streams */
-	// if (appli_info->input_yuv_fp_2 != NULL) {
-	// fclose(appli_info->input_yuv_fp_2);
-	// appli_info->input_yuv_fp_2 = NULL;
-	// }
-// #endif /* MULTI_STREAM */
 }
 
 /* close output file */
@@ -449,11 +418,5 @@ void close_output_file(APPLI_INFO * appli_info)
 		fclose(appli_info->output_file_fp);
 		appli_info->output_file_fp = NULL;
 	}
-// #ifdef MULTI_STREAM          /* In the case of multiple streams */
-	// if (appli_info->output_file_fp_2 != NULL) {
-	// fclose(appli_info->output_file_fp_2);
-	// appli_info->output_file_fp_2= NULL;
-	// }
-// #endif /* MULTI_STREAM */
 }
 

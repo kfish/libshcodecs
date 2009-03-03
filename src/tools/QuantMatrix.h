@@ -39,13 +39,7 @@ extern "C" {
 /*----- prototype -----*/
 	int SetQuantMatrix(avcbe_stream_info * context,
 			   int qmattype_for_Intra,
-//int SetQuantMatrix(m4vse_stream_info *context, int qmattype_for_Intra,
 			   int qmattype_for_NonIntra);
-	/* 引数qmattype_for_Intraには、QMAT_MPEG_TYPE_DEFAULT_INTRA, QMAT_MPEG_TYPE_ANIME1_INTRA, QMAT_MPEG_TYPE_ANIME2_INTRA, QMAT_MPEG_TYPE_SPECIAL_INTRA
-	   　　のいずれかが指定できます。 */
-	/* 引数qmattype_for_NonIntraには、QMAT_MPEG_TYPE_DEFAULT_NONINTRAなどが指定できます。 */
-	/* 引数qmattype_for_Intraと引数qmattype_for_NonIntraの組み合わせは自由であり、例えば「qmattype_for_Intra=QMAT_MPEG_TYPE_DEFAULT_INTRA＋
-	   qmattype_for_NonIntra=QMAT_MPEG_TYPE_ANIME1_NONINTRA」という指定もできます。 */
 
 #ifdef __cplusplus
 }

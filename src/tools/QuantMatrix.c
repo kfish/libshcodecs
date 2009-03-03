@@ -139,10 +139,8 @@ extern "C" {
 extern "C"
 #endif
 int SetQuantMatrix(avcbe_stream_info * context, int qmattype_for_Intra,
-//int SetQuantMatrix(m4vse_stream_info *context, int qmattype_for_Intra,
 		   int qmattype_for_NonIntra) {
 	avcbe_quant_type1_matrix quant_type1_matrix;
-//      m4vse_quant_type1_matrix quant_type1_matrix;
 	long return_code = 0;
 	int index;
 	char *matrix_ptr;
@@ -179,7 +177,6 @@ int SetQuantMatrix(avcbe_stream_info * context, int qmattype_for_Intra,
 	for (index = 0; index < 64; index++) {
 		quant_type1_matrix.avcbe_intra_qmatrix[index] =
 		    (char) *matrix_ptr++;
-//              quant_type1_matrix.m4vse_intra_qmatrix[index] = (char)*matrix_ptr++;
 	}
 
 
@@ -211,11 +208,9 @@ int SetQuantMatrix(avcbe_stream_info * context, int qmattype_for_Intra,
 	for (index = 0; index < 64; index++) {
 		quant_type1_matrix.avcbe_inter_qmatrix[index] =
 		    (char) *matrix_ptr++;
-//              quant_type1_matrix.m4vse_inter_qmatrix[index] = (char)*matrix_ptr++;
 	}
 
 	return_code = avcbe_set_quant_type1(context, &quant_type1_matrix);
-//      return_code = m4vse_set_quant_type1(context, &quant_type1_matrix);
 
 	return (return_code);
 }
