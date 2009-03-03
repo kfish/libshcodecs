@@ -22,12 +22,6 @@
 extern "C" {
 #endif
 
-// michioka
-//#include <stdio.h>
-//#include <setjmp.h> /* 050523 */
-//#include "avcbe.h"
-//#include "m4iph_vpu4.h"
-
 #define AVCBE_INTRA_OFFSET_NUM		52	/* イントラオフセットの個数 */
 
 /* avcbe_output_byte関数の出力タイプ(H.264 only) */

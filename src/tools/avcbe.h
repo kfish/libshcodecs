@@ -17,8 +17,6 @@
 #ifndef	AVCBE_H
 #define	AVCBE_H
 
-//#include  <setjmp.h>  // michioka
-
 #ifndef VPU4
 #define	VPU4	1
 #endif				/* VPU4 */

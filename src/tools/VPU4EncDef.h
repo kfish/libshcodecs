@@ -16,10 +16,6 @@
 #ifndef	VPU4ENCDEF_H
 #define	VPU4ENCDEF_H
 
-// michioka
-//#include "avcbe.h"
-//#include "avcbe_inner.h"/* For WEIGHTEDQ_USER *//* 050618 */
-
 /*----- structures -----*/
 
 /* VPU4版エンコーダミドルのAPI関数（avcbe_init_encode()を除く）で設定するエンコード条件の構造体 */

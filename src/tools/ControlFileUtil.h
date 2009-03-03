@@ -17,15 +17,6 @@
 #ifndef	CONTROL_FILE_UTIL_H
 #define	CONTROL_FILE_UTIL_H
 
-// michioka
-//#include "avcbe.h"
-//#include "m4iph_vpu4.h"
-//#include "VPU4EncDef.h"
-
-/*----- structures -----*/
-
-
-
 /*----- prototype -----*/
 #ifdef __cplusplus
 extern "C" {

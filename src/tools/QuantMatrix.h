@@ -17,7 +17,6 @@
 #define	QUANT_MATRIX_H
 
 #include "avcbe.h"
-//#include "mpeg4venc.h"
 
 #define QMAT_MPEG_TYPE_DEFAULT_INTRA	1	/* MPEG-4の規格書に載っている、quant_type=1(MPEGタイプ)のデフォルトの量子化行列(Intra用) */
 #define QMAT_MPEG_TYPE_DEFAULT_NONINTRA	101	/* 同Non-Intra(Inter)用 */

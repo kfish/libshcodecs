@@ -22,7 +22,6 @@
 #include <stdlib.h>
 
 #include "avcbe.h"
-//#include "mpeg4venc.h"
 #include "QuantMatrix.h"
 
 #ifdef __cplusplus

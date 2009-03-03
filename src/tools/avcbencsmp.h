@@ -14,7 +14,6 @@
 #define	AVCBENCSMP_H
 
 #include "capture.h"
-//#include "encoder_private.h"
 
 //#define MAX_D1
 
