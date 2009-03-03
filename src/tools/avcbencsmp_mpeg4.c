@@ -85,10 +85,6 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 			      APPLI_INFO * appli_info, long stream_type,
 			      avcbe_stream_info * context);
 
-extern int GetFromCtrlFTop(const char *control_filepath,
-			   ENC_EXEC_INFO * enc_exec_info,
-			   long *stream_type);
-
 /* Top of the user application sample source to encode */
 /*int mpeg4_enc(void) */
 extern APPLI_INFO ainfo;	/* User Application Data */

@@ -29,198 +29,605 @@
 #include "m4vse_api_sub.h"
 
 #include "VPU4EncDef.h"
-#include "ControlFileUtil.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/* サブ関数 */
+/* キーワードが一致する行を探し、その行の"="と";"の間の文字列を引数buf_valueに入れて返す */
+static int ReadUntilKeyMatch(FILE * fp_in, const char *key_word, char *buf_value)
+{
+	char buf_line[256], buf_work_value[256], *pos;
+	int line_length, keyword_length, try_count;
 
+	keyword_length = strlen(key_word);
 
-#ifdef __cplusplus
+	try_count = 1;
+
+      retry:;
+	while (fgets(buf_line, 256, fp_in)) {
+		line_length = strlen(buf_line);
+		if (line_length < keyword_length) {
+			continue;
+		}
+
+		if (strncmp(key_word, &buf_line[0], keyword_length) == 0) {
+			pos = strchr(&buf_line[keyword_length], '=');
+			if (pos == NULL) {
+				return (-2);
+				/* キーワードに一致する行は見つかったが、"="が見つからなかった */
+				;
+			}
+			strcpy(buf_work_value, (pos + 2));
+			pos = strchr(&buf_work_value[1], ';');
+			if (pos == NULL) {
+				return (-3);
+				/* キーワードに一致する行は見つかったが、";"が見つからなかった */
+				;
+			} else {
+				*pos = '\0';
+			}
+
+			strcpy(buf_value, buf_work_value);
+			return (1);	/* 見つかった */
+		}
+	}
+
+	/* 見つからなかったときは、ファイルの先頭に戻る */
+	if (try_count == 1) {
+		rewind(fp_in);
+		try_count = 2;
+		goto retry;
+	} else {
+		return (-1);	/* 見つからなった */
+	}
 }
-#endif
+
 /*****************************************************************************
- * Function Name	: GetFromCtrlFTop
- * Description		: コントロールファイルから、入力ファイル、出力先、ストリームタイプを得る
- * Parameters		: 省略
+ * Function Name	: GetStringFromCtrlFile
+ * Description		: コントロールファイルから、キーワードに対する文字列を読み込み、引数return_stringで返す
+ *					
+ * Parameters		: 
  * Called functions	: 		  
  * Global Data		: 
- * Return Value		: 1: 正常終了、-1: エラー
+ * Return Value		: 
  *****************************************************************************/
-#ifdef __cplusplus
-extern "C"
-#endif
-int GetFromCtrlFTop(const char *control_filepath,
-		    ENC_EXEC_INFO * enc_exec_info, long *stream_type)
+static void GetStringFromCtrlFile(FILE * fp_in, const char *key_word,
+			   char *return_string, int *status_flag)
 {
-	FILE *fp_in;
-	int status_flag;
+	long return_code;
+
+	*status_flag = 1;	/* 正常のとき */
+
+	if ((fp_in == NULL) || (key_word == NULL)
+	    || (return_string == NULL)) {
+		*status_flag = -1;	/* 引数エラーのとき */
+		return;
+	}
+
+	return_code = ReadUntilKeyMatch(fp_in, key_word, return_string);
+	if (return_code == 1) {
+		*status_flag = 1;	/* 正常のとき */
+
+	} else {
+		*status_flag = -1;	/* 見つからなかった等のエラーのとき */
+	}
+}
+
+/*****************************************************************************
+ * Function Name	: GetValueFromCtrlFile
+ * Description		: コントロールファイルから、キーワードに対する数値を読み込み、戻り値で返す
+ *					
+ * Parameters		: 
+ * Called functions	: 		  
+ * Global Data		: 
+ * Return Value		: 
+ *****************************************************************************/
+static long GetValueFromCtrlFile(FILE * fp_in, const char *key_word,
+			  int *status_flag)
+{
+	char buf_line[256];
+	long return_code, work_value;
+
+	*status_flag = 1;	/* 正常のとき */
+
+	if ((fp_in == NULL) || (key_word == NULL)) {
+		*status_flag = -1;	/* 引数エラーのとき */
+		return (0);
+	}
+
+	return_code = ReadUntilKeyMatch(fp_in, key_word, &buf_line[0]);
+	if (return_code == 1) {
+		*status_flag = 1;	/* 正常のとき */
+		work_value = atoi((const char *) &buf_line[0]);
+	} else {
+		*status_flag = -1;	/* 見つからなかった等のエラーのとき */
+		work_value = 0;
+	}
+
+	return (work_value);
+}
+
+/*****************************************************************************
+ * Function Name	: GetFromCtrlFtoOTHER_API_ENC_PARAM_SEI
+ * Description		: コントロールファイルから、avebe_init_encode()以外のAPI関数で設定するもののうち、
+ *　　　　　　　　　  SEIパラメータだけを読み込み、引数に設定して返す
+ *					
+ * Parameters		: 
+ * Called functions	: 		  
+ * Global Data		: 
+ * Return Value		: 
+ *****************************************************************************/
+static void GetFromCtrlFtoOTHER_API_ENC_PARAM_SEI(FILE * fp_in,
+					   OTHER_API_ENC_PARAM *
+					   other_API_enc_param)
+{
+	int status_flag, index;
 	long return_value;
+	avcbe_sei_buffering_period_param *sei_buffering_period_param;
+	avcbe_sei_pic_timing_param *sei_pic_timing_param;
+	avcbe_sei_pan_scan_rect_param *sei_pan_scan_rect_param;
+	avcbe_sei_filler_payload_param *sei_filler_payload_param;
+	avcbe_sei_recovery_point_param *sei_recovery_point_param;
+/* 050324	avcbe_sei_dec_ref_pic_marking_repetition_param	*sei_dec_ref_pic_marking_repetition_param; */
 
-	if ((control_filepath == NULL) ||
-	    (enc_exec_info == NULL) || (stream_type == NULL)) {
-		return (-1);
-	}
+	sei_buffering_period_param =
+	    &(other_API_enc_param->sei_buffering_period_param);
+	sei_pic_timing_param =
+	    &(other_API_enc_param->sei_pic_timing_param);
+	sei_pan_scan_rect_param =
+	    &(other_API_enc_param->sei_pan_scan_rect_param);
+	sei_filler_payload_param =
+	    &(other_API_enc_param->sei_filler_payload_param);
+	sei_recovery_point_param =
+	    &(other_API_enc_param->sei_recovery_point_param);
+/* 050324	sei_dec_ref_pic_marking_repetition_param = &(other_API_enc_param->sei_dec_ref_pic_marking_repetition_param); */
 
-	fp_in = fopen(control_filepath, "rt");
-	if (fp_in == NULL) {
-		return (-1);
-	}
-
-	/*** ENC_EXEC_INFO ***/
-	GetFromCtrlFtoEncExecInfo(fp_in, enc_exec_info);
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "stream_type", &status_flag);
-	if (status_flag == 1) {
-		*stream_type = return_value;
-	}
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "x_pic_size", &status_flag);
-	if (status_flag == 1) {
-		enc_exec_info->xpic = return_value;
-	}
+	/* SEI_MESSAGE_BUFFERING_PERIOD */
+	other_API_enc_param->out_buffering_period_SEI = AVCBE_OFF;
 
 	return_value =
-	    GetValueFromCtrlFile(fp_in, "y_pic_size", &status_flag);
-	if (status_flag == 1) {
-		enc_exec_info->ypic = return_value;
+	    GetValueFromCtrlFile(fp_in, "SEI_BUFF_message_exist",
+				 &status_flag);
+	if ((status_flag == 1) && (return_value == 1)) {
+
+		other_API_enc_param->out_buffering_period_SEI = AVCBE_ON;
+
+		/* 内部で設定PPSのseq_parameter_set_idを引っ張る *//* 041216 */
+/**		return_value = GetValueFromCtrlFile(fp_in, "SEI_BUFF_SEQ_ID", &status_flag);
+		if (status_flag == 1) {
+			sei_buffering_period_param->avcbe_seq_parameter_set_id = return_value;
+		}
+**/
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "SEI_BUFF_NAL_DELAY",
+					 &status_flag);
+		if (status_flag == 1) {
+			sei_buffering_period_param->
+			    avcbe_NalHrdBp
+			    [0].avcbe_initial_cpb_removal_delay =
+			    return_value;
+		}
+
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "SEI_BUFF_NAL_OFFSET",
+					 &status_flag);
+		if (status_flag == 1) {
+			sei_buffering_period_param->
+			    avcbe_NalHrdBp
+			    [0].avcbe_initial_cpb_removal_delay_offset =
+			    return_value;
+		}
+
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "SEI_BUFF_VCL_DELAY",
+					 &status_flag);
+		if (status_flag == 1) {
+			sei_buffering_period_param->
+			    avcbe_VclHrdBp
+			    [0].avcbe_initial_cpb_removal_delay =
+			    return_value;
+		}
+
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "SEI_BUFF_VCL_OFFSET",
+					 &status_flag);
+		if (status_flag == 1) {
+			sei_buffering_period_param->
+			    avcbe_VclHrdBp
+			    [0].avcbe_initial_cpb_removal_delay_offset =
+			    return_value;
+		}
 	}
-	fclose(fp_in);
 
-	return (1);		/* 正常終了 */
+	/* if ((status_flag == 1)&&(return_value == 1))の終わり */
+	/* SEI_MESSAGE_PIC_TIMING */
+	other_API_enc_param->out_pic_timing_SEI = AVCBE_OFF;
 
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "SEI_PICTM_message_exist",
+				 &status_flag);
+	if ((status_flag == 1) && (return_value == 1)) {
+
+		other_API_enc_param->out_pic_timing_SEI = AVCBE_ON;
+
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "SEI_PICTIM_CPB_DELAY",
+					 &status_flag);
+		if (status_flag == 1) {
+			sei_pic_timing_param->avcbe_cpb_removal_delay =
+			    return_value;
+		}
+
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "SEI_PICTIM_DPB_DELAY",
+					 &status_flag);
+		if (status_flag == 1) {
+			sei_pic_timing_param->avcbe_dpb_output_delay =
+			    return_value;
+		}
+
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "SEI_PICTIM_PIC_STRUCT",
+					 &status_flag);
+		if (status_flag == 1) {
+			sei_pic_timing_param->avcbe_pic_struct =
+			    return_value;
+		}
+
+		/* ここから下は、pic_structの値に応じてavcbe_clockts[]の要素数を決めること() */
+		for (index = 0; index < 1; index++) {
+			return_value =
+			    GetValueFromCtrlFile(fp_in,
+						 "SEI_PICTIM_USE_CLOCK",
+						 &status_flag);
+			if (status_flag == 1) {
+				sei_pic_timing_param->avcbe_clockts[index].avcbe_clock_timestamp = return_value;	/* 050531 */
+			}
+
+			return_value =
+			    GetValueFromCtrlFile(fp_in,
+						 "SEI_PICTIM_CT_TYPE",
+						 &status_flag);
+			if (status_flag == 1) {
+				sei_pic_timing_param->
+				    avcbe_clockts[index].avcbe_ct_type =
+				    return_value;
+			}
+
+			return_value =
+			    GetValueFromCtrlFile(fp_in, "SEI_PICTIM_NUNIT",
+						 &status_flag);
+			if (status_flag == 1) {
+				sei_pic_timing_param->
+				    avcbe_clockts
+				    [index].avcbe_nuit_field_based_flag =
+				    return_value;
+			}
+
+			return_value =
+			    GetValueFromCtrlFile(fp_in,
+						 "SEI_PICTIM_COUNTING",
+						 &status_flag);
+			if (status_flag == 1) {
+				sei_pic_timing_param->
+				    avcbe_clockts
+				    [index].avcbe_counting_type =
+				    return_value;
+			}
+
+			return_value =
+			    GetValueFromCtrlFile(fp_in,
+						 "SEI_PICTIM_FULLTMSTM",
+						 &status_flag);
+			if (status_flag == 1) {
+				sei_pic_timing_param->
+				    avcbe_clockts
+				    [index].avcbe_full_timestamp_flag =
+				    return_value;
+			}
+
+			return_value =
+			    GetValueFromCtrlFile(fp_in,
+						 "SEI_PICTIM_DISCONT",
+						 &status_flag);
+			if (status_flag == 1) {
+				sei_pic_timing_param->
+				    avcbe_clockts
+				    [index].avcbe_discontinuity_flag =
+				    return_value;
+			}
+
+			return_value =
+			    GetValueFromCtrlFile(fp_in,
+						 "SEI_PICTIM_CNT_DROP",
+						 &status_flag);
+			if (status_flag == 1) {
+				sei_pic_timing_param->
+				    avcbe_clockts
+				    [index].avcbe_cnt_dropped_flag =
+				    return_value;
+			}
+
+			return_value =
+			    GetValueFromCtrlFile(fp_in,
+						 "SEI_PICTIM_N_FRAMES",
+						 &status_flag);
+			if (status_flag == 1) {
+				sei_pic_timing_param->
+				    avcbe_clockts[index].avcbe_n_frames =
+				    return_value;
+			}
+
+			return_value =
+			    GetValueFromCtrlFile(fp_in,
+						 "SEI_PICTIM_USE_SEC",
+						 &status_flag);
+			if (status_flag == 1) {
+				sei_pic_timing_param->avcbe_clockts[index].avcbe_seconds_flag = return_value;	/* 050531 */
+			}
+
+			return_value =
+			    GetValueFromCtrlFile(fp_in,
+						 "SEI_PICTIM_SEC_VAL",
+						 &status_flag);
+			if (status_flag == 1) {
+				sei_pic_timing_param->
+				    avcbe_clockts
+				    [index].avcbe_seconds_value =
+				    return_value;
+			}
+
+			return_value =
+			    GetValueFromCtrlFile(fp_in,
+						 "SEI_PICTIM_USE_MINU",
+						 &status_flag);
+			if (status_flag == 1) {
+				sei_pic_timing_param->avcbe_clockts[index].avcbe_minutes_flag = return_value;	/* 050531 */
+			}
+
+			return_value =
+			    GetValueFromCtrlFile(fp_in,
+						 "SEI_PICTIM_MINU_VAL",
+						 &status_flag);
+			if (status_flag == 1) {
+				sei_pic_timing_param->
+				    avcbe_clockts
+				    [index].avcbe_minutes_value =
+				    return_value;
+			}
+
+			return_value =
+			    GetValueFromCtrlFile(fp_in,
+						 "SEI_PICTIM_USE_HOUR",
+						 &status_flag);
+			if (status_flag == 1) {
+				sei_pic_timing_param->avcbe_clockts[index].avcbe_hours_flag = return_value;	/* 050531 */
+			}
+
+			return_value =
+			    GetValueFromCtrlFile(fp_in,
+						 "SEI_PICTIM_HOUR_VAL",
+						 &status_flag);
+			if (status_flag == 1) {
+				sei_pic_timing_param->
+				    avcbe_clockts[index].avcbe_hours_value
+				    = return_value;
+			}
+
+			return_value =
+			    GetValueFromCtrlFile(fp_in,
+						 "SEI_PICTIM_TIME_OFFSET",
+						 &status_flag);
+			if (status_flag == 1) {
+				sei_pic_timing_param->
+				    avcbe_clockts[index].avcbe_time_offset
+				    = return_value;
+			}
+		}
+		/* ここまでは、pic_structの値に応じてavcbe_clockts[]の要素数を決めること */
+	}
+
+	/* SEI_MESSAGE_PAN_SCAN_RECT */
+	other_API_enc_param->out_pan_scan_rect_SEI = AVCBE_OFF;
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "SEI_PANSCAN_message_exist",
+				 &status_flag);
+	if ((status_flag == 1) && (return_value == 1)) {
+
+		other_API_enc_param->out_pan_scan_rect_SEI = AVCBE_ON;
+
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "SEI_PANSCAN_RECT_ID",
+					 &status_flag);
+		if (status_flag == 1) {
+			sei_pan_scan_rect_param->avcbe_pan_scan_rect_id =
+			    return_value;
+		}
+
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "SEI_PANSCAN_CANCEL",
+					 &status_flag);
+		if (status_flag == 1) {
+			sei_pan_scan_rect_param->avcbe_pan_scan_rect_cancel_flag
+			    = return_value;
+		}
+
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "SEI_PANSCAN_CNT_MINUS1",
+					 &status_flag);
+		if (status_flag == 1) {
+			sei_pan_scan_rect_param->avcbe_pan_scan_cnt_minus1
+			    = return_value;
+		}
+
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "SEI_PANSCAN_LEFT",
+					 &status_flag);
+		if (status_flag == 1) {
+			sei_pan_scan_rect_param->
+			    avcbe_rect_offset
+			    [0].avcbe_pan_scan_rect_left_offset =
+			    return_value;
+		}
+
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "SEI_PANSCAN_RIGHT",
+					 &status_flag);
+		if (status_flag == 1) {
+			sei_pan_scan_rect_param->
+			    avcbe_rect_offset
+			    [0].avcbe_pan_scan_rect_right_offset =
+			    return_value;
+		}
+
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "SEI_PANSCAN_TOP",
+					 &status_flag);
+		if (status_flag == 1) {
+			sei_pan_scan_rect_param->
+			    avcbe_rect_offset
+			    [0].avcbe_pan_scan_rect_top_offset =
+			    return_value;
+		}
+
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "SEI_PANSCAN_BOTTOM",
+					 &status_flag);
+		if (status_flag == 1) {
+			sei_pan_scan_rect_param->
+			    avcbe_rect_offset
+			    [0].avcbe_pan_scan_rect_bottom_offset =
+			    return_value;
+		}
+
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "SEI_PANSCAN_RECT_REPET",
+					 &status_flag);
+		if (status_flag == 1) {
+			sei_pan_scan_rect_param->avcbe_pan_scan_rect_repetition_period
+			    = return_value;
+		}
+	}
+
+	/* SEI_MESSAGE_FILLER_PAYLOAD */
+	other_API_enc_param->out_filler_payload_SEI = AVCBE_OFF;
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "SEI_FILLER_message_exist",
+				 &status_flag);
+	if ((status_flag == 1) && (return_value == 1)) {
+
+		other_API_enc_param->out_filler_payload_SEI = AVCBE_ON;
+
+		/* last payload size byte for Filler SEI */
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "SEI_FILLER_SIZE",
+					 &status_flag);
+		if (status_flag == 1) {
+			sei_filler_payload_param->avcbe_filler_payload_size
+			    = return_value;
+		}
+	}
+
+	/* SEI_MESSAGE_RECOVERY_POINT */
+	other_API_enc_param->out_recovery_point_SEI = AVCBE_OFF;
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "SEI_RECOVERY_message_exist",
+				 &status_flag);
+	if ((status_flag == 1) && (return_value == 1)) {
+
+		other_API_enc_param->out_recovery_point_SEI = AVCBE_ON;
+
+		/* recovery frame cnt *//* 0 - MaxFrameNum(255)-1 */
+		/* 内部で設定する *//* 041214 */
+/**		return_value = GetValueFromCtrlFile(fp_in, "SEI_RECOVERY_FRAME", &status_flag);
+		if (status_flag == 1) {
+			sei_recovery_point_param->avcbe_recovery_frame_cnt = return_value;
+		}
+**/
+
+		/* exact match flag */
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "SEI_RECOVERY_MATCH",
+					 &status_flag);
+		if (status_flag == 1) {
+			sei_recovery_point_param->avcbe_exact_match_flag =
+			    return_value;
+		}
+
+		/* broken link flag */
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "SEI_RECOVERY_BROKEN",
+					 &status_flag);
+		if (status_flag == 1) {
+			sei_recovery_point_param->avcbe_broken_link_flag =
+			    return_value;
+		}
+
+		/* changing slice group idc */
+		/* 内部で設定する *//* 041214 */
+/**		return_value = GetValueFromCtrlFile(fp_in, "SEI_RECOVERY_SLICE_GROUP", &status_flag);
+		if (status_flag == 1) {
+			sei_recovery_point_param->avcbe_changing_slice_group_idc = return_value;
+		}
+**/
+	}
+
+	/* SEI_MESSAGE_DEC_REF_PIC_MARKING_REPETITION */
+	other_API_enc_param->out_dec_ref_pic_marking_repetition_SEI =
+	    AVCBE_OFF;
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "SEI_REPET_message_exist",
+				 &status_flag);
+	if ((status_flag == 1) && (return_value == 1)) {
+
+		other_API_enc_param->out_dec_ref_pic_marking_repetition_SEI
+		    = AVCBE_ON;
+
+		/* original idr flag */
+		/* 内部で設定する *//* 041214 */
+/**		return_value = GetValueFromCtrlFile(fp_in, "SEI_REPET_IDR", &status_flag);
+		if (status_flag == 1) {
+			sei_dec_ref_pic_marking_repetition_param->avcbe_original_idr_flag = return_value;
+		}
+**/
+		/* original frame num */
+		/* 内部で設定する *//* 041214 */
+/**		return_value = GetValueFromCtrlFile(fp_in, "SEI_REPET_FRAME", &status_flag);
+		if (status_flag == 1) {
+			sei_dec_ref_pic_marking_repetition_param->avcbe_original_frame_num = return_value;
+		}
+**/
+		/* frame_mbs_only_flagは、baselineなので「1」固定。よって以下の2つは設定付加 */
+/** 		return_value = GetValueFromCtrlFile(fp_in, "SEI_REPET_FIELD", &status_flag);
+		if (status_flag == 1) {
+			sei_dec_ref_pic_marking_repetition_param->avcbe_original_field_pic_flag = return_value;
+		}
+
+		return_value = GetValueFromCtrlFile(fp_in, "SEI_REPET_BOTTOM", &status_flag);
+		if (status_flag == 1) {
+			sei_dec_ref_pic_marking_repetition_param->avcbe_original_bottom_field_flag = return_value;
+		}
+**/
+		/* ここから下はスライスヘッダの値を内部で引っ張る */
+/**		return_value = GetValueFromCtrlFile(fp_in, "SEI_REPET_USE_OUTPUT_LONGT", &status_flag);
+		if (status_flag == 1) {
+			sei_dec_ref_pic_marking_repetition_param->avcbe_use_output_of_prior_pics_long_term_reference = return_value;
+		}
+
+		return_value = GetValueFromCtrlFile(fp_in, "SEI_REPET_OUTPUT", &status_flag);
+		if (status_flag == 1) {
+			sei_dec_ref_pic_marking_repetition_param->avcbe_no_output_of_prior_pics_flag = return_value;
+		}
+
+		return_value = GetValueFromCtrlFile(fp_in, "SEI_REPET_LONGT", &status_flag);
+		if (status_flag == 1) {
+			sei_dec_ref_pic_marking_repetition_param->avcbe_long_term_reference_flag = return_value;
+		}
+**/
+	}
 }
-
-/*****************************************************************************
- * Function Name	: GetFromCtrlFtoEncParam
- * Description		: コントロールファイルから、構造体avcbe_encoding_property、avcbe_other_options_h264、
- *　　　　　　　　　 avcbe_other_options_mpeg4等のメンバ値を読み込み、設定して返す
- * Parameters		: 省略
- * Called functions	: 		  
- * Global Data		: 
- * Return Value		: 1: 正常終了、-1: エラー
- *****************************************************************************/
-#ifdef __cplusplus
-extern "C"
-#endif
-int GetFromCtrlFtoEncParam(const char *control_filepath,
-			   ENC_EXEC_INFO * enc_exec_info,
-			   avcbe_encoding_property * encoding_property,
-			   avcbe_other_options_h264 * other_options_h264,
-			   avcbe_other_options_mpeg4 * other_options_mpeg4)
-{
-	FILE *fp_in;
-
-	if ((control_filepath == NULL) ||
-	    (enc_exec_info == NULL) ||
-	    (encoding_property == NULL) ||
-	    (other_options_h264 == NULL) ||
-	    (other_options_mpeg4 == NULL)) {
-		return (-1);
-	}
-
-	fp_in = fopen(control_filepath, "rt");
-	if (fp_in == NULL) {
-		return (-1);
-	}
-
-	/*** ENC_EXEC_INFO ***/
-	GetFromCtrlFtoEncExecInfo(fp_in, enc_exec_info);
-
-	/*** avcbe_encoding_property ***/
-	GetFromCtrlFtoEncoding_property(fp_in, encoding_property);
-
-	if (encoding_property->avcbe_stream_type == AVCBE_H264) {
-		/*** avcbe_other_options_h264 ***/
-		GetFromCtrlFtoOther_options_H264(fp_in,
-						 other_options_h264);
-
-	} else if ((encoding_property->avcbe_stream_type == AVCBE_MPEG4) ||
-		   (encoding_property->avcbe_stream_type == AVCBE_H263)) {
-
-		/*** avcbe_other_options_mpeg4 ***/
-		GetFromCtrlFtoOther_options_MPEG4(fp_in,
-						  other_options_mpeg4);
-	}
-
-	fclose(fp_in);
-
-	return (1);		/* 正常終了 */
-}
-
-/*****************************************************************************
- * Function Name	: GetFromCtrlFtoEncParamAfterInitEncode
- * Description		: コントロールファイルから、VPU4版エンコーダミドルでは非公開のVPU4パラメータ等
- *　　　　　　　　　  を読み込み、設定して返す（本関数は、API関数avcbe_init_encode()を呼び出した後に呼び出すこと）
- * Parameters		: 省略
- * Called functions	: 		  
- * Global Data		: 
- * Return Value		: 1: 正常終了、-1: エラー
- *****************************************************************************/
-#ifdef __cplusplus
-extern "C"
-#endif
-int GetFromCtrlFtoEncParamAfterInitEncode(const char *control_filepath,
-					  avcbe_stream_info * context,
-					  OTHER_API_ENC_PARAM *
-					  other_API_enc_param,
-					  avcbe_encoding_property *
-					  encoding_property)
-{
-	FILE *fp_in;
-	avcbe_H264_stream_info_t *stream_info_h264;
-	M4IPH_VPU4_ENC *vpu4_enc;
-	avcbe_other_options_h264 *other_options_h264 = NULL;
-
-	if ((control_filepath == NULL) || (context == NULL)) {
-		return (-1);
-	}
-
-	fp_in = fopen(control_filepath, "rt");
-	if (fp_in == NULL) {
-		return (-1);
-	}
-
-	if (context->stream_type == AVCBE_H264) {
-		stream_info_h264 =
-		    (avcbe_H264_stream_info_t *) (context->streamp);
-
-		other_options_h264 =
-		    &(stream_info_h264->avcbe_encode_other_opt_h264);
-
-		vpu4_enc = &(stream_info_h264->avcbe_vpu4_enc_info);
-
-	} else if ((context->stream_type == AVCBE_MPEG4) ||
-		   (context->stream_type == AVCBE_H263)) {
-#if 0
-		other_options_h264 = NULL;
-		other_options_mpeg4 = (avcbe_other_options_mpeg4 *)
-		    m4vse_get_address_of_stream((void *) context->streamp,
-						M4VSE_ADDRESS_ENCODE_OTHER_OPT_MPEG4);
-#endif
-
-		/*      vpu4_enc = m4vse_get_vpu4_enc_info((void *)(context->streamp)); 040914変更 */
-		vpu4_enc =
-		    (M4IPH_VPU4_ENC *) m4vse_get_address_of_stream((void *)
-								   context->streamp,
-								   M4VSE_ADDRESS_VPU4_ENC_INFO);
-	}
-
-	/*** avebe_init_encode()以外のAPI関数で設定するもの ***/
-	GetFromCtrlFtoOTHER_API_ENC_PARAM(fp_in, other_API_enc_param,
-					  encoding_property,
-					  other_options_h264);
-
-	/*** エンコーダミドルで非公開のVPU4エンコードパラメータ ***/
-	/* ここで設定すると初期済みのドライバのメンバに設定してる値が上書きされる */
-	GetFromCtrlFtoVPU4_ENC(fp_in, vpu4_enc, encoding_property);	/* 復活させた 050602 */
-
-	fclose(fp_in);
-
-	return (1);		/* 正常終了 */
-}
-
 /*****************************************************************************
  * Function Name	: GetFromCtrlFtoEncoding_property
  * Description		: コントロールファイルから、構造体ENC_EXEC_INFOのメンバ値を読み込み、設定して返す
@@ -230,10 +637,7 @@ int GetFromCtrlFtoEncParamAfterInitEncode(const char *control_filepath,
  * Global Data		: 
  * Return Value		: 
  *****************************************************************************/
-#ifdef __cplusplus
-extern "C"
-#endif
-int GetFromCtrlFtoEncExecInfo(FILE * fp_in, ENC_EXEC_INFO * enc_exec_info)
+static int GetFromCtrlFtoEncExecInfo(FILE * fp_in, ENC_EXEC_INFO * enc_exec_info)
 {
 	int status_flag;
 	long return_value;
@@ -295,10 +699,7 @@ int GetFromCtrlFtoEncExecInfo(FILE * fp_in, ENC_EXEC_INFO * enc_exec_info)
  * Global Data		: 
  * Return Value		: 
  *****************************************************************************/
-#ifdef __cplusplus
-extern "C"
-#endif
-int GetFromCtrlFtoEncoding_property(FILE * fp_in,
+static int GetFromCtrlFtoEncoding_property(FILE * fp_in,
 				    avcbe_encoding_property *
 				    encoding_property)
 {
@@ -449,925 +850,6 @@ int GetFromCtrlFtoEncoding_property(FILE * fp_in,
 }
 
 /*****************************************************************************
- * Function Name	: GetFromCtrlFtoOther_options_H264
- * Description		: コントロールファイルから、構造体avcbe_other_options_h264のメンバ値を読み込み、引数に設定して返す
- *					
- * Parameters		: 
- * Called functions	: 		  
- * Global Data		: 
- * Return Value		: 
- *****************************************************************************/
-#ifdef __cplusplus
-extern "C"
-#endif
-int GetFromCtrlFtoOther_options_H264(FILE * fp_in,
-				     avcbe_other_options_h264 *
-				     other_options_h264)
-{
-	int status_flag;
-	long return_value;
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "Ivop_quant_initial_value",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_Ivop_quant_initial_value =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "Pvop_quant_initial_value",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_Pvop_quant_initial_value =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "use_dquant", &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_use_dquant = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "clip_dquant_next_mb",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_clip_dquant_next_mb =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "clip_dquant_frame", &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_clip_dquant_frame = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "quant_min", &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_quant_min = return_value;
-	}
-
-	return_value = GetValueFromCtrlFile(fp_in, "quant_min_Ivop_under_range", &status_flag);	/* 050509 */
-	if (status_flag == 1) {
-		other_options_h264->avcbe_quant_min_Ivop_under_range =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "quant_max", &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_quant_max = return_value;
-	}
-
-
-	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_cpb_skipcheck_enable ", &status_flag);	/* 050524 */
-	if (status_flag == 1) {
-		other_options_h264->avcbe_ratecontrol_cpb_skipcheck_enable
-		    = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "rate_ctrl_cpb_Ivop_noskip",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_ratecontrol_cpb_Ivop_noskip =
-		    return_value;
-	}
-
-	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_cpb_remain_zero_skip_enable", &status_flag);	/* 050524 */
-	if (status_flag == 1) {
-		other_options_h264->avcbe_ratecontrol_cpb_remain_zero_skip_enable
-		    = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "rate_ctrl_cpb_offset",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_ratecontrol_cpb_offset =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "rate_ctrl_cpb_offset_rate",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_ratecontrol_cpb_offset_rate =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "rate_ctrl_cpb_buffer_mode",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_ratecontrol_cpb_buffer_mode =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "rate_ctrl_cpb_max_size",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_ratecontrol_cpb_max_size =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "rate_ctrl_cpb_buffer_unit_size",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_ratecontrol_cpb_buffer_unit_size
-		    = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "intra_thr_1", &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_intra_thr_1 = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "intra_thr_2", &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_intra_thr_2 = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "sad_intra_bias", &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_sad_intra_bias = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "regularly_inserted_I_type",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_regularly_inserted_I_type =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "call_unit", &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_call_unit = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "use_slice", &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_use_slice = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "slice_size_mb", &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_slice_size_mb = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "slice_size_bit", &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_slice_size_bit = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "slice_type_value_pattern",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_slice_type_value_pattern =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "use_mb_partition", &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_use_mb_partition = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "mb_partition_vector_thr",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_mb_partition_vector_thr =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "deblocking_mode", &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_deblocking_mode = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "use_deblocking_filter_control",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_use_deblocking_filter_control =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "deblocking_alpha_offset",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_deblocking_alpha_offset =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "deblocking_beta_offset",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_deblocking_beta_offset =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "me_skip_mode", &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_me_skip_mode = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "put_start_code", &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_put_start_code = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "param_changeable", &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_param_changeable = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "changeable_max_bitrate",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_changeable_max_bitrate =
-		    return_value;
-	}
-
-	/* SequenceHeaderParameter */
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "seq_param_set_id", &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_seq_param_set_id = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "profile", &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_profile = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "constraint_set_flag",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_constraint_set_flag =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "level_type", &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_level_type = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "level_value", &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_level_value = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "out_vui_parameters",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_out_vui_parameters =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "chroma_qp_index_offset",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_chroma_qp_index_offset =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "constrained_intra_pred",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_h264->avcbe_constrained_intra_pred =
-		    return_value;
-	}
-
-	return (1);		/* 正常終了 */
-}
-
-/*****************************************************************************
- * Function Name	: GetFromCtrlFtoOther_options_MPEG4
- * Description		: コントロールファイルから、構造体avcbe_other_options_mpeg4のメンバ値を読み込み、引数に設定して返す
- *					
- * Parameters		: 
- * Called functions	: 		  
- * Global Data		: 
- * Return Value		: 
- *****************************************************************************/
-#ifdef __cplusplus
-extern "C"
-#endif
-int GetFromCtrlFtoOther_options_MPEG4(FILE * fp_in,
-				      avcbe_other_options_mpeg4 *
-				      other_options_mpeg4)
-{
-	int status_flag;
-	long return_value;
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "out_vos", &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_out_vos = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "out_gov", &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_out_gov = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "aspect_ratio_info_type",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_aspect_ratio_info_type =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "aspect_ratio_info_value",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_aspect_ratio_info_value =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "vos_profile_level_type",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_vos_profile_level_type =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "vos_profile_level_value",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_vos_profile_level_value =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "out_visual_object_identifier",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_out_visual_object_identifier =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "visual_object_verid",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_visual_object_verid =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "visual_object_priority",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_visual_object_priority =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "video_object_type_indication",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_video_object_type_indication =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "out_object_layer_identifier",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_out_object_layer_identifier =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "video_object_layer_verid",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_video_object_layer_verid =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "video_object_layer_priority",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_video_object_layer_priority =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "error_resilience_mode",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_error_resilience_mode =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "video_packet_size_mb",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_video_packet_size_mb =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "video_packet_size_bit",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_video_packet_size_bit =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "video_packet_header_extention",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_video_packet_header_extention =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "data_partitioned", &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_data_partitioned = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "reversible_vlc", &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_reversible_vlc = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "high_quality", &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_high_quality = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "param_changeable", &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_param_changeable = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "changeable_max_bitrate",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_changeable_max_bitrate =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "Ivop_quant_initial_value",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_Ivop_quant_initial_value =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "Pvop_quant_initial_value",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_Pvop_quant_initial_value =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "use_dquant", &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_use_dquant = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "clip_dquant_frame", &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_clip_dquant_frame =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "quant_min", &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_quant_min = return_value;
-	}
-
-	return_value = GetValueFromCtrlFile(fp_in, "quant_min_Ivop_under_range", &status_flag);	/* 050509 */
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_quant_min_Ivop_under_range =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "quant_max", &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_quant_max = return_value;
-	}
-
-/*	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_rcperiod_skipcheck_enable", &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_ratecontrol_rcperiod_skipcheck_enable = return_value;
-	}
-
-	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_rcperiod_Ivop_noskip", &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_ratecontrol_rcperiod_Ivop_noskip = return_value;
-			}
-*//* 050603 パラメータから削除されたので */
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_skipcheck_enable",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_ratecontrol_vbv_skipcheck_enable
-		    = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_Ivop_noskip",
-				 &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_ratecontrol_vbv_Ivop_noskip =
-		    return_value;
-	}
-
-	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_remain_zero_skip_enable", &status_flag);	/* 050524 */
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_ratecontrol_vbv_remain_zero_skip_enable
-		    = return_value;
-	}
-
-	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_buffer_unit_size", &status_flag);	/* 順序変更 050601 */
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_ratecontrol_vbv_buffer_unit_size
-		    = return_value;
-	}
-
-	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_buffer_mode", &status_flag);	/* 順序変更 050601 */
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_ratecontrol_vbv_buffer_mode =
-		    return_value;
-	}
-
-	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_max_size", &status_flag);	/* 順序変更 050601 */
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_ratecontrol_vbv_max_size =
-		    return_value;
-	}
-
-	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_offset", &status_flag);	/* 順序変更 050601 */
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_ratecontrol_vbv_offset =
-		    return_value;
-	}
-
-	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_offset_rate", &status_flag);	/* 順序変更 050601 */
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_ratecontrol_vbv_offset_rate =
-		    return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "quant_type", &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_quant_type = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "use_AC_prediction", &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_use_AC_prediction =
-		    return_value;
-	}
-
-	return_value = GetValueFromCtrlFile(fp_in, "vop_min_mode", &status_flag);	/* 050524 */
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_vop_min_mode = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "vop_min_size", &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_vop_min_size = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "intra_thr", &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_intra_thr = return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "b_vop_num", &status_flag);
-	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_b_vop_num = return_value;
-	}
-
-	return (1);		/* 正常終了 */
-}
-
-/*****************************************************************************
- * Function Name	: GetFromCtrlFtoOTHER_API_ENC_PARAM
- * Description		: コントロールファイルから、avebe_init_encode()以外のAPI関数で設定するもの
- *　　　　　　　　　  を読み込み、引数に設定して返す
- *					
- * Parameters		: 
- * Called functions	: 		  
- * Global Data		: 
- * Return Value		: 
- *****************************************************************************/
-#ifdef __cplusplus
-extern "C"
-#endif
-int GetFromCtrlFtoOTHER_API_ENC_PARAM(FILE * fp_in,
-				      OTHER_API_ENC_PARAM *
-				      other_API_enc_param,
-				      avcbe_encoding_property *
-				      encoding_property,
-				      avcbe_other_options_h264 *
-				      other_options_h264)
-{
-	int status_flag;
-	long return_value;
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "ref_frame_num", &status_flag);
-	if (status_flag == 1) {
-		other_API_enc_param->ref_frame_num =
-		    (unsigned char) return_value;
-	}
-
-/**	return_value = GetValueFromCtrlFile(fp_in, "out_filter_image", &status_flag); 041026
-	if (status_flag == 1) {
-		other_API_enc_param->out_filter_image = (unsigned char)return_value;
-	} **/
-
-	other_API_enc_param->weightdQ_enable = AVCBE_OFF;
-
-#if 0				/* 050324 */
-	if (encoding_property->avcbe_weightedQ_mode ==
-	    AVCBE_WEIGHTEDQ_BY_USER) {
-		other_API_enc_param->weightdQ_enable = AVCBE_ON;
-
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "wq_USER_weight_type",
-					 &status_flag);
-		if (status_flag == 1) {
-			other_API_enc_param->
-			    weightedQ_info_user.avcbe_weight_type =
-			    return_value;
-		}
-
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "wq_USER_mode_for_bit1",
-					 &status_flag);
-		if (status_flag == 1) {
-			other_API_enc_param->
-			    weightedQ_info_user.avcbe_mode_for_bit1 =
-			    return_value;
-		}
-
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "wq_USER_mode_for_bit2",
-					 &status_flag);
-		if (status_flag == 1) {
-			other_API_enc_param->
-			    weightedQ_info_user.avcbe_mode_for_bit2 =
-			    return_value;
-		}
-
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "wq_USER_mode_for_bit3",
-					 &status_flag);
-		if (status_flag == 1) {
-			other_API_enc_param->
-			    weightedQ_info_user.avcbe_mode_for_bit3 =
-			    return_value;
-		}
-
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "wq_USER_Qweight_for_bit1",
-					 &status_flag);
-		if (status_flag == 1) {
-			other_API_enc_param->
-			    weightedQ_info_user.avcbe_Qweight_for_bit1 =
-			    return_value;
-		}
-
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "wq_USER_Qweight_for_bit2",
-					 &status_flag);
-		if (status_flag == 1) {
-			other_API_enc_param->
-			    weightedQ_info_user.avcbe_Qweight_for_bit2 =
-			    return_value;
-		}
-
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "wq_USER_Qweight_for_bit3",
-					 &status_flag);
-		if (status_flag == 1) {
-			other_API_enc_param->
-			    weightedQ_info_user.avcbe_Qweight_for_bit3 =
-			    return_value;
-		}
-
-		GetStringFromCtrlFile(fp_in, "wq_USER_table_filepath",
-				      other_API_enc_param->weightedQ_table_filepath,
-				      &status_flag);
-
-	}
-#endif
-	if (encoding_property->avcbe_weightedQ_mode ==
-	    AVCBE_WEIGHTEDQ_CENTER) {
-		other_API_enc_param->weightdQ_enable = AVCBE_ON;
-
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "wq_CENTER_zone_size",
-					 &status_flag);
-		if (status_flag == 1) {
-			other_API_enc_param->
-			    weightedQ_info_center.avcbe_zone_size =
-			    return_value;
-		}
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "wq_CENTER_Qweight_range",
-					 &status_flag);
-		if (status_flag == 1) {
-			other_API_enc_param->
-			    weightedQ_info_center.avcbe_Qweight_range =
-			    return_value;
-		}
-
-	}
-	if (encoding_property->avcbe_weightedQ_mode ==
-	    AVCBE_WEIGHTEDQ_RECT) {
-		other_API_enc_param->weightdQ_enable = AVCBE_ON;
-
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "wq_RECT_zone_num",
-					 &status_flag);
-		if (status_flag == 1) {
-			other_API_enc_param->
-			    weightedQ_info_rect.avcbe_zone_num =
-			    return_value;
-		}
-
-		return_value =
-		    GetValueFromCtrlFile(fp_in,
-					 "wq_RECT_zone1_pos_left_column",
-					 &status_flag);
-		if (status_flag == 1) {
-			other_API_enc_param->
-			    weightedQ_info_rect.avcbe_zone1_pos.
-			    avcbe_left_column = return_value;
-		}
-		return_value =
-		    GetValueFromCtrlFile(fp_in,
-					 "wq_RECT_zone1_pos_top_row",
-					 &status_flag);
-		if (status_flag == 1) {
-			other_API_enc_param->
-			    weightedQ_info_rect.avcbe_zone1_pos.
-			    avcbe_top_row = return_value;
-		}
-		return_value =
-		    GetValueFromCtrlFile(fp_in,
-					 "wq_RECT_zone1_pos_right_column",
-					 &status_flag);
-		if (status_flag == 1) {
-			other_API_enc_param->
-			    weightedQ_info_rect.avcbe_zone1_pos.
-			    avcbe_right_column = return_value;
-		}
-		return_value =
-		    GetValueFromCtrlFile(fp_in,
-					 "wq_RECT_zone1_pos_bottom_row",
-					 &status_flag);
-		if (status_flag == 1) {
-			other_API_enc_param->
-			    weightedQ_info_rect.avcbe_zone1_pos.
-			    avcbe_bottom_row = return_value;
-		}
-
-		return_value =
-		    GetValueFromCtrlFile(fp_in,
-					 "wq_RECT_zone2_pos_left_column",
-					 &status_flag);
-		if (status_flag == 1) {
-			other_API_enc_param->
-			    weightedQ_info_rect.avcbe_zone2_pos.
-			    avcbe_left_column = return_value;
-		}
-		return_value =
-		    GetValueFromCtrlFile(fp_in,
-					 "wq_RECT_zone2_pos_top_row",
-					 &status_flag);
-		if (status_flag == 1) {
-			other_API_enc_param->
-			    weightedQ_info_rect.avcbe_zone2_pos.
-			    avcbe_top_row = return_value;
-		}
-		return_value =
-		    GetValueFromCtrlFile(fp_in,
-					 "wq_RECT_zone2_pos_right_column",
-					 &status_flag);
-		if (status_flag == 1) {
-			other_API_enc_param->
-			    weightedQ_info_rect.avcbe_zone2_pos.
-			    avcbe_right_column = return_value;
-		}
-		return_value =
-		    GetValueFromCtrlFile(fp_in,
-					 "wq_RECT_zone2_pos_bottom_row",
-					 &status_flag);
-		if (status_flag == 1) {
-			other_API_enc_param->
-			    weightedQ_info_rect.avcbe_zone2_pos.
-			    avcbe_bottom_row = return_value;
-		}
-
-		return_value =
-		    GetValueFromCtrlFile(fp_in,
-					 "wq_RECT_zone1_Qweight_range",
-					 &status_flag);
-		if (status_flag == 1) {
-			other_API_enc_param->
-			    weightedQ_info_rect.avcbe_zone1_Qweight_range =
-			    return_value;
-		}
-		return_value =
-		    GetValueFromCtrlFile(fp_in,
-					 "wq_RECT_zone2_Qweight_type",
-					 &status_flag);
-		if (status_flag == 1) {
-			other_API_enc_param->
-			    weightedQ_info_rect.avcbe_zone2_Qweight_type =
-			    return_value;
-		}
-	}
-
-	if (encoding_property->avcbe_stream_type == AVCBE_H264) {
-		if (other_options_h264->avcbe_out_vui_parameters ==
-		    AVCBE_ON) {
-			GetFromCtrlFtoOTHER_API_ENC_PARAM_VUI(fp_in,
-							      other_API_enc_param);
-		}
-	}
-
-
-	if (encoding_property->avcbe_stream_type == AVCBE_H264) {
-		/* SEI messageがコントロールファイルに出力されているかチェック */
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "SEI_message_exist",
-					 &status_flag);
-		if ((status_flag == 1) && (return_value == 1)) {	/* 出力されている */
-			GetFromCtrlFtoOTHER_API_ENC_PARAM_SEI(fp_in,
-							      other_API_enc_param);
-		}
-	}
-
-
-	return (1);		/* 正常終了 */
-}
-
-/*****************************************************************************
  * Function Name	: GetFromCtrlFtoOTHER_API_ENC_PARAM_VUI
  * Description		: コントロールファイルから、avebe_init_encode()以外のAPI関数で設定するもののうち、
  *　　　　　　　　　  VUIパラメータだけを読み込み、引数に設定して返す
@@ -1377,10 +859,7 @@ int GetFromCtrlFtoOTHER_API_ENC_PARAM(FILE * fp_in,
  * Global Data		: 
  * Return Value		: 
  *****************************************************************************/
-#ifdef __cplusplus
-extern "C"
-#endif
-void GetFromCtrlFtoOTHER_API_ENC_PARAM_VUI(FILE * fp_in,
+static void GetFromCtrlFtoOTHER_API_ENC_PARAM_VUI(FILE * fp_in,
 					   OTHER_API_ENC_PARAM *
 					   other_API_enc_param)
 {
@@ -1859,491 +1338,915 @@ void GetFromCtrlFtoOTHER_API_ENC_PARAM_VUI(FILE * fp_in,
 }
 
 /*****************************************************************************
- * Function Name	: GetFromCtrlFtoOTHER_API_ENC_PARAM_SEI
- * Description		: コントロールファイルから、avebe_init_encode()以外のAPI関数で設定するもののうち、
- *　　　　　　　　　  SEIパラメータだけを読み込み、引数に設定して返す
+ * Function Name	: GetFromCtrlFtoOther_options_H264
+ * Description		: コントロールファイルから、構造体avcbe_other_options_h264のメンバ値を読み込み、引数に設定して返す
  *					
  * Parameters		: 
  * Called functions	: 		  
  * Global Data		: 
  * Return Value		: 
  *****************************************************************************/
-#ifdef __cplusplus
-extern "C"
-#endif
-void GetFromCtrlFtoOTHER_API_ENC_PARAM_SEI(FILE * fp_in,
-					   OTHER_API_ENC_PARAM *
-					   other_API_enc_param)
+static int GetFromCtrlFtoOther_options_H264(FILE * fp_in,
+				     avcbe_other_options_h264 *
+				     other_options_h264)
 {
-	int status_flag, index;
+	int status_flag;
 	long return_value;
-	avcbe_sei_buffering_period_param *sei_buffering_period_param;
-	avcbe_sei_pic_timing_param *sei_pic_timing_param;
-	avcbe_sei_pan_scan_rect_param *sei_pan_scan_rect_param;
-	avcbe_sei_filler_payload_param *sei_filler_payload_param;
-	avcbe_sei_recovery_point_param *sei_recovery_point_param;
-/* 050324	avcbe_sei_dec_ref_pic_marking_repetition_param	*sei_dec_ref_pic_marking_repetition_param; */
-
-	sei_buffering_period_param =
-	    &(other_API_enc_param->sei_buffering_period_param);
-	sei_pic_timing_param =
-	    &(other_API_enc_param->sei_pic_timing_param);
-	sei_pan_scan_rect_param =
-	    &(other_API_enc_param->sei_pan_scan_rect_param);
-	sei_filler_payload_param =
-	    &(other_API_enc_param->sei_filler_payload_param);
-	sei_recovery_point_param =
-	    &(other_API_enc_param->sei_recovery_point_param);
-/* 050324	sei_dec_ref_pic_marking_repetition_param = &(other_API_enc_param->sei_dec_ref_pic_marking_repetition_param); */
-
-	/* SEI_MESSAGE_BUFFERING_PERIOD */
-	other_API_enc_param->out_buffering_period_SEI = AVCBE_OFF;
 
 	return_value =
-	    GetValueFromCtrlFile(fp_in, "SEI_BUFF_message_exist",
+	    GetValueFromCtrlFile(fp_in, "Ivop_quant_initial_value",
 				 &status_flag);
-	if ((status_flag == 1) && (return_value == 1)) {
-
-		other_API_enc_param->out_buffering_period_SEI = AVCBE_ON;
-
-		/* 内部で設定PPSのseq_parameter_set_idを引っ張る *//* 041216 */
-/**		return_value = GetValueFromCtrlFile(fp_in, "SEI_BUFF_SEQ_ID", &status_flag);
-		if (status_flag == 1) {
-			sei_buffering_period_param->avcbe_seq_parameter_set_id = return_value;
-		}
-**/
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "SEI_BUFF_NAL_DELAY",
-					 &status_flag);
-		if (status_flag == 1) {
-			sei_buffering_period_param->
-			    avcbe_NalHrdBp
-			    [0].avcbe_initial_cpb_removal_delay =
-			    return_value;
-		}
-
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "SEI_BUFF_NAL_OFFSET",
-					 &status_flag);
-		if (status_flag == 1) {
-			sei_buffering_period_param->
-			    avcbe_NalHrdBp
-			    [0].avcbe_initial_cpb_removal_delay_offset =
-			    return_value;
-		}
-
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "SEI_BUFF_VCL_DELAY",
-					 &status_flag);
-		if (status_flag == 1) {
-			sei_buffering_period_param->
-			    avcbe_VclHrdBp
-			    [0].avcbe_initial_cpb_removal_delay =
-			    return_value;
-		}
-
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "SEI_BUFF_VCL_OFFSET",
-					 &status_flag);
-		if (status_flag == 1) {
-			sei_buffering_period_param->
-			    avcbe_VclHrdBp
-			    [0].avcbe_initial_cpb_removal_delay_offset =
-			    return_value;
-		}
+	if (status_flag == 1) {
+		other_options_h264->avcbe_Ivop_quant_initial_value =
+		    return_value;
 	}
-
-	/* if ((status_flag == 1)&&(return_value == 1))の終わり */
-	/* SEI_MESSAGE_PIC_TIMING */
-	other_API_enc_param->out_pic_timing_SEI = AVCBE_OFF;
 
 	return_value =
-	    GetValueFromCtrlFile(fp_in, "SEI_PICTM_message_exist",
+	    GetValueFromCtrlFile(fp_in, "Pvop_quant_initial_value",
 				 &status_flag);
-	if ((status_flag == 1) && (return_value == 1)) {
-
-		other_API_enc_param->out_pic_timing_SEI = AVCBE_ON;
-
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "SEI_PICTIM_CPB_DELAY",
-					 &status_flag);
-		if (status_flag == 1) {
-			sei_pic_timing_param->avcbe_cpb_removal_delay =
-			    return_value;
-		}
-
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "SEI_PICTIM_DPB_DELAY",
-					 &status_flag);
-		if (status_flag == 1) {
-			sei_pic_timing_param->avcbe_dpb_output_delay =
-			    return_value;
-		}
-
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "SEI_PICTIM_PIC_STRUCT",
-					 &status_flag);
-		if (status_flag == 1) {
-			sei_pic_timing_param->avcbe_pic_struct =
-			    return_value;
-		}
-
-		/* ここから下は、pic_structの値に応じてavcbe_clockts[]の要素数を決めること() */
-		for (index = 0; index < 1; index++) {
-			return_value =
-			    GetValueFromCtrlFile(fp_in,
-						 "SEI_PICTIM_USE_CLOCK",
-						 &status_flag);
-			if (status_flag == 1) {
-				sei_pic_timing_param->avcbe_clockts[index].avcbe_clock_timestamp = return_value;	/* 050531 */
-			}
-
-			return_value =
-			    GetValueFromCtrlFile(fp_in,
-						 "SEI_PICTIM_CT_TYPE",
-						 &status_flag);
-			if (status_flag == 1) {
-				sei_pic_timing_param->
-				    avcbe_clockts[index].avcbe_ct_type =
-				    return_value;
-			}
-
-			return_value =
-			    GetValueFromCtrlFile(fp_in, "SEI_PICTIM_NUNIT",
-						 &status_flag);
-			if (status_flag == 1) {
-				sei_pic_timing_param->
-				    avcbe_clockts
-				    [index].avcbe_nuit_field_based_flag =
-				    return_value;
-			}
-
-			return_value =
-			    GetValueFromCtrlFile(fp_in,
-						 "SEI_PICTIM_COUNTING",
-						 &status_flag);
-			if (status_flag == 1) {
-				sei_pic_timing_param->
-				    avcbe_clockts
-				    [index].avcbe_counting_type =
-				    return_value;
-			}
-
-			return_value =
-			    GetValueFromCtrlFile(fp_in,
-						 "SEI_PICTIM_FULLTMSTM",
-						 &status_flag);
-			if (status_flag == 1) {
-				sei_pic_timing_param->
-				    avcbe_clockts
-				    [index].avcbe_full_timestamp_flag =
-				    return_value;
-			}
-
-			return_value =
-			    GetValueFromCtrlFile(fp_in,
-						 "SEI_PICTIM_DISCONT",
-						 &status_flag);
-			if (status_flag == 1) {
-				sei_pic_timing_param->
-				    avcbe_clockts
-				    [index].avcbe_discontinuity_flag =
-				    return_value;
-			}
-
-			return_value =
-			    GetValueFromCtrlFile(fp_in,
-						 "SEI_PICTIM_CNT_DROP",
-						 &status_flag);
-			if (status_flag == 1) {
-				sei_pic_timing_param->
-				    avcbe_clockts
-				    [index].avcbe_cnt_dropped_flag =
-				    return_value;
-			}
-
-			return_value =
-			    GetValueFromCtrlFile(fp_in,
-						 "SEI_PICTIM_N_FRAMES",
-						 &status_flag);
-			if (status_flag == 1) {
-				sei_pic_timing_param->
-				    avcbe_clockts[index].avcbe_n_frames =
-				    return_value;
-			}
-
-			return_value =
-			    GetValueFromCtrlFile(fp_in,
-						 "SEI_PICTIM_USE_SEC",
-						 &status_flag);
-			if (status_flag == 1) {
-				sei_pic_timing_param->avcbe_clockts[index].avcbe_seconds_flag = return_value;	/* 050531 */
-			}
-
-			return_value =
-			    GetValueFromCtrlFile(fp_in,
-						 "SEI_PICTIM_SEC_VAL",
-						 &status_flag);
-			if (status_flag == 1) {
-				sei_pic_timing_param->
-				    avcbe_clockts
-				    [index].avcbe_seconds_value =
-				    return_value;
-			}
-
-			return_value =
-			    GetValueFromCtrlFile(fp_in,
-						 "SEI_PICTIM_USE_MINU",
-						 &status_flag);
-			if (status_flag == 1) {
-				sei_pic_timing_param->avcbe_clockts[index].avcbe_minutes_flag = return_value;	/* 050531 */
-			}
-
-			return_value =
-			    GetValueFromCtrlFile(fp_in,
-						 "SEI_PICTIM_MINU_VAL",
-						 &status_flag);
-			if (status_flag == 1) {
-				sei_pic_timing_param->
-				    avcbe_clockts
-				    [index].avcbe_minutes_value =
-				    return_value;
-			}
-
-			return_value =
-			    GetValueFromCtrlFile(fp_in,
-						 "SEI_PICTIM_USE_HOUR",
-						 &status_flag);
-			if (status_flag == 1) {
-				sei_pic_timing_param->avcbe_clockts[index].avcbe_hours_flag = return_value;	/* 050531 */
-			}
-
-			return_value =
-			    GetValueFromCtrlFile(fp_in,
-						 "SEI_PICTIM_HOUR_VAL",
-						 &status_flag);
-			if (status_flag == 1) {
-				sei_pic_timing_param->
-				    avcbe_clockts[index].avcbe_hours_value
-				    = return_value;
-			}
-
-			return_value =
-			    GetValueFromCtrlFile(fp_in,
-						 "SEI_PICTIM_TIME_OFFSET",
-						 &status_flag);
-			if (status_flag == 1) {
-				sei_pic_timing_param->
-				    avcbe_clockts[index].avcbe_time_offset
-				    = return_value;
-			}
-		}
-		/* ここまでは、pic_structの値に応じてavcbe_clockts[]の要素数を決めること */
+	if (status_flag == 1) {
+		other_options_h264->avcbe_Pvop_quant_initial_value =
+		    return_value;
 	}
-
-	/* SEI_MESSAGE_PAN_SCAN_RECT */
-	other_API_enc_param->out_pan_scan_rect_SEI = AVCBE_OFF;
 
 	return_value =
-	    GetValueFromCtrlFile(fp_in, "SEI_PANSCAN_message_exist",
-				 &status_flag);
-	if ((status_flag == 1) && (return_value == 1)) {
-
-		other_API_enc_param->out_pan_scan_rect_SEI = AVCBE_ON;
-
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "SEI_PANSCAN_RECT_ID",
-					 &status_flag);
-		if (status_flag == 1) {
-			sei_pan_scan_rect_param->avcbe_pan_scan_rect_id =
-			    return_value;
-		}
-
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "SEI_PANSCAN_CANCEL",
-					 &status_flag);
-		if (status_flag == 1) {
-			sei_pan_scan_rect_param->avcbe_pan_scan_rect_cancel_flag
-			    = return_value;
-		}
-
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "SEI_PANSCAN_CNT_MINUS1",
-					 &status_flag);
-		if (status_flag == 1) {
-			sei_pan_scan_rect_param->avcbe_pan_scan_cnt_minus1
-			    = return_value;
-		}
-
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "SEI_PANSCAN_LEFT",
-					 &status_flag);
-		if (status_flag == 1) {
-			sei_pan_scan_rect_param->
-			    avcbe_rect_offset
-			    [0].avcbe_pan_scan_rect_left_offset =
-			    return_value;
-		}
-
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "SEI_PANSCAN_RIGHT",
-					 &status_flag);
-		if (status_flag == 1) {
-			sei_pan_scan_rect_param->
-			    avcbe_rect_offset
-			    [0].avcbe_pan_scan_rect_right_offset =
-			    return_value;
-		}
-
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "SEI_PANSCAN_TOP",
-					 &status_flag);
-		if (status_flag == 1) {
-			sei_pan_scan_rect_param->
-			    avcbe_rect_offset
-			    [0].avcbe_pan_scan_rect_top_offset =
-			    return_value;
-		}
-
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "SEI_PANSCAN_BOTTOM",
-					 &status_flag);
-		if (status_flag == 1) {
-			sei_pan_scan_rect_param->
-			    avcbe_rect_offset
-			    [0].avcbe_pan_scan_rect_bottom_offset =
-			    return_value;
-		}
-
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "SEI_PANSCAN_RECT_REPET",
-					 &status_flag);
-		if (status_flag == 1) {
-			sei_pan_scan_rect_param->avcbe_pan_scan_rect_repetition_period
-			    = return_value;
-		}
+	    GetValueFromCtrlFile(fp_in, "use_dquant", &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_use_dquant = return_value;
 	}
-
-	/* SEI_MESSAGE_FILLER_PAYLOAD */
-	other_API_enc_param->out_filler_payload_SEI = AVCBE_OFF;
 
 	return_value =
-	    GetValueFromCtrlFile(fp_in, "SEI_FILLER_message_exist",
+	    GetValueFromCtrlFile(fp_in, "clip_dquant_next_mb",
 				 &status_flag);
-	if ((status_flag == 1) && (return_value == 1)) {
-
-		other_API_enc_param->out_filler_payload_SEI = AVCBE_ON;
-
-		/* last payload size byte for Filler SEI */
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "SEI_FILLER_SIZE",
-					 &status_flag);
-		if (status_flag == 1) {
-			sei_filler_payload_param->avcbe_filler_payload_size
-			    = return_value;
-		}
+	if (status_flag == 1) {
+		other_options_h264->avcbe_clip_dquant_next_mb =
+		    return_value;
 	}
-
-	/* SEI_MESSAGE_RECOVERY_POINT */
-	other_API_enc_param->out_recovery_point_SEI = AVCBE_OFF;
 
 	return_value =
-	    GetValueFromCtrlFile(fp_in, "SEI_RECOVERY_message_exist",
-				 &status_flag);
-	if ((status_flag == 1) && (return_value == 1)) {
-
-		other_API_enc_param->out_recovery_point_SEI = AVCBE_ON;
-
-		/* recovery frame cnt *//* 0 - MaxFrameNum(255)-1 */
-		/* 内部で設定する *//* 041214 */
-/**		return_value = GetValueFromCtrlFile(fp_in, "SEI_RECOVERY_FRAME", &status_flag);
-		if (status_flag == 1) {
-			sei_recovery_point_param->avcbe_recovery_frame_cnt = return_value;
-		}
-**/
-
-		/* exact match flag */
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "SEI_RECOVERY_MATCH",
-					 &status_flag);
-		if (status_flag == 1) {
-			sei_recovery_point_param->avcbe_exact_match_flag =
-			    return_value;
-		}
-
-		/* broken link flag */
-		return_value =
-		    GetValueFromCtrlFile(fp_in, "SEI_RECOVERY_BROKEN",
-					 &status_flag);
-		if (status_flag == 1) {
-			sei_recovery_point_param->avcbe_broken_link_flag =
-			    return_value;
-		}
-
-		/* changing slice group idc */
-		/* 内部で設定する *//* 041214 */
-/**		return_value = GetValueFromCtrlFile(fp_in, "SEI_RECOVERY_SLICE_GROUP", &status_flag);
-		if (status_flag == 1) {
-			sei_recovery_point_param->avcbe_changing_slice_group_idc = return_value;
-		}
-**/
+	    GetValueFromCtrlFile(fp_in, "clip_dquant_frame", &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_clip_dquant_frame = return_value;
 	}
-
-	/* SEI_MESSAGE_DEC_REF_PIC_MARKING_REPETITION */
-	other_API_enc_param->out_dec_ref_pic_marking_repetition_SEI =
-	    AVCBE_OFF;
 
 	return_value =
-	    GetValueFromCtrlFile(fp_in, "SEI_REPET_message_exist",
-				 &status_flag);
-	if ((status_flag == 1) && (return_value == 1)) {
-
-		other_API_enc_param->out_dec_ref_pic_marking_repetition_SEI
-		    = AVCBE_ON;
-
-		/* original idr flag */
-		/* 内部で設定する *//* 041214 */
-/**		return_value = GetValueFromCtrlFile(fp_in, "SEI_REPET_IDR", &status_flag);
-		if (status_flag == 1) {
-			sei_dec_ref_pic_marking_repetition_param->avcbe_original_idr_flag = return_value;
-		}
-**/
-		/* original frame num */
-		/* 内部で設定する *//* 041214 */
-/**		return_value = GetValueFromCtrlFile(fp_in, "SEI_REPET_FRAME", &status_flag);
-		if (status_flag == 1) {
-			sei_dec_ref_pic_marking_repetition_param->avcbe_original_frame_num = return_value;
-		}
-**/
-		/* frame_mbs_only_flagは、baselineなので「1」固定。よって以下の2つは設定付加 */
-/** 		return_value = GetValueFromCtrlFile(fp_in, "SEI_REPET_FIELD", &status_flag);
-		if (status_flag == 1) {
-			sei_dec_ref_pic_marking_repetition_param->avcbe_original_field_pic_flag = return_value;
-		}
-
-		return_value = GetValueFromCtrlFile(fp_in, "SEI_REPET_BOTTOM", &status_flag);
-		if (status_flag == 1) {
-			sei_dec_ref_pic_marking_repetition_param->avcbe_original_bottom_field_flag = return_value;
-		}
-**/
-		/* ここから下はスライスヘッダの値を内部で引っ張る */
-/**		return_value = GetValueFromCtrlFile(fp_in, "SEI_REPET_USE_OUTPUT_LONGT", &status_flag);
-		if (status_flag == 1) {
-			sei_dec_ref_pic_marking_repetition_param->avcbe_use_output_of_prior_pics_long_term_reference = return_value;
-		}
-
-		return_value = GetValueFromCtrlFile(fp_in, "SEI_REPET_OUTPUT", &status_flag);
-		if (status_flag == 1) {
-			sei_dec_ref_pic_marking_repetition_param->avcbe_no_output_of_prior_pics_flag = return_value;
-		}
-
-		return_value = GetValueFromCtrlFile(fp_in, "SEI_REPET_LONGT", &status_flag);
-		if (status_flag == 1) {
-			sei_dec_ref_pic_marking_repetition_param->avcbe_long_term_reference_flag = return_value;
-		}
-**/
+	    GetValueFromCtrlFile(fp_in, "quant_min", &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_quant_min = return_value;
 	}
+
+	return_value = GetValueFromCtrlFile(fp_in, "quant_min_Ivop_under_range", &status_flag);	/* 050509 */
+	if (status_flag == 1) {
+		other_options_h264->avcbe_quant_min_Ivop_under_range =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "quant_max", &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_quant_max = return_value;
+	}
+
+
+	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_cpb_skipcheck_enable ", &status_flag);	/* 050524 */
+	if (status_flag == 1) {
+		other_options_h264->avcbe_ratecontrol_cpb_skipcheck_enable
+		    = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "rate_ctrl_cpb_Ivop_noskip",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_ratecontrol_cpb_Ivop_noskip =
+		    return_value;
+	}
+
+	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_cpb_remain_zero_skip_enable", &status_flag);	/* 050524 */
+	if (status_flag == 1) {
+		other_options_h264->avcbe_ratecontrol_cpb_remain_zero_skip_enable
+		    = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "rate_ctrl_cpb_offset",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_ratecontrol_cpb_offset =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "rate_ctrl_cpb_offset_rate",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_ratecontrol_cpb_offset_rate =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "rate_ctrl_cpb_buffer_mode",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_ratecontrol_cpb_buffer_mode =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "rate_ctrl_cpb_max_size",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_ratecontrol_cpb_max_size =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "rate_ctrl_cpb_buffer_unit_size",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_ratecontrol_cpb_buffer_unit_size
+		    = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "intra_thr_1", &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_intra_thr_1 = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "intra_thr_2", &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_intra_thr_2 = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "sad_intra_bias", &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_sad_intra_bias = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "regularly_inserted_I_type",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_regularly_inserted_I_type =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "call_unit", &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_call_unit = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "use_slice", &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_use_slice = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "slice_size_mb", &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_slice_size_mb = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "slice_size_bit", &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_slice_size_bit = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "slice_type_value_pattern",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_slice_type_value_pattern =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "use_mb_partition", &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_use_mb_partition = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "mb_partition_vector_thr",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_mb_partition_vector_thr =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "deblocking_mode", &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_deblocking_mode = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "use_deblocking_filter_control",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_use_deblocking_filter_control =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "deblocking_alpha_offset",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_deblocking_alpha_offset =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "deblocking_beta_offset",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_deblocking_beta_offset =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "me_skip_mode", &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_me_skip_mode = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "put_start_code", &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_put_start_code = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "param_changeable", &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_param_changeable = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "changeable_max_bitrate",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_changeable_max_bitrate =
+		    return_value;
+	}
+
+	/* SequenceHeaderParameter */
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "seq_param_set_id", &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_seq_param_set_id = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "profile", &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_profile = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "constraint_set_flag",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_constraint_set_flag =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "level_type", &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_level_type = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "level_value", &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_level_value = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "out_vui_parameters",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_out_vui_parameters =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "chroma_qp_index_offset",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_chroma_qp_index_offset =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "constrained_intra_pred",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_h264->avcbe_constrained_intra_pred =
+		    return_value;
+	}
+
+	return (1);		/* 正常終了 */
 }
+
+/*****************************************************************************
+ * Function Name	: GetFromCtrlFtoOther_options_MPEG4
+ * Description		: コントロールファイルから、構造体avcbe_other_options_mpeg4のメンバ値を読み込み、引数に設定して返す
+ *					
+ * Parameters		: 
+ * Called functions	: 		  
+ * Global Data		: 
+ * Return Value		: 
+ *****************************************************************************/
+static int GetFromCtrlFtoOther_options_MPEG4(FILE * fp_in,
+				      avcbe_other_options_mpeg4 *
+				      other_options_mpeg4)
+{
+	int status_flag;
+	long return_value;
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "out_vos", &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_out_vos = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "out_gov", &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_out_gov = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "aspect_ratio_info_type",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_aspect_ratio_info_type =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "aspect_ratio_info_value",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_aspect_ratio_info_value =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "vos_profile_level_type",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_vos_profile_level_type =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "vos_profile_level_value",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_vos_profile_level_value =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "out_visual_object_identifier",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_out_visual_object_identifier =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "visual_object_verid",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_visual_object_verid =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "visual_object_priority",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_visual_object_priority =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "video_object_type_indication",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_video_object_type_indication =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "out_object_layer_identifier",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_out_object_layer_identifier =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "video_object_layer_verid",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_video_object_layer_verid =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "video_object_layer_priority",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_video_object_layer_priority =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "error_resilience_mode",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_error_resilience_mode =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "video_packet_size_mb",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_video_packet_size_mb =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "video_packet_size_bit",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_video_packet_size_bit =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "video_packet_header_extention",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_video_packet_header_extention =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "data_partitioned", &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_data_partitioned = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "reversible_vlc", &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_reversible_vlc = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "high_quality", &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_high_quality = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "param_changeable", &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_param_changeable = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "changeable_max_bitrate",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_changeable_max_bitrate =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "Ivop_quant_initial_value",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_Ivop_quant_initial_value =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "Pvop_quant_initial_value",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_Pvop_quant_initial_value =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "use_dquant", &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_use_dquant = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "clip_dquant_frame", &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_clip_dquant_frame =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "quant_min", &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_quant_min = return_value;
+	}
+
+	return_value = GetValueFromCtrlFile(fp_in, "quant_min_Ivop_under_range", &status_flag);	/* 050509 */
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_quant_min_Ivop_under_range =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "quant_max", &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_quant_max = return_value;
+	}
+
+/*	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_rcperiod_skipcheck_enable", &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_ratecontrol_rcperiod_skipcheck_enable = return_value;
+	}
+
+	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_rcperiod_Ivop_noskip", &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_ratecontrol_rcperiod_Ivop_noskip = return_value;
+			}
+*//* 050603 パラメータから削除されたので */
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_skipcheck_enable",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_ratecontrol_vbv_skipcheck_enable
+		    = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_Ivop_noskip",
+				 &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_ratecontrol_vbv_Ivop_noskip =
+		    return_value;
+	}
+
+	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_remain_zero_skip_enable", &status_flag);	/* 050524 */
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_ratecontrol_vbv_remain_zero_skip_enable
+		    = return_value;
+	}
+
+	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_buffer_unit_size", &status_flag);	/* 順序変更 050601 */
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_ratecontrol_vbv_buffer_unit_size
+		    = return_value;
+	}
+
+	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_buffer_mode", &status_flag);	/* 順序変更 050601 */
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_ratecontrol_vbv_buffer_mode =
+		    return_value;
+	}
+
+	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_max_size", &status_flag);	/* 順序変更 050601 */
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_ratecontrol_vbv_max_size =
+		    return_value;
+	}
+
+	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_offset", &status_flag);	/* 順序変更 050601 */
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_ratecontrol_vbv_offset =
+		    return_value;
+	}
+
+	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_offset_rate", &status_flag);	/* 順序変更 050601 */
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_ratecontrol_vbv_offset_rate =
+		    return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "quant_type", &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_quant_type = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "use_AC_prediction", &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_use_AC_prediction =
+		    return_value;
+	}
+
+	return_value = GetValueFromCtrlFile(fp_in, "vop_min_mode", &status_flag);	/* 050524 */
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_vop_min_mode = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "vop_min_size", &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_vop_min_size = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "intra_thr", &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_intra_thr = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "b_vop_num", &status_flag);
+	if (status_flag == 1) {
+		other_options_mpeg4->avcbe_b_vop_num = return_value;
+	}
+
+	return (1);		/* 正常終了 */
+}
+
+/*****************************************************************************
+ * Function Name	: GetFromCtrlFtoOTHER_API_ENC_PARAM
+ * Description		: コントロールファイルから、avebe_init_encode()以外のAPI関数で設定するもの
+ *　　　　　　　　　  を読み込み、引数に設定して返す
+ *					
+ * Parameters		: 
+ * Called functions	: 		  
+ * Global Data		: 
+ * Return Value		: 
+ *****************************************************************************/
+static int GetFromCtrlFtoOTHER_API_ENC_PARAM(FILE * fp_in,
+				      OTHER_API_ENC_PARAM *
+				      other_API_enc_param,
+				      avcbe_encoding_property *
+				      encoding_property,
+				      avcbe_other_options_h264 *
+				      other_options_h264)
+{
+	int status_flag;
+	long return_value;
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "ref_frame_num", &status_flag);
+	if (status_flag == 1) {
+		other_API_enc_param->ref_frame_num =
+		    (unsigned char) return_value;
+	}
+
+/**	return_value = GetValueFromCtrlFile(fp_in, "out_filter_image", &status_flag); 041026
+	if (status_flag == 1) {
+		other_API_enc_param->out_filter_image = (unsigned char)return_value;
+	} **/
+
+	other_API_enc_param->weightdQ_enable = AVCBE_OFF;
+
+#if 0				/* 050324 */
+	if (encoding_property->avcbe_weightedQ_mode ==
+	    AVCBE_WEIGHTEDQ_BY_USER) {
+		other_API_enc_param->weightdQ_enable = AVCBE_ON;
+
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "wq_USER_weight_type",
+					 &status_flag);
+		if (status_flag == 1) {
+			other_API_enc_param->
+			    weightedQ_info_user.avcbe_weight_type =
+			    return_value;
+		}
+
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "wq_USER_mode_for_bit1",
+					 &status_flag);
+		if (status_flag == 1) {
+			other_API_enc_param->
+			    weightedQ_info_user.avcbe_mode_for_bit1 =
+			    return_value;
+		}
+
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "wq_USER_mode_for_bit2",
+					 &status_flag);
+		if (status_flag == 1) {
+			other_API_enc_param->
+			    weightedQ_info_user.avcbe_mode_for_bit2 =
+			    return_value;
+		}
+
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "wq_USER_mode_for_bit3",
+					 &status_flag);
+		if (status_flag == 1) {
+			other_API_enc_param->
+			    weightedQ_info_user.avcbe_mode_for_bit3 =
+			    return_value;
+		}
+
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "wq_USER_Qweight_for_bit1",
+					 &status_flag);
+		if (status_flag == 1) {
+			other_API_enc_param->
+			    weightedQ_info_user.avcbe_Qweight_for_bit1 =
+			    return_value;
+		}
+
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "wq_USER_Qweight_for_bit2",
+					 &status_flag);
+		if (status_flag == 1) {
+			other_API_enc_param->
+			    weightedQ_info_user.avcbe_Qweight_for_bit2 =
+			    return_value;
+		}
+
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "wq_USER_Qweight_for_bit3",
+					 &status_flag);
+		if (status_flag == 1) {
+			other_API_enc_param->
+			    weightedQ_info_user.avcbe_Qweight_for_bit3 =
+			    return_value;
+		}
+
+		GetStringFromCtrlFile(fp_in, "wq_USER_table_filepath",
+				      other_API_enc_param->weightedQ_table_filepath,
+				      &status_flag);
+
+	}
+#endif
+	if (encoding_property->avcbe_weightedQ_mode ==
+	    AVCBE_WEIGHTEDQ_CENTER) {
+		other_API_enc_param->weightdQ_enable = AVCBE_ON;
+
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "wq_CENTER_zone_size",
+					 &status_flag);
+		if (status_flag == 1) {
+			other_API_enc_param->
+			    weightedQ_info_center.avcbe_zone_size =
+			    return_value;
+		}
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "wq_CENTER_Qweight_range",
+					 &status_flag);
+		if (status_flag == 1) {
+			other_API_enc_param->
+			    weightedQ_info_center.avcbe_Qweight_range =
+			    return_value;
+		}
+
+	}
+	if (encoding_property->avcbe_weightedQ_mode ==
+	    AVCBE_WEIGHTEDQ_RECT) {
+		other_API_enc_param->weightdQ_enable = AVCBE_ON;
+
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "wq_RECT_zone_num",
+					 &status_flag);
+		if (status_flag == 1) {
+			other_API_enc_param->
+			    weightedQ_info_rect.avcbe_zone_num =
+			    return_value;
+		}
+
+		return_value =
+		    GetValueFromCtrlFile(fp_in,
+					 "wq_RECT_zone1_pos_left_column",
+					 &status_flag);
+		if (status_flag == 1) {
+			other_API_enc_param->
+			    weightedQ_info_rect.avcbe_zone1_pos.
+			    avcbe_left_column = return_value;
+		}
+		return_value =
+		    GetValueFromCtrlFile(fp_in,
+					 "wq_RECT_zone1_pos_top_row",
+					 &status_flag);
+		if (status_flag == 1) {
+			other_API_enc_param->
+			    weightedQ_info_rect.avcbe_zone1_pos.
+			    avcbe_top_row = return_value;
+		}
+		return_value =
+		    GetValueFromCtrlFile(fp_in,
+					 "wq_RECT_zone1_pos_right_column",
+					 &status_flag);
+		if (status_flag == 1) {
+			other_API_enc_param->
+			    weightedQ_info_rect.avcbe_zone1_pos.
+			    avcbe_right_column = return_value;
+		}
+		return_value =
+		    GetValueFromCtrlFile(fp_in,
+					 "wq_RECT_zone1_pos_bottom_row",
+					 &status_flag);
+		if (status_flag == 1) {
+			other_API_enc_param->
+			    weightedQ_info_rect.avcbe_zone1_pos.
+			    avcbe_bottom_row = return_value;
+		}
+
+		return_value =
+		    GetValueFromCtrlFile(fp_in,
+					 "wq_RECT_zone2_pos_left_column",
+					 &status_flag);
+		if (status_flag == 1) {
+			other_API_enc_param->
+			    weightedQ_info_rect.avcbe_zone2_pos.
+			    avcbe_left_column = return_value;
+		}
+		return_value =
+		    GetValueFromCtrlFile(fp_in,
+					 "wq_RECT_zone2_pos_top_row",
+					 &status_flag);
+		if (status_flag == 1) {
+			other_API_enc_param->
+			    weightedQ_info_rect.avcbe_zone2_pos.
+			    avcbe_top_row = return_value;
+		}
+		return_value =
+		    GetValueFromCtrlFile(fp_in,
+					 "wq_RECT_zone2_pos_right_column",
+					 &status_flag);
+		if (status_flag == 1) {
+			other_API_enc_param->
+			    weightedQ_info_rect.avcbe_zone2_pos.
+			    avcbe_right_column = return_value;
+		}
+		return_value =
+		    GetValueFromCtrlFile(fp_in,
+					 "wq_RECT_zone2_pos_bottom_row",
+					 &status_flag);
+		if (status_flag == 1) {
+			other_API_enc_param->
+			    weightedQ_info_rect.avcbe_zone2_pos.
+			    avcbe_bottom_row = return_value;
+		}
+
+		return_value =
+		    GetValueFromCtrlFile(fp_in,
+					 "wq_RECT_zone1_Qweight_range",
+					 &status_flag);
+		if (status_flag == 1) {
+			other_API_enc_param->
+			    weightedQ_info_rect.avcbe_zone1_Qweight_range =
+			    return_value;
+		}
+		return_value =
+		    GetValueFromCtrlFile(fp_in,
+					 "wq_RECT_zone2_Qweight_type",
+					 &status_flag);
+		if (status_flag == 1) {
+			other_API_enc_param->
+			    weightedQ_info_rect.avcbe_zone2_Qweight_type =
+			    return_value;
+		}
+	}
+
+	if (encoding_property->avcbe_stream_type == AVCBE_H264) {
+		if (other_options_h264->avcbe_out_vui_parameters ==
+		    AVCBE_ON) {
+			GetFromCtrlFtoOTHER_API_ENC_PARAM_VUI(fp_in,
+							      other_API_enc_param);
+		}
+	}
+
+
+	if (encoding_property->avcbe_stream_type == AVCBE_H264) {
+		/* SEI messageがコントロールファイルに出力されているかチェック */
+		return_value =
+		    GetValueFromCtrlFile(fp_in, "SEI_message_exist",
+					 &status_flag);
+		if ((status_flag == 1) && (return_value == 1)) {	/* 出力されている */
+			GetFromCtrlFtoOTHER_API_ENC_PARAM_SEI(fp_in,
+							      other_API_enc_param);
+		}
+	}
+
+
+	return (1);		/* 正常終了 */
+}
+
 
 /*****************************************************************************
  * Function Name	: GetFromCtrlFtoVPU4_ENC
@@ -2355,10 +2258,7 @@ void GetFromCtrlFtoOTHER_API_ENC_PARAM_SEI(FILE * fp_in,
  * Global Data		: 
  * Return Value		: 
  *****************************************************************************/
-#ifdef __cplusplus
-extern "C"
-#endif
-int GetFromCtrlFtoVPU4_ENC(FILE * fp_in, M4IPH_VPU4_ENC * vpu4_enc,
+static int GetFromCtrlFtoVPU4_ENC(FILE * fp_in, M4IPH_VPU4_ENC * vpu4_enc,
 			   avcbe_encoding_property * encoding_property)
 {				/* 050106 第３引数追加 */
 	int status_flag;
@@ -2679,125 +2579,175 @@ int GetFromCtrlFtoVPU4_ENC(FILE * fp_in, M4IPH_VPU4_ENC * vpu4_enc,
 }
 
 /*****************************************************************************
- * Function Name	: GetValueFromCtrlFile
- * Description		: コントロールファイルから、キーワードに対する数値を読み込み、戻り値で返す
- *					
- * Parameters		: 
+ * Function Name	: GetFromCtrlFTop
+ * Description		: コントロールファイルから、入力ファイル、出力先、ストリームタイプを得る
+ * Parameters		: 省略
  * Called functions	: 		  
  * Global Data		: 
- * Return Value		: 
+ * Return Value		: 1: 正常終了、-1: エラー
  *****************************************************************************/
-#ifdef __cplusplus
-extern "C"
-#endif
-long GetValueFromCtrlFile(FILE * fp_in, const char *key_word,
-			  int *status_flag)
+int GetFromCtrlFTop(const char *control_filepath,
+		    ENC_EXEC_INFO * enc_exec_info, long *stream_type)
 {
-	char buf_line[256];
-	long return_code, work_value;
+	FILE *fp_in;
+	int status_flag;
+	long return_value;
 
-	*status_flag = 1;	/* 正常のとき */
-
-	if ((fp_in == NULL) || (key_word == NULL)) {
-		*status_flag = -1;	/* 引数エラーのとき */
-		return (0);
+	if ((control_filepath == NULL) ||
+	    (enc_exec_info == NULL) || (stream_type == NULL)) {
+		return (-1);
 	}
 
-	return_code = ReadUntilKeyMatch(fp_in, key_word, &buf_line[0]);
-	if (return_code == 1) {
-		*status_flag = 1;	/* 正常のとき */
-		work_value = atoi((const char *) &buf_line[0]);
-	} else {
-		*status_flag = -1;	/* 見つからなかった等のエラーのとき */
-		work_value = 0;
+	fp_in = fopen(control_filepath, "rt");
+	if (fp_in == NULL) {
+		return (-1);
 	}
 
-	return (work_value);
+	/*** ENC_EXEC_INFO ***/
+	GetFromCtrlFtoEncExecInfo(fp_in, enc_exec_info);
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "stream_type", &status_flag);
+	if (status_flag == 1) {
+		*stream_type = return_value;
+	}
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "x_pic_size", &status_flag);
+	if (status_flag == 1) {
+		enc_exec_info->xpic = return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "y_pic_size", &status_flag);
+	if (status_flag == 1) {
+		enc_exec_info->ypic = return_value;
+	}
+	fclose(fp_in);
+
+	return (1);		/* 正常終了 */
+
 }
 
 /*****************************************************************************
- * Function Name	: GetStringFromCtrlFile
- * Description		: コントロールファイルから、キーワードに対する文字列を読み込み、引数return_stringで返す
- *					
- * Parameters		: 
+ * Function Name	: GetFromCtrlFtoEncParam
+ * Description		: コントロールファイルから、構造体avcbe_encoding_property、avcbe_other_options_h264、
+ *　　　　　　　　　 avcbe_other_options_mpeg4等のメンバ値を読み込み、設定して返す
+ * Parameters		: 省略
  * Called functions	: 		  
  * Global Data		: 
- * Return Value		: 
+ * Return Value		: 1: 正常終了、-1: エラー
  *****************************************************************************/
-#ifdef __cplusplus
-extern "C"
-#endif
-void GetStringFromCtrlFile(FILE * fp_in, const char *key_word,
-			   char *return_string, int *status_flag)
+int GetFromCtrlFtoEncParam(const char *control_filepath,
+			   ENC_EXEC_INFO * enc_exec_info,
+			   avcbe_encoding_property * encoding_property,
+			   avcbe_other_options_h264 * other_options_h264,
+			   avcbe_other_options_mpeg4 * other_options_mpeg4)
 {
-	long return_code;
+	FILE *fp_in;
 
-	*status_flag = 1;	/* 正常のとき */
-
-	if ((fp_in == NULL) || (key_word == NULL)
-	    || (return_string == NULL)) {
-		*status_flag = -1;	/* 引数エラーのとき */
-		return;
+	if ((control_filepath == NULL) ||
+	    (enc_exec_info == NULL) ||
+	    (encoding_property == NULL) ||
+	    (other_options_h264 == NULL) ||
+	    (other_options_mpeg4 == NULL)) {
+		return (-1);
 	}
 
-	return_code = ReadUntilKeyMatch(fp_in, key_word, return_string);
-	if (return_code == 1) {
-		*status_flag = 1;	/* 正常のとき */
-
-	} else {
-		*status_flag = -1;	/* 見つからなかった等のエラーのとき */
+	fp_in = fopen(control_filepath, "rt");
+	if (fp_in == NULL) {
+		return (-1);
 	}
+
+	/*** ENC_EXEC_INFO ***/
+	GetFromCtrlFtoEncExecInfo(fp_in, enc_exec_info);
+
+	/*** avcbe_encoding_property ***/
+	GetFromCtrlFtoEncoding_property(fp_in, encoding_property);
+
+	if (encoding_property->avcbe_stream_type == AVCBE_H264) {
+		/*** avcbe_other_options_h264 ***/
+		GetFromCtrlFtoOther_options_H264(fp_in,
+						 other_options_h264);
+
+	} else if ((encoding_property->avcbe_stream_type == AVCBE_MPEG4) ||
+		   (encoding_property->avcbe_stream_type == AVCBE_H263)) {
+
+		/*** avcbe_other_options_mpeg4 ***/
+		GetFromCtrlFtoOther_options_MPEG4(fp_in,
+						  other_options_mpeg4);
+	}
+
+	fclose(fp_in);
+
+	return (1);		/* 正常終了 */
 }
 
-/* サブ関数 */
-/* キーワードが一致する行を探し、その行の"="と";"の間の文字列を引数buf_valueに入れて返す */
-#ifdef __cplusplus
-extern "C"
-#endif
-int ReadUntilKeyMatch(FILE * fp_in, const char *key_word, char *buf_value)
+/*****************************************************************************
+ * Function Name	: GetFromCtrlFtoEncParamAfterInitEncode
+ * Description		: コントロールファイルから、VPU4版エンコーダミドルでは非公開のVPU4パラメータ等
+ *　　　　　　　　　  を読み込み、設定して返す（本関数は、API関数avcbe_init_encode()を呼び出した後に呼び出すこと）
+ * Parameters		: 省略
+ * Called functions	: 		  
+ * Global Data		: 
+ * Return Value		: 1: 正常終了、-1: エラー
+ *****************************************************************************/
+int GetFromCtrlFtoEncParamAfterInitEncode(const char *control_filepath,
+					  avcbe_stream_info * context,
+					  OTHER_API_ENC_PARAM *
+					  other_API_enc_param,
+					  avcbe_encoding_property *
+					  encoding_property)
 {
-	char buf_line[256], buf_work_value[256], *pos;
-	int line_length, keyword_length, try_count;
+	FILE *fp_in;
+	avcbe_H264_stream_info_t *stream_info_h264;
+	M4IPH_VPU4_ENC *vpu4_enc;
+	avcbe_other_options_h264 *other_options_h264 = NULL;
 
-	keyword_length = strlen(key_word);
-
-	try_count = 1;
-
-      retry:;
-	while (fgets(buf_line, 256, fp_in)) {
-		line_length = strlen(buf_line);
-		if (line_length < keyword_length) {
-			continue;
-		}
-
-		if (strncmp(key_word, &buf_line[0], keyword_length) == 0) {
-			pos = strchr(&buf_line[keyword_length], '=');
-			if (pos == NULL) {
-				return (-2);
-				/* キーワードに一致する行は見つかったが、"="が見つからなかった */
-				;
-			}
-			strcpy(buf_work_value, (pos + 2));
-			pos = strchr(&buf_work_value[1], ';');
-			if (pos == NULL) {
-				return (-3);
-				/* キーワードに一致する行は見つかったが、";"が見つからなかった */
-				;
-			} else {
-				*pos = '\0';
-			}
-
-			strcpy(buf_value, buf_work_value);
-			return (1);	/* 見つかった */
-		}
+	if ((control_filepath == NULL) || (context == NULL)) {
+		return (-1);
 	}
 
-	/* 見つからなかったときは、ファイルの先頭に戻る */
-	if (try_count == 1) {
-		rewind(fp_in);
-		try_count = 2;
-		goto retry;
-	} else {
-		return (-1);	/* 見つからなった */
+	fp_in = fopen(control_filepath, "rt");
+	if (fp_in == NULL) {
+		return (-1);
 	}
+
+	if (context->stream_type == AVCBE_H264) {
+		stream_info_h264 =
+		    (avcbe_H264_stream_info_t *) (context->streamp);
+
+		other_options_h264 =
+		    &(stream_info_h264->avcbe_encode_other_opt_h264);
+
+		vpu4_enc = &(stream_info_h264->avcbe_vpu4_enc_info);
+
+	} else if ((context->stream_type == AVCBE_MPEG4) ||
+		   (context->stream_type == AVCBE_H263)) {
+#if 0
+		other_options_h264 = NULL;
+		other_options_mpeg4 = (avcbe_other_options_mpeg4 *)
+		    m4vse_get_address_of_stream((void *) context->streamp,
+						M4VSE_ADDRESS_ENCODE_OTHER_OPT_MPEG4);
+#endif
+
+		/*      vpu4_enc = m4vse_get_vpu4_enc_info((void *)(context->streamp)); 040914変更 */
+		vpu4_enc =
+		    (M4IPH_VPU4_ENC *) m4vse_get_address_of_stream((void *)
+								   context->streamp,
+								   M4VSE_ADDRESS_VPU4_ENC_INFO);
+	}
+
+	/*** avebe_init_encode()以外のAPI関数で設定するもの ***/
+	GetFromCtrlFtoOTHER_API_ENC_PARAM(fp_in, other_API_enc_param,
+					  encoding_property,
+					  other_options_h264);
+
+	/*** エンコーダミドルで非公開のVPU4エンコードパラメータ ***/
+	/* ここで設定すると初期済みのドライバのメンバに設定してる値が上書きされる */
+	GetFromCtrlFtoVPU4_ENC(fp_in, vpu4_enc, encoding_property);	/* 復活させた 050602 */
+
+	fclose(fp_in);
+
+	return (1);		/* 正常終了 */
 }
+
