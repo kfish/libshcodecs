@@ -14,11 +14,14 @@
 
 #include "avcbencsmp.h"
 
+//#include <shcodecs/shcodecs_encoder.h>
+#include "encoder_private.h"
+
 int GetFromCtrlFTop(const char *control_filepath,
 		    APPLI_INFO * appli_info, long *stream_type);
 
-int GetFromCtrlFtoEncParam(const char *control_filepath,
-			   APPLI_INFO * appli_info,
+int GetFromCtrlFtoEncParam(SHCodecs_Encoder * encoder,
+                           APPLI_INFO * appli_info,
 			   avcbe_encoding_property *
 			   encoding_property,
 			   avcbe_other_options_h264 *

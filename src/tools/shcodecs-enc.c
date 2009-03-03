@@ -27,7 +27,7 @@
 
 #include "ControlFileUtil.h"
 
-#include <shcodecs/shcodecs_encoder.h>
+//#include <shcodecs/shcodecs_encoder.h>
 
 int open_input_image_file(APPLI_INFO *);
 int load_1frame_from_image_file(SHCodecs_Encoder * encoder,

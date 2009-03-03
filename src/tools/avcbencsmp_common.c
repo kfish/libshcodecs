@@ -214,8 +214,8 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder,
 	int return_code;
 
 	return_code =
-	    GetFromCtrlFtoEncParam(appli_info->ctrl_file_name_buf,
-				   appli_info,
+	    GetFromCtrlFtoEncParam(encoder,
+                                   appli_info,
 				   &encoder->encoding_property,
 				   &encoder->other_options_h264,
 				   &encoder->other_options_mpeg4);

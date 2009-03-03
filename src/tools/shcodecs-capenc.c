@@ -30,7 +30,7 @@
 
 #include "ControlFileUtil.h"
 
-#include <shcodecs/shcodecs_encoder.h>
+//#include <shcodecs/shcodecs_encoder.h>
 
 #define DEBUG
 

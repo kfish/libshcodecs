@@ -30,6 +30,8 @@
 
 #include "avcbencsmp.h"
 
+#include <shcodecs/shcodecs_encoder.h>
+
 /* サブ関数 */
 /* キーワードが一致する行を探し、その行の"="と";"の間の文字列を引数buf_valueに入れて返す */
 static int ReadUntilKeyMatch(FILE * fp_in, const char *key_word, char *buf_value)
@@ -2628,23 +2630,24 @@ int GetFromCtrlFTop(const char *control_filepath,
  * Global Data		: 
  * Return Value		: 1: 正常終了、-1: エラー
  *****************************************************************************/
-int GetFromCtrlFtoEncParam(const char *control_filepath,
-			   APPLI_INFO * appli_info,
+int GetFromCtrlFtoEncParam(SHCodecs_Encoder * encoder,
+                           APPLI_INFO * appli_info,
 			   avcbe_encoding_property * encoding_property,
 			   avcbe_other_options_h264 * other_options_h264,
 			   avcbe_other_options_mpeg4 * other_options_mpeg4)
 {
 	FILE *fp_in;
 
-	if ((control_filepath == NULL) ||
-	    (appli_info == NULL) ||
+	if ((encoder == NULL) ||
+            (appli_info == NULL) ||
+	    (appli_info->ctrl_file_name_buf == NULL) ||
 	    (encoding_property == NULL) ||
 	    (other_options_h264 == NULL) ||
 	    (other_options_mpeg4 == NULL)) {
 		return (-1);
 	}
 
-	fp_in = fopen(control_filepath, "rt");
+	fp_in = fopen(appli_info->ctrl_file_name_buf, "rt");
 	if (fp_in == NULL) {
 		return (-1);
 	}
