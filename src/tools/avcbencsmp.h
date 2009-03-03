@@ -114,8 +114,6 @@
 /*----- structures -----*/
 
 typedef struct {		/* add at Version2 */
-	unsigned char ref_frame_num;	/* 参照フレーム数（1 or 2) (H.264のみ） */
-
 	long weightdQ_enable;
 	TAVCBE_WEIGHTEDQ_CENTER weightedQ_info_center;	/* API関数avcbe_set_weightedQ()に渡すための構造体(1) */
 	TAVCBE_WEIGHTEDQ_RECT weightedQ_info_rect;	/* API関数avcbe_set_weightedQ()に渡すための構造体(2) */

@@ -672,15 +672,6 @@ static int GetFromCtrlFtoEncExecInfo(FILE * fp_in, APPLI_INFO * appli_info)
 	if (status_flag == 1) {
 		appli_info->ref_frame_num = return_value;
 	}
-	GetStringFromCtrlFile(fp_in, "input_yuv_path", appli_info->buf_input_yuv_file_with_path, &status_flag);	/* 041111 */
-	GetStringFromCtrlFile(fp_in, "input_yuv_file",
-			      appli_info->buf_input_yuv_file,
-			      &status_flag);
-	GetStringFromCtrlFile(fp_in, "output_directry", appli_info->buf_output_directry, &status_flag);	/* 041111 */
-	GetStringFromCtrlFile(fp_in, "output_stream_file",
-			      appli_info->buf_output_stream_file,
-			      &status_flag);
-
 	return_value = GetValueFromCtrlFile(fp_in, "yuv_CbCr_format", &status_flag);	/* 050520 */
 	if (status_flag == 1) {
 		printf("yuv_CbCr_format=%d\n", return_value);
@@ -2006,13 +1997,6 @@ static int GetFromCtrlFtoOTHER_API_ENC_PARAM(FILE * fp_in,
 	int status_flag;
 	long return_value;
 
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "ref_frame_num", &status_flag);
-	if (status_flag == 1) {
-		other_API_enc_param->ref_frame_num =
-		    (unsigned char) return_value;
-	}
-
 /**	return_value = GetValueFromCtrlFile(fp_in, "out_filter_image", &status_flag); 041026
 	if (status_flag == 1) {
 		other_API_enc_param->out_filter_image = (unsigned char)return_value;
@@ -2603,8 +2587,15 @@ int GetFromCtrlFTop(const char *control_filepath,
 		return (-1);
 	}
 
-	/*** ENC_EXEC_INFO ***/
-	GetFromCtrlFtoEncExecInfo(fp_in, appli_info);
+	GetStringFromCtrlFile(fp_in, "input_yuv_path", appli_info->buf_input_yuv_file_with_path, &status_flag);
+	GetStringFromCtrlFile(fp_in, "input_yuv_file",
+			      appli_info->buf_input_yuv_file,
+			      &status_flag);
+
+	GetStringFromCtrlFile(fp_in, "output_directry", appli_info->buf_output_directry, &status_flag);
+	GetStringFromCtrlFile(fp_in, "output_stream_file",
+			      appli_info->buf_output_stream_file,
+			      &status_flag);
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "stream_type", &status_flag);
