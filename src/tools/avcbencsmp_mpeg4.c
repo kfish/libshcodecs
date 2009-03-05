@@ -345,11 +345,7 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder,
 		encoder->error_return_code = return_code;
 		return (-6);
 	}
-	return_code =
-	    GetFromCtrlFtoEncParamAfterInitEncode
-	    (appli_info->ctrl_file_name_buf, *context,
-	     &(encoder->other_API_enc_param), &(encoder->paramR));
-	printf("GetFromCtrlFtoEncParamAfterInitEncode=%d\n", return_code);
+
 	if (encoder->other_options_mpeg4.avcbe_quant_type == 1) {	/* add @061121 */
 		printf("avcbe_set_quant_type1()\n");
 		return_code =
