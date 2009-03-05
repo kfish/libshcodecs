@@ -89,19 +89,8 @@ struct _SHCodecs_Encoder {
 
 /* Internal prototypes of functions using SHCodecs_Encoder */
 
-int encode_init_h264 (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long stream_type);
-int encode_1file_h264(SHCodecs_Encoder * encoder, long stream_type);
-long init_for_encoder_h264(SHCodecs_Encoder * encoder,
-			   APPLI_INFO * appli_info, long stream_type,
-			   avcbe_stream_info ** context);
-long encode_picture_unit(SHCodecs_Encoder * encoder,
-			 long stream_type,
-			 avcbe_stream_info * context);
-long encode_nal_unit(SHCodecs_Encoder * encoder,
-		     long stream_type, avcbe_stream_info * context);
-long output_SEI_parameters(SHCodecs_Encoder * encoder,
-			   avcbe_stream_info * context,
-			   TAVCBE_STREAM_BUFF * stream_buff_info);
+int h264_encode_init  (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long stream_type);
+int h264_encode_run (SHCodecs_Encoder * encoder, long stream_type);
 
 int mpeg4_encode_init (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long stream_type);
 int mpeg4_encode_run (SHCodecs_Encoder * encoder, long stream_type);

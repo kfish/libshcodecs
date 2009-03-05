@@ -60,7 +60,7 @@ extern long tmp_slice_size;
 
 /*-------------------------------------------------------------------------------*/
 
-int encode_init_h264 (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long stream_type)
+int h264_encode_init (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long stream_type)
 {
 	long return_code = 0;
 
@@ -99,7 +99,7 @@ int encode_init_h264 (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long 
 }
 
 static int
-encode_h264_deferred_init(SHCodecs_Encoder * encoder,
+h264_encode_deferred_init(SHCodecs_Encoder * encoder,
                           long stream_type,
                           avcbe_stream_info ** context)
 {
@@ -222,68 +222,152 @@ encode_h264_deferred_init(SHCodecs_Encoder * encoder,
 	return (0);
 }
 
-int encode_1file_h264(SHCodecs_Encoder * encoder, long stream_type)
+/*------------------------------------------------------------------*/
+/* put SEI parameter 											    */
+/*------------------------------------------------------------------*/
+/* return	0:normal end											*/
+/*			1:error (out_buffering_period_SEI is OFF)				*/
+/*			2:error (out_pic_timing_SEI is OFF)						*/
+/*			4:error (out_pan_scan_rect_SEI is OFF)					*/
+/*			8:error (out_filler_payload_SEI is OFF)					*/
+/*		   16:error (out_recovery_point_SEI is OFF)					*/
+/*		   32:vout_dec_ref_pic_marking_repetition_SEI is OFF)		*/
+/*------------------------------------------------------------------*/
+static long
+h264_output_SEI_parameters(SHCodecs_Encoder * encoder,
+			   avcbe_stream_info * context,
+			   TAVCBE_STREAM_BUFF * sei_stream_buff_info)
 {
 	long return_code;
-	TAVCBE_STREAM_BUFF my_end_code_buff_info;
+	long return_value = 0;
 
-        if (!encoder->initialized)
-                encode_h264_deferred_init (encoder, stream_type, &my_context);
-
-	encoder->error_return_function = 0;
-	encoder->error_return_code = 0;
-
-	DisplayMessage("H.264 Encode Start! ", 1);
-
-	/* encode process function for H.264 (call avcbe_encode_picture func.) */
-	if ((encoder->other_options_h264.avcbe_use_slice == AVCBE_ON) &&
-	    (encoder->other_options_h264.avcbe_call_unit ==
-	     AVCBE_CALL_PER_NAL)) {
+	/* output SEI parameter (step1) */
+	if (encoder->other_API_enc_param.out_buffering_period_SEI ==
+	    AVCBE_ON) {
 		return_code =
-		    encode_nal_unit(encoder, stream_type, my_context);
-	} else {
-		return_code =
-		    encode_picture_unit(encoder, stream_type, my_context);
-	}
-	if (return_code != 0) {
-		return (-115);
-	}
-
-	/*--- The MPEG-4&H.264 Encoder Library API (required-9)@ends encoding ---*/
-	my_end_code_buff_info.buff_top =
-	    (unsigned char *) &my_end_code_buff[0];
-	my_end_code_buff_info.buff_size = MY_END_CODE_BUFF_SIZE;
-
-	return_code = avcbe_put_end_code(my_context, &my_end_code_buff_info, AVCBE_END_OF_STRM);	/* return value is byte unit */
-	if (return_code <= 0) {
-		if (return_code == -4) {
-			DisplayMessage
-			    (" encode_1file_h264:avcbe_close_encode OUTPUT BUFFER SIZE SHORT ERROR! ",
-			     1);
-		}
-		encoder->error_return_function = -116;
-		encoder->error_return_code = return_code;
-		return (-116);
-	} else {
-		if (encoder->output) {
-			encoder->output(encoder, (unsigned char *)
-					&my_end_code_buff[0], return_code,
-					encoder->output_user_data);
+		    avcbe_put_SEI_parameters(context,
+					     AVCBE_SEI_MESSAGE_BUFFERING_PERIOD,
+					     (void *)
+					     &(encoder->
+					       other_API_enc_param.
+					       sei_buffering_period_param),
+					     sei_stream_buff_info);
+		/* concatenate SEI parameter (return_code means the size of SEI parameter in byte unit) */
+		if (return_code > 0) {
+			if (encoder->output) {
+				encoder->output(encoder, (unsigned char *)
+						sei_stream_buff_info->buff_top,
+						return_code,
+						encoder->output_user_data);
+			}
+			return_value = 0;
+		} else {	/* error */
+			return_value |= 0x1;
 		}
 	}
-	if (encoder->output_filler_enable == 1) {
+
+	/* output SEI parameter (step2) */
+	if (encoder->other_API_enc_param.out_pic_timing_SEI == AVCBE_ON) {
 		return_code =
-		    avcbe_put_filler_data(&my_stream_buff_info,
-					  encoder->other_options_h264.
-					  avcbe_put_start_code, 2);
+		    avcbe_put_SEI_parameters(context,
+					     AVCBE_SEI_MESSAGE_PIC_TIMING,
+					     (void *)
+					     &
+					     (encoder->other_API_enc_param.
+					      sei_pic_timing_param),
+					     sei_stream_buff_info);
+		/* concatenate SEI parameter (return_code means the size of SEI parameter in byte unit) */
+		if (return_code > 0) {
+			if (encoder->output) {
+				encoder->output(encoder, (unsigned char *)
+						sei_stream_buff_info->buff_top,
+						return_code,
+						encoder->output_user_data);
+			}
+			return_value = 0;
+		} else {	/* error */
+			return_value |= 0x2;
+		}
 	}
-	return (0);
+	/* output SEI parameter (step3) */
+	if (encoder->other_API_enc_param.out_pan_scan_rect_SEI == AVCBE_ON) {
+		return_code =
+		    avcbe_put_SEI_parameters(context,
+					     AVCBE_SEI_MESSAGE_PAN_SCAN_RECT,
+					     (void *)
+					     &
+					     (encoder->other_API_enc_param.
+					      sei_pan_scan_rect_param),
+					     sei_stream_buff_info);
+		/* concatenate SEI parameter (return_code means the size of SEI parameter in byte unit) */
+		if (return_code > 0) {
+			if (encoder->output) {
+				encoder->output(encoder, (unsigned char *)
+						sei_stream_buff_info->buff_top,
+						return_code,
+						encoder->output_user_data);
+			}
+			return_value = 0;
+		} else {	/* error */
+			return_value |= 0x4;
+		}
+	}
+	/* output SEI parameter (step4) */
+	if (encoder->other_API_enc_param.out_filler_payload_SEI ==
+	    AVCBE_ON) {
+		return_code =
+		    avcbe_put_SEI_parameters(context,
+					     AVCBE_SEI_MESSAGE_FILLER_PAYLOAD,
+					     (void *)
+					     &(encoder->
+					       other_API_enc_param.
+					       sei_filler_payload_param),
+					     sei_stream_buff_info);
+		/* concatenate SEI parameter (return_code means the size of SEI parameter in byte unit) */
+		if (return_code > 0) {
+			if (encoder->output) {
+				encoder->output(encoder, (unsigned char *)
+						sei_stream_buff_info->buff_top,
+						return_code,
+						encoder->output_user_data);
+			}
+			return_value = 0;
+		} else {	/* error */
+			return_value |= 0x8;
+		}
+	}
+	/* output SEI parameter (step5) */
+	if (encoder->other_API_enc_param.out_recovery_point_SEI ==
+	    AVCBE_ON) {
+		return_code =
+		    avcbe_put_SEI_parameters(context,
+					     AVCBE_SEI_MESSAGE_RECOVERY_POINT,
+					     (void *)
+					     &(encoder->
+					       other_API_enc_param.
+					       sei_recovery_point_param),
+					     sei_stream_buff_info);
+		/* concatenate SEI parameter (return_code means the size of SEI parameter in byte unit) */
+		if (return_code > 0) {
+			if (encoder->output) {
+				encoder->output(encoder, (unsigned char *)
+						&sei_stream_buff_info->buff_top,
+						return_code,
+						encoder->output_user_data);
+			}
+			return_value = 0;
+		} else {	/* error */
+			return_value |= 0x10;
+		}
+	}
+	return (return_value);
 }
 
 /*----------------------------------------------------------------------------------------------*/
 /* Encode by 1 picture unit without/with using slice division for H.264                         */
 /*----------------------------------------------------------------------------------------------*/
-long encode_picture_unit(SHCodecs_Encoder * encoder,
+static long
+h264_encode_picture_unit(SHCodecs_Encoder * encoder,
                          long stream_type,
 			 avcbe_stream_info * context)
 {
@@ -465,7 +549,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 		/* output SEI data (if AU delimiter is NOT used) */
 		if (extra_stream_buff == NULL) {
 			return_code =
-			    output_SEI_parameters(encoder,
+			    h264_output_SEI_parameters(encoder,
 						  context,
 						  &my_sei_stream_buff_info);
 			if (return_code != 0) {
@@ -757,7 +841,7 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 
 			/* output SEI parameter (if AU delimiter is used, SEI parameter must be output after AU delimiter) */
 			return_code =
-			    output_SEI_parameters(encoder,
+			    h264_output_SEI_parameters(encoder,
 						  context,
 						  &my_sei_stream_buff_info);
 			if (return_code != 0) {
@@ -824,7 +908,8 @@ long encode_picture_unit(SHCodecs_Encoder * encoder,
 /*----------------------------------------------------------------------------------------------*/
 /* Encode by NAL unit for H.264                                                                 */
 /*----------------------------------------------------------------------------------------------*/
-long encode_nal_unit(SHCodecs_Encoder * encoder,
+static long
+h264_encode_nal_unit(SHCodecs_Encoder * encoder,
 		     long stream_type,
 		     avcbe_stream_info * context)
 {
@@ -1023,7 +1108,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 		/* output SEI data (if AU delimiter is NOT used) */
 		if (extra_stream_buff == NULL) {
 			return_code =
-			    output_SEI_parameters(encoder,
+			    h264_output_SEI_parameters(encoder,
 						  context,
 						  &my_sei_stream_buff_info);
 			if (return_code != 0) {
@@ -1366,7 +1451,7 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 
 			/* output SEI parameter (if AU delimiter is used, SEI parameter must be output after AU delimiter) */
 			return_code =
-			    output_SEI_parameters(encoder,
+			    h264_output_SEI_parameters(encoder,
 						  context,
 						  &my_sei_stream_buff_info);
 			if (return_code != 0) {
@@ -1426,142 +1511,62 @@ long encode_nal_unit(SHCodecs_Encoder * encoder,
 	return (0);
 }
 
-/*------------------------------------------------------------------*/
-/* put SEI parameter 											    */
-/*------------------------------------------------------------------*/
-/* return	0:normal end											*/
-/*			1:error (out_buffering_period_SEI is OFF)				*/
-/*			2:error (out_pic_timing_SEI is OFF)						*/
-/*			4:error (out_pan_scan_rect_SEI is OFF)					*/
-/*			8:error (out_filler_payload_SEI is OFF)					*/
-/*		   16:error (out_recovery_point_SEI is OFF)					*/
-/*		   32:vout_dec_ref_pic_marking_repetition_SEI is OFF)		*/
-/*------------------------------------------------------------------*/
-long output_SEI_parameters(SHCodecs_Encoder * encoder,
-			   avcbe_stream_info * context,
-			   TAVCBE_STREAM_BUFF * sei_stream_buff_info)
+int
+h264_encode_run (SHCodecs_Encoder * encoder, long stream_type)
 {
 	long return_code;
-	long return_value = 0;
+	TAVCBE_STREAM_BUFF my_end_code_buff_info;
 
-	/* output SEI parameter (step1) */
-	if (encoder->other_API_enc_param.out_buffering_period_SEI ==
-	    AVCBE_ON) {
+        if (!encoder->initialized)
+                h264_encode_deferred_init (encoder, stream_type, &my_context);
+
+	encoder->error_return_function = 0;
+	encoder->error_return_code = 0;
+
+	DisplayMessage("H.264 Encode Start! ", 1);
+
+	/* encode process function for H.264 (call avcbe_encode_picture func.) */
+	if ((encoder->other_options_h264.avcbe_use_slice == AVCBE_ON) &&
+	    (encoder->other_options_h264.avcbe_call_unit ==
+	     AVCBE_CALL_PER_NAL)) {
 		return_code =
-		    avcbe_put_SEI_parameters(context,
-					     AVCBE_SEI_MESSAGE_BUFFERING_PERIOD,
-					     (void *)
-					     &(encoder->
-					       other_API_enc_param.
-					       sei_buffering_period_param),
-					     sei_stream_buff_info);
-		/* concatenate SEI parameter (return_code means the size of SEI parameter in byte unit) */
-		if (return_code > 0) {
-			if (encoder->output) {
-				encoder->output(encoder, (unsigned char *)
-						sei_stream_buff_info->buff_top,
-						return_code,
-						encoder->output_user_data);
-			}
-			return_value = 0;
-		} else {	/* error */
-			return_value |= 0x1;
-		}
+		    h264_encode_nal_unit(encoder, stream_type, my_context);
+	} else {
+		return_code =
+		    h264_encode_picture_unit(encoder, stream_type, my_context);
+	}
+	if (return_code != 0) {
+		return (-115);
 	}
 
-	/* output SEI parameter (step2) */
-	if (encoder->other_API_enc_param.out_pic_timing_SEI == AVCBE_ON) {
-		return_code =
-		    avcbe_put_SEI_parameters(context,
-					     AVCBE_SEI_MESSAGE_PIC_TIMING,
-					     (void *)
-					     &
-					     (encoder->other_API_enc_param.
-					      sei_pic_timing_param),
-					     sei_stream_buff_info);
-		/* concatenate SEI parameter (return_code means the size of SEI parameter in byte unit) */
-		if (return_code > 0) {
-			if (encoder->output) {
-				encoder->output(encoder, (unsigned char *)
-						sei_stream_buff_info->buff_top,
-						return_code,
-						encoder->output_user_data);
-			}
-			return_value = 0;
-		} else {	/* error */
-			return_value |= 0x2;
+	/*--- The MPEG-4&H.264 Encoder Library API (required-9)@ends encoding ---*/
+	my_end_code_buff_info.buff_top =
+	    (unsigned char *) &my_end_code_buff[0];
+	my_end_code_buff_info.buff_size = MY_END_CODE_BUFF_SIZE;
+
+	return_code = avcbe_put_end_code(my_context, &my_end_code_buff_info, AVCBE_END_OF_STRM);	/* return value is byte unit */
+	if (return_code <= 0) {
+		if (return_code == -4) {
+			DisplayMessage
+			    (" encode_1file_h264:avcbe_close_encode OUTPUT BUFFER SIZE SHORT ERROR! ",
+			     1);
+		}
+		encoder->error_return_function = -116;
+		encoder->error_return_code = return_code;
+		return (-116);
+	} else {
+		if (encoder->output) {
+			encoder->output(encoder, (unsigned char *)
+					&my_end_code_buff[0], return_code,
+					encoder->output_user_data);
 		}
 	}
-	/* output SEI parameter (step3) */
-	if (encoder->other_API_enc_param.out_pan_scan_rect_SEI == AVCBE_ON) {
+	if (encoder->output_filler_enable == 1) {
 		return_code =
-		    avcbe_put_SEI_parameters(context,
-					     AVCBE_SEI_MESSAGE_PAN_SCAN_RECT,
-					     (void *)
-					     &
-					     (encoder->other_API_enc_param.
-					      sei_pan_scan_rect_param),
-					     sei_stream_buff_info);
-		/* concatenate SEI parameter (return_code means the size of SEI parameter in byte unit) */
-		if (return_code > 0) {
-			if (encoder->output) {
-				encoder->output(encoder, (unsigned char *)
-						sei_stream_buff_info->buff_top,
-						return_code,
-						encoder->output_user_data);
-			}
-			return_value = 0;
-		} else {	/* error */
-			return_value |= 0x4;
-		}
+		    avcbe_put_filler_data(&my_stream_buff_info,
+					  encoder->other_options_h264.
+					  avcbe_put_start_code, 2);
 	}
-	/* output SEI parameter (step4) */
-	if (encoder->other_API_enc_param.out_filler_payload_SEI ==
-	    AVCBE_ON) {
-		return_code =
-		    avcbe_put_SEI_parameters(context,
-					     AVCBE_SEI_MESSAGE_FILLER_PAYLOAD,
-					     (void *)
-					     &(encoder->
-					       other_API_enc_param.
-					       sei_filler_payload_param),
-					     sei_stream_buff_info);
-		/* concatenate SEI parameter (return_code means the size of SEI parameter in byte unit) */
-		if (return_code > 0) {
-			if (encoder->output) {
-				encoder->output(encoder, (unsigned char *)
-						sei_stream_buff_info->buff_top,
-						return_code,
-						encoder->output_user_data);
-			}
-			return_value = 0;
-		} else {	/* error */
-			return_value |= 0x8;
-		}
-	}
-	/* output SEI parameter (step5) */
-	if (encoder->other_API_enc_param.out_recovery_point_SEI ==
-	    AVCBE_ON) {
-		return_code =
-		    avcbe_put_SEI_parameters(context,
-					     AVCBE_SEI_MESSAGE_RECOVERY_POINT,
-					     (void *)
-					     &(encoder->
-					       other_API_enc_param.
-					       sei_recovery_point_param),
-					     sei_stream_buff_info);
-		/* concatenate SEI parameter (return_code means the size of SEI parameter in byte unit) */
-		if (return_code > 0) {
-			if (encoder->output) {
-				encoder->output(encoder, (unsigned char *)
-						&sei_stream_buff_info->buff_top,
-						return_code,
-						encoder->output_user_data);
-			}
-			return_value = 0;
-		} else {	/* error */
-			return_value |= 0x10;
-		}
-	}
-	return (return_value);
+	return (0);
 }
+
