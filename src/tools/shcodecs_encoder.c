@@ -83,6 +83,8 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
         encoder->error_return_function = 0;
         encoder->error_return_code = 0;
 
+        encoder->initialized = 0;
+
         encoder->frame_number_to_encode = 1;
         encoder->frm = 0;
         encoder->frame_no_increment = 1;

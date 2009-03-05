@@ -82,61 +82,6 @@ int encode_init_h264 (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long 
         return 0;
 }
 
-int encode_1file_h264(SHCodecs_Encoder * encoder, long stream_type)
-{
-	long return_code;
-	TAVCBE_STREAM_BUFF my_end_code_buff_info;
-
-	encoder->error_return_function = 0;
-	encoder->error_return_code = 0;
-
-	DisplayMessage("H.264 Encode Start! ", 1);
-
-	/* encode process function for H.264 (call avcbe_encode_picture func.) */
-	if ((encoder->other_options_h264.avcbe_use_slice == AVCBE_ON) &&
-	    (encoder->other_options_h264.avcbe_call_unit ==
-	     AVCBE_CALL_PER_NAL)) {
-		return_code =
-		    encode_nal_unit(encoder, stream_type, my_context);
-	} else {
-		return_code =
-		    encode_picture_unit(encoder, stream_type, my_context);
-	}
-	if (return_code != 0) {
-		return (-115);
-	}
-
-	/*--- The MPEG-4&H.264 Encoder Library API (required-9)@ends encoding ---*/
-	my_end_code_buff_info.buff_top =
-	    (unsigned char *) &my_end_code_buff[0];
-	my_end_code_buff_info.buff_size = MY_END_CODE_BUFF_SIZE;
-
-	return_code = avcbe_put_end_code(my_context, &my_end_code_buff_info, AVCBE_END_OF_STRM);	/* return value is byte unit */
-	if (return_code <= 0) {
-		if (return_code == -4) {
-			DisplayMessage
-			    (" encode_1file_h264:avcbe_close_encode OUTPUT BUFFER SIZE SHORT ERROR! ",
-			     1);
-		}
-		encoder->error_return_function = -116;
-		encoder->error_return_code = return_code;
-		return (-116);
-	} else {
-		if (encoder->output) {
-			encoder->output(encoder, (unsigned char *)
-					&my_end_code_buff[0], return_code,
-					encoder->output_user_data);
-		}
-	}
-	if (encoder->output_filler_enable == 1) {
-		return_code =
-		    avcbe_put_filler_data(&my_stream_buff_info,
-					  encoder->other_options_h264.
-					  avcbe_put_start_code, 2);
-	}
-	return (0);
-}
-
 /*-------------------------------------------------------------------------------*/
 /* init for encoder                                                              */
 /*-------------------------------------------------------------------------------*/
@@ -180,6 +125,20 @@ long init_for_encoder_h264(SHCodecs_Encoder * encoder,
 		printf("Size OVER\n");
 		while (1);
 	}
+
+        return 0;
+}
+
+static int
+encode_h264_deferred_init(SHCodecs_Encoder * encoder,
+                          long stream_type,
+                          avcbe_stream_info ** context)
+{
+	long return_code = 0;
+	unsigned long nrefframe, nldecfmem, addr_temp;
+	unsigned long *addr_y, *addr_c;
+	TAVCBE_WORKAREA WORK_ARRY[2];
+	long area_width, area_height;
 
 	/*--- The MPEG-4&H.264 Encoder Library API(required-4)@initialize the variables ---*/
 	WORK_ARRY[0].area_size = MY_WORK_AREA_SIZE;
@@ -287,6 +246,67 @@ long init_for_encoder_h264(SHCodecs_Encoder * encoder,
 		encoder->error_return_function = -107;
 		encoder->error_return_code = return_code;
 		return (-107);
+	}
+
+        encoder->initialized = 1;
+
+	return (0);
+}
+
+int encode_1file_h264(SHCodecs_Encoder * encoder, long stream_type)
+{
+	long return_code;
+	TAVCBE_STREAM_BUFF my_end_code_buff_info;
+
+        if (!encoder->initialized)
+                encode_h264_deferred_init (encoder, stream_type, &my_context);
+
+	encoder->error_return_function = 0;
+	encoder->error_return_code = 0;
+
+	DisplayMessage("H.264 Encode Start! ", 1);
+
+	/* encode process function for H.264 (call avcbe_encode_picture func.) */
+	if ((encoder->other_options_h264.avcbe_use_slice == AVCBE_ON) &&
+	    (encoder->other_options_h264.avcbe_call_unit ==
+	     AVCBE_CALL_PER_NAL)) {
+		return_code =
+		    encode_nal_unit(encoder, stream_type, my_context);
+	} else {
+		return_code =
+		    encode_picture_unit(encoder, stream_type, my_context);
+	}
+	if (return_code != 0) {
+		return (-115);
+	}
+
+	/*--- The MPEG-4&H.264 Encoder Library API (required-9)@ends encoding ---*/
+	my_end_code_buff_info.buff_top =
+	    (unsigned char *) &my_end_code_buff[0];
+	my_end_code_buff_info.buff_size = MY_END_CODE_BUFF_SIZE;
+
+	return_code = avcbe_put_end_code(my_context, &my_end_code_buff_info, AVCBE_END_OF_STRM);	/* return value is byte unit */
+	if (return_code <= 0) {
+		if (return_code == -4) {
+			DisplayMessage
+			    (" encode_1file_h264:avcbe_close_encode OUTPUT BUFFER SIZE SHORT ERROR! ",
+			     1);
+		}
+		encoder->error_return_function = -116;
+		encoder->error_return_code = return_code;
+		return (-116);
+	} else {
+		if (encoder->output) {
+			encoder->output(encoder, (unsigned char *)
+					&my_end_code_buff[0], return_code,
+					encoder->output_user_data);
+		}
+	}
+	if (encoder->output_filler_enable == 1) {
+		return_code =
+		    avcbe_put_filler_data(&my_stream_buff_info,
+					  encoder->other_options_h264.
+					  avcbe_put_start_code, 2);
 	}
 	return (0);
 }

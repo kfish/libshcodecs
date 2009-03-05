@@ -51,6 +51,8 @@ struct _SHCodecs_Encoder {
 	SHCodecs_Encoder_Output output;
 	void *output_user_data;
 
+        int initialized; /* Is avcbe_encode_init() done? */
+
         /* Internal encode error tracking */
         long error_return_function;	/* ID of the API function when error ocuured *//* add at Version2 */
         long error_return_code;	/* return_value of the API function when error ocuured *//* add at Version2 */
