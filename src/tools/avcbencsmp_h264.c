@@ -62,38 +62,13 @@ extern long tmp_slice_size;
 
 int encode_init_h264 (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long stream_type)
 {
-	long return_code;
-	TAVCBE_STREAM_BUFF my_end_code_buff_info;
+	long return_code = 0;
 
 	encoder->error_return_function = 0;
 	encoder->error_return_code = 0;
 
 	/*--- The MPEG-4 Encoder Library API(required-2)@start encoding ---*/
 	avcbe_start_encoding();	/* needs be called only once */
-
-	/* Initialize Function Of Encoder(avcbe_set_default_param, avcbe_init_encode, avcbe_init_memory) */
-	return_code =
-	    init_for_encoder_h264(encoder, appli_info,
-				  stream_type, &my_context);
-	if (return_code != 0) {
-		return (-114);
-	}
-
-        return 0;
-}
-
-/*-------------------------------------------------------------------------------*/
-/* init for encoder                                                              */
-/*-------------------------------------------------------------------------------*/
-long init_for_encoder_h264(SHCodecs_Encoder * encoder,
-			   APPLI_INFO * appli_info, long stream_type,
-			   avcbe_stream_info ** context)
-{
-	long return_code = 0;
-	unsigned long nrefframe, nldecfmem, addr_temp;
-	unsigned long *addr_y, *addr_c;
-	TAVCBE_WORKAREA WORK_ARRY[2];
-	long area_width, area_height;
 
 	/*--- The MPEG-4&H.264 Encoder Library API(required-3)@set default values for the parameters  ---*/
 	/* can be called only once or for the number of streams */
@@ -118,12 +93,6 @@ long init_for_encoder_h264(SHCodecs_Encoder * encoder,
 		encoder->error_return_function = -103;
 		encoder->error_return_code = return_code;
 		return (-103);
-	}
-
-	/* Capt Image Memory Size Check */
-	if (WIDTH_HEIGHT_1_5 < (encoder->width * encoder->height * 3 / 2)) {
-		printf("Size OVER\n");
-		while (1);
 	}
 
         return 0;

@@ -165,9 +165,8 @@ static int init_other_options_mpeg4(SHCodecs_Encoder * encoder)
 
 int encode_init_mpeg4 (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long stream_type)
 {
-	long return_code;
-	TAVCBE_STREAM_BUFF my_end_code_buff_info;
-	long my_size = 0;
+	long return_code = 0;
+	long i;
 
 	encoder->error_return_function = 0;	/* add at Version2 */
 	encoder->error_return_code = 0;	/* add at Version2 */
@@ -176,30 +175,6 @@ int encode_init_mpeg4 (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long
 
 	/* needs be called only once */
 	avcbe_start_encoding();	/* initializes the encoder */
-
-	/* Initialize Function Of Encoder(avcbe_set_default_param, avcbe_init_encode, 
-	 * avcbe_init_memory) */
-	return_code =
-	    init_for_encoder_mpeg4(encoder, appli_info, stream_type,
-				   &my_context);
-	if (return_code != 0) {
-		return (-14);
-	}
-
-}
-
-/*--------------------------------------------------------------*/
-/* init for encoder						*/
-/*--------------------------------------------------------------*/
-long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder,
-			    APPLI_INFO * appli_info, long stream_type,
-			    avcbe_stream_info ** context)
-{
-	long return_code = 0;
-	unsigned long nrefframe, nldecfmem, addr_temp;
-	unsigned long *addr_y, *addr_c, *ptr;
-	TAVCBE_WORKAREA WORK_ARRY[2];
-	long area_width, area_height, i;
 
 	/*--- The MPEG-4&H.264 Encoder Library API(required-3)@set default
 	 *  values for the parameters  ---*/
@@ -212,8 +187,6 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder,
 		DisplayMessage
 		    (" encode_1file_mpeg4:avcbe_set_default_param ERROR! ",
 		     1);
-		printf
-		    (" encode_1file_mpeg4:avcbe_set_default_param ERROR! \n");
 		encoder->error_return_function = -2;
 		encoder->error_return_code = return_code;
 		return (-2);
@@ -228,11 +201,6 @@ long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder,
 		encoder->error_return_function = -3;
 		encoder->error_return_code = return_code;
 		return (-3);
-	}
-
-	/* Capt Image Memory Size Check */
-	if (WIDTH_HEIGHT_1_5 < (encoder->width * encoder->height * 3 / 2)) {
-		while (1);
 	}
 
         return 0;
