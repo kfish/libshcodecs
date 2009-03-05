@@ -30,16 +30,16 @@ noinst_HEADERS = \
 
 shcodecs_enc_SOURCES =  \
 	shcodecs-enc.c \
-	shcodecs_encoder.c \
 	capture.c \
+	veu_colorspace.c \
+	ControlFileUtil.c \
 	avcbeinputuser.c \
 	avcbencsmp_common.c \
-	avcbencsmp_h264.c \
-	avcbencsmp_mpeg4.c \
-	ControlFileUtil.c \
+	shcodecs_encoder.c \
+	h264_encode.c \
+	mpeg4_encode.c \
 	m4driverif.c \
-	QuantMatrix.c \
-	veu_colorspace.c
+	QuantMatrix.c
 
 shcodecs_enc_CFLAGS = -v -Wall -O2 -I $(srcdir) -fPIC -fno-common \
 	-DNDEBUG -D_LIT -DSH=1 -DVPU4=1 \
@@ -54,16 +54,16 @@ shcodecs_enc_LDADD = -lstdc++ $(SHCODECS_LIBS) $(VPU4_ENC_LIBS)
 
 shcodecs_capenc_SOURCES =  \
 	shcodecs-capenc.c \
-	shcodecs_encoder.c \
 	capture.c \
+	veu_colorspace.c \
+	ControlFileUtil.c \
 	avcbeinputuser.c \
 	avcbencsmp_common.c \
-	avcbencsmp_h264.c \
-	avcbencsmp_mpeg4.c \
-	ControlFileUtil.c \
+	shcodecs_encoder.c \
+	h264_encode.c \
+	mpeg4_encode.c \
 	m4driverif.c \
-	QuantMatrix.c \
-	veu_colorspace.c
+	QuantMatrix.c
 
 shcodecs_capenc_CFLAGS = -v -Wall -O2 -I $(srcdir) -fPIC -fno-common \
 	-DNDEBUG -D_LIT -DSH=1 -DVPU4=1 \
