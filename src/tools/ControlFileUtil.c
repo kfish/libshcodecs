@@ -630,41 +630,6 @@ static void GetFromCtrlFtoOTHER_API_ENC_PARAM_SEI(FILE * fp_in,
 **/
 	}
 }
-/*****************************************************************************
- * Function Name	: GetFromCtrlFtoEncoding_property
- * Description		: コントロールファイルから、構造体ENC_EXEC_INFOのメンバ値を読み込み、設定して返す
- *					
- * Parameters		: 
- * Called functions	: 		  
- * Global Data		: 
- * Return Value		: 
- *****************************************************************************/
-static int GetFromCtrlFtoEncExecInfo(FILE * fp_in, APPLI_INFO * appli_info)
-{
-	int status_flag;
-	long return_value;
-
-	appli_info->yuv_CbCr_format = 2;	/* 指定されなかったときのデフォルト値(2:Cb0,Cr0,Cb1,Cr1,...) *//* 050520 */
-
-	/*** ENC_EXEC_INFO ***/
-/**	return_value = GetValueFromCtrlFile(fp_in, "debug_mode_flag", &status_flag); 041111
-	if (status_flag == 1) {
-		appli_info->debug_mode_flag = return_value;
-	} **/
-
-/**	return_value = GetValueFromCtrlFile(fp_in, "ctrl_file_version", &status_flag); 041111
-	if (status_flag == 1) {
-		appli_info->ctrl_file_version = return_value;
-	} **/
-
-	return_value = GetValueFromCtrlFile(fp_in, "yuv_CbCr_format", &status_flag);	/* 050520 */
-	if (status_flag == 1) {
-		printf("yuv_CbCr_format=%d\n", return_value);
-		appli_info->yuv_CbCr_format = (char) return_value;
-	}
-
-	return (1);		/* 正常終了 */
-}
 
 /*****************************************************************************
  * Function Name	: GetFromCtrlFtoEncoding_property
@@ -2638,7 +2603,12 @@ int GetFromCtrlFtoEncParam(SHCodecs_Encoder * encoder,
 	}
 
 	/*** ENC_EXEC_INFO ***/
-	GetFromCtrlFtoEncExecInfo(fp_in, appli_info);
+	appli_info->yuv_CbCr_format = 2;	/* 指定されなかったときのデフォルト値(2:Cb0,Cr0,Cb1,Cr1,...) *//* 050520 */
+	return_value = GetValueFromCtrlFile(fp_in, "yuv_CbCr_format", &status_flag);	/* 050520 */
+	if (status_flag == 1) {
+		printf("yuv_CbCr_format=%d\n", return_value);
+		appli_info->yuv_CbCr_format = (char) return_value;
+	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "frame_number_to_encode",
