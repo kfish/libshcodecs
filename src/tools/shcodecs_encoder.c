@@ -150,7 +150,7 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	if (encoder->format == SHCodecs_Format_H264) {
 		encode_init_h264 (encoder, ainfo, AVCBE_H264);
 	} else {
-		encode_init_mpeg4 (encoder, ainfo, AVCBE_MPEG4);
+		mpeg4_encode_init (encoder, ainfo, AVCBE_MPEG4);
 	}
 
 	return encoder;
@@ -226,7 +226,7 @@ int shcodecs_encoder_run(SHCodecs_Encoder * encoder)
 	if (encoder->format == SHCodecs_Format_H264) {
 		return encode_1file_h264(encoder, AVCBE_H264);
 	} else {
-		return encode_1file_mpeg4(encoder, AVCBE_MPEG4);
+		return mpeg4_encode_run (encoder, AVCBE_MPEG4);
 	}
 }
 

@@ -103,11 +103,8 @@ long output_SEI_parameters(SHCodecs_Encoder * encoder,
 			   avcbe_stream_info * context,
 			   TAVCBE_STREAM_BUFF * stream_buff_info);
 
-int encode_init_mpeg4 (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long stream_type);
-int encode_1file_mpeg4(SHCodecs_Encoder * encoder, long stream_type);
-long init_for_encoder_mpeg4(SHCodecs_Encoder * encoder,
-			    APPLI_INFO * appli_info, long stream_type,
-			    avcbe_stream_info ** context);
+int mpeg4_encode_init (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long stream_type);
+int mpeg4_encode_run (SHCodecs_Encoder * encoder, long stream_type);
 
 /* XXX: Move back out of encoder_private.h to appli code */
 int select_inputfile_set_param(SHCodecs_Encoder * encoder,

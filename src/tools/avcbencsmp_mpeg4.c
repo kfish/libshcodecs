@@ -89,11 +89,21 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 /*int mpeg4_enc(void) */
 extern APPLI_INFO ainfo;	/* User Application Data */
 
-void get_new_stream_buf(avcbe_stream_info * context,
-			char *previous_stream_buff, long output_size,
-			char **next_stream_buff, long *stream_buff_size);
+static void
+get_new_stream_buf(avcbe_stream_info * context,
+  		   char *previous_stream_buff, long output_size,
+		   char **next_stream_buff, long *stream_buff_size)
+{
+	printf
+	    (" get_new_stream_buf: p_s_b = %p, output_size = %X s_b_s=0x%X \n",
+	     previous_stream_buff, output_size, *stream_buff_size);
+	*next_stream_buff = (unsigned char *) &my_end_code_buff[1];
+	*stream_buff_size = MY_STREAM_BUFF_SIZE;
 
-static int init_other_options_mpeg4(SHCodecs_Encoder * encoder)
+}
+
+static int
+mpeg4_encode_init_other_options (SHCodecs_Encoder * encoder)
 {
 	/* This was commented out in the original sample code */
 #if 0
@@ -163,7 +173,8 @@ static int init_other_options_mpeg4(SHCodecs_Encoder * encoder)
 }
 /*---------------------------------------------------------------------*/
 
-int encode_init_mpeg4 (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long stream_type)
+int
+mpeg4_encode_init (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long stream_type)
 {
 	long return_code = 0;
 	long i;
@@ -171,7 +182,7 @@ int encode_init_mpeg4 (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long
 	encoder->error_return_function = 0;	/* add at Version2 */
 	encoder->error_return_code = 0;	/* add at Version2 */
 
-        init_other_options_mpeg4 (encoder);
+        mpeg4_encode_init_other_options (encoder);
 
 	/* needs be called only once */
 	avcbe_start_encoding();	/* initializes the encoder */
@@ -207,7 +218,7 @@ int encode_init_mpeg4 (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long
 }
 
 static int
-encode_mpeg4_deferred_init(SHCodecs_Encoder * encoder,
+mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder,
 			   long stream_type,
 			   avcbe_stream_info ** context)
 {
@@ -363,69 +374,10 @@ encode_mpeg4_deferred_init(SHCodecs_Encoder * encoder,
 	return (0);
 }
 
-int encode_1file_mpeg4(SHCodecs_Encoder * encoder, long stream_type)
-{
-	long return_code;
-	TAVCBE_STREAM_BUFF my_end_code_buff_info;
-	long my_size = 0;
-
-        if (!encoder->initialized)
-                encode_mpeg4_deferred_init (encoder, stream_type, &my_context);
-
-	encoder->error_return_function = 0;	/* add at Version2 */
-	encoder->error_return_code = 0;	/* add at Version2 */
-
-	if (stream_type == AVCBE_MPEG4) {
-		DisplayMessage("MPEG-4 Encode Start! ", 1);
-	} else {
-		DisplayMessage("H.263 Encode Start! ", 1);
-	}
-
-	/*--- The MPEG-4 Encoder Library API(required-2)@start encoding ---*/
-
-	/* encode process function for mpeg-4/H.263 (call avcbe_encode_picture func.) */
-	return_code =
-	    encode_picture_for_mpeg4(encoder, stream_type, my_context);
-	if (return_code != 0) {
-		return (-15);
-	}
-
-	/*--- The MPEG-4&H.264 Encoder Library API (required-9)@ends encoding ---*/
-	my_end_code_buff_info.buff_top =
-	    (unsigned char *) &my_end_code_buff[0];
-	my_end_code_buff_info.buff_size = MY_END_CODE_BUFF_SIZE;
-
-	/* return value is byte unit */
-	return_code =
-	    avcbe_put_end_code(my_context, &my_end_code_buff_info,
-			       AVCBE_VOSE);
-	if (return_code <= 0) {
-		if (return_code == -4) {
-			DisplayMessage
-			    (" encode_1file_mpeg4:avcbe_close_encode OUTPUT BUFFER SIZE SHORT ERROR! ",
-			     1);
-		}
-		encoder->error_return_function = -16;
-		encoder->error_return_code = return_code;
-
-		return (-16);
-	} else {
-		if (encoder->output) {
-			my_size =
-			    encoder->output(encoder,
-					    (unsigned char *)
-					    &my_end_code_buff[0],
-					    return_code,
-					    encoder->output_user_data);
-		}
-	}
-
-	return (0);
-}
-
-int clip_image_data_for_H263(SHCodecs_Encoder * encoder,
-			     avcbe_stream_info * context,
-			     unsigned long *addr_y, unsigned long *addr_c)
+static int
+clip_image_data_for_H263(SHCodecs_Encoder * encoder,
+       		         avcbe_stream_info * context,
+			 unsigned long *addr_y, unsigned long *addr_c)
 {
 	long width, height, index;
 	unsigned char *YCbCr_ptr;
@@ -478,9 +430,10 @@ int clip_image_data_for_H263(SHCodecs_Encoder * encoder,
 /*------------------------------------------------------------------------*/
 /* Encode process function for MPEG-4/H.263                               */
 /*------------------------------------------------------------------------*/
-long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
-			      long stream_type,
-			      avcbe_stream_info * context)
+static long
+mpeg4_encode_picture (SHCodecs_Encoder * encoder,
+		      long stream_type,
+		      avcbe_stream_info * context)
 {
 	unsigned long ldec, ref1, ref2;
 	long stream_bits, streamsize_per_frame, streamsize_total;
@@ -773,14 +726,64 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 	return (0);
 }
 
-void get_new_stream_buf(avcbe_stream_info * context,
-			char *previous_stream_buff, long output_size,
-			char **next_stream_buff, long *stream_buff_size)
+int
+mpeg4_encode_run (SHCodecs_Encoder * encoder, long stream_type)
 {
-	printf
-	    (" get_new_stream_buf: p_s_b = %p, output_size = %X s_b_s=0x%X \n",
-	     previous_stream_buff, output_size, *stream_buff_size);
-	*next_stream_buff = (unsigned char *) &my_end_code_buff[1];
-	*stream_buff_size = MY_STREAM_BUFF_SIZE;
+	long return_code;
+	TAVCBE_STREAM_BUFF my_end_code_buff_info;
+	long my_size = 0;
 
+        if (!encoder->initialized)
+                mpeg4_encode_deferred_init (encoder, stream_type, &my_context);
+
+	encoder->error_return_function = 0;	/* add at Version2 */
+	encoder->error_return_code = 0;	/* add at Version2 */
+
+	if (stream_type == AVCBE_MPEG4) {
+		DisplayMessage("MPEG-4 Encode Start! ", 1);
+	} else {
+		DisplayMessage("H.263 Encode Start! ", 1);
+	}
+
+	/*--- The MPEG-4 Encoder Library API(required-2)@start encoding ---*/
+
+	/* encode process function for mpeg-4/H.263 (call avcbe_encode_picture func.) */
+	return_code =
+	    mpeg4_encode_picture (encoder, stream_type, my_context);
+	if (return_code != 0) {
+		return (-15);
+	}
+
+	/*--- The MPEG-4&H.264 Encoder Library API (required-9)@ends encoding ---*/
+	my_end_code_buff_info.buff_top =
+	    (unsigned char *) &my_end_code_buff[0];
+	my_end_code_buff_info.buff_size = MY_END_CODE_BUFF_SIZE;
+
+	/* return value is byte unit */
+	return_code =
+	    avcbe_put_end_code(my_context, &my_end_code_buff_info,
+			       AVCBE_VOSE);
+	if (return_code <= 0) {
+		if (return_code == -4) {
+			DisplayMessage
+			    (" encode_1file_mpeg4:avcbe_close_encode OUTPUT BUFFER SIZE SHORT ERROR! ",
+			     1);
+		}
+		encoder->error_return_function = -16;
+		encoder->error_return_code = return_code;
+
+		return (-16);
+	} else {
+		if (encoder->output) {
+			my_size =
+			    encoder->output(encoder,
+					    (unsigned char *)
+					    &my_end_code_buff[0],
+					    return_code,
+					    encoder->output_user_data);
+		}
+	}
+
+	return (0);
 }
+
