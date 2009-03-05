@@ -226,10 +226,6 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder,
 	}
 	printf("Control file read OK!\n");
 
-	/* same parameters to case No. */
-//      appli_info->input_file_name_buf[0] = '\0';
-	//appli_info->input_yuv_fp = NULL;
-
 	shcodecs_encoder_set_frame_no_increment(encoder, 1);
 
 	/* same parameters to stream_type */
