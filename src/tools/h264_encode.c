@@ -84,16 +84,6 @@ int h264_encode_init (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long 
 		encoder->error_return_code = return_code;
 		return (-102);
 	}
-	/*--- set parameters for use in encoding (one of the user application's own functions) ---*/
-	return_code = select_inputfile_set_param(encoder, appli_info);
-	if (return_code == -1) {	/* error */
-		DisplayMessage
-		    (" encode_1file_h264:select_inputfile_set_param ERROR! ",
-		     1);
-		encoder->error_return_function = -103;
-		encoder->error_return_code = return_code;
-		return (-103);
-	}
 
         return 0;
 }

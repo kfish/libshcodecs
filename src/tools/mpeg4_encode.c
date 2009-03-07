@@ -203,17 +203,6 @@ mpeg4_encode_init (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long str
 		return (-2);
 	}
 
-	/*--- set parameters for use in encoding (one of the user application's 
-	 * own functions) ---*/
-	return_code = select_inputfile_set_param(encoder, appli_info);
-	if (return_code == -1) {	/* error */
-		printf
-		    (" encode_1file_mpeg4:select_inputfile_set_param ERROR! \n");
-		encoder->error_return_function = -3;
-		encoder->error_return_code = return_code;
-		return (-3);
-	}
-
         return 0;
 }
 

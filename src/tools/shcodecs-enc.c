@@ -115,6 +115,13 @@ int main(int argc, char *argv[])
 		return (-6);
 	}
 
+	/* set parameters for use in encoding */
+	return_code = select_inputfile_set_param(encoder, &ainfo);
+	if (return_code == -1) {	/* error */
+		printf ("select_inputfile_set_param ERROR! \n");
+		return (-3);
+	}
+
 	encode_return_code = shcodecs_encoder_run(encoder, &ainfo);
 
 	if (encode_return_code < 0) {
