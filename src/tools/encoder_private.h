@@ -89,10 +89,10 @@ struct _SHCodecs_Encoder {
 
 /* Internal prototypes of functions using SHCodecs_Encoder */
 
-int h264_encode_init  (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long stream_type);
+int h264_encode_init  (SHCodecs_Encoder * encoder, long stream_type);
 int h264_encode_run (SHCodecs_Encoder * encoder, long stream_type);
 
-int mpeg4_encode_init (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long stream_type);
+int mpeg4_encode_init (SHCodecs_Encoder * encoder, long stream_type);
 int mpeg4_encode_run (SHCodecs_Encoder * encoder, long stream_type);
 
 /* XXX: Move back out of encoder_private.h to appli code */

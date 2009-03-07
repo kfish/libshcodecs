@@ -60,7 +60,7 @@ extern long tmp_slice_size;
 
 /*-------------------------------------------------------------------------------*/
 
-int h264_encode_init (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long stream_type)
+int h264_encode_init (SHCodecs_Encoder * encoder, long stream_type)
 {
 	long return_code = 0;
 

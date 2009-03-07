@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 
 	encoder =
 	    shcodecs_encoder_init(ainfo.xpic, ainfo.ypic,
-                                  stream_type, &ainfo);
+                                  stream_type);
 
 	shcodecs_encoder_set_input_callback(encoder, get_input, &ainfo);
 	shcodecs_encoder_set_output_callback(encoder, write_output,
@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
 		return (-3);
 	}
 
-	encode_return_code = shcodecs_encoder_run(encoder, &ainfo);
+	encode_return_code = shcodecs_encoder_run(encoder);
 
 	if (encode_return_code < 0) {
 		fprintf(stderr, "Error encoding, error code=%d\n",

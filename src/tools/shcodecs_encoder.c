@@ -59,8 +59,7 @@ int init_other_API_enc_param(OTHER_API_ENC_PARAM * other_API_enc_param)
  * \return encoder The SHCodecs_Encoder* handle
  */
 SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
-					SHCodecs_Format format,
-                                        APPLI_INFO * ainfo)
+					SHCodecs_Format format)
 {
 	SHCodecs_Encoder *encoder;
 	long return_code;
@@ -121,7 +120,7 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 //      memset(sdr_read_my_stream_buff,0,sizeof(sdr_read_my_stream_buff));
 	encode_time_init();
 	vpu4_clock_on();
-	width_height = ainfo->xpic * ainfo->ypic;
+	width_height = width + height;
 	width_height += (width_height / 2);
 	max_frame = 2;
 	sdr_base = m4iph_sdr_malloc(width_height * (max_frame + 3), 32);
@@ -148,9 +147,9 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	my_end_code_buff = ALIGN(my_end_code_buff_bak, 32);
 
 	if (encoder->format == SHCodecs_Format_H264) {
-		h264_encode_init (encoder, ainfo, AVCBE_H264);
+		h264_encode_init (encoder, AVCBE_H264);
 	} else {
-		mpeg4_encode_init (encoder, ainfo, AVCBE_MPEG4);
+		mpeg4_encode_init (encoder, AVCBE_MPEG4);
 	}
 
 	return encoder;

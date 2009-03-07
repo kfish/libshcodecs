@@ -53,7 +53,7 @@ typedef int (*SHCodecs_Encoder_Output) (SHCodecs_Encoder * encoder,
  * \return encoder The SHCodecs_Encoder* handle
  */
 SHCodecs_Encoder *
-shcodecs_encoder_init(int width, int height, SHCodecs_Format format, void * ainfo);
+shcodecs_encoder_init(int width, int height, SHCodecs_Format format);
 
 /**
  * Deallocate resources used to initialize the VPU4 for encoding,

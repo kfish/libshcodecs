@@ -174,7 +174,7 @@ mpeg4_encode_init_other_options (SHCodecs_Encoder * encoder)
 /*---------------------------------------------------------------------*/
 
 int
-mpeg4_encode_init (SHCodecs_Encoder * encoder, APPLI_INFO * appli_info, long stream_type)
+mpeg4_encode_init (SHCodecs_Encoder * encoder, long stream_type)
 {
 	long return_code = 0;
 	long i;
