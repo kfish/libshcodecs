@@ -3,12 +3,12 @@
 #include "encoder_private.h"
 
 /**
-* Get the _stream_type.
+* Get the stream_type.
 * \param encoder The SHCodecs_Encoder* handle
-* \returns The _stream_type
+* \returns The stream_type
 * \retval -1 \a encoder invalid
 */
-long shcodecs_encoder_get__stream_type(SHCodecs_Encoder * encoder)
+long shcodecs_encoder_get_stream_type(SHCodecs_Encoder * encoder)
 {
 	if (encoder == NULL)
 		return -1;
@@ -17,15 +17,15 @@ long shcodecs_encoder_get__stream_type(SHCodecs_Encoder * encoder)
 }
 
 /**
-* Set the _stream_type.
+* Set the stream_type.
 * \param encoder The SHCodecs_Encoder* handle
-* \param _stream_type The new value for \a _stream_type
-* \returns The previous value of \a _stream_type
+* \param stream_type The new value for \a stream_type
+* \returns The previous value of \a stream_type
 * \retval -1 \a encoder invalid
 */
 long
-shcodecs_encoder_set__stream_type(SHCodecs_Encoder * encoder,
-				  long _stream_type)
+shcodecs_encoder_set_stream_type(SHCodecs_Encoder * encoder,
+				 long stream_type)
 {
 	long old_value;
 
@@ -33,18 +33,18 @@ shcodecs_encoder_set__stream_type(SHCodecs_Encoder * encoder,
 		return -1;
 
 	old_value = encoder->encoding_property.avcbe_stream_type;
-	encoder->encoding_property.avcbe_stream_type = _stream_type;
+	encoder->encoding_property.avcbe_stream_type = stream_type;
 
 	return old_value;
 }
 
 /**
-* Get the _bitrate.
+* Get the bitrate.
 * \param encoder The SHCodecs_Encoder* handle
-* \returns The _bitrate
+* \returns The bitrate
 * \retval -1 \a encoder invalid
 */
-long shcodecs_encoder_get__bitrate(SHCodecs_Encoder * encoder)
+long shcodecs_encoder_get_bitrate(SHCodecs_Encoder * encoder)
 {
 	if (encoder == NULL)
 		return -1;
@@ -53,14 +53,13 @@ long shcodecs_encoder_get__bitrate(SHCodecs_Encoder * encoder)
 }
 
 /**
-* Set the _bitrate.
+* Set the bitrate.
 * \param encoder The SHCodecs_Encoder* handle
-* \param _bitrate The new value for \a _bitrate
-* \returns The previous value of \a _bitrate
+* \param bitrate The new value for \a bitrate
+* \returns The previous value of \a bitrate
 * \retval -1 \a encoder invalid
 */
-long
-shcodecs_encoder_set__bitrate(SHCodecs_Encoder * encoder, long _bitrate)
+long shcodecs_encoder_set_bitrate(SHCodecs_Encoder * encoder, long bitrate)
 {
 	long old_value;
 
@@ -68,18 +67,18 @@ shcodecs_encoder_set__bitrate(SHCodecs_Encoder * encoder, long _bitrate)
 		return -1;
 
 	old_value = encoder->encoding_property.avcbe_bitrate;
-	encoder->encoding_property.avcbe_bitrate = _bitrate;
+	encoder->encoding_property.avcbe_bitrate = bitrate;
 
 	return old_value;
 }
 
 /**
-* Get the _xpic_size.
+* Get the xpic_size.
 * \param encoder The SHCodecs_Encoder* handle
-* \returns The _xpic_size
+* \returns The xpic_size
 * \retval -1 \a encoder invalid
 */
-long shcodecs_encoder_get__xpic_size(SHCodecs_Encoder * encoder)
+long shcodecs_encoder_get_xpic_size(SHCodecs_Encoder * encoder)
 {
 	if (encoder == NULL)
 		return -1;
@@ -88,15 +87,14 @@ long shcodecs_encoder_get__xpic_size(SHCodecs_Encoder * encoder)
 }
 
 /**
-* Set the _xpic_size.
+* Set the xpic_size.
 * \param encoder The SHCodecs_Encoder* handle
-* \param _xpic_size The new value for \a _xpic_size
-* \returns The previous value of \a _xpic_size
+* \param xpic_size The new value for \a xpic_size
+* \returns The previous value of \a xpic_size
 * \retval -1 \a encoder invalid
 */
 long
-shcodecs_encoder_set__xpic_size(SHCodecs_Encoder * encoder,
-				long _xpic_size)
+shcodecs_encoder_set_xpic_size(SHCodecs_Encoder * encoder, long xpic_size)
 {
 	long old_value;
 
@@ -104,18 +102,18 @@ shcodecs_encoder_set__xpic_size(SHCodecs_Encoder * encoder,
 		return -1;
 
 	old_value = encoder->encoding_property.avcbe_xpic_size;
-	encoder->encoding_property.avcbe_xpic_size = _xpic_size;
+	encoder->encoding_property.avcbe_xpic_size = xpic_size;
 
 	return old_value;
 }
 
 /**
-* Get the _ypic_size.
+* Get the ypic_size.
 * \param encoder The SHCodecs_Encoder* handle
-* \returns The _ypic_size
+* \returns The ypic_size
 * \retval -1 \a encoder invalid
 */
-long shcodecs_encoder_get__ypic_size(SHCodecs_Encoder * encoder)
+long shcodecs_encoder_get_ypic_size(SHCodecs_Encoder * encoder)
 {
 	if (encoder == NULL)
 		return -1;
@@ -124,15 +122,14 @@ long shcodecs_encoder_get__ypic_size(SHCodecs_Encoder * encoder)
 }
 
 /**
-* Set the _ypic_size.
+* Set the ypic_size.
 * \param encoder The SHCodecs_Encoder* handle
-* \param _ypic_size The new value for \a _ypic_size
-* \returns The previous value of \a _ypic_size
+* \param ypic_size The new value for \a ypic_size
+* \returns The previous value of \a ypic_size
 * \retval -1 \a encoder invalid
 */
 long
-shcodecs_encoder_set__ypic_size(SHCodecs_Encoder * encoder,
-				long _ypic_size)
+shcodecs_encoder_set_ypic_size(SHCodecs_Encoder * encoder, long ypic_size)
 {
 	long old_value;
 
@@ -140,18 +137,18 @@ shcodecs_encoder_set__ypic_size(SHCodecs_Encoder * encoder,
 		return -1;
 
 	old_value = encoder->encoding_property.avcbe_ypic_size;
-	encoder->encoding_property.avcbe_ypic_size = _ypic_size;
+	encoder->encoding_property.avcbe_ypic_size = ypic_size;
 
 	return old_value;
 }
 
 /**
-* Get the _frame_rate.
+* Get the frame_rate.
 * \param encoder The SHCodecs_Encoder* handle
-* \returns The _frame_rate
+* \returns The frame_rate
 * \retval -1 \a encoder invalid
 */
-long shcodecs_encoder_get__frame_rate(SHCodecs_Encoder * encoder)
+long shcodecs_encoder_get_frame_rate(SHCodecs_Encoder * encoder)
 {
 	if (encoder == NULL)
 		return -1;
@@ -160,15 +157,15 @@ long shcodecs_encoder_get__frame_rate(SHCodecs_Encoder * encoder)
 }
 
 /**
-* Set the _frame_rate.
+* Set the frame_rate.
 * \param encoder The SHCodecs_Encoder* handle
-* \param _frame_rate The new value for \a _frame_rate
-* \returns The previous value of \a _frame_rate
+* \param frame_rate The new value for \a frame_rate
+* \returns The previous value of \a frame_rate
 * \retval -1 \a encoder invalid
 */
 long
-shcodecs_encoder_set__frame_rate(SHCodecs_Encoder * encoder,
-				 long _frame_rate)
+shcodecs_encoder_set_frame_rate(SHCodecs_Encoder * encoder,
+				long frame_rate)
 {
 	long old_value;
 
@@ -176,18 +173,18 @@ shcodecs_encoder_set__frame_rate(SHCodecs_Encoder * encoder,
 		return -1;
 
 	old_value = encoder->encoding_property.avcbe_frame_rate;
-	encoder->encoding_property.avcbe_frame_rate = _frame_rate;
+	encoder->encoding_property.avcbe_frame_rate = frame_rate;
 
 	return old_value;
 }
 
 /**
-* Get the _I_vop_interval.
+* Get the I_vop_interval.
 * \param encoder The SHCodecs_Encoder* handle
-* \returns The _I_vop_interval
+* \returns The I_vop_interval
 * \retval -1 \a encoder invalid
 */
-long shcodecs_encoder_get__I_vop_interval(SHCodecs_Encoder * encoder)
+long shcodecs_encoder_get_I_vop_interval(SHCodecs_Encoder * encoder)
 {
 	if (encoder == NULL)
 		return -1;
@@ -196,15 +193,15 @@ long shcodecs_encoder_get__I_vop_interval(SHCodecs_Encoder * encoder)
 }
 
 /**
-* Set the _I_vop_interval.
+* Set the I_vop_interval.
 * \param encoder The SHCodecs_Encoder* handle
-* \param _I_vop_interval The new value for \a _I_vop_interval
-* \returns The previous value of \a _I_vop_interval
+* \param I_vop_interval The new value for \a I_vop_interval
+* \returns The previous value of \a I_vop_interval
 * \retval -1 \a encoder invalid
 */
 long
-shcodecs_encoder_set__I_vop_interval(SHCodecs_Encoder * encoder,
-				     long _I_vop_interval)
+shcodecs_encoder_set_I_vop_interval(SHCodecs_Encoder * encoder,
+				    long I_vop_interval)
 {
 	long old_value;
 
@@ -212,18 +209,18 @@ shcodecs_encoder_set__I_vop_interval(SHCodecs_Encoder * encoder,
 		return -1;
 
 	old_value = encoder->encoding_property.avcbe_I_vop_interval;
-	encoder->encoding_property.avcbe_I_vop_interval = _I_vop_interval;
+	encoder->encoding_property.avcbe_I_vop_interval = I_vop_interval;
 
 	return old_value;
 }
 
 /**
-* Get the _mv_mode.
+* Get the mv_mode.
 * \param encoder The SHCodecs_Encoder* handle
-* \returns The _mv_mode
+* \returns The mv_mode
 * \retval -1 \a encoder invalid
 */
-long shcodecs_encoder_get__mv_mode(SHCodecs_Encoder * encoder)
+long shcodecs_encoder_get_mv_mode(SHCodecs_Encoder * encoder)
 {
 	if (encoder == NULL)
 		return -1;
@@ -232,14 +229,13 @@ long shcodecs_encoder_get__mv_mode(SHCodecs_Encoder * encoder)
 }
 
 /**
-* Set the _mv_mode.
+* Set the mv_mode.
 * \param encoder The SHCodecs_Encoder* handle
-* \param _mv_mode The new value for \a _mv_mode
-* \returns The previous value of \a _mv_mode
+* \param mv_mode The new value for \a mv_mode
+* \returns The previous value of \a mv_mode
 * \retval -1 \a encoder invalid
 */
-long
-shcodecs_encoder_set__mv_mode(SHCodecs_Encoder * encoder, long _mv_mode)
+long shcodecs_encoder_set_mv_mode(SHCodecs_Encoder * encoder, long mv_mode)
 {
 	long old_value;
 
@@ -247,18 +243,18 @@ shcodecs_encoder_set__mv_mode(SHCodecs_Encoder * encoder, long _mv_mode)
 		return -1;
 
 	old_value = encoder->encoding_property.avcbe_mv_mode;
-	encoder->encoding_property.avcbe_mv_mode = _mv_mode;
+	encoder->encoding_property.avcbe_mv_mode = mv_mode;
 
 	return old_value;
 }
 
 /**
-* Get the _fcode_forward.
+* Get the fcode_forward.
 * \param encoder The SHCodecs_Encoder* handle
-* \returns The _fcode_forward
+* \returns The fcode_forward
 * \retval -1 \a encoder invalid
 */
-long shcodecs_encoder_get__fcode_forward(SHCodecs_Encoder * encoder)
+long shcodecs_encoder_get_fcode_forward(SHCodecs_Encoder * encoder)
 {
 	if (encoder == NULL)
 		return -1;
@@ -267,15 +263,15 @@ long shcodecs_encoder_get__fcode_forward(SHCodecs_Encoder * encoder)
 }
 
 /**
-* Set the _fcode_forward.
+* Set the fcode_forward.
 * \param encoder The SHCodecs_Encoder* handle
-* \param _fcode_forward The new value for \a _fcode_forward
-* \returns The previous value of \a _fcode_forward
+* \param fcode_forward The new value for \a fcode_forward
+* \returns The previous value of \a fcode_forward
 * \retval -1 \a encoder invalid
 */
 long
-shcodecs_encoder_set__fcode_forward(SHCodecs_Encoder * encoder,
-				    long _fcode_forward)
+shcodecs_encoder_set_fcode_forward(SHCodecs_Encoder * encoder,
+				   long fcode_forward)
 {
 	long old_value;
 
@@ -283,18 +279,18 @@ shcodecs_encoder_set__fcode_forward(SHCodecs_Encoder * encoder,
 		return -1;
 
 	old_value = encoder->encoding_property.avcbe_fcode_forward;
-	encoder->encoding_property.avcbe_fcode_forward = _fcode_forward;
+	encoder->encoding_property.avcbe_fcode_forward = fcode_forward;
 
 	return old_value;
 }
 
 /**
-* Get the _search_mode.
+* Get the search_mode.
 * \param encoder The SHCodecs_Encoder* handle
-* \returns The _search_mode
+* \returns The search_mode
 * \retval -1 \a encoder invalid
 */
-long shcodecs_encoder_get__search_mode(SHCodecs_Encoder * encoder)
+long shcodecs_encoder_get_search_mode(SHCodecs_Encoder * encoder)
 {
 	if (encoder == NULL)
 		return -1;
@@ -303,15 +299,15 @@ long shcodecs_encoder_get__search_mode(SHCodecs_Encoder * encoder)
 }
 
 /**
-* Set the _search_mode.
+* Set the search_mode.
 * \param encoder The SHCodecs_Encoder* handle
-* \param _search_mode The new value for \a _search_mode
-* \returns The previous value of \a _search_mode
+* \param search_mode The new value for \a search_mode
+* \returns The previous value of \a search_mode
 * \retval -1 \a encoder invalid
 */
 long
-shcodecs_encoder_set__search_mode(SHCodecs_Encoder * encoder,
-				  long _search_mode)
+shcodecs_encoder_set_search_mode(SHCodecs_Encoder * encoder,
+				 long search_mode)
 {
 	long old_value;
 
@@ -319,18 +315,18 @@ shcodecs_encoder_set__search_mode(SHCodecs_Encoder * encoder,
 		return -1;
 
 	old_value = encoder->encoding_property.avcbe_search_mode;
-	encoder->encoding_property.avcbe_search_mode = _search_mode;
+	encoder->encoding_property.avcbe_search_mode = search_mode;
 
 	return old_value;
 }
 
 /**
-* Get the _search_time_fixed.
+* Get the search_time_fixed.
 * \param encoder The SHCodecs_Encoder* handle
-* \returns The _search_time_fixed
+* \returns The search_time_fixed
 * \retval -1 \a encoder invalid
 */
-long shcodecs_encoder_get__search_time_fixed(SHCodecs_Encoder * encoder)
+long shcodecs_encoder_get_search_time_fixed(SHCodecs_Encoder * encoder)
 {
 	if (encoder == NULL)
 		return -1;
@@ -339,15 +335,15 @@ long shcodecs_encoder_get__search_time_fixed(SHCodecs_Encoder * encoder)
 }
 
 /**
-* Set the _search_time_fixed.
+* Set the search_time_fixed.
 * \param encoder The SHCodecs_Encoder* handle
-* \param _search_time_fixed The new value for \a _search_time_fixed
-* \returns The previous value of \a _search_time_fixed
+* \param search_time_fixed The new value for \a search_time_fixed
+* \returns The previous value of \a search_time_fixed
 * \retval -1 \a encoder invalid
 */
 long
-shcodecs_encoder_set__search_time_fixed(SHCodecs_Encoder * encoder,
-					long _search_time_fixed)
+shcodecs_encoder_set_search_time_fixed(SHCodecs_Encoder * encoder,
+				       long search_time_fixed)
 {
 	long old_value;
 
@@ -356,19 +352,19 @@ shcodecs_encoder_set__search_time_fixed(SHCodecs_Encoder * encoder,
 
 	old_value = encoder->encoding_property.avcbe_search_time_fixed;
 	encoder->encoding_property.avcbe_search_time_fixed =
-	    _search_time_fixed;
+	    search_time_fixed;
 
 	return old_value;
 }
 
 /**
-* Get the _ratecontrol_skip_enable.
+* Get the ratecontrol_skip_enable.
 * \param encoder The SHCodecs_Encoder* handle
-* \returns The _ratecontrol_skip_enable
+* \returns The ratecontrol_skip_enable
 * \retval -1 \a encoder invalid
 */
 long
-shcodecs_encoder_get__ratecontrol_skip_enable(SHCodecs_Encoder * encoder)
+shcodecs_encoder_get_ratecontrol_skip_enable(SHCodecs_Encoder * encoder)
 {
 	if (encoder == NULL)
 		return -1;
@@ -377,16 +373,15 @@ shcodecs_encoder_get__ratecontrol_skip_enable(SHCodecs_Encoder * encoder)
 }
 
 /**
-* Set the _ratecontrol_skip_enable.
+* Set the ratecontrol_skip_enable.
 * \param encoder The SHCodecs_Encoder* handle
-* \param _ratecontrol_skip_enable The new value for \a _ratecontrol_skip_enable
-* \returns The previous value of \a _ratecontrol_skip_enable
+* \param ratecontrol_skip_enable The new value for \a ratecontrol_skip_enable
+* \returns The previous value of \a ratecontrol_skip_enable
 * \retval -1 \a encoder invalid
 */
 long
-shcodecs_encoder_set__ratecontrol_skip_enable(SHCodecs_Encoder * encoder,
-					      long
-					      _ratecontrol_skip_enable)
+shcodecs_encoder_set_ratecontrol_skip_enable(SHCodecs_Encoder * encoder,
+					     long ratecontrol_skip_enable)
 {
 	long old_value;
 
@@ -396,19 +391,19 @@ shcodecs_encoder_set__ratecontrol_skip_enable(SHCodecs_Encoder * encoder,
 	old_value =
 	    encoder->encoding_property.avcbe_ratecontrol_skip_enable;
 	encoder->encoding_property.avcbe_ratecontrol_skip_enable =
-	    _ratecontrol_skip_enable;
+	    ratecontrol_skip_enable;
 
 	return old_value;
 }
 
 /**
-* Get the _ratecontrol_use_prevquant.
+* Get the ratecontrol_use_prevquant.
 * \param encoder The SHCodecs_Encoder* handle
-* \returns The _ratecontrol_use_prevquant
+* \returns The ratecontrol_use_prevquant
 * \retval -1 \a encoder invalid
 */
 long
-shcodecs_encoder_get__ratecontrol_use_prevquant(SHCodecs_Encoder * encoder)
+shcodecs_encoder_get_ratecontrol_use_prevquant(SHCodecs_Encoder * encoder)
 {
 	if (encoder == NULL)
 		return -1;
@@ -417,16 +412,16 @@ shcodecs_encoder_get__ratecontrol_use_prevquant(SHCodecs_Encoder * encoder)
 }
 
 /**
-* Set the _ratecontrol_use_prevquant.
+* Set the ratecontrol_use_prevquant.
 * \param encoder The SHCodecs_Encoder* handle
-* \param _ratecontrol_use_prevquant The new value for \a _ratecontrol_use_prevquant
-* \returns The previous value of \a _ratecontrol_use_prevquant
+* \param ratecontrol_use_prevquant The new value for \a ratecontrol_use_prevquant
+* \returns The previous value of \a ratecontrol_use_prevquant
 * \retval -1 \a encoder invalid
 */
 long
-shcodecs_encoder_set__ratecontrol_use_prevquant(SHCodecs_Encoder * encoder,
-						long
-						_ratecontrol_use_prevquant)
+shcodecs_encoder_set_ratecontrol_use_prevquant(SHCodecs_Encoder * encoder,
+					       long
+					       ratecontrol_use_prevquant)
 {
 	long old_value;
 
@@ -436,19 +431,19 @@ shcodecs_encoder_set__ratecontrol_use_prevquant(SHCodecs_Encoder * encoder,
 	old_value =
 	    encoder->encoding_property.avcbe_ratecontrol_use_prevquant;
 	encoder->encoding_property.avcbe_ratecontrol_use_prevquant =
-	    _ratecontrol_use_prevquant;
+	    ratecontrol_use_prevquant;
 
 	return old_value;
 }
 
 /**
-* Get the _ratecontrol_respect_type.
+* Get the ratecontrol_respect_type.
 * \param encoder The SHCodecs_Encoder* handle
-* \returns The _ratecontrol_respect_type
+* \returns The ratecontrol_respect_type
 * \retval -1 \a encoder invalid
 */
 long
-shcodecs_encoder_get__ratecontrol_respect_type(SHCodecs_Encoder * encoder)
+shcodecs_encoder_get_ratecontrol_respect_type(SHCodecs_Encoder * encoder)
 {
 	if (encoder == NULL)
 		return -1;
@@ -457,16 +452,16 @@ shcodecs_encoder_get__ratecontrol_respect_type(SHCodecs_Encoder * encoder)
 }
 
 /**
-* Set the _ratecontrol_respect_type.
+* Set the ratecontrol_respect_type.
 * \param encoder The SHCodecs_Encoder* handle
-* \param _ratecontrol_respect_type The new value for \a _ratecontrol_respect_type
-* \returns The previous value of \a _ratecontrol_respect_type
+* \param ratecontrol_respect_type The new value for \a ratecontrol_respect_type
+* \returns The previous value of \a ratecontrol_respect_type
 * \retval -1 \a encoder invalid
 */
 long
-shcodecs_encoder_set__ratecontrol_respect_type(SHCodecs_Encoder * encoder,
-					       long
-					       _ratecontrol_respect_type)
+shcodecs_encoder_set_ratecontrol_respect_type(SHCodecs_Encoder * encoder,
+					      long
+					      ratecontrol_respect_type)
 {
 	long old_value;
 
@@ -476,20 +471,20 @@ shcodecs_encoder_set__ratecontrol_respect_type(SHCodecs_Encoder * encoder,
 	old_value =
 	    encoder->encoding_property.avcbe_ratecontrol_respect_type;
 	encoder->encoding_property.avcbe_ratecontrol_respect_type =
-	    _ratecontrol_respect_type;
+	    ratecontrol_respect_type;
 
 	return old_value;
 }
 
 /**
-* Get the _ratecontrol_intra_thr_changeable.
+* Get the ratecontrol_intra_thr_changeable.
 * \param encoder The SHCodecs_Encoder* handle
-* \returns The _ratecontrol_intra_thr_changeable
+* \returns The ratecontrol_intra_thr_changeable
 * \retval -1 \a encoder invalid
 */
 long
-shcodecs_encoder_get__ratecontrol_intra_thr_changeable(SHCodecs_Encoder *
-						       encoder)
+shcodecs_encoder_get_ratecontrol_intra_thr_changeable(SHCodecs_Encoder *
+						      encoder)
 {
 	if (encoder == NULL)
 		return -1;
@@ -499,17 +494,17 @@ shcodecs_encoder_get__ratecontrol_intra_thr_changeable(SHCodecs_Encoder *
 }
 
 /**
-* Set the _ratecontrol_intra_thr_changeable.
+* Set the ratecontrol_intra_thr_changeable.
 * \param encoder The SHCodecs_Encoder* handle
-* \param _ratecontrol_intra_thr_changeable The new value for \a _ratecontrol_intra_thr_changeable
-* \returns The previous value of \a _ratecontrol_intra_thr_changeable
+* \param ratecontrol_intra_thr_changeable The new value for \a ratecontrol_intra_thr_changeable
+* \returns The previous value of \a ratecontrol_intra_thr_changeable
 * \retval -1 \a encoder invalid
 */
 long
-shcodecs_encoder_set__ratecontrol_intra_thr_changeable(SHCodecs_Encoder *
-						       encoder,
-						       long
-						       _ratecontrol_intra_thr_changeable)
+shcodecs_encoder_set_ratecontrol_intra_thr_changeable(SHCodecs_Encoder *
+						      encoder,
+						      long
+						      ratecontrol_intra_thr_changeable)
 {
 	long old_value;
 
@@ -520,19 +515,19 @@ shcodecs_encoder_set__ratecontrol_intra_thr_changeable(SHCodecs_Encoder *
 	    encoder->encoding_property.
 	    avcbe_ratecontrol_intra_thr_changeable;
 	encoder->encoding_property.avcbe_ratecontrol_intra_thr_changeable =
-	    _ratecontrol_intra_thr_changeable;
+	    ratecontrol_intra_thr_changeable;
 
 	return old_value;
 }
 
 /**
-* Get the _control_bitrate_length.
+* Get the control_bitrate_length.
 * \param encoder The SHCodecs_Encoder* handle
-* \returns The _control_bitrate_length
+* \returns The control_bitrate_length
 * \retval -1 \a encoder invalid
 */
 long
-shcodecs_encoder_get__control_bitrate_length(SHCodecs_Encoder * encoder)
+shcodecs_encoder_get_control_bitrate_length(SHCodecs_Encoder * encoder)
 {
 	if (encoder == NULL)
 		return -1;
@@ -541,15 +536,15 @@ shcodecs_encoder_get__control_bitrate_length(SHCodecs_Encoder * encoder)
 }
 
 /**
-* Set the _control_bitrate_length.
+* Set the control_bitrate_length.
 * \param encoder The SHCodecs_Encoder* handle
-* \param _control_bitrate_length The new value for \a _control_bitrate_length
-* \returns The previous value of \a _control_bitrate_length
+* \param control_bitrate_length The new value for \a control_bitrate_length
+* \returns The previous value of \a control_bitrate_length
 * \retval -1 \a encoder invalid
 */
 long
-shcodecs_encoder_set__control_bitrate_length(SHCodecs_Encoder * encoder,
-					     long _control_bitrate_length)
+shcodecs_encoder_set_control_bitrate_length(SHCodecs_Encoder * encoder,
+					    long control_bitrate_length)
 {
 	long old_value;
 
@@ -559,20 +554,20 @@ shcodecs_encoder_set__control_bitrate_length(SHCodecs_Encoder * encoder,
 	old_value =
 	    encoder->encoding_property.avcbe_control_bitrate_length;
 	encoder->encoding_property.avcbe_control_bitrate_length =
-	    _control_bitrate_length;
+	    control_bitrate_length;
 
 	return old_value;
 }
 
 /**
-* Get the _intra_macroblock_refresh_cycle.
+* Get the intra_macroblock_refresh_cycle.
 * \param encoder The SHCodecs_Encoder* handle
-* \returns The _intra_macroblock_refresh_cycle
+* \returns The intra_macroblock_refresh_cycle
 * \retval -1 \a encoder invalid
 */
 long
-shcodecs_encoder_get__intra_macroblock_refresh_cycle(SHCodecs_Encoder *
-						     encoder)
+shcodecs_encoder_get_intra_macroblock_refresh_cycle(SHCodecs_Encoder *
+						    encoder)
 {
 	if (encoder == NULL)
 		return -1;
@@ -582,17 +577,17 @@ shcodecs_encoder_get__intra_macroblock_refresh_cycle(SHCodecs_Encoder *
 }
 
 /**
-* Set the _intra_macroblock_refresh_cycle.
+* Set the intra_macroblock_refresh_cycle.
 * \param encoder The SHCodecs_Encoder* handle
-* \param _intra_macroblock_refresh_cycle The new value for \a _intra_macroblock_refresh_cycle
-* \returns The previous value of \a _intra_macroblock_refresh_cycle
+* \param intra_macroblock_refresh_cycle The new value for \a intra_macroblock_refresh_cycle
+* \returns The previous value of \a intra_macroblock_refresh_cycle
 * \retval -1 \a encoder invalid
 */
 long
-shcodecs_encoder_set__intra_macroblock_refresh_cycle(SHCodecs_Encoder *
-						     encoder,
-						     long
-						     _intra_macroblock_refresh_cycle)
+shcodecs_encoder_set_intra_macroblock_refresh_cycle(SHCodecs_Encoder *
+						    encoder,
+						    long
+						    intra_macroblock_refresh_cycle)
 {
 	long old_value;
 
@@ -603,18 +598,18 @@ shcodecs_encoder_set__intra_macroblock_refresh_cycle(SHCodecs_Encoder *
 	    encoder->encoding_property.
 	    avcbe_intra_macroblock_refresh_cycle;
 	encoder->encoding_property.avcbe_intra_macroblock_refresh_cycle =
-	    _intra_macroblock_refresh_cycle;
+	    intra_macroblock_refresh_cycle;
 
 	return old_value;
 }
 
 /**
-* Get the _video_format.
+* Get the video_format.
 * \param encoder The SHCodecs_Encoder* handle
-* \returns The _video_format
+* \returns The video_format
 * \retval -1 \a encoder invalid
 */
-long shcodecs_encoder_get__video_format(SHCodecs_Encoder * encoder)
+long shcodecs_encoder_get_video_format(SHCodecs_Encoder * encoder)
 {
 	if (encoder == NULL)
 		return -1;
@@ -623,15 +618,15 @@ long shcodecs_encoder_get__video_format(SHCodecs_Encoder * encoder)
 }
 
 /**
-* Set the _video_format.
+* Set the video_format.
 * \param encoder The SHCodecs_Encoder* handle
-* \param _video_format The new value for \a _video_format
-* \returns The previous value of \a _video_format
+* \param video_format The new value for \a video_format
+* \returns The previous value of \a video_format
 * \retval -1 \a encoder invalid
 */
 long
-shcodecs_encoder_set__video_format(SHCodecs_Encoder * encoder,
-				   long _video_format)
+shcodecs_encoder_set_video_format(SHCodecs_Encoder * encoder,
+				  long video_format)
 {
 	long old_value;
 
@@ -639,18 +634,18 @@ shcodecs_encoder_set__video_format(SHCodecs_Encoder * encoder,
 		return -1;
 
 	old_value = encoder->encoding_property.avcbe_video_format;
-	encoder->encoding_property.avcbe_video_format = _video_format;
+	encoder->encoding_property.avcbe_video_format = video_format;
 
 	return old_value;
 }
 
 /**
-* Get the _frame_num_resolution.
+* Get the frame_num_resolution.
 * \param encoder The SHCodecs_Encoder* handle
-* \returns The _frame_num_resolution
+* \returns The frame_num_resolution
 * \retval -1 \a encoder invalid
 */
-long shcodecs_encoder_get__frame_num_resolution(SHCodecs_Encoder * encoder)
+long shcodecs_encoder_get_frame_num_resolution(SHCodecs_Encoder * encoder)
 {
 	if (encoder == NULL)
 		return -1;
@@ -659,15 +654,15 @@ long shcodecs_encoder_get__frame_num_resolution(SHCodecs_Encoder * encoder)
 }
 
 /**
-* Set the _frame_num_resolution.
+* Set the frame_num_resolution.
 * \param encoder The SHCodecs_Encoder* handle
-* \param _frame_num_resolution The new value for \a _frame_num_resolution
-* \returns The previous value of \a _frame_num_resolution
+* \param frame_num_resolution The new value for \a frame_num_resolution
+* \returns The previous value of \a frame_num_resolution
 * \retval -1 \a encoder invalid
 */
 long
-shcodecs_encoder_set__frame_num_resolution(SHCodecs_Encoder * encoder,
-					   long _frame_num_resolution)
+shcodecs_encoder_set_frame_num_resolution(SHCodecs_Encoder * encoder,
+					  long frame_num_resolution)
 {
 	long old_value;
 
@@ -676,18 +671,18 @@ shcodecs_encoder_set__frame_num_resolution(SHCodecs_Encoder * encoder,
 
 	old_value = encoder->encoding_property.avcbe_frame_num_resolution;
 	encoder->encoding_property.avcbe_frame_num_resolution =
-	    _frame_num_resolution;
+	    frame_num_resolution;
 
 	return old_value;
 }
 
 /**
-* Get the _noise_reduction.
+* Get the noise_reduction.
 * \param encoder The SHCodecs_Encoder* handle
-* \returns The _noise_reduction
+* \returns The noise_reduction
 * \retval -1 \a encoder invalid
 */
-long shcodecs_encoder_get__noise_reduction(SHCodecs_Encoder * encoder)
+long shcodecs_encoder_get_noise_reduction(SHCodecs_Encoder * encoder)
 {
 	if (encoder == NULL)
 		return -1;
@@ -696,15 +691,15 @@ long shcodecs_encoder_get__noise_reduction(SHCodecs_Encoder * encoder)
 }
 
 /**
-* Set the _noise_reduction.
+* Set the noise_reduction.
 * \param encoder The SHCodecs_Encoder* handle
-* \param _noise_reduction The new value for \a _noise_reduction
-* \returns The previous value of \a _noise_reduction
+* \param noise_reduction The new value for \a noise_reduction
+* \returns The previous value of \a noise_reduction
 * \retval -1 \a encoder invalid
 */
 long
-shcodecs_encoder_set__noise_reduction(SHCodecs_Encoder * encoder,
-				      long _noise_reduction)
+shcodecs_encoder_set_noise_reduction(SHCodecs_Encoder * encoder,
+				     long noise_reduction)
 {
 	long old_value;
 
@@ -712,19 +707,18 @@ shcodecs_encoder_set__noise_reduction(SHCodecs_Encoder * encoder,
 		return -1;
 
 	old_value = encoder->encoding_property.avcbe_noise_reduction;
-	encoder->encoding_property.avcbe_noise_reduction =
-	    _noise_reduction;
+	encoder->encoding_property.avcbe_noise_reduction = noise_reduction;
 
 	return old_value;
 }
 
 /**
-* Get the _reaction_param_coeff.
+* Get the reaction_param_coeff.
 * \param encoder The SHCodecs_Encoder* handle
-* \returns The _reaction_param_coeff
+* \returns The reaction_param_coeff
 * \retval -1 \a encoder invalid
 */
-long shcodecs_encoder_get__reaction_param_coeff(SHCodecs_Encoder * encoder)
+long shcodecs_encoder_get_reaction_param_coeff(SHCodecs_Encoder * encoder)
 {
 	if (encoder == NULL)
 		return -1;
@@ -733,15 +727,15 @@ long shcodecs_encoder_get__reaction_param_coeff(SHCodecs_Encoder * encoder)
 }
 
 /**
-* Set the _reaction_param_coeff.
+* Set the reaction_param_coeff.
 * \param encoder The SHCodecs_Encoder* handle
-* \param _reaction_param_coeff The new value for \a _reaction_param_coeff
-* \returns The previous value of \a _reaction_param_coeff
+* \param reaction_param_coeff The new value for \a reaction_param_coeff
+* \returns The previous value of \a reaction_param_coeff
 * \retval -1 \a encoder invalid
 */
 long
-shcodecs_encoder_set__reaction_param_coeff(SHCodecs_Encoder * encoder,
-					   long _reaction_param_coeff)
+shcodecs_encoder_set_reaction_param_coeff(SHCodecs_Encoder * encoder,
+					  long reaction_param_coeff)
 {
 	long old_value;
 
@@ -750,18 +744,18 @@ shcodecs_encoder_set__reaction_param_coeff(SHCodecs_Encoder * encoder,
 
 	old_value = encoder->encoding_property.avcbe_reaction_param_coeff;
 	encoder->encoding_property.avcbe_reaction_param_coeff =
-	    _reaction_param_coeff;
+	    reaction_param_coeff;
 
 	return old_value;
 }
 
 /**
-* Get the _weightedQ_mode.
+* Get the weightedQ_mode.
 * \param encoder The SHCodecs_Encoder* handle
-* \returns The _weightedQ_mode
+* \returns The weightedQ_mode
 * \retval -1 \a encoder invalid
 */
-long shcodecs_encoder_get__weightedQ_mode(SHCodecs_Encoder * encoder)
+long shcodecs_encoder_get_weightedQ_mode(SHCodecs_Encoder * encoder)
 {
 	if (encoder == NULL)
 		return -1;
@@ -770,15 +764,15 @@ long shcodecs_encoder_get__weightedQ_mode(SHCodecs_Encoder * encoder)
 }
 
 /**
-* Set the _weightedQ_mode.
+* Set the weightedQ_mode.
 * \param encoder The SHCodecs_Encoder* handle
-* \param _weightedQ_mode The new value for \a _weightedQ_mode
-* \returns The previous value of \a _weightedQ_mode
+* \param weightedQ_mode The new value for \a weightedQ_mode
+* \returns The previous value of \a weightedQ_mode
 * \retval -1 \a encoder invalid
 */
 long
-shcodecs_encoder_set__weightedQ_mode(SHCodecs_Encoder * encoder,
-				     long _weightedQ_mode)
+shcodecs_encoder_set_weightedQ_mode(SHCodecs_Encoder * encoder,
+				    long weightedQ_mode)
 {
 	long old_value;
 
@@ -786,7 +780,7 @@ shcodecs_encoder_set__weightedQ_mode(SHCodecs_Encoder * encoder,
 		return -1;
 
 	old_value = encoder->encoding_property.avcbe_weightedQ_mode;
-	encoder->encoding_property.avcbe_weightedQ_mode = _weightedQ_mode;
+	encoder->encoding_property.avcbe_weightedQ_mode = weightedQ_mode;
 
 	return old_value;
 }
