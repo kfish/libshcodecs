@@ -16,7 +16,6 @@
 #include <stdio.h>
 
 #include "capture.h"
-#include "avcbe_inner.h"
 
 //#define MAX_D1
 
@@ -115,30 +114,6 @@
 
 /*----- structures -----*/
 
-typedef struct {		/* add at Version2 */
-	long weightdQ_enable;
-	TAVCBE_WEIGHTEDQ_CENTER weightedQ_info_center;	/* API関数avcbe_set_weightedQ()に渡すための構造体(1) */
-	TAVCBE_WEIGHTEDQ_RECT weightedQ_info_rect;	/* API関数avcbe_set_weightedQ()に渡すための構造体(2) */
-	TAVCBE_WEIGHTEDQ_USER weightedQ_info_user;	/* API関数avcbe_set_weightedQ()に渡すための構造体(3) */
-	char weightedQ_table_filepath[256];	/* 重み付けテーブルファイルのパス名 */
-
-	/* Table to set encoding parameter (for H.264 bitstream) */
-	avcbe_vui_main_param vui_main_param;	/* the parameter of the avcbe_set_VUI_parameters function */
-
-	char out_buffering_period_SEI;	/* whether output buffering_period SEI message (1:output, 2:NOT outputj */
-	char out_pic_timing_SEI;	/* whether output picture_timing SEI message (1:output, 2:NOT outputj */
-	char out_pan_scan_rect_SEI;	/* whether output filler_payload SEI message (1:output, 2:NOT outputj */
-	char out_filler_payload_SEI;	/* whether output picture_timing SEI message (1:output, 2:NOT outputj */
-	char out_recovery_point_SEI;	/* whether output recovery_point SEI message (1:output, 2:NOT outputj */
-	char out_dec_ref_pic_marking_repetition_SEI;	/* whether output dec_ref_pic_marking_repetition SEI message (1:output, 2:NOT outputj */
-
-	avcbe_sei_buffering_period_param sei_buffering_period_param;	/* the parameter of the avcbe_put_SEI_parameters function (1) */
-	avcbe_sei_pic_timing_param sei_pic_timing_param;	/* the parameter of the avcbe_put_SEI_parameters function (2) */
-	avcbe_sei_pan_scan_rect_param sei_pan_scan_rect_param;	/* the parameter of the avcbe_put_SEI_parameters function (3) */
-	avcbe_sei_filler_payload_param sei_filler_payload_param;	/* the parameter of the avcbe_put_SEI_parameters function (4) */
-	avcbe_sei_recovery_point_param sei_recovery_point_param;	/* the parameter of the avcbe_put_SEI_parameters function (5) */
-} OTHER_API_ENC_PARAM;
-
 typedef struct {
 
 	/* Table to store an encoding result (MPEG-4 bitstream) */
@@ -174,8 +149,6 @@ typedef struct {
 	sh_ceu *ceu;
 
 } APPLI_INFO;
-
-
 
 /*-------------- proto-type declaration ----------------------------*/
 /*--- the functions in avcbencsmp_common.c ---*/

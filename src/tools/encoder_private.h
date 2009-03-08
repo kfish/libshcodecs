@@ -4,7 +4,10 @@
 #include <shcodecs/shcodecs_common.h>
 
 #include "avcbe.h"
-#include "avcbencsmp.h"		/* XXX: for APPLI_INFO */
+#include "avcbe_inner.h"
+#include "m4iph_vpu4.h"
+
+#include "avcbencsmp.h"
 
 /**
  * An opaque handle to the VPU4 for encoding.
@@ -39,6 +42,30 @@ typedef int (*SHCodecs_Encoder_Input) (SHCodecs_Encoder * encoder,
 typedef int (*SHCodecs_Encoder_Output) (SHCodecs_Encoder * encoder,
 					unsigned char *data, int length,
 					void *user_data);
+
+typedef struct {		/* add at Version2 */
+	long weightdQ_enable;
+	TAVCBE_WEIGHTEDQ_CENTER weightedQ_info_center;	/* API´Ø¿ôavcbe_set_weightedQ()¤ËÅÏ¤¹¤¿¤á¤Î¹½Â¤ÂÎ(1) */
+	TAVCBE_WEIGHTEDQ_RECT weightedQ_info_rect;	/* API´Ø¿ôavcbe_set_weightedQ()¤ËÅÏ¤¹¤¿¤á¤Î¹½Â¤ÂÎ(2) */
+	TAVCBE_WEIGHTEDQ_USER weightedQ_info_user;	/* API´Ø¿ôavcbe_set_weightedQ()¤ËÅÏ¤¹¤¿¤á¤Î¹½Â¤ÂÎ(3) */
+	char weightedQ_table_filepath[256];	/* ½Å¤ßÉÕ¤±¥Æ¡¼¥Ö¥ë¥Õ¥¡¥¤¥ë¤Î¥Ñ¥¹Ì¾ */
+
+	/* Table to set encoding parameter (for H.264 bitstream) */
+	avcbe_vui_main_param vui_main_param;	/* the parameter of the avcbe_set_VUI_parameters function */
+
+	char out_buffering_period_SEI;	/* whether output buffering_period SEI message (1:output, 2:NOT outputj */
+	char out_pic_timing_SEI;	/* whether output picture_timing SEI message (1:output, 2:NOT outputj */
+	char out_pan_scan_rect_SEI;	/* whether output filler_payload SEI message (1:output, 2:NOT outputj */
+	char out_filler_payload_SEI;	/* whether output picture_timing SEI message (1:output, 2:NOT outputj */
+	char out_recovery_point_SEI;	/* whether output recovery_point SEI message (1:output, 2:NOT outputj */
+	char out_dec_ref_pic_marking_repetition_SEI;	/* whether output dec_ref_pic_marking_repetition SEI message (1:output, 2:NOT outputj */
+
+	avcbe_sei_buffering_period_param sei_buffering_period_param;	/* the parameter of the avcbe_put_SEI_parameters function (1) */
+	avcbe_sei_pic_timing_param sei_pic_timing_param;	/* the parameter of the avcbe_put_SEI_parameters function (2) */
+	avcbe_sei_pan_scan_rect_param sei_pan_scan_rect_param;	/* the parameter of the avcbe_put_SEI_parameters function (3) */
+	avcbe_sei_filler_payload_param sei_filler_payload_param;	/* the parameter of the avcbe_put_SEI_parameters function (4) */
+	avcbe_sei_recovery_point_param sei_recovery_point_param;	/* the parameter of the avcbe_put_SEI_parameters function (5) */
+} OTHER_API_ENC_PARAM;
 
 struct _SHCodecs_Encoder {
 	int width;
@@ -94,10 +121,6 @@ int h264_encode_run (SHCodecs_Encoder * encoder, long stream_type);
 
 int mpeg4_encode_init (SHCodecs_Encoder * encoder, long stream_type);
 int mpeg4_encode_run (SHCodecs_Encoder * encoder, long stream_type);
-
-/* XXX: Move back out of encoder_private.h to appli code */
-int select_inputfile_set_param(SHCodecs_Encoder * encoder,
-			       APPLI_INFO * appli_info);
 
 /* Other internal functions */
 void m4iph_sleep_time_init(void);

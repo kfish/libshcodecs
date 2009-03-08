@@ -14,8 +14,7 @@
 
 #include "avcbencsmp.h"
 
-//#include <shcodecs/shcodecs_encoder.h>
-#include "encoder_private.h"
+#include <shcodecs/shcodecs_encoder.h>
 
 int GetFromCtrlFTop(const char *control_filepath,
 		    APPLI_INFO * appli_info, long *stream_type);

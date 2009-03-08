@@ -18,6 +18,8 @@
 #include <setjmp.h>
 #include <sys/time.h>
 
+#include <shcodecs/shcodecs_encoder.h>
+
 #include "avcbe.h"		/* SuperH MEPG-4&H.264 Video Encode Library Header */
 #include "m4iph_vpu4.h"		/* SuperH MEPG-4&H.264 Video Driver Library Header */
 #include "avcbencsmp.h"		/* User Application Sample Header */
@@ -27,8 +29,6 @@
 
 #include "ControlFileUtil.h"
 
-//#include <shcodecs/shcodecs_encoder.h>
-
 int open_input_image_file(APPLI_INFO *);
 int load_1frame_from_image_file(SHCodecs_Encoder * encoder,
                                 APPLI_INFO * appli_info,
@@ -36,6 +36,9 @@ int load_1frame_from_image_file(SHCodecs_Encoder * encoder,
 				unsigned long *addr_c);
 
 int open_output_file(APPLI_INFO *);
+int select_inputfile_set_param(SHCodecs_Encoder * encoder,
+			       APPLI_INFO * appli_info);
+
 
 APPLI_INFO ainfo;		/* User Application Data */
 
