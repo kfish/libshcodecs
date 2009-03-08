@@ -2536,7 +2536,7 @@ int GetFromCtrlFtoEncParam(SHCodecs_Encoder * encoder,
 	appli_info->yuv_CbCr_format = 2;	/* 指定されなかったときのデフォルト値(2:Cb0,Cr0,Cb1,Cr1,...) *//* 050520 */
 	return_value = GetValueFromCtrlFile(fp_in, "yuv_CbCr_format", &status_flag);	/* 050520 */
 	if (status_flag == 1) {
-		printf("yuv_CbCr_format=%d\n", return_value);
+		printf("yuv_CbCr_format=%ld\n", return_value);
 		appli_info->yuv_CbCr_format = (char) return_value;
 	}
 

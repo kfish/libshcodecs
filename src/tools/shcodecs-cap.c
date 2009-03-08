@@ -37,7 +37,7 @@ static const struct option long_options[] = {
 };
 
 static void
-process_image(const void *frame_data, size_t length, void *user_data)
+process_image(sh_ceu * ceu, const unsigned char *frame_data, size_t length, void *user_data)
 {
 	fputc('.', stdout);
 	fflush(stdout);

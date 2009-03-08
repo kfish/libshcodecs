@@ -3,7 +3,7 @@
 #define __CAPTURE_H__
 
 typedef void *sh_ceu;
-typedef void (*sh_process_callback) (sh_ceu * ceu, const void *frame_data,
+typedef void (*sh_process_callback) (sh_ceu * ceu, const unsigned char *frame_data,
 				     size_t length, void *user_data);
 
 sh_ceu *sh_ceu_open(const char *device_name, int width, int height);

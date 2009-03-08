@@ -31,6 +31,10 @@
 
 #define USE_BVOP
 
+/* capture yuv data to the image-capture-field area each frame */
+int capture_image(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
+                  unsigned long *addr_y, unsigned long *addr_c);
+
 int open_output_file(APPLI_INFO *);
 int select_inputfile_set_param(SHCodecs_Encoder * encoder,
 			       APPLI_INFO * appli_info);

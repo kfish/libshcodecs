@@ -66,7 +66,7 @@ struct capture {
 };
 
 static void
-capture_image_cb(sh_ceu * ceu, const void *frame_data, size_t length,
+capture_image_cb(sh_ceu * ceu, const unsigned char *frame_data, size_t length,
 		 void *user_data)
 {
 	struct capture *cap = (struct capture *) user_data;
@@ -74,7 +74,7 @@ capture_image_cb(sh_ceu * ceu, const void *frame_data, size_t length,
 	int odd = 0;
 	long hsiz, ysiz, i, j;
 	const unsigned char *d;
-	const short *ds;
+	const unsigned short *ds;
 	short rgb;
 	unsigned char *y, *c;
 	unsigned long *w_addr_yuv;
@@ -298,6 +298,8 @@ int capture_image(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
 	cap.addr_c = addr_c;
 
 	sh_ceu_capture_frame(appli_info->ceu, capture_image_cb, &cap);
+
+	return 0;
 }
 
 /* copy yuv data to the image-capture-field area each frame */

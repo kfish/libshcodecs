@@ -511,6 +511,8 @@ int sh_veu_open(void)
 {
 	sh_veu_probe(0, 0);
 	sh_veu_init();
+
+        return 0;
 }
 
 void sh_veu_close(void)
@@ -535,10 +537,10 @@ sh_veu_rgb565_to_nv12(unsigned char *rgb565_in,
 
 	write_reg(&sh_veu_uio_mmio, stride, VEDWR);
 
-	write_reg(&sh_veu_uio_mmio, rgb565_in, VSAYR);
+	write_reg(&sh_veu_uio_mmio, (unsigned long)rgb565_in, VSAYR);
 
-	write_reg(&sh_veu_uio_mmio, y_out, VDAYR);
-	write_reg(&sh_veu_uio_mmio, c_out, VDACR);	/* unused for RGB */
+	write_reg(&sh_veu_uio_mmio, (unsigned long)y_out, VDAYR);
+	write_reg(&sh_veu_uio_mmio, (unsigned long)c_out, VDACR);	/* unused for RGB */
 
 	//write_reg(&sh_veu_uio_mmio, 0x66, VSWPR);
 	write_reg(&sh_veu_uio_mmio, 0x60 | 0x07, VSWPR);
@@ -575,6 +577,8 @@ sh_veu_rgb565_to_nv12(unsigned char *rgb565_in,
 	write_reg(&sh_veu_uio_mmio, 0x100, VEVTR);	/* ack int, write 0 to bit 0 */
 
 	printf("sh_veu_rgb565_to_nv12 OUT\n");
+
+        return 0;
 }
 
 #if 0
