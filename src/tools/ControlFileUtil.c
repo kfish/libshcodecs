@@ -1574,8 +1574,7 @@ static int GetFromCtrlFtoOther_options_H264(FILE * fp_in,
  * Return Value		: 
  *****************************************************************************/
 static int GetFromCtrlFtoOther_options_MPEG4(FILE * fp_in,
-				      avcbe_other_options_mpeg4 *
-				      other_options_mpeg4)
+					SHCodecs_Encoder * encoder)
 {
 	int status_flag;
 	long return_value;
@@ -1583,222 +1582,202 @@ static int GetFromCtrlFtoOther_options_MPEG4(FILE * fp_in,
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "out_vos", &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_out_vos = return_value;
+		shcodecs_encoder_set_mpeg4_out_vos (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "out_gov", &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_out_gov = return_value;
+		shcodecs_encoder_set_mpeg4_out_gov (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "aspect_ratio_info_type",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_aspect_ratio_info_type =
-		    return_value;
+		shcodecs_encoder_set_mpeg4_aspect_ratio_info_type (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "aspect_ratio_info_value",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_aspect_ratio_info_value =
-		    return_value;
+		shcodecs_encoder_set_mpeg4_aspect_ratio_info_value (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "vos_profile_level_type",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_vos_profile_level_type =
-		    return_value;
+		shcodecs_encoder_set_mpeg4_vos_profile_level_type (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "vos_profile_level_value",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_vos_profile_level_value =
-		    return_value;
+		shcodecs_encoder_set_mpeg4_vos_profile_level_value (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "out_visual_object_identifier",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_out_visual_object_identifier =
-		    return_value;
+		shcodecs_encoder_set_mpeg4_out_visual_object_identifier (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "visual_object_verid",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_visual_object_verid =
-		    return_value;
+		shcodecs_encoder_set_mpeg4_visual_object_verid (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "visual_object_priority",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_visual_object_priority =
-		    return_value;
+		shcodecs_encoder_set_mpeg4_visual_object_priority (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "video_object_type_indication",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_video_object_type_indication =
-		    return_value;
+		shcodecs_encoder_set_mpeg4_video_object_type_indication (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "out_object_layer_identifier",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_out_object_layer_identifier =
-		    return_value;
+		shcodecs_encoder_set_mpeg4_out_object_layer_identifier (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "video_object_layer_verid",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_video_object_layer_verid =
-		    return_value;
+		shcodecs_encoder_set_mpeg4_video_object_layer_verid (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "video_object_layer_priority",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_video_object_layer_priority =
-		    return_value;
+		shcodecs_encoder_set_mpeg4_video_object_layer_priority (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "error_resilience_mode",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_error_resilience_mode =
-		    return_value;
+		shcodecs_encoder_set_mpeg4_error_resilience_mode (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "video_packet_size_mb",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_video_packet_size_mb =
-		    return_value;
+		shcodecs_encoder_set_mpeg4_video_packet_size_mb (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "video_packet_size_bit",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_video_packet_size_bit =
-		    return_value;
+		shcodecs_encoder_set_mpeg4_video_packet_size_bit (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "video_packet_header_extention",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_video_packet_header_extention =
-		    return_value;
+		shcodecs_encoder_set_mpeg4_video_packet_header_extention (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "data_partitioned", &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_data_partitioned = return_value;
+		shcodecs_encoder_set_mpeg4_data_partitioned (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "reversible_vlc", &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_reversible_vlc = return_value;
+		shcodecs_encoder_set_mpeg4_reversible_vlc (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "high_quality", &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_high_quality = return_value;
+		shcodecs_encoder_set_mpeg4_high_quality (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "param_changeable", &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_param_changeable = return_value;
+		shcodecs_encoder_set_mpeg4_param_changeable (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "changeable_max_bitrate",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_changeable_max_bitrate =
-		    return_value;
+		shcodecs_encoder_set_mpeg4_changeable_max_bitrate (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "Ivop_quant_initial_value",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_Ivop_quant_initial_value =
-		    return_value;
+		shcodecs_encoder_set_mpeg4_Ivop_quant_initial_value (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "Pvop_quant_initial_value",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_Pvop_quant_initial_value =
-		    return_value;
+		shcodecs_encoder_set_mpeg4_Pvop_quant_initial_value (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "use_dquant", &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_use_dquant = return_value;
+		shcodecs_encoder_set_mpeg4_use_dquant (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "clip_dquant_frame", &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_clip_dquant_frame =
-		    return_value;
+		shcodecs_encoder_set_mpeg4_clip_dquant_frame (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "quant_min", &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_quant_min = return_value;
+		shcodecs_encoder_set_mpeg4_quant_min (encoder, return_value);
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "quant_min_Ivop_under_range", &status_flag);	/* 050509 */
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_quant_min_Ivop_under_range =
-		    return_value;
+		shcodecs_encoder_set_mpeg4_quant_min_Ivop_under_range (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "quant_max", &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_quant_max = return_value;
+		shcodecs_encoder_set_mpeg4_quant_max (encoder, return_value);
 	}
 
 /*	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_rcperiod_skipcheck_enable", &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_ratecontrol_rcperiod_skipcheck_enable = return_value;
+		shcodecs_encoder_set_mpeg4_ratecontrol_rcperiod_skipcheck_enable (encoder, return_value);
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_rcperiod_Ivop_noskip", &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_ratecontrol_rcperiod_Ivop_noskip = return_value;
+		shcodecs_encoder_set_mpeg4_ratecontrol_rcperiod_Ivop_noskip (encoder, return_value);
 			}
 *//* 050603 パラメータから削除されたので */
 
@@ -1806,88 +1785,79 @@ static int GetFromCtrlFtoOther_options_MPEG4(FILE * fp_in,
 	    GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_skipcheck_enable",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_ratecontrol_vbv_skipcheck_enable
-		    = return_value;
+		shcodecs_encoder_set_mpeg4_ratecontrol_vbv_skipcheck_enable (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_Ivop_noskip",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_ratecontrol_vbv_Ivop_noskip =
-		    return_value;
+		shcodecs_encoder_set_mpeg4_ratecontrol_vbv_Ivop_noskip (encoder, return_value);
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_remain_zero_skip_enable", &status_flag);	/* 050524 */
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_ratecontrol_vbv_remain_zero_skip_enable
-		    = return_value;
+		shcodecs_encoder_set_mpeg4_ratecontrol_vbv_remain_zero_skip_enable (encoder, return_value);
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_buffer_unit_size", &status_flag);	/* 順序変更 050601 */
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_ratecontrol_vbv_buffer_unit_size
-		    = return_value;
+		shcodecs_encoder_set_mpeg4_ratecontrol_vbv_buffer_unit_size (encoder, return_value);
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_buffer_mode", &status_flag);	/* 順序変更 050601 */
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_ratecontrol_vbv_buffer_mode =
-		    return_value;
+		shcodecs_encoder_set_mpeg4_ratecontrol_vbv_buffer_mode (encoder, return_value);
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_max_size", &status_flag);	/* 順序変更 050601 */
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_ratecontrol_vbv_max_size =
-		    return_value;
+		shcodecs_encoder_set_mpeg4_ratecontrol_vbv_max_size (encoder, return_value);
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_offset", &status_flag);	/* 順序変更 050601 */
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_ratecontrol_vbv_offset =
-		    return_value;
+		shcodecs_encoder_set_mpeg4_ratecontrol_vbv_offset (encoder, return_value);
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_vbv_offset_rate", &status_flag);	/* 順序変更 050601 */
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_ratecontrol_vbv_offset_rate =
-		    return_value;
+		shcodecs_encoder_set_mpeg4_ratecontrol_vbv_offset_rate (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "quant_type", &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_quant_type = return_value;
+		shcodecs_encoder_set_mpeg4_quant_type (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "use_AC_prediction", &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_use_AC_prediction =
-		    return_value;
+		shcodecs_encoder_set_mpeg4_use_AC_prediction (encoder, return_value);
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "vop_min_mode", &status_flag);	/* 050524 */
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_vop_min_mode = return_value;
+		shcodecs_encoder_set_mpeg4_vop_min_mode (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "vop_min_size", &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_vop_min_size = return_value;
+		shcodecs_encoder_set_mpeg4_vop_min_size (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "intra_thr", &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_intra_thr = return_value;
+		shcodecs_encoder_set_mpeg4_intra_thr (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "b_vop_num", &status_flag);
 	if (status_flag == 1) {
-		other_options_mpeg4->avcbe_b_vop_num = return_value;
+		shcodecs_encoder_set_mpeg4_b_vop_num (encoder, return_value);
 	}
 
 	return (1);		/* 正常終了 */
@@ -2602,8 +2572,7 @@ int GetFromCtrlFtoEncParam(SHCodecs_Encoder * encoder,
 		   (encoding_property->avcbe_stream_type == AVCBE_H263)) {
 
 		/*** avcbe_other_options_mpeg4 ***/
-		GetFromCtrlFtoOther_options_MPEG4(fp_in,
-						  other_options_mpeg4);
+		GetFromCtrlFtoOther_options_MPEG4(fp_in, encoder);
 	}
 
 	fclose(fp_in);
