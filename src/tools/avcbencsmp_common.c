@@ -21,7 +21,7 @@
 #include "avcbencsmp.h"		/* User Application Sample Header */
 #include "m4driverif.h"
 
-#include "encoder_private.h"	/* XXX */
+#include "encoder_private.h"   /* XXX */
 
 #include "ControlFileUtil.h"
 
@@ -214,11 +214,8 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder,
 	int return_code;
 
 	return_code =
-	    GetFromCtrlFtoEncParam(encoder,
-                                   appli_info,
-				   &encoder->encoding_property,
-				   &encoder->other_options_h264,
-				   &encoder->other_options_mpeg4);
+	    GetFromCtrlFtoEncParam(encoder, appli_info);
+
 	if (return_code == -1) {
 		printf("Control file not found !\n");
 		/* コントロールファイルが見つからないなどのエラー */

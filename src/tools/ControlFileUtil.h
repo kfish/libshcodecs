@@ -20,13 +20,6 @@
 int GetFromCtrlFTop(const char *control_filepath,
 		    APPLI_INFO * appli_info, long *stream_type);
 
-int GetFromCtrlFtoEncParam(SHCodecs_Encoder * encoder,
-                           APPLI_INFO * appli_info,
-			   avcbe_encoding_property *
-			   encoding_property,
-			   avcbe_other_options_h264 *
-			   other_options_h264,
-			   avcbe_other_options_mpeg4 *
-			   other_options_mpeg4);
+int GetFromCtrlFtoEncParam(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info);
 
 #endif				/* CONTROL_FILE_UTIL_H */

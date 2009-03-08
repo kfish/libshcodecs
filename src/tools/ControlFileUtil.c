@@ -2516,21 +2516,16 @@ int GetFromCtrlFTop(const char *control_filepath,
  * Return Value		: 1: 正常終了、-1: エラー
  *****************************************************************************/
 int GetFromCtrlFtoEncParam(SHCodecs_Encoder * encoder,
-                           APPLI_INFO * appli_info,
-			   avcbe_encoding_property * encoding_property,
-			   avcbe_other_options_h264 * other_options_h264,
-			   avcbe_other_options_mpeg4 * other_options_mpeg4)
+                           APPLI_INFO * appli_info)
 {
 	FILE *fp_in;
 	int status_flag;
 	long return_value;
+	long stream_type;
 
 	if ((encoder == NULL) ||
             (appli_info == NULL) ||
-	    (appli_info->ctrl_file_name_buf == NULL) ||
-	    (encoding_property == NULL) ||
-	    (other_options_h264 == NULL) ||
-	    (other_options_mpeg4 == NULL)) {
+	    (appli_info->ctrl_file_name_buf == NULL)) {
 		return (-1);
 	}
 
@@ -2557,7 +2552,9 @@ int GetFromCtrlFtoEncParam(SHCodecs_Encoder * encoder,
 	/*** avcbe_encoding_property ***/
 	GetFromCtrlFtoEncoding_property(fp_in, encoder);
 
-	if (encoding_property->avcbe_stream_type == AVCBE_H264) {
+        stream_type = shcodecs_encoder_get_stream_type (encoder);
+
+	if (stream_type == AVCBE_H264) {
 		/*** avcbe_other_options_h264 ***/
 		GetFromCtrlFtoOther_options_H264(fp_in, encoder);
 	        return_value = GetValueFromCtrlFile(fp_in, "ref_frame_num", &status_flag);
@@ -2568,8 +2565,7 @@ int GetFromCtrlFtoEncParam(SHCodecs_Encoder * encoder,
 	        if (status_flag == 1) {
 	        	shcodecs_encoder_set_output_filler_enable (encoder, return_value);
 	        }
-	} else if ((encoding_property->avcbe_stream_type == AVCBE_MPEG4) ||
-		   (encoding_property->avcbe_stream_type == AVCBE_H263)) {
+	} else if ((stream_type == AVCBE_MPEG4) || (stream_type == AVCBE_H263)) {
 
 		/*** avcbe_other_options_mpeg4 ***/
 		GetFromCtrlFtoOther_options_MPEG4(fp_in, encoder);
