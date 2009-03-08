@@ -141,4 +141,8 @@ shcodecs_encoder_set_ref_frame_num (SHCodecs_Encoder * encoder, int ref_frame_nu
 int
 shcodecs_encoder_set_output_filler_enable (SHCodecs_Encoder * encoder, int output_filler_enable);
 
+#include <shcodecs/encode_properties.h>
+#include <shcodecs/encode_h264.h>
+#include <shcodecs/encode_mpeg4.h>
+
 #endif /* __SHCODECS_ENCODER_H__ */
