@@ -13,6 +13,8 @@
 #ifndef	AVCBENCSMP_H
 #define	AVCBENCSMP_H
 
+#include <stdio.h>
+
 #include "capture.h"
 #include "avcbe_inner.h"
 

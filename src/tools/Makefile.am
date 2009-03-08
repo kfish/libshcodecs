@@ -36,6 +36,9 @@ shcodecs_enc_SOURCES =  \
 	avcbeinputuser.c \
 	avcbencsmp_common.c \
 	shcodecs_encoder.c \
+	h264_accessors.c \
+	mpeg4_accessors.c \
+	property_accessors.c \
 	h264_encode.c \
 	mpeg4_encode.c \
 	m4driverif.c \
@@ -60,6 +63,9 @@ shcodecs_capenc_SOURCES =  \
 	avcbeinputuser.c \
 	avcbencsmp_common.c \
 	shcodecs_encoder.c \
+	h264_accessors.c \
+	mpeg4_accessors.c \
+	property_accessors.c \
 	h264_encode.c \
 	mpeg4_encode.c \
 	m4driverif.c \

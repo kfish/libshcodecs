@@ -20,6 +20,8 @@
 
 #include <setjmp.h>
 
+#include "m4iph_vpu4.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
