@@ -11,6 +11,7 @@
 *****************************************************************************/
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <limits.h>
 #include <ctype.h>
 #include <string.h>
@@ -36,17 +37,13 @@ extern char *dummy_nal_buf;
 #define DEVICE_VPU "/dev/vpu"
 #define DEVICE_SDR "/dev/sdr"
 void *global_context = NULL;
-long encode_time;
 
-void encode_time_init(void)
-{
-	encode_time = 0;
-}
+extern long encode_time;
 
-unsigned long encode_time_get(void)
-{
-	return encode_time;
-}
+int vpu4_clock_on(void);
+int vpu4_clock_off(void);
+unsigned long m4iph_sleep_time_get(void);
+
 
 /*** Stream-output buffer to receive an encoding result in every one frame ***/
 
@@ -94,9 +91,9 @@ get_new_stream_buf(avcbe_stream_info * context,
 		   char **next_stream_buff, long *stream_buff_size)
 {
 	printf
-	    (" get_new_stream_buf: p_s_b = %p, output_size = %X s_b_s=0x%X \n",
+	    (" get_new_stream_buf: p_s_b = %p, output_size = %lX s_b_s=0x%lX \n",
 	     previous_stream_buff, output_size, *stream_buff_size);
-	*next_stream_buff = (unsigned char *) &my_end_code_buff[1];
+	*next_stream_buff = (char *) &my_end_code_buff[1];
 	*stream_buff_size = MY_STREAM_BUFF_SIZE;
 
 }
@@ -169,6 +166,8 @@ mpeg4_encode_init_other_options (SHCodecs_Encoder * encoder)
 	encoder->other_options_mpeg4.avcbe_intra_thr = 6000;
 	encoder->other_options_mpeg4.avcbe_b_vop_num = 0;
 #endif
+
+	return 0;
 }
 /*---------------------------------------------------------------------*/
 
@@ -214,7 +213,8 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder,
 	unsigned long nrefframe, nldecfmem, addr_temp;
 	unsigned long *addr_y, *addr_c, *ptr;
 	TAVCBE_WORKAREA WORK_ARRY[2];
-	long area_width, area_height, i;
+	long area_width, area_height;
+        unsigned long i;
 
 	DisplayMessage(" 1 calling avcbe_init_encode ", 1);
 
@@ -313,8 +313,7 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder,
 #ifdef USE_BVOP			/* 050106 */
 	if (encoder->other_options_mpeg4.avcbe_b_vop_num > 0) {
 		for (i = 0;
-		     i <
-		     encoder->other_options_mpeg4.avcbe_b_vop_num + 1;
+		     i < encoder->other_options_mpeg4.avcbe_b_vop_num + 1;
 		     i++) {
 			addr_temp =
 			    (unsigned long) my_frame_memory_capt[i];
@@ -324,10 +323,10 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder,
 					       (area_width * area_height));
 			CAPTF_ARRY[i].Y_fmemp = (unsigned char *) addr_y;
 			CAPTF_ARRY[i].C_fmemp = (unsigned char *) addr_c;
-			printf("addr_y=%x,addr_c=%x\n", addr_y, addr_c);
+			printf("addr_y=%p,addr_c=%p\n", addr_y, addr_c);
 		}
 		nldecfmem = encoder->other_options_mpeg4.avcbe_b_vop_num;	/* LDEC_ARRY[2]AB-VOP[JfR[ho 050106 */
-		printf("b_vop_num=%d\n", nldecfmem);
+		printf("b_vop_num=%lu\n", nldecfmem);
 //              m4vse_output_local_image_of_b_vop = AVCBE_ON; /* 050302 */
 	}
 #endif				/* USE_BVOP */
@@ -336,7 +335,7 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder,
 	return_code =
 	    avcbe_init_memory(*context, nrefframe, nldecfmem, LDEC_ARRY,
 			      area_width, area_height);
-	printf("avcbe_init_memory=%d\n", return_code);
+	printf("avcbe_init_memory=%ld\n", return_code);
 
 	if (return_code != 0) {
 		if (return_code == -1) {
@@ -374,7 +373,7 @@ clip_image_data_for_H263(SHCodecs_Encoder * encoder,
 
 	width = encoder->width;
 	height = encoder->height;
-	printf("clip_image: width=%d, height=%d,addr_y=%X,addr_c=%X\n",
+	printf("clip_image: width=%ld, height=%ld,addr_y=%p,addr_c=%p\n",
 	       width, height, addr_y, addr_c);
 	addr_y_2 = malloc(width * height);
 	addr_c_2 = malloc(width * height / 2);
@@ -503,7 +502,7 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 					addr_c = addr_c_tbl[index];
 					captfmem.Y_fmemp = (unsigned char *) addr_y;	/* 050210 captfmem add */
 					captfmem.C_fmemp = (unsigned char *) addr_c;	/* 050210 captfmem add */
-					printf("BVOP index=%d\n", index);
+					printf("BVOP index=%ld\n", index);
 					break;
 				}
 			}
@@ -531,7 +530,7 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 			return_code =
 			    clip_image_data_for_H263(encoder, context,
 						     addr_y, addr_c);
-			printf("H.263...clip_image_sata=%d\n",
+			printf("H.263...clip_image_sata=%ld\n",
 			       return_code);
 		}
 		return_code =
@@ -593,9 +592,9 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 			tm = 1000 - (tv.tv_usec - tv1.tv_usec) / 1000;
 		}
 		encode_time += tm;
-		printf("Total encode time = %dmsec(%dmsec),", tm,
+		printf("Total encode time = %ldmsec(%lumsec),", tm,
 		       encode_time_get());
-		printf("Total sleep  time = %d(msec)\n",
+		printf("Total sleep  time = %ld(msec)\n",
 		       m4iph_sleep_time_get());
 		vpu4_clock_off();
 #endif				/* CAPT_INPUT */
@@ -641,14 +640,14 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 			return (-11);
 		} else if (return_code == AVCBE_ENCODE_SUCCESS) {	/* 0 */
 			sprintf(messeage_buf,
-				" encode_1file_mpeg4:avcbe_encode_picture SUCCESS  frm=%d,seq_no=%d ",
+				" encode_1file_mpeg4:avcbe_encode_picture SUCCESS  frm=%ld,seq_no=%ld ",
 				frm, encoder->frame_counter);
 			DisplayMessage(messeage_buf, 1);
 			/* the second parameter 'ldec' value must be changed when *
 			 * the avcbe_set_image_pointer function is called on next time. */
 		} else if (return_code == AVCBE_FRAME_SKIPPED) {	/* 1 */
 			sprintf(messeage_buf,
-				" encode_1file_mpeg4:avcbe_encode_picture THIS FRAME SKIPPED(Not Encoded)  frm=%d,seq_no=%d ",
+				" encode_1file_mpeg4:avcbe_encode_picture THIS FRAME SKIPPED(Not Encoded)  frm=%ld,seq_no=%ld ",
 				frm, encoder->frame_counter);
 			DisplayMessage(messeage_buf, 1);
 			/* the second parameter 'ldec' value must NOT be changed *
@@ -656,7 +655,7 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 			encoder->frame_skip_num++;
 		} else if (return_code == AVCBE_EMPTY_VOP_OUTPUTTED) {	/* 2 */
 			sprintf(messeage_buf,
-				" encode_1file_mpeg4:avcbe_encode_picture EMPTY VOP CREATED  frm=%d,seq_no=%d ",
+				" encode_1file_mpeg4:avcbe_encode_picture EMPTY VOP CREATED  frm=%ld,seq_no=%ld ",
 				frm, encoder->frame_counter);
 			DisplayMessage(messeage_buf, 1);
 			/* the second parameter 'ldec' value must NOT be changed *
@@ -664,13 +663,13 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 
 		} else if (return_code == AVCBE_B_VOP_OUTPUTTED) {	/* 4 */
 			sprintf(messeage_buf,
-				" encode_1file_mpeg4:avcbe_encode_picture B-VOP OUTPUTTED  frm=%d,seq_no=%d ",
+				" encode_1file_mpeg4:avcbe_encode_picture B-VOP OUTPUTTED  frm=%ld,seq_no=%ld ",
 				frm, encoder->frame_counter);
 			DisplayMessage(messeage_buf, 1);
 			/* the second parameter 'ldec' value is ignored when B-VOP is used */
 		} else {
 			sprintf(messeage_buf,
-				" encode_1file_mpeg4:avcbe_encode_picture UNKNOWN RETURN CODE=%d  frm=%d,seq_no=%d ",
+				" encode_1file_mpeg4:avcbe_encode_picture UNKNOWN RETURN CODE=%ld  frm=%ld,seq_no=%ld ",
 				return_code, frm,
 				encoder->frame_counter);
 			DisplayMessage(messeage_buf, 1);

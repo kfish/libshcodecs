@@ -481,7 +481,7 @@ int avcbd_idr_adjust(void *context)
 {
 	TAVCBD_VARIABLES *var;
 
-	if ((!context) || ((short) context & 3)) {
+	if ((!context) || ((int)context & 3)) {
 		return AVCBD_PARAM_ERROR;
 	}
 	var = (TAVCBD_VARIABLES *) context;

@@ -57,6 +57,8 @@ extern long slice_total_size;
 extern long tmp_pic_total_bytes;
 extern long tmp_slice_size;
 
+unsigned long m4iph_sleep_time_get(void);
+
 /*-------------------------------------------------------------------------------*/
 
 int h264_encode_init (SHCodecs_Encoder * encoder, long stream_type)
@@ -1165,14 +1167,14 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder,
 					 &my_stream_buff_info,
 					 extra_stream_buff);
 		gettimeofday(&tv1, &tz);
-		printf("ret=%d,enc_pic1=%ld,", return_code, tv1.tv_usec);
+		printf("ret=%ld,enc_pic1=%lu,", return_code, tv1.tv_usec);
 		tm = (tv1.tv_usec - tv.tv_usec) / 1000;
 		if (tm < 0) {
 			tm = 1000 - (tv.tv_usec - tv1.tv_usec) / 1000;
 		}
 		encode_time += tm;
-		printf("Total encode time = %d(msec),", encode_time_get());
-		printf("Total sleep  time = %d(msec)\n",
+		printf("Total encode time = %ld(msec),", encode_time_get());
+		printf("Total sleep  time = %ld(msec)\n",
 		       m4iph_sleep_time_get());
 		if (return_code < 0) {	/* error */
 			if (return_code == AVCBE_ENCODE_ERROR) {	/* -1 */
@@ -1476,7 +1478,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder,
 			/* concatenate slice header and slice data */
 			if (encoder->output) {
 				encoder->output(encoder,
-						dummy_nal_buf,
+						(unsigned char *)dummy_nal_buf,
 						tmp_pic_total_bytes,
 						encoder->output_user_data);
 			}

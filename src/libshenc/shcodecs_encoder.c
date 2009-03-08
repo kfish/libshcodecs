@@ -4,6 +4,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+
 #include "m4driverif.h"
 #include "m4iph_vpu4.h"		/* SuperH MEPG-4&H.264 Video Driver Library Header */
 
@@ -25,7 +27,10 @@ unsigned long *kernel_memory_for_vpu_top;
 
 extern unsigned long *my_work_area;
 
-u_int32_t sdr_base;
+unsigned long * sdr_base;
+
+int vpu4_clock_on(void);
+int vpu4_clock_off(void);
 
 int init_other_API_enc_param(OTHER_API_ENC_PARAM * other_API_enc_param)
 {
@@ -49,6 +54,8 @@ int init_other_API_enc_param(OTHER_API_ENC_PARAM * other_API_enc_param)
 	       0, sizeof(avcbe_sei_filler_payload_param));
 	memset(&(other_API_enc_param->sei_recovery_point_param),
 	       0, sizeof(avcbe_sei_recovery_point_param));
+
+	return 0;
 }
 
 /**
@@ -130,7 +137,7 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	for (i = 0; i < max_frame; i++) {
 		my_frame_memory_capt[i] =
 		    (unsigned long *) (sdr_base + width_height * i);
-		printf("my_frame_memory_capt[%d]=%x\n", i,
+		printf("my_frame_memory_capt[%d]=%p\n", i,
 		       my_frame_memory_capt[i]);
 	}
 	my_frame_memory_ldec1 =
@@ -164,7 +171,7 @@ void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
 {
 	m4iph_sdr_free(sdr_base, width_height * (max_frame + 3));
 
-	m4iph_sdr_free(encoder->vpu4_param.m4iph_temporary_buff_address,
+	m4iph_sdr_free((unsigned char *)encoder->vpu4_param.m4iph_temporary_buff_address,
 		       MY_STREAM_BUFF_SIZE);
 
 	m4iph_sdr_close();

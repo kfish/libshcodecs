@@ -116,6 +116,9 @@ int avcbe_enc(long stream_type);
 void set_VPU4_param(M4IPH_VPU4_INIT_OPTION * vpu4_param);
 void DisplayMessage(char *message_text, int line_feed_flag);
 
+void encode_time_init(void);
+unsigned long encode_time_get(void);
+
 #define ALIGN(a, w) (void *)(((unsigned long)(a) + (w) - 1) & ~((w) - 1))
 
 #endif				/* AVCBENCSMP */

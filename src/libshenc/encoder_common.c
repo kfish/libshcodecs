@@ -14,6 +14,7 @@
 #include <limits.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "avcbe.h"		/* SuperH MEPG-4&H.264 Video Encode Library Header */
 #include "m4iph_vpu4.h"		/* SuperH MEPG-4&H.264 Video Driver Library Header */
@@ -21,7 +22,7 @@
 #include "encoder_common.h"		/* User Application Sample Header */
 #include "m4driverif.h"
 
-extern unsigned long sdr_base;
+extern unsigned long * sdr_base;
 
 #define KERNEL_MEMORY_FOR_VPU_TOP sdr_base
 
@@ -92,7 +93,6 @@ unsigned long my_sei_stream_buff[MY_SEI_STREAM_BUFF_SIZE / 4];	/* for SEI */
 #ifndef DISABLE_INT
 extern volatile long m4iph_vpu_cn_flg;
 #endif				/* DISABLE_INT */
-
 
 /*----------------------------------------------------------------------------------------------*/
 /* Example of function created by the user, which is called when VPU4 reads register. */
@@ -182,9 +182,9 @@ void set_VPU4_param(M4IPH_VPU4_INIT_OPTION * vpu4_param)
 	vpu4_param->m4iph_vpu_mask_address_disable = M4IPH_OFF;
 
 	/* Temporary Buffer Address */
-	tb = m4iph_sdr_malloc(MY_STREAM_BUFF_SIZE, 32);
+	tb = (unsigned long)m4iph_sdr_malloc(MY_STREAM_BUFF_SIZE, 32);
 	vpu4_param->m4iph_temporary_buff_address = tb;
-	printf("m4iph_temporary_buff_address=%X, size=%d\n", tb,
+	printf("m4iph_temporary_buff_address=%lX, size=%d\n", tb,
 	       MY_STREAM_BUFF_SIZE);
 	/* Temporary Buffer Size */
 	vpu4_param->m4iph_temporary_buff_size = MY_STREAM_BUFF_SIZE;
@@ -193,7 +193,7 @@ void set_VPU4_param(M4IPH_VPU4_INIT_OPTION * vpu4_param)
 		my_work_area = malloc(MY_WORK_AREA_SIZE);	/* 4 bytes alignment */
 		dummy_nal_buf = malloc(MY_DUMMY_NAL_BUFF_SIZE);
 		memset(dummy_nal_buf, 0, MY_DUMMY_NAL_BUFF_SIZE);
-		printf("my_work_area=%X\n", my_work_area);
+		printf("my_work_area=%pX\n", my_work_area);
 		if (my_work_area == NULL) {
 			printf("Memoey allocation error\n");
 			exit(-200);
@@ -226,3 +226,16 @@ long m4iph_dec_continue()
 	y = (float) log(x);
 	return y;
 }*/
+
+long encode_time;
+
+void encode_time_init(void)
+{
+	encode_time = 0;
+}
+
+unsigned long encode_time_get(void)
+{
+	return encode_time;
+}
+
