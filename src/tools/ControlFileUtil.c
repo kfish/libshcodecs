@@ -641,8 +641,7 @@ static void GetFromCtrlFtoOTHER_API_ENC_PARAM_SEI(FILE * fp_in,
  * Return Value		: 
  *****************************************************************************/
 static int GetFromCtrlFtoEncoding_property(FILE * fp_in,
-				    avcbe_encoding_property *
-				    encoding_property)
+				    SHCodecs_Encoder * encoder)
 {
 	int status_flag;
 	long return_value;
@@ -650,141 +649,133 @@ static int GetFromCtrlFtoEncoding_property(FILE * fp_in,
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "stream_type", &status_flag);
 	if (status_flag == 1) {
-		encoding_property->avcbe_stream_type = return_value;
+		shcodecs_encoder_set_stream_type (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "bitrate", &status_flag);
 	if (status_flag == 1) {
-		encoding_property->avcbe_bitrate = return_value;
+		shcodecs_encoder_set_bitrate (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "x_pic_size", &status_flag);
 	if (status_flag == 1) {
-		encoding_property->avcbe_xpic_size = return_value;
+		shcodecs_encoder_set_xpic_size (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "y_pic_size", &status_flag);
 	if (status_flag == 1) {
-		encoding_property->avcbe_ypic_size = return_value;
+		shcodecs_encoder_set_ypic_size (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "frame_rate", &status_flag);
 	if (status_flag == 1) {
-		encoding_property->avcbe_frame_rate = return_value;
+		shcodecs_encoder_set_frame_rate (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "I_vop_interval", &status_flag);
 	if (status_flag == 1) {
-		encoding_property->avcbe_I_vop_interval = return_value;
+		shcodecs_encoder_set_I_vop_interval (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "mv_mode", &status_flag);
 	if (status_flag == 1) {
-		encoding_property->avcbe_mv_mode = return_value;
+		shcodecs_encoder_set_mv_mode (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "fcode_forward", &status_flag);
 	if (status_flag == 1) {
-		encoding_property->avcbe_fcode_forward = return_value;
+		shcodecs_encoder_set_fcode_forward (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "search_mode", &status_flag);
 	if (status_flag == 1) {
-		encoding_property->avcbe_search_mode = return_value;
+		shcodecs_encoder_set_search_mode (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "search_time_fixed", &status_flag);
 	if (status_flag == 1) {
-		encoding_property->avcbe_search_time_fixed = return_value;
+		shcodecs_encoder_set_search_time_fixed (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "rate_ctrl_skip_enable",
 				 &status_flag);
 	if (status_flag == 1) {
-		encoding_property->avcbe_ratecontrol_skip_enable =
-		    return_value;
+		shcodecs_encoder_set_ratecontrol_skip_enable (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "rate_ctrl_use_prevquant",
 				 &status_flag);
 	if (status_flag == 1) {
-		encoding_property->avcbe_ratecontrol_use_prevquant =
-		    return_value;
+		shcodecs_encoder_set_ratecontrol_use_prevquant (encoder, return_value);
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_respect_type ", &status_flag);	/* 050426 */
 	if (status_flag == 1) {
-		encoding_property->avcbe_ratecontrol_respect_type =
-		    return_value;
+		shcodecs_encoder_set_ratecontrol_respect_type (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "rate_ctrl_intra_thr_changeable",
 				 &status_flag);
 	if (status_flag == 1) {
-		encoding_property->avcbe_ratecontrol_intra_thr_changeable =
-		    return_value;
+		shcodecs_encoder_set_ratecontrol_intra_thr_changeable (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "control_bitrate_length",
 				 &status_flag);
 	if (status_flag == 1) {
-		encoding_property->avcbe_control_bitrate_length =
-		    return_value;
+		shcodecs_encoder_set_control_bitrate_length (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "intra_macroblock_refresh_cycle",
 				 &status_flag);
 	if (status_flag == 1) {
-		encoding_property->avcbe_intra_macroblock_refresh_cycle =
-		    return_value;
+		shcodecs_encoder_set_intra_macroblock_refresh_cycle (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "video_format", &status_flag);
 	if (status_flag == 1) {
-		encoding_property->avcbe_video_format = return_value;
+		shcodecs_encoder_set_video_format (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "frame_num_resolution",
 				 &status_flag);
 	if (status_flag == 1) {
-		encoding_property->avcbe_frame_num_resolution =
-		    return_value;
+		shcodecs_encoder_set_frame_num_resolution (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "noise_reduction", &status_flag);
 	if (status_flag == 1) {
-		encoding_property->avcbe_noise_reduction = return_value;
+		shcodecs_encoder_set_noise_reduction (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "reaction_param_coeff",
 				 &status_flag);
 	if (status_flag == 1) {
-		encoding_property->avcbe_reaction_param_coeff =
-		    return_value;
+		shcodecs_encoder_set_reaction_param_coeff (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "weightedQ_mode", &status_flag);
 	if (status_flag == 1) {
-		encoding_property->avcbe_weightedQ_mode = return_value;
+		shcodecs_encoder_set_weightedQ_mode (encoder, return_value);
 	}
 
 	return (1);		/* 正常終了 */
@@ -2618,7 +2609,7 @@ int GetFromCtrlFtoEncParam(SHCodecs_Encoder * encoder,
 	}
 
 	/*** avcbe_encoding_property ***/
-	GetFromCtrlFtoEncoding_property(fp_in, encoding_property);
+	GetFromCtrlFtoEncoding_property(fp_in, encoder);
 
 	if (encoding_property->avcbe_stream_type == AVCBE_H264) {
 		/*** avcbe_other_options_h264 ***/
