@@ -22,12 +22,6 @@
 #include <stdlib.h>
 #include <setjmp.h>		/* 050523 */
 
-#include "avcbe.h"
-#include "m4iph_vpu4.h"
-#include "avcbe_inner.h"
-#include "avcbe_global.h"
-#include "m4vse_api_sub.h"
-
 #include "avcbencsmp.h"
 
 #include <shcodecs/shcodecs_encoder.h>
@@ -2558,7 +2552,7 @@ int GetFromCtrlFtoEncParam(SHCodecs_Encoder * encoder,
 
         stream_type = shcodecs_encoder_get_stream_type (encoder);
 
-	if (stream_type == AVCBE_H264) {
+	if (stream_type == SHCodecs_Format_H264) {
 		/*** avcbe_other_options_h264 ***/
 		GetFromCtrlFtoOther_options_H264(fp_in, encoder);
 	        return_value = GetValueFromCtrlFile(fp_in, "ref_frame_num", &status_flag);
@@ -2569,8 +2563,7 @@ int GetFromCtrlFtoEncParam(SHCodecs_Encoder * encoder,
 	        if (status_flag == 1) {
 	        	shcodecs_encoder_set_output_filler_enable (encoder, return_value);
 	        }
-	} else if ((stream_type == AVCBE_MPEG4) || (stream_type == AVCBE_H263)) {
-
+	} else {
 		/*** avcbe_other_options_mpeg4 ***/
 		GetFromCtrlFtoOther_options_MPEG4(fp_in, encoder);
 	}

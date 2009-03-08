@@ -7,7 +7,7 @@
 #include "avcbe_inner.h"
 #include "m4iph_vpu4.h"
 
-#include "avcbencsmp.h"
+#include "encoder_common.h"
 
 /**
  * An opaque handle to the VPU4 for encoding.

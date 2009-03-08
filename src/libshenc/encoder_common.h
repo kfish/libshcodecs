@@ -15,8 +15,6 @@
 
 #include <stdio.h>
 
-#include "capture.h"
-
 //#define MAX_D1
 
 #define CAPTURE_VGA 1
@@ -112,44 +110,11 @@
 #define  OUTPUT_BUF_SIZE (256*1024)
 //#define  OUTPUT_BUF_SIZE (256*1024*4)
 
-/*----- structures -----*/
-
-typedef struct {
-
-	/* Table to store an encoding result (MPEG-4 bitstream) */
-
-	/* Size of encoding result (byte unit) */
-
-	/* Input imformation in encoding */
-
-	/* Input YUV file name and it's file pointer */
-	char input_file_name_buf[256];	/* for stream-1 */
-	FILE *input_yuv_fp;	/* for stream-1 */
-	long yuv_CbCr_format;	/* YUVデータ内（出力するローカルデコードファイルも）
-				   のCb,Crデータの並び順（1:Cb全部Cr全部、2:Cb0,Cr0,Cb1,Cr1,...、
-				   3:Cbの1ライン分,Crの1ライン分,...） */
-
-	char output_file_name_buf[256];	/* 出力m4vファイル名 */
-	char ctrl_file_name_buf[256];	/* 入力YUVファイル名 */
-
-	char buf_input_yuv_file_with_path[256 + 8];	/* 入力YUVファイル名（パス付き） *//* 041201 */
-	char buf_input_yuv_file[64 + 8];	/* 入力YUVファイル名（パスなし） */
-
-	char buf_output_directry[256 + 8];	/* 出力先のディレクトリ *//* 041201 */
-	char buf_output_stream_file[64 + 8];	/* 出力ストリームファイル名（パスなし） */
-	long xpic;
-	long ypic;
-
-	/* Output imformation in encoding */
-
-	long return_code;	/* return_value of current frame or NAL *//* 041123 */
-
-	FILE *output_file_fp;	/* for output stream-2 */
-
-	sh_ceu *ceu;
-
-} APPLI_INFO;
-
+/*-------------- proto-type declaration ----------------------------*/
+/*--- the functions in avcbencsmp_common.c ---*/
+int avcbe_enc(long stream_type);
+void set_VPU4_param(M4IPH_VPU4_INIT_OPTION * vpu4_param);
+void DisplayMessage(char *message_text, int line_feed_flag);
 
 #define ALIGN(a, w) (void *)(((unsigned long)(a) + (w) - 1) & ~((w) - 1))
 

@@ -19,9 +19,8 @@
 
 #include "avcbe.h"		/* SuperH MEPG-4&H.264 Video Encode Library Header */
 #include "m4iph_vpu4.h"		/* SuperH MEPG-4&H.264 Video Driver Library Header */
-#include "avcbencsmp.h"		/* User Application Sample Header */
+#include "encoder_common.h"		/* User Application Sample Header */
 
-#include "capture.h"
 #include "encoder_private.h"
 
 extern avcbe_stream_info *my_context;

@@ -15,8 +15,6 @@
 #include <string.h>
 #include <setjmp.h>
 
-#include "avcbe.h"		/* SuperH MEPG-4&H.264 Video Encode Library Header */
-#include "m4iph_vpu4.h"		/* SuperH MEPG-4&H.264 Video Driver Library Header */
 #include "avcbencsmp.h"
 
 #include "capture.h"

@@ -20,7 +20,7 @@
 
 #include "avcbe.h"		/* SuperH MEPG-4&H.264 Video Encode Library Header */
 #include "m4iph_vpu4.h"		/* SuperH MEPG-4&H.264 Video Driver Library Header */
-#include "avcbencsmp.h"		/* User Application Sample Header */
+#include "encoder_common.h"		/* User Application Sample Header */
 
 #include "avcbe_inner.h"
 #include "QuantMatrix.h"
@@ -87,7 +87,6 @@ long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
 
 /* Top of the user application sample source to encode */
 /*int mpeg4_enc(void) */
-extern APPLI_INFO ainfo;	/* User Application Data */
 
 static void
 get_new_stream_buf(avcbe_stream_info * context,

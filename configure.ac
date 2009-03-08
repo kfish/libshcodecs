@@ -238,6 +238,7 @@ include/shcodecs/Makefile
 src/Makefile
 src/libshcodecs/Version_script
 src/libshcodecs/Makefile
+src/libshenc/Makefile
 src/tests/Makefile
 src/tools/Makefile
 src/examples/Makefile
