@@ -1279,8 +1279,7 @@ static void GetFromCtrlFtoOTHER_API_ENC_PARAM_VUI(FILE * fp_in,
  * Return Value		: 
  *****************************************************************************/
 static int GetFromCtrlFtoOther_options_H264(FILE * fp_in,
-				     avcbe_other_options_h264 *
-				     other_options_h264)
+				     SHCodecs_Encoder * encoder)
 {
 	int status_flag;
 	long return_value;
@@ -1289,300 +1288,277 @@ static int GetFromCtrlFtoOther_options_H264(FILE * fp_in,
 	    GetValueFromCtrlFile(fp_in, "Ivop_quant_initial_value",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_Ivop_quant_initial_value =
-		    return_value;
+		shcodecs_encoder_set_h264_Ivop_quant_initial_value (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "Pvop_quant_initial_value",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_Pvop_quant_initial_value =
-		    return_value;
+		shcodecs_encoder_set_h264_Pvop_quant_initial_value (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "use_dquant", &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_use_dquant = return_value;
+		shcodecs_encoder_set_h264_use_dquant (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "clip_dquant_next_mb",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_clip_dquant_next_mb =
-		    return_value;
+		shcodecs_encoder_set_h264_clip_dquant_next_mb (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "clip_dquant_frame", &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_clip_dquant_frame = return_value;
+		shcodecs_encoder_set_h264_clip_dquant_frame (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "quant_min", &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_quant_min = return_value;
+		shcodecs_encoder_set_h264_quant_min (encoder, return_value);
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "quant_min_Ivop_under_range", &status_flag);	/* 050509 */
 	if (status_flag == 1) {
-		other_options_h264->avcbe_quant_min_Ivop_under_range =
-		    return_value;
+		shcodecs_encoder_set_h264_quant_min_Ivop_under_range (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "quant_max", &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_quant_max = return_value;
+		shcodecs_encoder_set_h264_quant_max (encoder, return_value);
 	}
 
 
 	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_cpb_skipcheck_enable ", &status_flag);	/* 050524 */
 	if (status_flag == 1) {
-		other_options_h264->avcbe_ratecontrol_cpb_skipcheck_enable
-		    = return_value;
+		shcodecs_encoder_set_h264_ratecontrol_cpb_skipcheck_enable (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "rate_ctrl_cpb_Ivop_noskip",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_ratecontrol_cpb_Ivop_noskip =
-		    return_value;
+		shcodecs_encoder_set_h264_ratecontrol_cpb_Ivop_noskip (encoder, return_value);
 	}
 
 	return_value = GetValueFromCtrlFile(fp_in, "rate_ctrl_cpb_remain_zero_skip_enable", &status_flag);	/* 050524 */
 	if (status_flag == 1) {
-		other_options_h264->avcbe_ratecontrol_cpb_remain_zero_skip_enable
-		    = return_value;
+		shcodecs_encoder_set_h264_ratecontrol_cpb_remain_zero_skip_enable (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "rate_ctrl_cpb_offset",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_ratecontrol_cpb_offset =
-		    return_value;
+		shcodecs_encoder_set_h264_ratecontrol_cpb_offset (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "rate_ctrl_cpb_offset_rate",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_ratecontrol_cpb_offset_rate =
-		    return_value;
+		shcodecs_encoder_set_h264_ratecontrol_cpb_offset_rate (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "rate_ctrl_cpb_buffer_mode",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_ratecontrol_cpb_buffer_mode =
-		    return_value;
+		shcodecs_encoder_set_h264_ratecontrol_cpb_buffer_mode (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "rate_ctrl_cpb_max_size",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_ratecontrol_cpb_max_size =
-		    return_value;
+		shcodecs_encoder_set_h264_ratecontrol_cpb_max_size (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "rate_ctrl_cpb_buffer_unit_size",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_ratecontrol_cpb_buffer_unit_size
-		    = return_value;
+		shcodecs_encoder_set_h264_ratecontrol_cpb_buffer_unit_size (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "intra_thr_1", &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_intra_thr_1 = return_value;
+		shcodecs_encoder_set_h264_intra_thr_1 (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "intra_thr_2", &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_intra_thr_2 = return_value;
+		shcodecs_encoder_set_h264_intra_thr_2 (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "sad_intra_bias", &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_sad_intra_bias = return_value;
+		shcodecs_encoder_set_h264_sad_intra_bias (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "regularly_inserted_I_type",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_regularly_inserted_I_type =
-		    return_value;
+		shcodecs_encoder_set_h264_regularly_inserted_I_type (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "call_unit", &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_call_unit = return_value;
+		shcodecs_encoder_set_h264_call_unit (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "use_slice", &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_use_slice = return_value;
+		shcodecs_encoder_set_h264_use_slice (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "slice_size_mb", &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_slice_size_mb = return_value;
+		shcodecs_encoder_set_h264_slice_size_mb (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "slice_size_bit", &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_slice_size_bit = return_value;
+		shcodecs_encoder_set_h264_slice_size_bit (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "slice_type_value_pattern",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_slice_type_value_pattern =
-		    return_value;
+		shcodecs_encoder_set_h264_slice_type_value_pattern (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "use_mb_partition", &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_use_mb_partition = return_value;
+		shcodecs_encoder_set_h264_use_mb_partition (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "mb_partition_vector_thr",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_mb_partition_vector_thr =
-		    return_value;
+		shcodecs_encoder_set_h264_mb_partition_vector_thr (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "deblocking_mode", &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_deblocking_mode = return_value;
+		shcodecs_encoder_set_h264_deblocking_mode (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "use_deblocking_filter_control",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_use_deblocking_filter_control =
-		    return_value;
+		shcodecs_encoder_set_h264_use_deblocking_filter_control (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "deblocking_alpha_offset",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_deblocking_alpha_offset =
-		    return_value;
+		shcodecs_encoder_set_h264_deblocking_alpha_offset (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "deblocking_beta_offset",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_deblocking_beta_offset =
-		    return_value;
+		shcodecs_encoder_set_h264_deblocking_beta_offset (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "me_skip_mode", &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_me_skip_mode = return_value;
+		shcodecs_encoder_set_h264_me_skip_mode (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "put_start_code", &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_put_start_code = return_value;
+		shcodecs_encoder_set_h264_put_start_code (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "param_changeable", &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_param_changeable = return_value;
+		shcodecs_encoder_set_h264_param_changeable (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "changeable_max_bitrate",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_changeable_max_bitrate =
-		    return_value;
+		shcodecs_encoder_set_h264_changeable_max_bitrate (encoder, return_value);
 	}
 
 	/* SequenceHeaderParameter */
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "seq_param_set_id", &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_seq_param_set_id = return_value;
+		shcodecs_encoder_set_h264_seq_param_set_id (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "profile", &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_profile = return_value;
+		shcodecs_encoder_set_h264_profile (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "constraint_set_flag",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_constraint_set_flag =
-		    return_value;
+		shcodecs_encoder_set_h264_constraint_set_flag (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "level_type", &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_level_type = return_value;
+		shcodecs_encoder_set_h264_level_type (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "level_value", &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_level_value = return_value;
+		shcodecs_encoder_set_h264_level_value (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "out_vui_parameters",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_out_vui_parameters =
-		    return_value;
+		shcodecs_encoder_set_h264_out_vui_parameters (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "chroma_qp_index_offset",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_chroma_qp_index_offset =
-		    return_value;
+		shcodecs_encoder_set_h264_chroma_qp_index_offset (encoder, return_value);
 	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "constrained_intra_pred",
 				 &status_flag);
 	if (status_flag == 1) {
-		other_options_h264->avcbe_constrained_intra_pred =
-		    return_value;
+		shcodecs_encoder_set_h264_constrained_intra_pred (encoder, return_value);
 	}
 
 	return (1);		/* 正常終了 */
@@ -2613,7 +2589,7 @@ int GetFromCtrlFtoEncParam(SHCodecs_Encoder * encoder,
 
 	if (encoding_property->avcbe_stream_type == AVCBE_H264) {
 		/*** avcbe_other_options_h264 ***/
-		GetFromCtrlFtoOther_options_H264(fp_in, other_options_h264);
+		GetFromCtrlFtoOther_options_H264(fp_in, encoder);
 	        return_value = GetValueFromCtrlFile(fp_in, "ref_frame_num", &status_flag);
 	        if (status_flag == 1) {
 		        shcodecs_encoder_set_ref_frame_num (encoder, return_value);
