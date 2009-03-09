@@ -258,6 +258,12 @@ shcodecs_encoder_input_provide (SHCodecs_Encoder * encoder,
 
 
 
+/*
+ * Get the width in pixels of the encoded image
+ * \param encoder The SHCodecs_Encoder* handle
+ * \returns The width in pixels
+ * \retval -1 \a encoder invalid
+ */
 int
 shcodecs_encoder_get_width (SHCodecs_Encoder * encoder)
 {
@@ -266,6 +272,12 @@ shcodecs_encoder_get_width (SHCodecs_Encoder * encoder)
   return encoder->width;
 }
 
+/*
+ * Get the height in pixels of the encoded image
+ * \param encoder The SHCodecs_Encoder* handle
+ * \returns The height in pixels
+ * \retval -1 \a encoder invalid
+ */
 int
 shcodecs_encoder_get_height (SHCodecs_Encoder * encoder)
 {
@@ -274,6 +286,12 @@ shcodecs_encoder_get_height (SHCodecs_Encoder * encoder)
   return encoder->height;
 }
 
+/**
+ * Get the size in bytes of a Y plane of input data.
+ * \param encoder The SHCodecs_Encoder* handle
+ * \returns size in bytes of Y plane.
+ * \retval -1 \a encoder invalid
+ */
 int
 shcodecs_encoder_get_y_bytes (SHCodecs_Encoder * encoder)
 {
@@ -282,6 +300,12 @@ shcodecs_encoder_get_y_bytes (SHCodecs_Encoder * encoder)
   return encoder->y_bytes;
 }
 
+/**
+ * Get the size in bytes of a CbCr plane of input data.
+ * \param encoder The SHCodecs_Encoder* handle
+ * \returns size in bytes of CbCr plane.
+ * \retval -1 \a encoder invalid
+ */
 int
 shcodecs_encoder_get_c_bytes (SHCodecs_Encoder * encoder)
 {

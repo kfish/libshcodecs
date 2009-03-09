@@ -101,7 +101,8 @@ shcodecs_encoder_input_provide (SHCodecs_Encoder * encoder,
 /**
  * Get the size in bytes of a Y plane of input data.
  * \param encoder The SHCodecs_Encoder* handle
- * \retval size in bytes of Y plane.
+ * \returns size in bytes of Y plane.
+ * \retval -1 \a encoder invalid
  */
 int
 shcodecs_encoder_get_y_bytes (SHCodecs_Encoder * encoder);
@@ -109,7 +110,8 @@ shcodecs_encoder_get_y_bytes (SHCodecs_Encoder * encoder);
 /**
  * Get the size in bytes of a CbCr plane of input data.
  * \param encoder The SHCodecs_Encoder* handle
- * \retval size in bytes of CbCr plane.
+ * \returns size in bytes of CbCr plane.
+ * \retval -1 \a encoder invalid
  */
 int
 shcodecs_encoder_get_c_bytes (SHCodecs_Encoder * encoder);
@@ -123,53 +125,22 @@ int
 shcodecs_encoder_run (SHCodecs_Encoder * encoder);
 
 /*
+ * Get the width in pixels of the encoded image
  * \param encoder The SHCodecs_Encoder* handle
+ * \returns The width in pixels
  * \retval -1 \a encoder invalid
  */
 int shcodecs_encoder_get_width (SHCodecs_Encoder * encoder);
 
 /*
+ * Get the height in pixels of the encoded image
  * \param encoder The SHCodecs_Encoder* handle
+ * \returns The height in pixels
  * \retval -1 \a encoder invalid
  */
 int shcodecs_encoder_get_height (SHCodecs_Encoder * encoder);
 
-/*
- * \param encoder The SHCodecs_Encoder* handle
- * \retval -1 \a encoder invalid
- */
-long shcodecs_encoder_get_frame_number_to_encode (SHCodecs_Encoder * encoder);
-
-/*
- * \param encoder The SHCodecs_Encoder* handle
- * \retval -1 \a encoder invalid
- */
-long shcodecs_encoder_set_frame_number_to_encode (SHCodecs_Encoder * encoder, long frame_number_to_encode);
-
-/*
- * Set the "frame_no_increment" field
- * \param encoder The SHCodecs_Encoder* handle
- * \retval -1 \a encoder invalid
- */
-long
-shcodecs_encoder_set_frame_no_increment (SHCodecs_Encoder * encoder, long frame_no_increment);
-
-/*
- * Set the "ref_frame_num" field
- * H.264 only
- * \param encoder The SHCodecs_Encoder* handle
- * \retval -1 \a encoder invalid
- */
-int
-shcodecs_encoder_set_ref_frame_num (SHCodecs_Encoder * encoder, int ref_frame_num);
-
-/*
- * Set the "output_filler_enable" field
- * H.264 only
- */
-int
-shcodecs_encoder_set_output_filler_enable (SHCodecs_Encoder * encoder, int output_filler_enable);
-
+#include <shcodecs/encode_general.h>
 #include <shcodecs/encode_properties.h>
 #include <shcodecs/encode_h264.h>
 #include <shcodecs/encode_mpeg4.h>
