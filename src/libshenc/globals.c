@@ -24,9 +24,8 @@
 
 #define KERNEL_MEMORY_FOR_VPU_TOP sdr_base
 
-/*----------------------------------------------------------*/
-/*       User Application Data                              */
-/*----------------------------------------------------------*/
+/* From encoder_common.c */
+
 TAVCBE_FMEM LDEC_ARRY[3];	/* Always set the head of STREAMAREA section! */
 TAVCBE_FMEM CAPTF_ARRY[3];
 
@@ -89,3 +88,19 @@ unsigned long my_sei_stream_buff[MY_SEI_STREAM_BUFF_SIZE / 4];	/* for SEI */
 #ifndef DISABLE_INT
 volatile long m4iph_vpu_cn_flg;
 #endif				/* DISABLE_INT */
+
+/* From shcodecs_encoder.c */
+
+unsigned long *my_frame_memory_capt[19];
+
+unsigned long *my_frame_memory_ldec1;
+unsigned long *my_frame_memory_ldec2;
+unsigned long *my_frame_memory_ldec3;
+unsigned long *my_stream_buff;
+unsigned long *my_end_code_buff;
+unsigned long *my_stream_buff_bak;
+unsigned long *my_end_code_buff_bak;
+long width_height, max_frame;
+unsigned long *kernel_memory_for_vpu_top;
+
+unsigned long * sdr_base;

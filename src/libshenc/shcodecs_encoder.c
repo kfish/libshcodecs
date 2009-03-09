@@ -13,21 +13,21 @@
 
 extern char *dummy_nal_buf;
 
-unsigned long *my_frame_memory_capt[19];
+extern unsigned long *my_frame_memory_capt[19];
 
-unsigned long *my_frame_memory_ldec1;
-unsigned long *my_frame_memory_ldec2;
-unsigned long *my_frame_memory_ldec3;
-unsigned long *my_stream_buff;
-unsigned long *my_end_code_buff;
-unsigned long *my_stream_buff_bak;
-unsigned long *my_end_code_buff_bak;
-long width_height, max_frame;
-unsigned long *kernel_memory_for_vpu_top;
+extern unsigned long *my_frame_memory_ldec1;
+extern unsigned long *my_frame_memory_ldec2;
+extern unsigned long *my_frame_memory_ldec3;
+extern unsigned long *my_stream_buff;
+extern unsigned long *my_end_code_buff;
+extern unsigned long *my_stream_buff_bak;
+extern unsigned long *my_end_code_buff_bak;
+extern long width_height, max_frame;
+extern unsigned long *kernel_memory_for_vpu_top;
 
 extern unsigned long *my_work_area;
 
-unsigned long * sdr_base;
+extern unsigned long * sdr_base;
 
 int vpu4_clock_on(void);
 int vpu4_clock_off(void);
