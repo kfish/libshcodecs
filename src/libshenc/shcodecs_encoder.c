@@ -17,7 +17,6 @@ extern unsigned long *my_stream_buff;
 extern unsigned long *my_end_code_buff;
 extern unsigned long *my_stream_buff_bak;
 extern unsigned long *my_end_code_buff_bak;
-extern long max_frame;
 extern unsigned long *kernel_memory_for_vpu_top;
 
 extern unsigned long *my_work_area;
@@ -74,7 +73,7 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 					SHCodecs_Format format)
 {
 	SHCodecs_Encoder *encoder;
-        long width_height;
+        long width_height, max_frame=2;
 	long return_code;
         int i;
 
@@ -174,7 +173,7 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
  */
 void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
 {
-        long width_height;
+        long width_height, max_frame=2;
 
 	width_height = encoder->width + encoder->height;
 	width_height += (width_height / 2);
