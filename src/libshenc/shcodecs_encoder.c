@@ -13,8 +13,6 @@
 
 extern char *dummy_nal_buf;
 
-extern unsigned long *my_frame_memory_capt[19];
-
 extern unsigned long *my_frame_memory_ldec1;
 extern unsigned long *my_frame_memory_ldec2;
 extern unsigned long *my_frame_memory_ldec3;
@@ -145,10 +143,10 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 		exit(1);
 	kernel_memory_for_vpu_top = (unsigned long *) sdr_base;
 	for (i = 0; i < max_frame; i++) {
-		my_frame_memory_capt[i] =
+		encoder->my_frame_memory_capt[i] =
 		    (unsigned long *) (sdr_base + width_height * i);
 		printf("my_frame_memory_capt[%d]=%p\n", i,
-		       my_frame_memory_capt[i]);
+		       encoder->my_frame_memory_capt[i]);
 	}
 	my_frame_memory_ldec1 =
 	    (unsigned long *) (sdr_base + width_height * i);

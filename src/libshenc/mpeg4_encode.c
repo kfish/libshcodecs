@@ -61,8 +61,6 @@ extern avcbe_stream_info *my_context;
 extern TAVCBE_FMEM LDEC_ARRY[];
 extern TAVCBE_FMEM CAPTF_ARRY[];
 
-extern unsigned long *my_frame_memory_capt[19];
-
 extern unsigned long *my_frame_memory_ldec1;
 extern unsigned long *my_frame_memory_ldec2;
 extern unsigned long *my_frame_memory_ldec3;
@@ -300,7 +298,7 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder,
 	/* Start address of the image-capture-field area must be arranged 
 	 * in 32 bytes alignment. And, this area must be arranged in 
 	 * non-cacheable space.*/
-	addr_temp = (unsigned long) my_frame_memory_capt[0];
+	addr_temp = (unsigned long) encoder->my_frame_memory_capt[0];
 	addr_y = (unsigned long *) addr_temp;
 	addr_c =
 	    (unsigned long *) (addr_temp + (area_width * area_height));
@@ -313,7 +311,7 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder,
 		     i < encoder->other_options_mpeg4.avcbe_b_vop_num + 1;
 		     i++) {
 			addr_temp =
-			    (unsigned long) my_frame_memory_capt[i];
+			    (unsigned long) encoder->my_frame_memory_capt[i];
 			addr_y = (unsigned long *) addr_temp;
 			addr_c =
 			    (unsigned long *) (addr_temp +

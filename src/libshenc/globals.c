@@ -38,19 +38,6 @@ TAVCBE_STREAM_BUFF my_sei_stream_buff_info;	/* for SEI */
 TAVCBE_STREAM_BUFF my_filler_data_buff_info;	/* for FillerData(CPB  Buffer) */
 
 /*----------------------------------------------------------*/
-/* This section must be arranged in 32 bytes alignmen, and, */
-/*                         arranged in non-cacheable space. */
-/*----------------------------------------------------------*/
-/*----------------------------------------------------------*/
-/*       Image-capture-field area                           */
-/*----------------------------------------------------------*/
-// unsigned long my_frame_memory_capt_1[WIDTH_HEIGHT_1_5/4];  
-/*----------------------------------------------------------*/
-/*       Image-work-field area                              */
-/*----------------------------------------------------------*/
-// unsigned long my_frame_memory_ldec1[WIDTH_HEIGHT_1_5/4];
-
-/*----------------------------------------------------------*/
 /* Table and variables which are used if the avcbe_encode_picture 
  * function returns on each 1-slice */
 /*----------------------------------------------------------*/
@@ -90,8 +77,6 @@ volatile long m4iph_vpu_cn_flg;
 #endif				/* DISABLE_INT */
 
 /* From shcodecs_encoder.c */
-
-unsigned long *my_frame_memory_capt[19];
 
 unsigned long *my_frame_memory_ldec1;
 unsigned long *my_frame_memory_ldec2;

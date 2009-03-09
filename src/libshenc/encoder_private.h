@@ -90,6 +90,8 @@ struct _SHCodecs_Encoder {
 	long set_intra;	/* Forced intra-mode flag for m4vse_encode_picture function */
 	long output_type;	/* Header insertion flag for m4vse_encode_picture function */
 
+	/* Working values */
+	unsigned long *my_frame_memory_capt[19];
 
 	/* General encoder internals (general_accessors.c) */
 	long frame_number_to_encode;
