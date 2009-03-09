@@ -81,19 +81,20 @@ struct _SHCodecs_Encoder {
 	/* Internal */
         int initialized; /* Is avcbe_encode_init() done? */
 	int y_bytes; /* Bytes used by Y input plane; CbCr plane uses y_bytes/2 */
-        unsigned long * addr_y; /* VPU address to write next Y plane */
-        unsigned long * addr_c; /* VPU address to write next C plane */
+        unsigned long * addr_y; /* VPU address to write next Y plane; updated by encoder backends */
+        unsigned long * addr_c; /* VPU address to write next C plane; updated by encoder backends */
 
-	/* Encoder internals */
-	long frame_number_to_encode;
 	long frm; /* Current frame */
-	long frame_no_increment;	/* Increment value of Frame number to be encoded for 
-					   m4vse_encode_picture function */
 	long frame_skip_num; /* Number of frames skipped */
 	long frame_counter; /* The number of encoded frames */
 	long set_intra;	/* Forced intra-mode flag for m4vse_encode_picture function */
 	long output_type;	/* Header insertion flag for m4vse_encode_picture function */
 
+
+	/* General encoder internals (general_accessors.c) */
+	long frame_number_to_encode;
+	long frame_no_increment;	/* Increment value of Frame number to be encoded for 
+					   m4vse_encode_picture function */
 	/* encoding parameters */
 	avcbe_encoding_property encoding_property;
 	avcbe_encoding_property paramR;	/* for stream-1 */
