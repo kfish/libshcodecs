@@ -34,9 +34,6 @@ extern char *dummy_nal_buf;
 #define USE_BVOP
 
 /*** Image-capture-field area ***/
-#define DEVICE_VPU "/dev/vpu"
-#define DEVICE_SDR "/dev/sdr"
-void *global_context = NULL;
 
 extern long encode_time;
 

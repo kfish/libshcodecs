@@ -111,7 +111,7 @@ static int setup_uio_map(struct uio_device *udp, int nr,
 struct uio_device uio_dev;
 struct uio_map uio_mmio, uio_mem;
 
-extern void *global_context;
+/* extern void *global_context; */
 static int sleep_time;
 static unsigned long sdr_base, sdr_start, sdr_end;
 unsigned long _BM4VSD_BGN, _BM4VSD_END;
@@ -171,7 +171,7 @@ long m4iph_sleep(void)
 		tm = 1000 - (tv.tv_usec - tv1.tv_usec) / 1000;
 	}
 	sleep_time += tm;
-	avcbd_idr_adjust(global_context);
+	/* avcbd_idr_adjust(global_context); */
 	return 0;
 }
 
