@@ -82,9 +82,7 @@ int h264_encode_init (SHCodecs_Encoder * encoder, long stream_type)
 }
 
 static int
-h264_encode_deferred_init(SHCodecs_Encoder * encoder,
-                          long stream_type,
-                          avcbe_stream_info ** context)
+h264_encode_deferred_init(SHCodecs_Encoder * encoder, long stream_type)
 {
 	long return_code = 0;
 	unsigned long nrefframe, nldecfmem, addr_temp;
@@ -123,7 +121,7 @@ h264_encode_deferred_init(SHCodecs_Encoder * encoder,
 	    avcbe_init_encode(&(encoder->encoding_property), &(encoder->paramR),
 			      &(encoder->other_options_h264),
 			      (avcbe_buf_continue_userproc_ptr) NULL,
-			      &WORK_ARRY[0], &WORK_ARRY[1], context);
+			      &WORK_ARRY[0], &WORK_ARRY[1], &encoder->my_context);
 	if (return_code < 0) {	/* error */
 		if (return_code == -1) {
 			DisplayMessage
@@ -179,7 +177,7 @@ h264_encode_deferred_init(SHCodecs_Encoder * encoder,
 	encoder->CAPTF_ARRY[0].C_fmemp = (unsigned char *) addr_c;
 	/*--- The MPEG-4&H.264 Encoder Library API(required-5)@specify the address in the image-work-field area ---*/
 	return_code =
-	    avcbe_init_memory(*context, nrefframe, nldecfmem, encoder->LDEC_ARRY,
+	    avcbe_init_memory(encoder->my_context, nrefframe, nldecfmem, encoder->LDEC_ARRY,
 			      area_width, area_height);
 	if (return_code != 0) {
 		if (return_code == -1) {
@@ -350,9 +348,7 @@ h264_output_SEI_parameters(SHCodecs_Encoder * encoder,
 /* Encode by 1 picture unit without/with using slice division for H.264                         */
 /*----------------------------------------------------------------------------------------------*/
 static long
-h264_encode_picture_unit(SHCodecs_Encoder * encoder,
-                         long stream_type,
-			 avcbe_stream_info * context)
+h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 {
 
 	unsigned long ldec, ref1, ref2;
@@ -382,7 +378,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder,
 
 	if (encoder->other_options_h264.avcbe_out_vui_parameters == AVCBE_ON) {	/* output VUI parameters */
 		/* get the size of CPB-buffer to set 'cpb_size_scale' of HRD */
-		return_code = avcbe_get_cpb_buffer_size(context);
+		return_code = avcbe_get_cpb_buffer_size(encoder->my_context);
 		if (return_code <= 0) {
 			encoder->error_return_function = -112;
 			encoder->error_return_code = return_code;
@@ -406,7 +402,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder,
 		}
 		encoder->other_API_enc_param.vui_main_param.avcbe_video_signal_type_present_flag = AVCBE_OFF;	//@061215 AVCBE_ON;
 		return_code =
-		    avcbe_set_VUI_parameters(context,
+		    avcbe_set_VUI_parameters(encoder->my_context,
 					     &
 					     (encoder->other_API_enc_param.
 					      vui_main_param));
@@ -465,7 +461,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder,
 			/* output SPS data */
 			encoder->output_type = AVCBE_OUTPUT_SPS;
 			return_code =
-			    avcbe_encode_picture(context, frm,
+			    avcbe_encode_picture(encoder->my_context, frm,
 						 encoder->set_intra,
 						 encoder->output_type,
 						 &my_sps_stream_buff_info,
@@ -479,7 +475,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder,
 				DisplayMessage(messeage_buf, 1);
 #endif
 				/* get the size of SPS data in byte unit */
-				avcbe_get_last_slice_stat(context,
+				avcbe_get_last_slice_stat(encoder->my_context,
 							  &slice_stat);
 				encoder->SPS_PPS_header_bytes =
 				    slice_stat.avcbe_SPS_unit_bytes;
@@ -498,7 +494,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder,
 			/* output PPS data */
 			encoder->output_type = AVCBE_OUTPUT_PPS;
 			return_code =
-			    avcbe_encode_picture(context, frm,
+			    avcbe_encode_picture(encoder->my_context, frm,
 						 encoder->set_intra,
 						 encoder->output_type,
 						 &my_pps_stream_buff_info,
@@ -513,7 +509,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder,
 				DisplayMessage(messeage_buf, 1);
 
 				/* get the size of PPS data in byte unit */
-				avcbe_get_last_slice_stat(context,
+				avcbe_get_last_slice_stat(encoder->my_context,
 							  &slice_stat);
 				encoder->SPS_PPS_header_bytes +=
 				    slice_stat.avcbe_PPS_unit_bytes;
@@ -533,7 +529,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder,
 		if (extra_stream_buff == NULL) {
 			return_code =
 			    h264_output_SEI_parameters(encoder,
-						  context,
+						  encoder->my_context,
 						  &my_sei_stream_buff_info);
 			if (return_code != 0) {
 				sprintf(messeage_buf,
@@ -570,7 +566,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder,
 
 		/*--- The MPEG-4 Encoder Library API(required-7)@specify the address in the capture-image-field area ---*/
 		return_code =
-		    avcbe_set_image_pointer(context, &encoder->CAPTF_ARRY[0], ldec,
+		    avcbe_set_image_pointer(encoder->my_context, &encoder->CAPTF_ARRY[0], ldec,
 					    ref1, ref2);
 		if (return_code != 0) {
 			if (return_code == -1) {
@@ -588,7 +584,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder,
 //              printf("enc_pic0=%ld,",tv.tv_usec);
 		gettimeofday(&tv, &tz);
 		return_code =
-		    avcbe_encode_picture(context, frm,
+		    avcbe_encode_picture(encoder->my_context, frm,
 					 encoder->set_intra,
 					 encoder->output_type,
 					 &my_stream_buff_info,
@@ -678,7 +674,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder,
 			DisplayMessage(messeage_buf, 1);
 		}
 		/* get the information about the just encoded frame (slice) */
-		avcbe_get_last_slice_stat(context, &slice_stat);
+		avcbe_get_last_slice_stat(encoder->my_context, &slice_stat);
 		encoder->slice_mb_counter =
 		    slice_stat.avcbe_encoded_MB_num;
 		encoder->mb_num_of_picture =
@@ -712,7 +708,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder,
 				/* set to output SPS data */
 				encoder->output_type = AVCBE_OUTPUT_SPS;
 				return_code =
-				    avcbe_encode_picture(context, frm,
+				    avcbe_encode_picture(encoder->my_context, frm,
 							 encoder->
 							 set_intra,
 							 encoder->
@@ -729,7 +725,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder,
 #endif
 
 					/* get the size of SPS data in byte unit */
-					avcbe_get_last_slice_stat(context,
+					avcbe_get_last_slice_stat(encoder->my_context,
 								  &slice_stat);
 					encoder->SPS_PPS_header_bytes =
 					    slice_stat.
@@ -758,7 +754,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder,
 				/* set to output PPS data */
 				encoder->output_type = AVCBE_OUTPUT_PPS;
 				return_code =
-				    avcbe_encode_picture(context, frm,
+				    avcbe_encode_picture(encoder->my_context, frm,
 							 encoder->
 							 set_intra,
 							 encoder->
@@ -775,7 +771,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder,
 					DisplayMessage(messeage_buf, 1);
 
 					/* get the size of PPS data in byte unit */
-					avcbe_get_last_slice_stat(context,
+					avcbe_get_last_slice_stat(encoder->my_context,
 								  &slice_stat);
 					encoder->SPS_PPS_header_bytes +=
 					    slice_stat.
@@ -826,7 +822,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder,
 			/* output SEI parameter (if AU delimiter is used, SEI parameter must be output after AU delimiter) */
 			return_code =
 			    h264_output_SEI_parameters(encoder,
-						  context,
+						  encoder->my_context,
 						  &my_sei_stream_buff_info);
 			if (return_code != 0) {
 				sprintf(messeage_buf,
@@ -893,9 +889,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder,
 /* Encode by NAL unit for H.264                                                                 */
 /*----------------------------------------------------------------------------------------------*/
 static long
-h264_encode_nal_unit(SHCodecs_Encoder * encoder,
-		     long stream_type,
-		     avcbe_stream_info * context)
+h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 {
 	unsigned long ldec, ref1, ref2;
 	long streamsize_total;
@@ -926,7 +920,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder,
 	if (encoder->other_options_h264.avcbe_out_vui_parameters == AVCBE_ON) {	/* output VUI parameters */
 
 		/* get the size of CPB-buffer to set 'cpb_size_scale' of HRD */
-		return_code = avcbe_get_cpb_buffer_size(context);
+		return_code = avcbe_get_cpb_buffer_size(encoder->my_context);
 
 		if (return_code <= 0) {
 			encoder->error_return_function = -112;
@@ -951,7 +945,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder,
 		}
 
 		return_code =
-		    avcbe_set_VUI_parameters(context,
+		    avcbe_set_VUI_parameters(encoder->my_context,
 					     &(encoder->
 					       other_API_enc_param.
 					       vui_main_param));
@@ -1026,7 +1020,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder,
 			/* output SPS data */
 			encoder->output_type = AVCBE_OUTPUT_SPS;
 			return_code =
-			    avcbe_encode_picture(context, frm,
+			    avcbe_encode_picture(encoder->my_context, frm,
 						 encoder->set_intra,
 						 encoder->output_type,
 						 &my_sps_stream_buff_info,
@@ -1042,7 +1036,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder,
 #endif
 
 				/* get the size of SPS data in byte unit */
-				avcbe_get_last_slice_stat(context,
+				avcbe_get_last_slice_stat(encoder->my_context,
 							  &slice_stat);
 				encoder->SPS_PPS_header_bytes =
 				    slice_stat.avcbe_SPS_unit_bytes;
@@ -1059,7 +1053,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder,
 			/* output PPS data */
 			encoder->output_type = AVCBE_OUTPUT_PPS;
 			return_code =
-			    avcbe_encode_picture(context, frm,
+			    avcbe_encode_picture(encoder->my_context, frm,
 						 encoder->set_intra,
 						 encoder->output_type,
 						 &my_pps_stream_buff_info,
@@ -1074,7 +1068,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder,
 				DisplayMessage(messeage_buf, 1);
 
 				/* get the size of PPS data in byte unit */
-				avcbe_get_last_slice_stat(context,
+				avcbe_get_last_slice_stat(encoder->my_context,
 							  &slice_stat);
 				encoder->SPS_PPS_header_bytes +=
 				    slice_stat.avcbe_PPS_unit_bytes;
@@ -1093,7 +1087,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder,
 		if (extra_stream_buff == NULL) {
 			return_code =
 			    h264_output_SEI_parameters(encoder,
-						  context,
+						  encoder->my_context,
 						  &my_sei_stream_buff_info);
 			if (return_code != 0) {
 				sprintf(messeage_buf,
@@ -1133,7 +1127,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder,
 		/*--- The MPEG-4 Encoder Library API(required-7)@specify the address in the capture-image-field area ---*/
 		if (encoder->slice_mb_counter == 0) {
 			return_code =
-			    avcbe_set_image_pointer(context, &encoder->CAPTF_ARRY[0],
+			    avcbe_set_image_pointer(encoder->my_context, &encoder->CAPTF_ARRY[0],
 						    ldec, ref1, ref2);
 
 			if (return_code != 0) {
@@ -1155,7 +1149,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder,
 		printf("enc_pic0=%ld,", tv.tv_usec);
 		/*--- The MPEG-4 Encoder Library API (required-8)@encode each screen of display data ---*/
 		return_code =
-		    avcbe_encode_picture(context, frm,
+		    avcbe_encode_picture(encoder->my_context, frm,
 					 encoder->set_intra,
 					 encoder->output_type,
 					 &my_stream_buff_info,
@@ -1245,7 +1239,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder,
 		}
 
 		/* get the information about the just encoded slice */
-		avcbe_get_last_slice_stat(context, &slice_stat);
+		avcbe_get_last_slice_stat(encoder->my_context, &slice_stat);
 		encoder->slice_mb_counter =
 		    slice_stat.avcbe_encoded_MB_num;
 		encoder->mb_num_of_picture =
@@ -1317,7 +1311,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder,
 				encoder->output_type = AVCBE_OUTPUT_SPS;
 
 				return_code =
-				    avcbe_encode_picture(context, frm,
+				    avcbe_encode_picture(encoder->my_context, frm,
 							 encoder->
 							 set_intra,
 							 encoder->
@@ -1335,7 +1329,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder,
 #endif
 
 					/* get the size of SPS data in byte unit */
-					avcbe_get_last_slice_stat(context,
+					avcbe_get_last_slice_stat(encoder->my_context,
 								  &slice_stat);
 					encoder->SPS_PPS_header_bytes =
 					    slice_stat.
@@ -1367,7 +1361,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder,
 				/* set to output PPS data */
 				encoder->output_type = AVCBE_OUTPUT_PPS;
 				return_code =
-				    avcbe_encode_picture(context, frm,
+				    avcbe_encode_picture(encoder->my_context, frm,
 							 encoder->
 							 set_intra,
 							 encoder->
@@ -1384,7 +1378,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder,
 					DisplayMessage(messeage_buf, 1);
 
 					/* set to output PPS data */
-					avcbe_get_last_slice_stat(context,
+					avcbe_get_last_slice_stat(encoder->my_context,
 								  &slice_stat);
 					encoder->SPS_PPS_header_bytes +=
 					    slice_stat.
@@ -1437,7 +1431,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder,
 			/* output SEI parameter (if AU delimiter is used, SEI parameter must be output after AU delimiter) */
 			return_code =
 			    h264_output_SEI_parameters(encoder,
-						  context,
+						  encoder->my_context,
 						  &my_sei_stream_buff_info);
 			if (return_code != 0) {
 				sprintf(messeage_buf,
@@ -1503,7 +1497,7 @@ h264_encode_run (SHCodecs_Encoder * encoder, long stream_type)
 	TAVCBE_STREAM_BUFF my_end_code_buff_info;
 
         if (!encoder->initialized)
-                h264_encode_deferred_init (encoder, stream_type, &encoder->my_context);
+                h264_encode_deferred_init (encoder, stream_type);
 
 	encoder->error_return_function = 0;
 	encoder->error_return_code = 0;
@@ -1515,10 +1509,10 @@ h264_encode_run (SHCodecs_Encoder * encoder, long stream_type)
 	    (encoder->other_options_h264.avcbe_call_unit ==
 	     AVCBE_CALL_PER_NAL)) {
 		return_code =
-		    h264_encode_nal_unit(encoder, stream_type, encoder->my_context);
+		    h264_encode_nal_unit(encoder, stream_type);
 	} else {
 		return_code =
-		    h264_encode_picture_unit(encoder, stream_type, encoder->my_context);
+		    h264_encode_picture_unit(encoder, stream_type);
 	}
 	if (return_code != 0) {
 		return (-115);
