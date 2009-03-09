@@ -25,6 +25,7 @@ noinst_HEADERS = \
 libshenc_la_SOURCES = \
 	shcodecs_encoder.c \
 	encoder_common.c \
+	general_accessors.c \
 	h264_accessors.c \
 	mpeg4_accessors.c \
 	property_accessors.c \
