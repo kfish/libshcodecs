@@ -26,9 +26,6 @@
 
 /* From encoder_common.c */
 
-TAVCBE_FMEM LDEC_ARRY[3];	/* Always set the head of STREAMAREA section! */
-TAVCBE_FMEM CAPTF_ARRY[3];
-
 avcbe_stream_info *my_context;
 
 TAVCBE_STREAM_BUFF my_stream_buff_info, my_extra_stream_buff_info;

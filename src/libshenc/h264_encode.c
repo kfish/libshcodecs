@@ -24,8 +24,6 @@
 #include "encoder_private.h"
 
 extern avcbe_stream_info *my_context;
-extern TAVCBE_FMEM LDEC_ARRY[];
-extern TAVCBE_FMEM CAPTF_ARRY;
 
 extern unsigned long *my_work_area;
 extern unsigned long *my_stream_buff;
@@ -153,22 +151,22 @@ h264_encode_deferred_init(SHCodecs_Encoder * encoder,
 	nrefframe = encoder->ref_frame_num;
 	nldecfmem = 2;
 	/* Local-decode-image Y */
-	LDEC_ARRY[0].Y_fmemp = (unsigned char *) &encoder->my_frame_memory_ldec1[0];
-	LDEC_ARRY[1].Y_fmemp = (unsigned char *) &encoder->my_frame_memory_ldec2[0];
-	LDEC_ARRY[2].Y_fmemp = (unsigned char *) &encoder->my_frame_memory_ldec3[0];
+	encoder->LDEC_ARRY[0].Y_fmemp = (unsigned char *) &encoder->my_frame_memory_ldec1[0];
+	encoder->LDEC_ARRY[1].Y_fmemp = (unsigned char *) &encoder->my_frame_memory_ldec2[0];
+	encoder->LDEC_ARRY[2].Y_fmemp = (unsigned char *) &encoder->my_frame_memory_ldec3[0];
 
 	area_width = ((encoder->width + 15) / 16) * 16;	/* make it multiples of 16 */
 	area_height = ((encoder->height + 15) / 16) * 16;
 
 	/* Local-decode-image C */
-	LDEC_ARRY[0].C_fmemp =
-	    (unsigned char *) (LDEC_ARRY[0].Y_fmemp +
+	encoder->LDEC_ARRY[0].C_fmemp =
+	    (unsigned char *) (encoder->LDEC_ARRY[0].Y_fmemp +
 			       (area_width * area_height));
-	LDEC_ARRY[1].C_fmemp =
-	    (unsigned char *) (LDEC_ARRY[1].Y_fmemp +
+	encoder->LDEC_ARRY[1].C_fmemp =
+	    (unsigned char *) (encoder->LDEC_ARRY[1].Y_fmemp +
 			       (area_width * area_height));
-	LDEC_ARRY[2].C_fmemp =
-	    (unsigned char *) (LDEC_ARRY[2].Y_fmemp +
+	encoder->LDEC_ARRY[2].C_fmemp =
+	    (unsigned char *) (encoder->LDEC_ARRY[2].Y_fmemp +
 			       (area_width * area_height));
 
 	/* Start address of the image-capture-field area must be arranged in 32 bytes alignment. */
@@ -179,11 +177,11 @@ h264_encode_deferred_init(SHCodecs_Encoder * encoder,
 	    (unsigned long *) (addr_temp + (area_width * area_height));
 
 	/* Capture-image */
-	CAPTF_ARRY.Y_fmemp = (unsigned char *) addr_y;
-	CAPTF_ARRY.C_fmemp = (unsigned char *) addr_c;
+	encoder->CAPTF_ARRY[0].Y_fmemp = (unsigned char *) addr_y;
+	encoder->CAPTF_ARRY[0].C_fmemp = (unsigned char *) addr_c;
 	/*--- The MPEG-4&H.264 Encoder Library API(required-5)@specify the address in the image-work-field area ---*/
 	return_code =
-	    avcbe_init_memory(*context, nrefframe, nldecfmem, LDEC_ARRY,
+	    avcbe_init_memory(*context, nrefframe, nldecfmem, encoder->LDEC_ARRY,
 			      area_width, area_height);
 	if (return_code != 0) {
 		if (return_code == -1) {
@@ -378,8 +376,8 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder,
 	printf("encode_picture_unit IN\n");
 #endif
 
-	addr_y = (unsigned long *) CAPTF_ARRY.Y_fmemp;
-	addr_c = (unsigned long *) CAPTF_ARRY.C_fmemp;
+	addr_y = (unsigned long *) encoder->CAPTF_ARRY[0].Y_fmemp;
+	addr_c = (unsigned long *) encoder->CAPTF_ARRY[0].C_fmemp;
 
 	area_width = ((encoder->width + 15) / 16) * 16;	/* make it multiples of 16 */
 	area_height = ((encoder->height + 15) / 16) * 16;
@@ -574,7 +572,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder,
 
 		/*--- The MPEG-4 Encoder Library API(required-7)@specify the address in the capture-image-field area ---*/
 		return_code =
-		    avcbe_set_image_pointer(context, &CAPTF_ARRY, ldec,
+		    avcbe_set_image_pointer(context, &encoder->CAPTF_ARRY[0], ldec,
 					    ref1, ref2);
 		if (return_code != 0) {
 			if (return_code == -1) {
@@ -921,8 +919,8 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder,
 	printf("encode_nal_unit\n");
 #endif
 
-	addr_y = (unsigned long *) CAPTF_ARRY.Y_fmemp;
-	addr_c = (unsigned long *) CAPTF_ARRY.C_fmemp;
+	addr_y = (unsigned long *) encoder->CAPTF_ARRY[0].Y_fmemp;
+	addr_c = (unsigned long *) encoder->CAPTF_ARRY[0].C_fmemp;
 
 	area_width = ((encoder->width + 15) / 16) * 16;	/* make it multiples of 16 */
 	area_height = ((encoder->height + 15) / 16) * 16;
@@ -1137,7 +1135,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder,
 		/*--- The MPEG-4 Encoder Library API(required-7)@specify the address in the capture-image-field area ---*/
 		if (encoder->slice_mb_counter == 0) {
 			return_code =
-			    avcbe_set_image_pointer(context, &CAPTF_ARRY,
+			    avcbe_set_image_pointer(context, &encoder->CAPTF_ARRY[0],
 						    ldec, ref1, ref2);
 
 			if (return_code != 0) {

@@ -58,8 +58,6 @@ unsigned long m4iph_sleep_time_get(void);
 //#define my_sdr_mb_work_area sdr_base+(MY_MB_WORK_AREA_SIZE*2) /* 4 bytes alignmen */
 
 extern avcbe_stream_info *my_context;
-extern TAVCBE_FMEM LDEC_ARRY[];
-extern TAVCBE_FMEM CAPTF_ARRY[];
 
 extern unsigned long *my_stream_buff;
 extern unsigned long *my_end_code_buff;
@@ -273,23 +271,23 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder,
 	nldecfmem = 2;
 
 	/* Local-decode-image Y */
-	LDEC_ARRY[0].Y_fmemp = (unsigned char *) &encoder->my_frame_memory_ldec1[0];
-	LDEC_ARRY[1].Y_fmemp = (unsigned char *) &encoder->my_frame_memory_ldec2[0];
-	LDEC_ARRY[2].Y_fmemp = (unsigned char *) &encoder->my_frame_memory_ldec3[0];
+	encoder->LDEC_ARRY[0].Y_fmemp = (unsigned char *) &encoder->my_frame_memory_ldec1[0];
+	encoder->LDEC_ARRY[1].Y_fmemp = (unsigned char *) &encoder->my_frame_memory_ldec2[0];
+	encoder->LDEC_ARRY[2].Y_fmemp = (unsigned char *) &encoder->my_frame_memory_ldec3[0];
 
 	/* make it multiples of 16 */
 	area_width = ((encoder->width + 15) / 16) * 16;
 	area_height = ((encoder->height + 15) / 16) * 16;
 
 	/* Local-decode-image C */
-	LDEC_ARRY[0].C_fmemp =
-	    (unsigned char *) (LDEC_ARRY[0].Y_fmemp +
+	encoder->LDEC_ARRY[0].C_fmemp =
+	    (unsigned char *) (encoder->LDEC_ARRY[0].Y_fmemp +
 			       (area_width * area_height));
-	LDEC_ARRY[1].C_fmemp =
-	    (unsigned char *) (LDEC_ARRY[1].Y_fmemp +
+	encoder->LDEC_ARRY[1].C_fmemp =
+	    (unsigned char *) (encoder->LDEC_ARRY[1].Y_fmemp +
 			       (area_width * area_height));
-	LDEC_ARRY[2].C_fmemp =
-	    (unsigned char *) (LDEC_ARRY[2].Y_fmemp +
+	encoder->LDEC_ARRY[2].C_fmemp =
+	    (unsigned char *) (encoder->LDEC_ARRY[2].Y_fmemp +
 			       (area_width * area_height));
 
 	/* Start address of the image-capture-field area must be arranged 
@@ -300,8 +298,8 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder,
 	addr_c =
 	    (unsigned long *) (addr_temp + (area_width * area_height));
 	/* Capture-image */
-	CAPTF_ARRY[0].Y_fmemp = (unsigned char *) addr_y;
-	CAPTF_ARRY[0].C_fmemp = (unsigned char *) addr_c;
+	encoder->CAPTF_ARRY[0].Y_fmemp = (unsigned char *) addr_y;
+	encoder->CAPTF_ARRY[0].C_fmemp = (unsigned char *) addr_c;
 #ifdef USE_BVOP			/* 050106 */
 	if (encoder->other_options_mpeg4.avcbe_b_vop_num > 0) {
 		for (i = 0;
@@ -313,8 +311,8 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder,
 			addr_c =
 			    (unsigned long *) (addr_temp +
 					       (area_width * area_height));
-			CAPTF_ARRY[i].Y_fmemp = (unsigned char *) addr_y;
-			CAPTF_ARRY[i].C_fmemp = (unsigned char *) addr_c;
+			encoder->CAPTF_ARRY[i].Y_fmemp = (unsigned char *) addr_y;
+			encoder->CAPTF_ARRY[i].C_fmemp = (unsigned char *) addr_c;
 			printf("addr_y=%p,addr_c=%p\n", addr_y, addr_c);
 		}
 		nldecfmem = encoder->other_options_mpeg4.avcbe_b_vop_num;	/* LDEC_ARRY[2]AB-VOP[JfR[ho 050106 */
@@ -325,7 +323,7 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder,
 	/*--- The MPEG-4&H.264 Encoder Library API(required-5)@specify the 
 	 * address in the image-work-field area ---*/
 	return_code =
-	    avcbe_init_memory(*context, nrefframe, nldecfmem, LDEC_ARRY,
+	    avcbe_init_memory(*context, nrefframe, nldecfmem, encoder->LDEC_ARRY,
 			      area_width, area_height);
 	printf("avcbe_init_memory=%ld\n", return_code);
 
@@ -434,8 +432,8 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 	AVCBE_FRAME_CHECK frame_check_array[17];
 #endif				/* USE_BVOP */
 
-	addr_y = (unsigned long *) CAPTF_ARRY[0].Y_fmemp;
-	addr_c = (unsigned long *) CAPTF_ARRY[0].C_fmemp;
+	addr_y = (unsigned long *) encoder->CAPTF_ARRY[0].Y_fmemp;
+	addr_c = (unsigned long *) encoder->CAPTF_ARRY[0].C_fmemp;
 
 	/* make it multiples of 16 */
 	area_width = ((encoder->width + 15) / 16) * 16;
@@ -447,9 +445,9 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 	     (long) (encoder->other_options_mpeg4.avcbe_b_vop_num + 1);
 	     index++) {
 		addr_y_tbl[index] =
-		    (unsigned long *) CAPTF_ARRY[index].Y_fmemp;
+		    (unsigned long *) encoder->CAPTF_ARRY[index].Y_fmemp;
 		addr_c_tbl[index] =
-		    (unsigned long *) CAPTF_ARRY[index].C_fmemp;
+		    (unsigned long *) encoder->CAPTF_ARRY[index].C_fmemp;
 	}
 #endif				/* USE_BVOP */
 	/* Index number of the image-work-field area (0 to N-1) 
@@ -466,8 +464,8 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 	encoder->set_intra = AVCBE_ANY_VOP;	/* Forced intra-mode flag */
 	encoder->output_type = AVCBE_OUTPUT_NONE;	/* Header insertion flag */
 
-	captfmem.Y_fmemp = (unsigned char *) CAPTF_ARRY[0].Y_fmemp;
-	captfmem.C_fmemp = (unsigned char *) CAPTF_ARRY[0].C_fmemp;
+	captfmem.Y_fmemp = (unsigned char *) encoder->CAPTF_ARRY[0].Y_fmemp;
+	captfmem.C_fmemp = (unsigned char *) encoder->CAPTF_ARRY[0].C_fmemp;
 	while (1) {	/*---- Repeating by frame numbers -------------------------*/
 		printf("while---");
 		if (encoder->frame_number_to_encode == encoder->frame_counter) {

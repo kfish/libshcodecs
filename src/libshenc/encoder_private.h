@@ -91,6 +91,9 @@ struct _SHCodecs_Encoder {
 	long output_type;	/* Header insertion flag for m4vse_encode_picture function */
 
 	/* Working values */
+	TAVCBE_FMEM LDEC_ARRY[3];	/* Always set the head of STREAMAREA section! */
+	TAVCBE_FMEM CAPTF_ARRY[3];
+
 	unsigned long *my_frame_memory_capt[19];
 	unsigned long *my_frame_memory_ldec1;
 	unsigned long *my_frame_memory_ldec2;
