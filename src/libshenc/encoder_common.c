@@ -26,73 +26,14 @@ extern unsigned long * sdr_base;
 
 #define KERNEL_MEMORY_FOR_VPU_TOP sdr_base
 
-/*----------------------------------------------------------*/
-/*       User Application Data                              */
-/*----------------------------------------------------------*/
-TAVCBE_FMEM LDEC_ARRY[3];	/* Always set the head of STREAMAREA section! */
-TAVCBE_FMEM CAPTF_ARRY[3];
-
-avcbe_stream_info *my_context;
-
-TAVCBE_STREAM_BUFF my_stream_buff_info, my_extra_stream_buff_info;
-TAVCBE_STREAM_BUFF my_sps_stream_buff_info;	/* for SPS */
-TAVCBE_STREAM_BUFF my_pps_stream_buff_info;	/* for PPS */
-TAVCBE_STREAM_BUFF my_sei_stream_buff_info;	/* for SEI */
-TAVCBE_STREAM_BUFF my_filler_data_buff_info;	/* for FillerData(CPB  Buffer) */
-
-/*----------------------------------------------------------*/
-/* This section must be arranged in 32 bytes alignmen, and, */
-/*                         arranged in non-cacheable space. */
-/*----------------------------------------------------------*/
-/*----------------------------------------------------------*/
-/*       Image-capture-field area                           */
-/*----------------------------------------------------------*/
-// unsigned long my_frame_memory_capt_1[WIDTH_HEIGHT_1_5/4];  
-/*----------------------------------------------------------*/
-/*       Image-work-field area                              */
-/*----------------------------------------------------------*/
-// unsigned long my_frame_memory_ldec1[WIDTH_HEIGHT_1_5/4];
-
-/*----------------------------------------------------------*/
-/* Table and variables which are used if the avcbe_encode_picture 
- * function returns on each 1-slice */
-/*----------------------------------------------------------*/
-char *dummy_nal_buf;
-char *dummy_nal_buf_addr;
-long slice_total_size = 0;
-long tmp_pic_total_bytes = 0;
-long tmp_slice_size;
-
-
-/*----------------------------------------------------------*/
-/*       Other work-field area                              */
-/*----------------------------------------------------------*/
-//unsigned long my_work_area[MY_WORK_AREA_SIZE/4];      /* 4 bytes alignment */
-unsigned long *my_work_area = NULL;
-
-/*----------------------------------------------------------*/
-/*       Stream-output buffer                               */
-/*----------------------------------------------------------*/
-/* 4 bytes alignment*/
-//unsigned long sdr_read_my_stream_buff[MY_STREAM_BUFF_SIZE/4]; 
-extern unsigned long *my_stream_buff;
-extern unsigned long *my_end_code_buff;
-
-/* for AU delimiter */
-unsigned long my_extra_stream_buff[16 / 4];
-unsigned long my_sps_stream_buff[MY_SPS_STREAM_BUFF_SIZE / 4 + 8];	/* for SPS */
-unsigned long my_pps_stream_buff[MY_PPS_STREAM_BUFF_SIZE / 4 + 8];	/* for PPS */
-unsigned long my_filler_data_buff[MY_FILLER_DATA_BUFF_SIZE / 4];	/* for FillerData */
-unsigned long my_sei_stream_buff[MY_SEI_STREAM_BUFF_SIZE / 4];	/* for SEI */
-
-/*----------------------------------------------------------------------------------------------*/
-//unsigned long my_yuv_data[MY_INPUT_YUV_DATA_BUFF_SIZE/4];     /* array for input YUV data. */   
-
-/*----------------------------------------------------------------------------------------------*/
-
+extern TAVCBE_STREAM_BUFF my_filler_data_buff_info;	/* for FillerData(CPB  Buffer) */
+extern char *dummy_nal_buf;
+extern unsigned long *my_work_area;
+extern unsigned long my_filler_data_buff[MY_FILLER_DATA_BUFF_SIZE / 4];	/* for FillerData */
 #ifndef DISABLE_INT
 extern volatile long m4iph_vpu_cn_flg;
 #endif				/* DISABLE_INT */
+
 
 /*----------------------------------------------------------------------------------------------*/
 /* Example of function created by the user, which is called when VPU4 reads register. */
