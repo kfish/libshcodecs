@@ -23,8 +23,6 @@
 
 #include "encoder_private.h"
 
-extern avcbe_stream_info *my_context;
-
 extern unsigned long *my_work_area;
 extern unsigned long *my_stream_buff;
 extern unsigned long *my_end_code_buff;	/* for End Code */
@@ -1505,7 +1503,7 @@ h264_encode_run (SHCodecs_Encoder * encoder, long stream_type)
 	TAVCBE_STREAM_BUFF my_end_code_buff_info;
 
         if (!encoder->initialized)
-                h264_encode_deferred_init (encoder, stream_type, &my_context);
+                h264_encode_deferred_init (encoder, stream_type, &encoder->my_context);
 
 	encoder->error_return_function = 0;
 	encoder->error_return_code = 0;
@@ -1517,10 +1515,10 @@ h264_encode_run (SHCodecs_Encoder * encoder, long stream_type)
 	    (encoder->other_options_h264.avcbe_call_unit ==
 	     AVCBE_CALL_PER_NAL)) {
 		return_code =
-		    h264_encode_nal_unit(encoder, stream_type, my_context);
+		    h264_encode_nal_unit(encoder, stream_type, encoder->my_context);
 	} else {
 		return_code =
-		    h264_encode_picture_unit(encoder, stream_type, my_context);
+		    h264_encode_picture_unit(encoder, stream_type, encoder->my_context);
 	}
 	if (return_code != 0) {
 		return (-115);
@@ -1531,7 +1529,7 @@ h264_encode_run (SHCodecs_Encoder * encoder, long stream_type)
 	    (unsigned char *) &my_end_code_buff[0];
 	my_end_code_buff_info.buff_size = MY_END_CODE_BUFF_SIZE;
 
-	return_code = avcbe_put_end_code(my_context, &my_end_code_buff_info, AVCBE_END_OF_STRM);	/* return value is byte unit */
+	return_code = avcbe_put_end_code(encoder->my_context, &my_end_code_buff_info, AVCBE_END_OF_STRM);	/* return value is byte unit */
 	if (return_code <= 0) {
 		if (return_code == -4) {
 			DisplayMessage

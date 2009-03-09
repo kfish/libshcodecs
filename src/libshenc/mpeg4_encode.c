@@ -57,8 +57,6 @@ unsigned long m4iph_sleep_time_get(void);
 //static unsigned long my_mb_work_area[MY_MB_WORK_AREA_SIZE/4]; /* 4 bytes alignmen */
 //#define my_sdr_mb_work_area sdr_base+(MY_MB_WORK_AREA_SIZE*2) /* 4 bytes alignmen */
 
-extern avcbe_stream_info *my_context;
-
 extern unsigned long *my_stream_buff;
 extern unsigned long *my_end_code_buff;
 extern unsigned long *my_stream_buff_bak;
@@ -712,7 +710,7 @@ mpeg4_encode_run (SHCodecs_Encoder * encoder, long stream_type)
 	long my_size = 0;
 
         if (!encoder->initialized)
-                mpeg4_encode_deferred_init (encoder, stream_type, &my_context);
+                mpeg4_encode_deferred_init (encoder, stream_type, &encoder->my_context);
 
 	encoder->error_return_function = 0;	/* add at Version2 */
 	encoder->error_return_code = 0;	/* add at Version2 */
@@ -727,7 +725,7 @@ mpeg4_encode_run (SHCodecs_Encoder * encoder, long stream_type)
 
 	/* encode process function for mpeg-4/H.263 (call avcbe_encode_picture func.) */
 	return_code =
-	    mpeg4_encode_picture (encoder, stream_type, my_context);
+	    mpeg4_encode_picture (encoder, stream_type, encoder->my_context);
 	if (return_code != 0) {
 		return (-15);
 	}
@@ -739,7 +737,7 @@ mpeg4_encode_run (SHCodecs_Encoder * encoder, long stream_type)
 
 	/* return value is byte unit */
 	return_code =
-	    avcbe_put_end_code(my_context, &my_end_code_buff_info,
+	    avcbe_put_end_code(encoder->my_context, &my_end_code_buff_info,
 			       AVCBE_VOSE);
 	if (return_code <= 0) {
 		if (return_code == -4) {

@@ -26,8 +26,6 @@
 
 /* From encoder_common.c */
 
-avcbe_stream_info *my_context;
-
 TAVCBE_STREAM_BUFF my_stream_buff_info, my_extra_stream_buff_info;
 TAVCBE_STREAM_BUFF my_sps_stream_buff_info;	/* for SPS */
 TAVCBE_STREAM_BUFF my_pps_stream_buff_info;	/* for PPS */
