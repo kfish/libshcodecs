@@ -216,7 +216,6 @@ h264_encode_deferred_init(SHCodecs_Encoder * encoder, long stream_type)
 /*------------------------------------------------------------------*/
 static long
 h264_output_SEI_parameters(SHCodecs_Encoder * encoder,
-			   avcbe_stream_info * context,
 			   TAVCBE_STREAM_BUFF * sei_stream_buff_info)
 {
 	long return_code;
@@ -226,7 +225,7 @@ h264_output_SEI_parameters(SHCodecs_Encoder * encoder,
 	if (encoder->other_API_enc_param.out_buffering_period_SEI ==
 	    AVCBE_ON) {
 		return_code =
-		    avcbe_put_SEI_parameters(context,
+		    avcbe_put_SEI_parameters(encoder->my_context,
 					     AVCBE_SEI_MESSAGE_BUFFERING_PERIOD,
 					     (void *)
 					     &(encoder->
@@ -250,7 +249,7 @@ h264_output_SEI_parameters(SHCodecs_Encoder * encoder,
 	/* output SEI parameter (step2) */
 	if (encoder->other_API_enc_param.out_pic_timing_SEI == AVCBE_ON) {
 		return_code =
-		    avcbe_put_SEI_parameters(context,
+		    avcbe_put_SEI_parameters(encoder->my_context,
 					     AVCBE_SEI_MESSAGE_PIC_TIMING,
 					     (void *)
 					     &
@@ -273,7 +272,7 @@ h264_output_SEI_parameters(SHCodecs_Encoder * encoder,
 	/* output SEI parameter (step3) */
 	if (encoder->other_API_enc_param.out_pan_scan_rect_SEI == AVCBE_ON) {
 		return_code =
-		    avcbe_put_SEI_parameters(context,
+		    avcbe_put_SEI_parameters(encoder->my_context,
 					     AVCBE_SEI_MESSAGE_PAN_SCAN_RECT,
 					     (void *)
 					     &
@@ -297,7 +296,7 @@ h264_output_SEI_parameters(SHCodecs_Encoder * encoder,
 	if (encoder->other_API_enc_param.out_filler_payload_SEI ==
 	    AVCBE_ON) {
 		return_code =
-		    avcbe_put_SEI_parameters(context,
+		    avcbe_put_SEI_parameters(encoder->my_context,
 					     AVCBE_SEI_MESSAGE_FILLER_PAYLOAD,
 					     (void *)
 					     &(encoder->
@@ -321,7 +320,7 @@ h264_output_SEI_parameters(SHCodecs_Encoder * encoder,
 	if (encoder->other_API_enc_param.out_recovery_point_SEI ==
 	    AVCBE_ON) {
 		return_code =
-		    avcbe_put_SEI_parameters(context,
+		    avcbe_put_SEI_parameters(encoder->my_context,
 					     AVCBE_SEI_MESSAGE_RECOVERY_POINT,
 					     (void *)
 					     &(encoder->
@@ -529,7 +528,6 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 		if (extra_stream_buff == NULL) {
 			return_code =
 			    h264_output_SEI_parameters(encoder,
-						  encoder->my_context,
 						  &my_sei_stream_buff_info);
 			if (return_code != 0) {
 				sprintf(messeage_buf,
@@ -822,7 +820,6 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 			/* output SEI parameter (if AU delimiter is used, SEI parameter must be output after AU delimiter) */
 			return_code =
 			    h264_output_SEI_parameters(encoder,
-						  encoder->my_context,
 						  &my_sei_stream_buff_info);
 			if (return_code != 0) {
 				sprintf(messeage_buf,
@@ -1087,7 +1084,6 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 		if (extra_stream_buff == NULL) {
 			return_code =
 			    h264_output_SEI_parameters(encoder,
-						  encoder->my_context,
 						  &my_sei_stream_buff_info);
 			if (return_code != 0) {
 				sprintf(messeage_buf,
@@ -1431,7 +1427,6 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 			/* output SEI parameter (if AU delimiter is used, SEI parameter must be output after AU delimiter) */
 			return_code =
 			    h264_output_SEI_parameters(encoder,
-						  encoder->my_context,
 						  &my_sei_stream_buff_info);
 			if (return_code != 0) {
 				sprintf(messeage_buf,
