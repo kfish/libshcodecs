@@ -61,9 +61,6 @@ extern avcbe_stream_info *my_context;
 extern TAVCBE_FMEM LDEC_ARRY[];
 extern TAVCBE_FMEM CAPTF_ARRY[];
 
-extern unsigned long *my_frame_memory_ldec1;
-extern unsigned long *my_frame_memory_ldec2;
-extern unsigned long *my_frame_memory_ldec3;
 extern unsigned long *my_stream_buff;
 extern unsigned long *my_end_code_buff;
 extern unsigned long *my_stream_buff_bak;
@@ -276,9 +273,9 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder,
 	nldecfmem = 2;
 
 	/* Local-decode-image Y */
-	LDEC_ARRY[0].Y_fmemp = (unsigned char *) &my_frame_memory_ldec1[0];
-	LDEC_ARRY[1].Y_fmemp = (unsigned char *) &my_frame_memory_ldec2[0];
-	LDEC_ARRY[2].Y_fmemp = (unsigned char *) &my_frame_memory_ldec3[0];
+	LDEC_ARRY[0].Y_fmemp = (unsigned char *) &encoder->my_frame_memory_ldec1[0];
+	LDEC_ARRY[1].Y_fmemp = (unsigned char *) &encoder->my_frame_memory_ldec2[0];
+	LDEC_ARRY[2].Y_fmemp = (unsigned char *) &encoder->my_frame_memory_ldec3[0];
 
 	/* make it multiples of 16 */
 	area_width = ((encoder->width + 15) / 16) * 16;

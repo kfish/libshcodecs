@@ -78,9 +78,6 @@ volatile long m4iph_vpu_cn_flg;
 
 /* From shcodecs_encoder.c */
 
-unsigned long *my_frame_memory_ldec1;
-unsigned long *my_frame_memory_ldec2;
-unsigned long *my_frame_memory_ldec3;
 unsigned long *my_stream_buff;
 unsigned long *my_end_code_buff;
 unsigned long *my_stream_buff_bak;

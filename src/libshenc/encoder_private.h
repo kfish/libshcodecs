@@ -92,6 +92,9 @@ struct _SHCodecs_Encoder {
 
 	/* Working values */
 	unsigned long *my_frame_memory_capt[19];
+	unsigned long *my_frame_memory_ldec1;
+	unsigned long *my_frame_memory_ldec2;
+	unsigned long *my_frame_memory_ldec3;
 
 	/* General encoder internals (general_accessors.c) */
 	long frame_number_to_encode;

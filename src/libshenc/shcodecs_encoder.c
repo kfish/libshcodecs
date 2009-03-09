@@ -13,9 +13,6 @@
 
 extern char *dummy_nal_buf;
 
-extern unsigned long *my_frame_memory_ldec1;
-extern unsigned long *my_frame_memory_ldec2;
-extern unsigned long *my_frame_memory_ldec3;
 extern unsigned long *my_stream_buff;
 extern unsigned long *my_end_code_buff;
 extern unsigned long *my_stream_buff_bak;
@@ -148,13 +145,13 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 		printf("my_frame_memory_capt[%d]=%p\n", i,
 		       encoder->my_frame_memory_capt[i]);
 	}
-	my_frame_memory_ldec1 =
+	encoder->my_frame_memory_ldec1 =
 	    (unsigned long *) (sdr_base + width_height * i);
 	i++;
-	my_frame_memory_ldec2 =
+	encoder->my_frame_memory_ldec2 =
 	    (unsigned long *) (sdr_base + width_height * i);
 	i++;
-	my_frame_memory_ldec3 =
+	encoder->my_frame_memory_ldec3 =
 	    (unsigned long *) (sdr_base + width_height * i);
 	my_stream_buff_bak = malloc(MY_STREAM_BUFF_SIZE + 31);
 	my_stream_buff = ALIGN(my_stream_buff_bak, 32);
