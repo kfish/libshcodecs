@@ -84,7 +84,7 @@ struct _SHCodecs_Encoder {
         unsigned long * addr_y; /* VPU address to write next Y plane; updated by encoder backends */
         unsigned long * addr_c; /* VPU address to write next C plane; updated by encoder backends */
 
-	avcbe_stream_info *my_context;
+	avcbe_stream_info *stream_info;
 	long frm; /* Current frame */
 	long frame_skip_num; /* Number of frames skipped */
 	long frame_counter; /* The number of encoded frames */

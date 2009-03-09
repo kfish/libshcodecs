@@ -214,7 +214,7 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder, long stream_type)
 					// RSM (avcbe_buf_continue_userproc_ptr)NULL, &WORK_ARRY[0], 
 					(avcbe_buf_continue_userproc_ptr)
 					get_new_stream_buf, &WORK_ARRY[0],
-					&WORK_ARRY[1], &encoder->my_context);
+					&WORK_ARRY[1], &encoder->stream_info);
 #else
 	return_code = avcbe_init_encode(&(encoder->encoding_property),
 					&(encoder->paramR),
@@ -222,7 +222,7 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder, long stream_type)
 					// RSM (avcbe_buf_continue_userproc_ptr)NULL, &WORK_ARRY[0], NULL, 
 					(avcbe_buf_continue_userproc_ptr)
 					get_new_stream_buf, &WORK_ARRY[0],
-					NULL, &encoder->my_context);
+					NULL, &encoder->stream_info);
 #endif				/* VPU4IP */
 	if (return_code < 0) {	/* error */
 		if (return_code == -1) {
@@ -250,7 +250,7 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder, long stream_type)
 	if (encoder->other_options_mpeg4.avcbe_quant_type == 1) {	/* add @061121 */
 		printf("avcbe_set_quant_type1()\n");
 		return_code =
-		    SetQuantMatrix(encoder->my_context, QMAT_MPEG_TYPE_ANIME1_INTRA,
+		    SetQuantMatrix(encoder->stream_info, QMAT_MPEG_TYPE_ANIME1_INTRA,
 				   QMAT_MPEG_TYPE_ANIME1_NONINTRA);
 	}
 
@@ -310,7 +310,7 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder, long stream_type)
 	/*--- The MPEG-4&H.264 Encoder Library API(required-5)@specify the 
 	 * address in the image-work-field area ---*/
 	return_code =
-	    avcbe_init_memory(encoder->my_context, nrefframe, nldecfmem, encoder->LDEC_ARRY,
+	    avcbe_init_memory(encoder->stream_info, nrefframe, nldecfmem, encoder->LDEC_ARRY,
 			      area_width, area_height);
 	printf("avcbe_init_memory=%ld\n", return_code);
 
@@ -459,7 +459,7 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 #ifdef USE_BVOP			/* 050106 */
 		if (encoder->other_options_mpeg4.avcbe_b_vop_num > 0) {
 			return_code =
-			    avcbe_get_buffer_check(encoder->my_context,
+			    avcbe_get_buffer_check(encoder->stream_info,
 						   &frame_check_array[0]);
 			if (return_code < 0) {	/* error */
 				if (return_code == -1) {
@@ -509,7 +509,7 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 			       return_code);
 		}
 		return_code =
-		    avcbe_set_image_pointer(encoder->my_context, &captfmem, ldec, ref1,
+		    avcbe_set_image_pointer(encoder->stream_info, &captfmem, ldec, ref1,
 					    ref2);
 		if (return_code != 0) {
 			if (return_code == -1) {
@@ -531,7 +531,7 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 #ifdef CAPT_INPUT
 		vpu4_clock_on();
 		return_code =
-		    avcbe_encode_picture(encoder->my_context, frm, intra_judge,
+		    avcbe_encode_picture(encoder->stream_info, frm, intra_judge,
 					 encoder->output_type,
 					 &my_stream_buff_info, NULL);
 		vpu4_clock_off();
@@ -539,7 +539,7 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 #ifdef DEBUG
 		printf
 		    ("encode_picture_for_mpeg4: avcbe_encode_picture (%x, %ld, %ld, %ld, {%ld, %x})\n",
-		     encoder->my_context, frm, encoder->set_intra,
+		     encoder->stream_info, frm, encoder->set_intra,
 		     encoder->output_type,
 		     my_stream_buff_info.buff_size,
 		     my_stream_buff_info.buff_top);
@@ -548,7 +548,7 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 		gettimeofday(&tv, &tz);
 //printf("enc_pic0=%ld,",tv.tv_usec);
 		return_code =
-		    avcbe_encode_picture(encoder->my_context, frm,
+		    avcbe_encode_picture(encoder->stream_info, frm,
 					 encoder->set_intra,
 					 encoder->output_type,
 					 &my_stream_buff_info, NULL);
@@ -649,7 +649,7 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 				encoder->frame_counter);
 			DisplayMessage(messeage_buf, 1);
 		}
-		avcbe_get_last_frame_stat(encoder->my_context, &frame_stat);
+		avcbe_get_last_frame_stat(encoder->stream_info, &frame_stat);
 		if ((return_code == AVCBE_ENCODE_SUCCESS)
 		    || (return_code == AVCBE_B_VOP_OUTPUTTED)
 		    || (return_code == AVCBE_EMPTY_VOP_OUTPUTTED)) {
@@ -723,7 +723,7 @@ mpeg4_encode_run (SHCodecs_Encoder * encoder, long stream_type)
 
 	/* return value is byte unit */
 	return_code =
-	    avcbe_put_end_code(encoder->my_context, &my_end_code_buff_info,
+	    avcbe_put_end_code(encoder->stream_info, &my_end_code_buff_info,
 			       AVCBE_VOSE);
 	if (return_code <= 0) {
 		if (return_code == -4) {
