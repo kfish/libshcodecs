@@ -46,7 +46,6 @@ extern long encode_time;
 extern char *dummy_nal_buf;
 extern char *dummy_nal_buf_addr;
 extern long tmp_pic_total_bytes;
-extern long tmp_slice_size;
 
 unsigned long m4iph_sleep_time_get(void);
 
@@ -898,6 +897,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 	long area_width, area_height;
 
 	avcbe_slice_stat slice_stat;	/* for H.264 */
+	long tmp_slice_size;
 	long header_output_flag;	/* set 1 if output SPS and PPS *//* for H.264 */
 	TAVCBE_STREAM_BUFF *extra_stream_buff;	/* set address if output AUD *//* for H.264 */
 	long index;
