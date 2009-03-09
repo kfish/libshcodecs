@@ -115,6 +115,7 @@ struct _SHCodecs_Encoder {
 
         /* H.264 specific internals */
 	long slice_total_size;
+	long tmp_pic_total_bytes;
 	avcbe_other_options_h264 other_options_h264;	/* parameters to control details */
 	unsigned long mb_num_of_picture;	/* total number of mb in picture */
 	unsigned long slice_mb_counter;	/* counter of mb_num_of_picture */
