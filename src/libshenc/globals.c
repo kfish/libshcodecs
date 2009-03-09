@@ -38,7 +38,6 @@ TAVCBE_STREAM_BUFF my_filler_data_buff_info;	/* for FillerData(CPB  Buffer) */
 /*----------------------------------------------------------*/
 char *dummy_nal_buf;
 char *dummy_nal_buf_addr;
-long slice_total_size = 0;
 long tmp_pic_total_bytes = 0;
 long tmp_slice_size;
 
