@@ -18,16 +18,11 @@ typedef struct _SHCodecs_Encoder SHCodecs_Encoder;
  * Signature of a callback for libshcodecs to call when it requires YUV 4:2:0 data.
  * To pause encoding, return 1 from this callback.
  * \param encoder The SHCodecs_Encoder* handle
- * \param addr_y Address in which to write Y data
- * \param addr_c Address in which to write CbCr data
  * \param user_data Arbitrary data supplied by user
  * \retval 0 Continue encoding
  * \retval 1 Pause encoding, return from shcodecs_encode()
  */
-typedef int (*SHCodecs_Encoder_Input) (SHCodecs_Encoder * encoder,
-				       unsigned long *addr_y,
-				       unsigned long *addr_c,
-				       void *user_data);
+typedef int (*SHCodecs_Encoder_Input) (SHCodecs_Encoder * encoder, void *user_data);
 
 /**
  * Signature of a callback for libshcodecs to call when it has encoded data.
@@ -70,6 +65,7 @@ typedef struct {		/* add at Version2 */
 struct _SHCodecs_Encoder {
 	int width;
 	int height;
+
 	SHCodecs_Format format;
 
 	SHCodecs_Encoder_Input input;
@@ -78,11 +74,15 @@ struct _SHCodecs_Encoder {
 	SHCodecs_Encoder_Output output;
 	void *output_user_data;
 
-        int initialized; /* Is avcbe_encode_init() done? */
-
         /* Internal encode error tracking */
         long error_return_function;	/* ID of the API function when error ocuured *//* add at Version2 */
         long error_return_code;	/* return_value of the API function when error ocuured *//* add at Version2 */
+
+	/* Internal */
+        int initialized; /* Is avcbe_encode_init() done? */
+	int y_bytes; /* Bytes used by Y input plane; CbCr plane uses y_bytes/2 */
+        unsigned long * addr_y; /* VPU address to write next Y plane */
+        unsigned long * addr_c; /* VPU address to write next C plane */
 
 	/* Encoder internals */
 	long frame_number_to_encode;

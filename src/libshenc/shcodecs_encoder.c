@@ -32,7 +32,17 @@ unsigned long * sdr_base;
 int vpu4_clock_on(void);
 int vpu4_clock_off(void);
 
-int init_other_API_enc_param(OTHER_API_ENC_PARAM * other_API_enc_param)
+static void
+set_dimensions (SHCodecs_Encoder * encoder, int width, int height)
+{
+	encoder->width = width;
+	encoder->height = height;
+
+	encoder->y_bytes = (((width + 15) / 16) * 16) * (((height + 15) / 16) * 16);
+}
+
+static int
+init_other_API_enc_param(OTHER_API_ENC_PARAM * other_API_enc_param)
 {
 	memset(&(other_API_enc_param->vui_main_param), 0,
 	       sizeof(avcbe_vui_main_param));
@@ -79,8 +89,7 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	m4iph_vpu_open();
 	m4iph_sdr_open();
 
-	encoder->width = width;
-	encoder->height = height;
+        set_dimensions (encoder, width, height);
 	encoder->format = format;
 
 	encoder->input = NULL;
@@ -237,6 +246,19 @@ int shcodecs_encoder_run(SHCodecs_Encoder * encoder)
 }
 
 int
+shcodecs_encoder_input_provide (SHCodecs_Encoder * encoder, 
+                                unsigned char * y_input, unsigned char * c_input)
+{
+	/* Write image data to kernel memory for VPU */
+	m4iph_sdr_write(encoder->addr_y, y_input, encoder->y_bytes);
+	m4iph_sdr_write(encoder->addr_c, c_input, encoder->y_bytes / 2);
+
+        return 0;
+}
+
+
+
+int
 shcodecs_encoder_get_width (SHCodecs_Encoder * encoder)
 {
   if (encoder == NULL) return -1;
@@ -250,6 +272,22 @@ shcodecs_encoder_get_height (SHCodecs_Encoder * encoder)
   if (encoder == NULL) return -1;
 
   return encoder->height;
+}
+
+int
+shcodecs_encoder_get_y_bytes (SHCodecs_Encoder * encoder)
+{
+  if (encoder == NULL) return -1;
+
+  return encoder->y_bytes;
+}
+
+int
+shcodecs_encoder_get_c_bytes (SHCodecs_Encoder * encoder)
+{
+  if (encoder == NULL) return -1;
+
+  return encoder->y_bytes/2;
 }
 
 /**

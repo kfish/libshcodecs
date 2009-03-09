@@ -25,10 +25,7 @@
 #include "ControlFileUtil.h"
 
 int open_input_image_file(APPLI_INFO *);
-int load_1frame_from_image_file(SHCodecs_Encoder * encoder,
-                                APPLI_INFO * appli_info,
-				unsigned long *addr_y,
-				unsigned long *addr_c);
+int load_1frame_from_image_file(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info);
 
 int open_output_file(APPLI_INFO *);
 int select_inputfile_set_param(SHCodecs_Encoder * encoder,
@@ -38,12 +35,10 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder,
 APPLI_INFO ainfo;		/* User Application Data */
 
 /* SHCodecs_Encoder_Input callback for acquiring an image from the input file */
-static int get_input(SHCodecs_Encoder * encoder,
-		     unsigned long *addr_y, unsigned long *addr_c,
-		     void *user_data)
+static int get_input(SHCodecs_Encoder * encoder, void *user_data)
 {
 	APPLI_INFO *appli_info = (APPLI_INFO *) user_data;
-	return load_1frame_from_image_file(encoder, appli_info, addr_y, addr_c);
+	return load_1frame_from_image_file(encoder, appli_info);
 }
 
 /* SHCodecs_Encoder_Output callback for writing encoded data to the output file */

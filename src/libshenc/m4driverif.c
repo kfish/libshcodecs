@@ -305,6 +305,7 @@ unsigned long m4iph_sdr_read(unsigned char *address, unsigned char *buffer,
 	return count;
 }
 
+/* Same arg order as memcpy; does alignment on dest */
 void m4iph_sdr_write(unsigned char *address, unsigned char *buffer,
 		     unsigned long count)
 {

@@ -510,9 +510,10 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 #endif				/* USE_BVOP */
 
 		if (encoder->input) {
+                        encoder->addr_y = addr_y;
+                        encoder->addr_c = addr_c;
 			return_code =
-			    encoder->input(encoder, addr_y, addr_c,
-					   encoder->input_user_data);
+			    encoder->input(encoder, encoder->input_user_data);
 			if (return_code < 0) {	/* error */
 				DisplayMessage
 				    (" encode_1file_mpeg4: ERROR acquiring input image! ",

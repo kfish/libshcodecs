@@ -32,8 +32,7 @@
 #define USE_BVOP
 
 /* capture yuv data to the image-capture-field area each frame */
-int capture_image(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
-                  unsigned long *addr_y, unsigned long *addr_c);
+int capture_image(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info);
 
 int open_output_file(APPLI_INFO *);
 int select_inputfile_set_param(SHCodecs_Encoder * encoder,
@@ -44,12 +43,10 @@ APPLI_INFO ainfo;		/* User Application Data */
 
 
 /* SHCodecs_Encoder_Input callback for acquiring an image from the CEU */
-static int get_input(SHCodecs_Encoder * encoder,
-		     unsigned long *addr_y, unsigned long *addr_c,
-		     void *user_data)
+static int get_input(SHCodecs_Encoder * encoder, void *user_data)
 {
 	APPLI_INFO *appli_info = (APPLI_INFO *) user_data;
-	return capture_image(encoder, appli_info, addr_y, addr_c);
+	return capture_image(encoder, appli_info);
 }
 
 /* SHCodecs_Encoder_Output callback for writing encoded data to the output file */

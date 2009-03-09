@@ -61,8 +61,6 @@ int open_output_file(APPLI_INFO * appli_info)
 struct capture {
 	SHCodecs_Encoder *encoder;
 	APPLI_INFO *appli_info;
-	unsigned long *addr_y;
-	unsigned long *addr_c;
 };
 
 static void
@@ -77,7 +75,7 @@ capture_image_cb(sh_ceu * ceu, const unsigned char *frame_data, size_t length,
 	const unsigned short *ds;
 	short rgb;
 	unsigned char *y, *c;
-	unsigned long *w_addr_yuv;
+	unsigned char *w_addr_yuv;
 	unsigned long wnum;
 	unsigned char *CbCr_ptr, *Cb_buf_ptr, *Cr_buf_ptr, *ptr;
 	int r, g, b;
@@ -278,24 +276,24 @@ capture_image_cb(sh_ceu * ceu, const unsigned char *frame_data, size_t length,
 	}
 
 	/* Write image data to kernel memory for VPU */
+        shcodecs_encoder_input_provide (cap->encoder, w_addr_yuv, CbCr_ptr);
+#if 0
 	m4iph_sdr_write((unsigned char *) cap->addr_y,
 			(unsigned char *) w_addr_yuv, wnum);
 	m4iph_sdr_write((unsigned char *) cap->addr_c,
 			(unsigned char *) CbCr_ptr, wnum / 2);
+#endif
 	free(w_addr_yuv);
 	free(CbCr_ptr);
 }
 
 /* capture yuv data to the image-capture-field area each frame */
-int capture_image(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
-                  unsigned long *addr_y, unsigned long *addr_c)
+int capture_image(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info)
 {
 	struct capture cap;
 
 	cap.encoder = encoder;
 	cap.appli_info = appli_info;
-	cap.addr_y = addr_y;
-	cap.addr_c = addr_c;
 
 	sh_ceu_capture_frame(appli_info->ceu, capture_image_cb, &cap);
 
@@ -304,14 +302,12 @@ int capture_image(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info,
 
 /* copy yuv data to the image-capture-field area each frame */
 int load_1frame_from_image_file(SHCodecs_Encoder * encoder,
-                                APPLI_INFO * appli_info,
-				unsigned long *addr_y,
-				unsigned long *addr_c)
+                                APPLI_INFO * appli_info)
 {
 	int read_size;
 	long hsiz, ysiz, index, index2;
 	FILE *input_yuv_fp;
-	unsigned long *w_addr_yuv;
+	unsigned char *w_addr_yuv;
 	unsigned long wnum;
 	unsigned char *CbCr_ptr, *Cb_buf_ptr, *Cr_buf_ptr, *ptr;
 
@@ -390,10 +386,13 @@ int load_1frame_from_image_file(SHCodecs_Encoder * encoder,
 	}
 
 	/* Write image data to kernel memory for VPU */
+        shcodecs_encoder_input_provide (encoder, w_addr_yuv, CbCr_ptr);
+#if 0
 	m4iph_sdr_write((unsigned char *) addr_y,
 			(unsigned char *) w_addr_yuv, wnum);
 	m4iph_sdr_write((unsigned char *) addr_c,
 			(unsigned char *) CbCr_ptr, wnum / 2);
+#endif
 	free(w_addr_yuv);
 	free(Cb_buf_ptr);
 	free(Cr_buf_ptr);
