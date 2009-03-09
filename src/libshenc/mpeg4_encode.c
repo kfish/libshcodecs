@@ -64,15 +64,6 @@ extern unsigned long *my_end_code_buff_bak;
 extern unsigned long *my_work_area;	/* 4 bytes alignment */
 
 
-void disp_context_info(void *context);
-
-long encode_picture_for_mpeg4(SHCodecs_Encoder * encoder,
-			      long stream_type,
-			      avcbe_stream_info * context);
-
-/* Top of the user application sample source to encode */
-/*int mpeg4_enc(void) */
-
 static void
 get_new_stream_buf(avcbe_stream_info * context,
   		   char *previous_stream_buff, long output_size,
@@ -193,9 +184,7 @@ mpeg4_encode_init (SHCodecs_Encoder * encoder, long stream_type)
 }
 
 static int
-mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder,
-			   long stream_type,
-			   avcbe_stream_info ** context)
+mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder, long stream_type)
 {
 	long return_code = 0;
 	unsigned long nrefframe, nldecfmem, addr_temp;
@@ -225,7 +214,7 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder,
 					// RSM (avcbe_buf_continue_userproc_ptr)NULL, &WORK_ARRY[0], 
 					(avcbe_buf_continue_userproc_ptr)
 					get_new_stream_buf, &WORK_ARRY[0],
-					&WORK_ARRY[1], context);
+					&WORK_ARRY[1], &encoder->my_context);
 #else
 	return_code = avcbe_init_encode(&(encoder->encoding_property),
 					&(encoder->paramR),
@@ -233,7 +222,7 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder,
 					// RSM (avcbe_buf_continue_userproc_ptr)NULL, &WORK_ARRY[0], NULL, 
 					(avcbe_buf_continue_userproc_ptr)
 					get_new_stream_buf, &WORK_ARRY[0],
-					NULL, context);
+					NULL, &encoder->my_context);
 #endif				/* VPU4IP */
 	if (return_code < 0) {	/* error */
 		if (return_code == -1) {
@@ -261,7 +250,7 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder,
 	if (encoder->other_options_mpeg4.avcbe_quant_type == 1) {	/* add @061121 */
 		printf("avcbe_set_quant_type1()\n");
 		return_code =
-		    SetQuantMatrix(*context, QMAT_MPEG_TYPE_ANIME1_INTRA,
+		    SetQuantMatrix(encoder->my_context, QMAT_MPEG_TYPE_ANIME1_INTRA,
 				   QMAT_MPEG_TYPE_ANIME1_NONINTRA);
 	}
 
@@ -321,7 +310,7 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder,
 	/*--- The MPEG-4&H.264 Encoder Library API(required-5)@specify the 
 	 * address in the image-work-field area ---*/
 	return_code =
-	    avcbe_init_memory(*context, nrefframe, nldecfmem, encoder->LDEC_ARRY,
+	    avcbe_init_memory(encoder->my_context, nrefframe, nldecfmem, encoder->LDEC_ARRY,
 			      area_width, area_height);
 	printf("avcbe_init_memory=%ld\n", return_code);
 
@@ -351,7 +340,6 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder,
 
 static int
 clip_image_data_for_H263(SHCodecs_Encoder * encoder,
-       		         avcbe_stream_info * context,
 			 unsigned long *addr_y, unsigned long *addr_c)
 {
 	long width, height, index;
@@ -407,8 +395,7 @@ clip_image_data_for_H263(SHCodecs_Encoder * encoder,
 /*------------------------------------------------------------------------*/
 static long
 mpeg4_encode_picture (SHCodecs_Encoder * encoder,
-		      long stream_type,
-		      avcbe_stream_info * context)
+		      long stream_type)
 {
 	unsigned long ldec, ref1, ref2;
 	long stream_bits, streamsize_per_frame, streamsize_total;
@@ -472,7 +459,7 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 #ifdef USE_BVOP			/* 050106 */
 		if (encoder->other_options_mpeg4.avcbe_b_vop_num > 0) {
 			return_code =
-			    avcbe_get_buffer_check(context,
+			    avcbe_get_buffer_check(encoder->my_context,
 						   &frame_check_array[0]);
 			if (return_code < 0) {	/* error */
 				if (return_code == -1) {
@@ -517,13 +504,12 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 		 * address in the capture-image-field area ---*/
 		if (stream_type != AVCBE_MPEG4) {
 			return_code =
-			    clip_image_data_for_H263(encoder, context,
-						     addr_y, addr_c);
+			    clip_image_data_for_H263(encoder, addr_y, addr_c);
 			printf("H.263...clip_image_sata=%ld\n",
 			       return_code);
 		}
 		return_code =
-		    avcbe_set_image_pointer(context, &captfmem, ldec, ref1,
+		    avcbe_set_image_pointer(encoder->my_context, &captfmem, ldec, ref1,
 					    ref2);
 		if (return_code != 0) {
 			if (return_code == -1) {
@@ -545,7 +531,7 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 #ifdef CAPT_INPUT
 		vpu4_clock_on();
 		return_code =
-		    avcbe_encode_picture(context, frm, intra_judge,
+		    avcbe_encode_picture(encoder->my_context, frm, intra_judge,
 					 encoder->output_type,
 					 &my_stream_buff_info, NULL);
 		vpu4_clock_off();
@@ -553,7 +539,7 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 #ifdef DEBUG
 		printf
 		    ("encode_picture_for_mpeg4: avcbe_encode_picture (%x, %ld, %ld, %ld, {%ld, %x})\n",
-		     context, frm, encoder->set_intra,
+		     encoder->my_context, frm, encoder->set_intra,
 		     encoder->output_type,
 		     my_stream_buff_info.buff_size,
 		     my_stream_buff_info.buff_top);
@@ -562,7 +548,7 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 		gettimeofday(&tv, &tz);
 //printf("enc_pic0=%ld,",tv.tv_usec);
 		return_code =
-		    avcbe_encode_picture(context, frm,
+		    avcbe_encode_picture(encoder->my_context, frm,
 					 encoder->set_intra,
 					 encoder->output_type,
 					 &my_stream_buff_info, NULL);
@@ -663,7 +649,7 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 				encoder->frame_counter);
 			DisplayMessage(messeage_buf, 1);
 		}
-		avcbe_get_last_frame_stat(context, &frame_stat);
+		avcbe_get_last_frame_stat(encoder->my_context, &frame_stat);
 		if ((return_code == AVCBE_ENCODE_SUCCESS)
 		    || (return_code == AVCBE_B_VOP_OUTPUTTED)
 		    || (return_code == AVCBE_EMPTY_VOP_OUTPUTTED)) {
@@ -710,7 +696,7 @@ mpeg4_encode_run (SHCodecs_Encoder * encoder, long stream_type)
 	long my_size = 0;
 
         if (!encoder->initialized)
-                mpeg4_encode_deferred_init (encoder, stream_type, &encoder->my_context);
+                mpeg4_encode_deferred_init (encoder, stream_type);
 
 	encoder->error_return_function = 0;	/* add at Version2 */
 	encoder->error_return_code = 0;	/* add at Version2 */
@@ -725,7 +711,7 @@ mpeg4_encode_run (SHCodecs_Encoder * encoder, long stream_type)
 
 	/* encode process function for mpeg-4/H.263 (call avcbe_encode_picture func.) */
 	return_code =
-	    mpeg4_encode_picture (encoder, stream_type, encoder->my_context);
+	    mpeg4_encode_picture (encoder, stream_type);
 	if (return_code != 0) {
 		return (-15);
 	}
