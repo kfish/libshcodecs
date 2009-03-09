@@ -136,9 +136,11 @@ int main(int argc, char *argv[])
 
 	shcodecs_encoder_close(encoder);
 
+#if 0
 	printf("Total encode time = %d(msec)\n", encode_time_get());
 	printf("Total sleep  time = %d(msec)\n", m4iph_sleep_time_get());
 	/* TODO vpu4_reg_close(); */
+#endif
 
 	sh_veu_close();
 
