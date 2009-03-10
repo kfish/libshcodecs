@@ -19,8 +19,6 @@ extern unsigned long *my_stream_buff_bak;
 extern unsigned long *my_end_code_buff_bak;
 extern unsigned long *kernel_memory_for_vpu_top;
 
-extern unsigned long * sdr_base;
-
 int vpu4_clock_on(void);
 int vpu4_clock_off(void);
 
@@ -185,25 +183,25 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	width_height = width + height;
 	width_height += (width_height / 2);
 	max_frame = 2;
-	sdr_base = m4iph_sdr_malloc(width_height * (max_frame + 3), 32);
-	if (sdr_base == NULL)
+	encoder->sdr_base = m4iph_sdr_malloc(width_height * (max_frame + 3), 32);
+	if (encoder->sdr_base == NULL)
 		exit(1);
-	kernel_memory_for_vpu_top = (unsigned long *) sdr_base;
+	kernel_memory_for_vpu_top = encoder->sdr_base;
 	for (i = 0; i < max_frame; i++) {
 		encoder->my_frame_memory_capt[i] =
-		    (unsigned long *) (sdr_base + width_height * i);
+		    (unsigned long *) (encoder->sdr_base + width_height * i);
 		printf("my_frame_memory_capt[%d]=%p\n", i,
 		       encoder->my_frame_memory_capt[i]);
 	}
 	encoder->my_work_area = NULL;
 	encoder->my_frame_memory_ldec1 =
-	    (unsigned long *) (sdr_base + width_height * i);
+	    (unsigned long *) (encoder->sdr_base + width_height * i);
 	i++;
 	encoder->my_frame_memory_ldec2 =
-	    (unsigned long *) (sdr_base + width_height * i);
+	    (unsigned long *) (encoder->sdr_base + width_height * i);
 	i++;
 	encoder->my_frame_memory_ldec3 =
-	    (unsigned long *) (sdr_base + width_height * i);
+	    (unsigned long *) (encoder->sdr_base + width_height * i);
 	my_stream_buff_bak = malloc(MY_STREAM_BUFF_SIZE + 31);
 	my_stream_buff = ALIGN(my_stream_buff_bak, 32);
 	my_end_code_buff_bak = malloc(MY_END_CODE_BUFF_SIZE + 31);
@@ -227,9 +225,11 @@ void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
 {
         long width_height, max_frame=2;
 
+	if (encoder == NULL) return;
+
 	width_height = encoder->width + encoder->height;
 	width_height += (width_height / 2);
-	m4iph_sdr_free(sdr_base, width_height * (max_frame + 3));
+	m4iph_sdr_free(encoder->sdr_base, width_height * (max_frame + 3));
 
 	m4iph_sdr_free((unsigned char *)encoder->vpu4_param.m4iph_temporary_buff_address,
 		       MY_STREAM_BUFF_SIZE);
@@ -237,10 +237,8 @@ void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
 	m4iph_sdr_close();
 	m4iph_vpu_close();
 
-	if (encoder) {
-		free(encoder->my_work_area);
-		free(encoder);
-	}
+	free(encoder->my_work_area);
+	free(encoder);
 
 	free(my_stream_buff_bak);
 	free(my_end_code_buff_bak);

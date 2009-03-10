@@ -22,10 +22,6 @@
 #include "encoder_common.h"		/* User Application Sample Header */
 #include "m4driverif.h"
 
-extern unsigned long * sdr_base;
-
-#define KERNEL_MEMORY_FOR_VPU_TOP sdr_base
-
 extern TAVCBE_STREAM_BUFF my_filler_data_buff_info;	/* for FillerData(CPB  Buffer) */
 extern char *dummy_nal_buf;
 extern unsigned long my_filler_data_buff[MY_FILLER_DATA_BUFF_SIZE / 4];	/* for FillerData */

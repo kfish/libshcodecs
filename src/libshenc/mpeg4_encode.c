@@ -53,10 +53,6 @@ unsigned long m4iph_sleep_time_get(void);
 // #define MY_MB_WORK_AREA_SIZE       28000   /* QCIF size DataPartioning=ON, Bitrate=64000 : 6500 + 21500 */
 // #endif /* MULTI_STREAM */
 
-//#define MY_MB_WORK_AREA_SIZE  76800  /*TODO hardcoded, remove later */
-//static unsigned long my_mb_work_area[MY_MB_WORK_AREA_SIZE/4]; /* 4 bytes alignmen */
-//#define my_sdr_mb_work_area sdr_base+(MY_MB_WORK_AREA_SIZE*2) /* 4 bytes alignmen */
-
 extern unsigned long *my_stream_buff;
 extern unsigned long *my_end_code_buff;
 extern unsigned long *my_stream_buff_bak;

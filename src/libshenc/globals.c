@@ -22,8 +22,6 @@
 #include "encoder_common.h"		/* User Application Sample Header */
 #include "m4driverif.h"
 
-#define KERNEL_MEMORY_FOR_VPU_TOP sdr_base
-
 /* From encoder_common.c */
 
 TAVCBE_STREAM_BUFF my_stream_buff_info, my_extra_stream_buff_info;
@@ -66,5 +64,3 @@ unsigned long *my_end_code_buff;
 unsigned long *my_stream_buff_bak;
 unsigned long *my_end_code_buff_bak;
 unsigned long *kernel_memory_for_vpu_top;
-
-unsigned long * sdr_base;
