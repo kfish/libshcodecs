@@ -23,7 +23,6 @@ noinst_HEADERS = \
 	sh7722_vpu.h
 
 libshenc_la_SOURCES = \
-	globals.c \
 	shcodecs_encoder.c \
 	encoder_common.c \
 	general_accessors.c \

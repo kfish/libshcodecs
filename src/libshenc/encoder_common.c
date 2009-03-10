@@ -22,13 +22,6 @@
 #include "encoder_common.h"		/* User Application Sample Header */
 #include "m4driverif.h"
 
-//extern TAVCBE_STREAM_BUFF my_filler_data_buff_info;	/* for FillerData(CPB  Buffer) */
-//extern unsigned long my_filler_data_buff[MY_FILLER_DATA_BUFF_SIZE / 4];	/* for FillerData */
-#ifndef DISABLE_INT
-extern volatile long m4iph_vpu_cn_flg;
-#endif				/* DISABLE_INT */
-
-
 /*----------------------------------------------------------------------------------------------*/
 /* Example of function created by the user, which is called when VPU4 reads register. */
 /* (This function is common to MPEG-4&H.264 Encoder for VPU4.)  */
