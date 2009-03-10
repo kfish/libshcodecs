@@ -123,6 +123,7 @@ struct _SHCodecs_Encoder {
 	TAVCBE_STREAM_BUFF my_filler_data_buff_info;	/* for FillerData(CPB  Buffer) */
 
 	unsigned long my_extra_stream_buff[16 / 4];
+	unsigned long my_sps_stream_buff[MY_SPS_STREAM_BUFF_SIZE / 4 + 8];	/* for SPS */
 
 	long slice_total_size;
 	long tmp_pic_total_bytes;
