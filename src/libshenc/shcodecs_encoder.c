@@ -19,8 +19,6 @@ extern unsigned long *my_stream_buff_bak;
 extern unsigned long *my_end_code_buff_bak;
 extern unsigned long *kernel_memory_for_vpu_top;
 
-extern unsigned long *my_work_area;
-
 extern unsigned long * sdr_base;
 
 int vpu4_clock_on(void);
@@ -33,6 +31,59 @@ set_dimensions (SHCodecs_Encoder * encoder, int width, int height)
 	encoder->height = height;
 
 	encoder->y_bytes = (((width + 15) / 16) * 16) * (((height + 15) / 16) * 16);
+}
+
+/*----------------------------------------------------------------------------------------------*/
+/* set the parameters of VPU4 */
+/*----------------------------------------------------------------------------------------------*/
+static void
+set_VPU4_param(SHCodecs_Encoder * encoder)
+{
+	M4IPH_VPU4_INIT_OPTION * vpu4_param = &(encoder->vpu4_param);
+	unsigned long tb;
+
+	/* VPU4 Base Address For SH-Mobile 3A */
+	vpu4_param->m4iph_vpu_base_address = 0xFE900000;
+
+	/* Endian */
+#ifdef _LIT
+	vpu4_param->m4iph_vpu_endian = 0x000003FF;	/* for Little Endian */
+#else
+	vpu4_param->m4iph_vpu_endian = 0x00000000;	/* for Big Endian */
+#endif				/* _LIT */
+
+
+	/* Interrupt */
+#ifdef DISABLE_INT
+	vpu4_param->m4iph_vpu_interrupt_enable = M4IPH_OFF;
+#else
+	vpu4_param->m4iph_vpu_interrupt_enable = M4IPH_ON;
+#endif				/* DISABLE_INT */
+
+	/* Supply of VPU4 Clock */
+	vpu4_param->m4iph_vpu_clock_supply_control = 0;	/* 'clock_supply_enable' -> 'clock_supply_control' changed when Version2 */
+
+	/* Address Mask chage */
+	vpu4_param->m4iph_vpu_mask_address_disable = M4IPH_OFF;
+
+	/* Temporary Buffer Address */
+	tb = (unsigned long)m4iph_sdr_malloc(MY_STREAM_BUFF_SIZE, 32);
+	vpu4_param->m4iph_temporary_buff_address = tb;
+	printf("m4iph_temporary_buff_address=%lX, size=%d\n", tb,
+	       MY_STREAM_BUFF_SIZE);
+	/* Temporary Buffer Size */
+	vpu4_param->m4iph_temporary_buff_size = MY_STREAM_BUFF_SIZE;
+	// vpu4_param->m4iph_temporary_buff_size = MY_WORK_AREA_SIZE;
+	if (encoder->my_work_area == NULL) {
+		encoder->my_work_area = malloc(MY_WORK_AREA_SIZE);	/* 4 bytes alignment */
+		dummy_nal_buf = malloc(MY_DUMMY_NAL_BUFF_SIZE);
+		memset(dummy_nal_buf, 0, MY_DUMMY_NAL_BUFF_SIZE);
+		printf("my_work_area=%pX\n", encoder->my_work_area);
+		if (encoder->my_work_area == NULL) {
+			printf("Memoey allocation error\n");
+			exit(-200);
+		}
+	}
 }
 
 static int
@@ -111,7 +162,7 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	m4iph_sleep_time_init();
 
 	/*--- set the parameters of VPU4 (one of the user application's own functions) ---*/
-	set_VPU4_param(&(encoder->vpu4_param));
+	set_VPU4_param(encoder);
 
 	/*--- The MPEG-4&H.264 Encoder Library API (common to MPEG-4&H.264 Decoder) 
 	 * (required-1)@initialize VPU4 ---*/
@@ -144,6 +195,7 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 		printf("my_frame_memory_capt[%d]=%p\n", i,
 		       encoder->my_frame_memory_capt[i]);
 	}
+	encoder->my_work_area = NULL;
 	encoder->my_frame_memory_ldec1 =
 	    (unsigned long *) (sdr_base + width_height * i);
 	i++;
@@ -185,12 +237,13 @@ void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
 	m4iph_sdr_close();
 	m4iph_vpu_close();
 
-	if (encoder)
+	if (encoder) {
+		free(encoder->my_work_area);
 		free(encoder);
+	}
 
 	free(my_stream_buff_bak);
 	free(my_end_code_buff_bak);
-	free(my_work_area);
 	free(dummy_nal_buf);
 
 	return;

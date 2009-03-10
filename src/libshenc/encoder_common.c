@@ -28,7 +28,6 @@ extern unsigned long * sdr_base;
 
 extern TAVCBE_STREAM_BUFF my_filler_data_buff_info;	/* for FillerData(CPB  Buffer) */
 extern char *dummy_nal_buf;
-extern unsigned long *my_work_area;
 extern unsigned long my_filler_data_buff[MY_FILLER_DATA_BUFF_SIZE / 4];	/* for FillerData */
 #ifndef DISABLE_INT
 extern volatile long m4iph_vpu_cn_flg;
@@ -85,61 +84,6 @@ unsigned long avcbe_insert_filler_data_for_cpb_buffer(unsigned long
 #else
 	return input_filler_size;
 #endif
-}
-
-/*----------------------------------------------------------------------------------------------*/
-/* Top of the user application sample source to encode */
-/*----------------------------------------------------------------------------------------------*/
-
-/*----------------------------------------------------------------------------------------------*/
-/* set the parameters of VPU4 */
-/*----------------------------------------------------------------------------------------------*/
-void set_VPU4_param(M4IPH_VPU4_INIT_OPTION * vpu4_param)
-{
-	unsigned long tb;
-
-	/* VPU4 Base Address For SH-Mobile 3A */
-	vpu4_param->m4iph_vpu_base_address = 0xFE900000;
-
-	/* Endian */
-#ifdef _LIT
-	vpu4_param->m4iph_vpu_endian = 0x000003FF;	/* for Little Endian */
-#else
-	vpu4_param->m4iph_vpu_endian = 0x00000000;	/* for Big Endian */
-#endif				/* _LIT */
-
-
-	/* Interrupt */
-#ifdef DISABLE_INT
-	vpu4_param->m4iph_vpu_interrupt_enable = M4IPH_OFF;
-#else
-	vpu4_param->m4iph_vpu_interrupt_enable = M4IPH_ON;
-#endif				/* DISABLE_INT */
-
-	/* Supply of VPU4 Clock */
-	vpu4_param->m4iph_vpu_clock_supply_control = 0;	/* 'clock_supply_enable' -> 'clock_supply_control' changed when Version2 */
-
-	/* Address Mask chage */
-	vpu4_param->m4iph_vpu_mask_address_disable = M4IPH_OFF;
-
-	/* Temporary Buffer Address */
-	tb = (unsigned long)m4iph_sdr_malloc(MY_STREAM_BUFF_SIZE, 32);
-	vpu4_param->m4iph_temporary_buff_address = tb;
-	printf("m4iph_temporary_buff_address=%lX, size=%d\n", tb,
-	       MY_STREAM_BUFF_SIZE);
-	/* Temporary Buffer Size */
-	vpu4_param->m4iph_temporary_buff_size = MY_STREAM_BUFF_SIZE;
-	// vpu4_param->m4iph_temporary_buff_size = MY_WORK_AREA_SIZE;
-	if (my_work_area == NULL) {
-		my_work_area = malloc(MY_WORK_AREA_SIZE);	/* 4 bytes alignment */
-		dummy_nal_buf = malloc(MY_DUMMY_NAL_BUFF_SIZE);
-		memset(dummy_nal_buf, 0, MY_DUMMY_NAL_BUFF_SIZE);
-		printf("my_work_area=%pX\n", my_work_area);
-		if (my_work_area == NULL) {
-			printf("Memoey allocation error\n");
-			exit(-200);
-		}
-	}
 }
 
 /*-------------------------------------------------------------------------*/

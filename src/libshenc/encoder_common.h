@@ -113,7 +113,6 @@
 /*-------------- proto-type declaration ----------------------------*/
 /*--- the functions in avcbencsmp_common.c ---*/
 int avcbe_enc(long stream_type);
-void set_VPU4_param(M4IPH_VPU4_INIT_OPTION * vpu4_param);
 void DisplayMessage(char *message_text, int line_feed_flag);
 
 void encode_time_init(void);

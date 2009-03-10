@@ -40,16 +40,8 @@ char *dummy_nal_buf;
 char *dummy_nal_buf_addr;
 
 /*----------------------------------------------------------*/
-/*       Other work-field area                              */
-/*----------------------------------------------------------*/
-//unsigned long my_work_area[MY_WORK_AREA_SIZE/4];      /* 4 bytes alignment */
-unsigned long *my_work_area = NULL;
-
-/*----------------------------------------------------------*/
 /*       Stream-output buffer                               */
 /*----------------------------------------------------------*/
-/* 4 bytes alignment*/
-//unsigned long sdr_read_my_stream_buff[MY_STREAM_BUFF_SIZE/4]; 
 
 /* for AU delimiter */
 unsigned long my_extra_stream_buff[16 / 4];

@@ -61,7 +61,6 @@ extern unsigned long *my_stream_buff;
 extern unsigned long *my_end_code_buff;
 extern unsigned long *my_stream_buff_bak;
 extern unsigned long *my_end_code_buff_bak;
-extern unsigned long *my_work_area;	/* 4 bytes alignment */
 
 
 static void
@@ -198,7 +197,7 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder, long stream_type)
 	/*--- The MPEG-4&H.264 Encoder Library API(required-4)@initialize the 
 	 * variables ---*/
 	WORK_ARRY[0].area_size = MY_WORK_AREA_SIZE;
-	WORK_ARRY[0].area_top = (unsigned char *) my_work_area;
+	WORK_ARRY[0].area_top = (unsigned char *) encoder->my_work_area;
 #ifndef VPU4IP
 	WORK_ARRY[1].area_size = MY_MB_WORK_AREA_SIZE;
 	WORK_ARRY[1].area_top = (unsigned char *) my_mb_work_area;
