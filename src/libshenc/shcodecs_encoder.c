@@ -152,6 +152,7 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	m4iph_sleep_time_init();
 
 	/*--- set the parameters of VPU4 (one of the user application's own functions) ---*/
+	encoder->my_work_area = NULL;
 	set_VPU4_param(encoder);
 
 	/*--- The MPEG-4&H.264 Encoder Library API (common to MPEG-4&H.264 Decoder) 
@@ -183,7 +184,6 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 		printf("my_frame_memory_capt[%d]=%p\n", i,
 		       encoder->my_frame_memory_capt[i]);
 	}
-	encoder->my_work_area = NULL;
 	encoder->my_frame_memory_ldec1 =
 	    (unsigned long *) (encoder->sdr_base + width_height * i);
 	i++;
