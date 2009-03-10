@@ -13,9 +13,7 @@
 
 extern char *dummy_nal_buf;
 
-extern unsigned long *my_stream_buff;
 extern unsigned long *my_end_code_buff;
-extern unsigned long *my_stream_buff_bak;
 extern unsigned long *my_end_code_buff_bak;
 
 int vpu4_clock_on(void);
@@ -176,7 +174,6 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	init_other_API_enc_param(&encoder->other_API_enc_param);
 
 	/* stream buffer 0 clear */
-//      memset(sdr_read_my_stream_buff,0,sizeof(sdr_read_my_stream_buff));
 	encode_time_init();
 	vpu4_clock_on();
 	width_height = width + height;
@@ -200,8 +197,8 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	i++;
 	encoder->my_frame_memory_ldec3 =
 	    (unsigned long *) (encoder->sdr_base + width_height * i);
-	my_stream_buff_bak = malloc(MY_STREAM_BUFF_SIZE + 31);
-	my_stream_buff = ALIGN(my_stream_buff_bak, 32);
+	encoder->my_stream_buff_bak = malloc(MY_STREAM_BUFF_SIZE + 31);
+	encoder->my_stream_buff = ALIGN(encoder->my_stream_buff_bak, 32);
 	my_end_code_buff_bak = malloc(MY_END_CODE_BUFF_SIZE + 31);
 	my_end_code_buff = ALIGN(my_end_code_buff_bak, 32);
 
@@ -238,7 +235,7 @@ void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
 	free(encoder->my_work_area);
 	free(encoder);
 
-	free(my_stream_buff_bak);
+	free(encoder->my_stream_buff_bak);
 	free(my_end_code_buff_bak);
 	free(dummy_nal_buf);
 

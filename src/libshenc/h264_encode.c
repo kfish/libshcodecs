@@ -23,7 +23,6 @@
 
 #include "encoder_private.h"
 
-extern unsigned long *my_stream_buff;
 extern unsigned long *my_end_code_buff;	/* for End Code */
 
 extern long encode_time;
@@ -411,7 +410,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 	header_output_flag = 1;	/* set to output SPS and PPS for 1st frame */
 	/* stream-output-buffer */
 	encoder->my_stream_buff_info.buff_top =
-	    (unsigned char *) &my_stream_buff[0];
+	    (unsigned char *) &encoder->my_stream_buff[0];
 	encoder->my_stream_buff_info.buff_size = MY_STREAM_BUFF_SIZE;
 	/* Access Unit Delimiter-output-buffer */
 	encoder->my_extra_stream_buff_info.buff_top =
@@ -839,7 +838,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 			      7) >> 3);
 			if (encoder->output) {
 				encoder->output(encoder, (unsigned char *)
-						&my_stream_buff[0],
+						&encoder->my_stream_buff[0],
 						streamsize_per_frame,
 						encoder->output_user_data);
 			}
@@ -956,7 +955,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 
 	/* stream-output-buffer */
 	encoder->my_stream_buff_info.buff_top =
-	    (unsigned char *) &my_stream_buff[0];
+	    (unsigned char *) &encoder->my_stream_buff[0];
 	encoder->my_stream_buff_info.buff_size = MY_STREAM_BUFF_SIZE;
 
 	/* Access Unit Delimiter-output-buffer */
@@ -1230,7 +1229,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 
 		if (return_code == AVCBE_SLICE_REMAIN) {	/* 5 */
 
-			memcpy(dummy_nal_buf_addr, (char *) &my_stream_buff[0], tmp_slice_size);	/* in byte unit */
+			memcpy(dummy_nal_buf_addr, (char *) &encoder->my_stream_buff[0], tmp_slice_size);	/* in byte unit */
 			encoder->slice_total_size += tmp_slice_size;
 			encoder->tmp_pic_total_bytes += tmp_slice_size;	/* total size of 1-frame */
 			dummy_nal_buf_addr += tmp_slice_size;	/* update the address of buffer for 1-slice */
@@ -1435,7 +1434,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 				}
 			}
 			/* copy the bitstream of 1-slice newly encoded, and add the size to the total size of 1-frame */
-			memcpy(dummy_nal_buf_addr, (char *) &my_stream_buff[0], tmp_slice_size);	/* in byte unit */
+			memcpy(dummy_nal_buf_addr, (char *) &encoder->my_stream_buff[0], tmp_slice_size);	/* in byte unit */
 			encoder->slice_total_size += tmp_slice_size;	/* the size of 1-slice newly encoded */
 			encoder->tmp_pic_total_bytes += tmp_slice_size;	/* total size of 1-frame */
 			dummy_nal_buf_addr += tmp_slice_size;	/* update the address of buffer for 1-slice */

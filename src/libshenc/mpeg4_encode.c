@@ -44,8 +44,6 @@ unsigned long m4iph_sleep_time_get(void);
 
 /*** Stream-output buffer to receive an encoding result in every one frame ***/
 
-//static unsigned long sdr_read_my_stream_buff[MY_STREAM_BUFF_SIZE/4];          /* 4 bytes alignmen */   
-
 /*** Other work-field area ***/
 // #ifdef MULTI_STREAM             /* In the case of multiple streams */
 // #define MY_MB_WORK_AREA_SIZE       78000   /* QCIF size DataPartioning=ON, Bitrate=64000/256000 : (6500 + 21500) + (9500 + 40000 + more) */
@@ -53,9 +51,7 @@ unsigned long m4iph_sleep_time_get(void);
 // #define MY_MB_WORK_AREA_SIZE       28000   /* QCIF size DataPartioning=ON, Bitrate=64000 : 6500 + 21500 */
 // #endif /* MULTI_STREAM */
 
-extern unsigned long *my_stream_buff;
 extern unsigned long *my_end_code_buff;
-extern unsigned long *my_stream_buff_bak;
 extern unsigned long *my_end_code_buff_bak;
 
 
@@ -520,9 +516,9 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 		/*--- The MPEG-4 Encoder Library API (required-8)@encode each 
 		 * screen of display data ---*/
 		my_stream_buff_info.buff_top =
-		    (unsigned char *) &my_stream_buff[0];
+		    (unsigned char *) &encoder->my_stream_buff[0];
 		my_stream_buff_info.buff_size = MY_STREAM_BUFF_SIZE;	// TODO: buf size
-		memset(&my_stream_buff[0], 0, MY_STREAM_BUFF_SIZE);
+		memset(&encoder->my_stream_buff[0], 0, MY_STREAM_BUFF_SIZE);
 #ifdef CAPT_INPUT
 		vpu4_clock_on();
 		return_code =
@@ -667,7 +663,7 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 				my_size =
 				    encoder->output(encoder,
 						    (unsigned char *)
-						    &my_stream_buff[0],
+						    &encoder->my_stream_buff[0],
 						    streamsize_per_frame,
 						    encoder->
 						    output_user_data);

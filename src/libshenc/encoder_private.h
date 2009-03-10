@@ -102,6 +102,9 @@ struct _SHCodecs_Encoder {
 	unsigned long *my_frame_memory_ldec2;
 	unsigned long *my_frame_memory_ldec3;
 
+	unsigned long *my_stream_buff;
+	unsigned long *my_stream_buff_bak;
+
 	/* General encoder internals (general_accessors.c) */
 	long frame_number_to_encode;
 	long frame_no_increment;	/* Increment value of Frame number to be encoded for 
@@ -122,7 +125,6 @@ struct _SHCodecs_Encoder {
 	TAVCBE_STREAM_BUFF my_sei_stream_buff_info;	/* for SEI */
 	TAVCBE_STREAM_BUFF my_filler_data_buff_info;	/* for FillerData(CPB  Buffer) */
 
-	/* for AU delimiter */
 	unsigned long my_extra_stream_buff[16 / 4];
 	unsigned long my_sps_stream_buff[MY_SPS_STREAM_BUFF_SIZE / 4 + 8];	/* for SPS */
 	unsigned long my_pps_stream_buff[MY_PPS_STREAM_BUFF_SIZE / 4 + 8];	/* for PPS */
