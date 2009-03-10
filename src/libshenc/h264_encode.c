@@ -26,7 +26,6 @@
 extern unsigned long *my_stream_buff;
 extern unsigned long *my_end_code_buff;	/* for End Code */
 extern unsigned long my_sei_stream_buff[];	/* for SEI */
-extern unsigned long my_filler_data_buff[];	/* for FillerData(CPB  Buffer) */
 
 extern long encode_time;
 
@@ -437,7 +436,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 
 	/* Filler Data-output-buffer */
 	encoder->my_filler_data_buff_info.buff_top =
-	    (unsigned char *) &my_filler_data_buff[0];
+	    (unsigned char *) &encoder->my_filler_data_buff[0];
 	encoder->my_filler_data_buff_info.buff_size = MY_FILLER_DATA_BUFF_SIZE;
 	while (1) {	/*--------------------- Repeating by frame numbers --------------------------*/
 		if (encoder->frame_number_to_encode == encoder->frame_counter) {
@@ -829,8 +828,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 				if (encoder->output) {
 					encoder->output(encoder,
 							(unsigned char *)
-							&my_filler_data_buff
-							[0],
+							&encoder->my_filler_data_buff[0],
 							encoder->output_filler_data,
 							encoder->output_user_data);
 				}
@@ -985,7 +983,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 
 	/* Filler Data-output-buffer */
 	encoder->my_filler_data_buff_info.buff_top =
-	    (unsigned char *) &my_filler_data_buff[0];
+	    (unsigned char *) &encoder->my_filler_data_buff[0];
 	encoder->my_filler_data_buff_info.buff_size = MY_FILLER_DATA_BUFF_SIZE;
 
 	dummy_nal_buf_addr = dummy_nal_buf;
@@ -1432,8 +1430,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 				if (encoder->output) {
 					encoder->output(encoder,
 							(unsigned char *)
-							&my_filler_data_buff
-							[0],
+							&encoder->my_filler_data_buff[0],
 							encoder->output_filler_data,
 							encoder->output_user_data);
 				}
