@@ -22,7 +22,7 @@
 #include "encoder_common.h"		/* User Application Sample Header */
 #include "m4driverif.h"
 
-extern TAVCBE_STREAM_BUFF my_filler_data_buff_info;	/* for FillerData(CPB  Buffer) */
+//extern TAVCBE_STREAM_BUFF my_filler_data_buff_info;	/* for FillerData(CPB  Buffer) */
 extern char *dummy_nal_buf;
 extern unsigned long my_filler_data_buff[MY_FILLER_DATA_BUFF_SIZE / 4];	/* for FillerData */
 #ifndef DISABLE_INT

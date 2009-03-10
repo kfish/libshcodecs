@@ -116,6 +116,12 @@ struct _SHCodecs_Encoder {
 	avcbe_other_options_mpeg4 other_options_mpeg4;	/* parameters to control details */
 
         /* H.264 specific internals */
+	TAVCBE_STREAM_BUFF my_stream_buff_info, my_extra_stream_buff_info;
+	TAVCBE_STREAM_BUFF my_sps_stream_buff_info;	/* for SPS */
+	TAVCBE_STREAM_BUFF my_pps_stream_buff_info;	/* for PPS */
+	TAVCBE_STREAM_BUFF my_sei_stream_buff_info;	/* for SEI */
+	TAVCBE_STREAM_BUFF my_filler_data_buff_info;	/* for FillerData(CPB  Buffer) */
+
 	long slice_total_size;
 	long tmp_pic_total_bytes;
 	avcbe_other_options_h264 other_options_h264;	/* parameters to control details */

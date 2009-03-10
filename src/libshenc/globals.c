@@ -24,12 +24,6 @@
 
 /* From encoder_common.c */
 
-TAVCBE_STREAM_BUFF my_stream_buff_info, my_extra_stream_buff_info;
-TAVCBE_STREAM_BUFF my_sps_stream_buff_info;	/* for SPS */
-TAVCBE_STREAM_BUFF my_pps_stream_buff_info;	/* for PPS */
-TAVCBE_STREAM_BUFF my_sei_stream_buff_info;	/* for SEI */
-TAVCBE_STREAM_BUFF my_filler_data_buff_info;	/* for FillerData(CPB  Buffer) */
-
 /*----------------------------------------------------------*/
 /* Table and variables which are used if the avcbe_encode_picture 
  * function returns on each 1-slice */

@@ -31,12 +31,6 @@ extern unsigned long my_pps_stream_buff[];	/* for PPS */
 extern unsigned long my_sei_stream_buff[];	/* for SEI */
 extern unsigned long my_filler_data_buff[];	/* for FillerData(CPB  Buffer) */
 
-extern TAVCBE_STREAM_BUFF my_stream_buff_info, my_extra_stream_buff_info;
-extern TAVCBE_STREAM_BUFF my_sps_stream_buff_info;	/* for SPS */
-extern TAVCBE_STREAM_BUFF my_pps_stream_buff_info;	/* for PPS */
-extern TAVCBE_STREAM_BUFF my_sei_stream_buff_info;	/* for SEI */
-extern TAVCBE_STREAM_BUFF my_filler_data_buff_info;	/* for FillerData(CPB  Buffer) */
-
 extern long encode_time;
 
 /*----------------------------------------------------------*/
@@ -214,9 +208,9 @@ h264_encode_deferred_init(SHCodecs_Encoder * encoder, long stream_type)
 /*		   32:vout_dec_ref_pic_marking_repetition_SEI is OFF)		*/
 /*------------------------------------------------------------------*/
 static long
-h264_output_SEI_parameters(SHCodecs_Encoder * encoder,
-			   TAVCBE_STREAM_BUFF * sei_stream_buff_info)
+h264_output_SEI_parameters(SHCodecs_Encoder * encoder)
 {
+	TAVCBE_STREAM_BUFF * sei_stream_buff_info = &(encoder->my_sei_stream_buff_info);
 	long return_code;
 	long return_value = 0;
 
@@ -421,33 +415,33 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 	encoder->mb_num_of_picture = 0;
 	header_output_flag = 1;	/* set to output SPS and PPS for 1st frame */
 	/* stream-output-buffer */
-	my_stream_buff_info.buff_top =
+	encoder->my_stream_buff_info.buff_top =
 	    (unsigned char *) &my_stream_buff[0];
-	my_stream_buff_info.buff_size = MY_STREAM_BUFF_SIZE;
+	encoder->my_stream_buff_info.buff_size = MY_STREAM_BUFF_SIZE;
 	/* Access Unit Delimiter-output-buffer */
-	my_extra_stream_buff_info.buff_top =
+	encoder->my_extra_stream_buff_info.buff_top =
 	    (unsigned char *) &my_extra_stream_buff[0];
-	my_extra_stream_buff_info.buff_size = 16;
-	extra_stream_buff = &my_extra_stream_buff_info;
+	encoder->my_extra_stream_buff_info.buff_size = 16;
+	extra_stream_buff = &encoder->my_extra_stream_buff_info;
 	/* SPS-output-buffer */
-	my_sps_stream_buff_info.buff_top =
+	encoder->my_sps_stream_buff_info.buff_top =
 	    ALIGN(&my_sps_stream_buff[0], 32);
-	my_sps_stream_buff_info.buff_size = MY_SPS_STREAM_BUFF_SIZE;
+	encoder->my_sps_stream_buff_info.buff_size = MY_SPS_STREAM_BUFF_SIZE;
 
 	/* PPS-output-buffer */
-	my_pps_stream_buff_info.buff_top =
+	encoder->my_pps_stream_buff_info.buff_top =
 	    ALIGN(&my_pps_stream_buff[0], 32);
-	my_pps_stream_buff_info.buff_size = MY_PPS_STREAM_BUFF_SIZE;
+	encoder->my_pps_stream_buff_info.buff_size = MY_PPS_STREAM_BUFF_SIZE;
 
 	/* SEI-output-buffer */
-	my_sei_stream_buff_info.buff_top =
+	encoder->my_sei_stream_buff_info.buff_top =
 	    (unsigned char *) &my_sei_stream_buff[0];
-	my_sei_stream_buff_info.buff_size = MY_SEI_STREAM_BUFF_SIZE;
+	encoder->my_sei_stream_buff_info.buff_size = MY_SEI_STREAM_BUFF_SIZE;
 
 	/* Filler Data-output-buffer */
-	my_filler_data_buff_info.buff_top =
+	encoder->my_filler_data_buff_info.buff_top =
 	    (unsigned char *) &my_filler_data_buff[0];
-	my_filler_data_buff_info.buff_size = MY_FILLER_DATA_BUFF_SIZE;
+	encoder->my_filler_data_buff_info.buff_size = MY_FILLER_DATA_BUFF_SIZE;
 	while (1) {	/*--------------------- Repeating by frame numbers --------------------------*/
 		if (encoder->frame_number_to_encode == encoder->frame_counter) {
 			break;
@@ -462,7 +456,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 			    avcbe_encode_picture(encoder->stream_info, frm,
 						 encoder->set_intra,
 						 encoder->output_type,
-						 &my_sps_stream_buff_info,
+						 &encoder->my_sps_stream_buff_info,
 						 NULL);
 			if (return_code == AVCBE_SPS_OUTPUTTED) {	/* 6 */
 #if 0
@@ -495,7 +489,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 			    avcbe_encode_picture(encoder->stream_info, frm,
 						 encoder->set_intra,
 						 encoder->output_type,
-						 &my_pps_stream_buff_info,
+						 &encoder->my_pps_stream_buff_info,
 						 NULL);
 			if (return_code == AVCBE_PPS_OUTPUTTED) {	/* 7 */
 				//sprintf(messeage_buf, " encode_1file:avcbe_encode_picture OUTPUT PICTURE PARAMETER SET frm=%d,seq_no=%d ",
@@ -526,8 +520,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 		/* output SEI data (if AU delimiter is NOT used) */
 		if (extra_stream_buff == NULL) {
 			return_code =
-			    h264_output_SEI_parameters(encoder,
-						  &my_sei_stream_buff_info);
+			    h264_output_SEI_parameters(encoder);
 			if (return_code != 0) {
 				sprintf(messeage_buf,
 					" Not put SEI parameter : return_code = %06x\n",
@@ -584,7 +577,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 		    avcbe_encode_picture(encoder->stream_info, frm,
 					 encoder->set_intra,
 					 encoder->output_type,
-					 &my_stream_buff_info,
+					 &encoder->my_stream_buff_info,
 					 extra_stream_buff);
 		gettimeofday(&tv1, &tz);
 //              printf("ret=%d,enc_pic1=%ld,",return_code,tv1.tv_usec);
@@ -710,7 +703,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 							 set_intra,
 							 encoder->
 							 output_type,
-							 &my_sps_stream_buff_info,
+							 &encoder->my_sps_stream_buff_info,
 							 NULL);
 				if (return_code == AVCBE_SPS_OUTPUTTED) {	/* 6 */
 #if 0
@@ -732,7 +725,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 						encoder->output(encoder,
 								(unsigned
 								 char *)
-								my_sps_stream_buff_info.buff_top,
+								encoder->my_sps_stream_buff_info.buff_top,
 								slice_stat.avcbe_SPS_unit_bytes,
 								encoder->output_user_data);
 					}
@@ -756,7 +749,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 							 set_intra,
 							 encoder->
 							 output_type,
-							 &my_pps_stream_buff_info,
+							 &encoder->my_pps_stream_buff_info,
 							 NULL);
 				if (return_code == AVCBE_PPS_OUTPUTTED) {	/* 7 */
 					//sprintf(messeage_buf, " encode_1file_h264:avcbe_encode_picture OUTPUT PICTURE PARAMETER SET frm=%d,seq_no=%d ",
@@ -778,7 +771,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 						encoder->output(encoder,
 								(unsigned
 								 char *)
-								my_pps_stream_buff_info.buff_top,
+								encoder->my_pps_stream_buff_info.buff_top,
 								slice_stat.avcbe_PPS_unit_bytes,
 								encoder->output_user_data);
 					}
@@ -800,7 +793,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 				if (encoder->output) {
 					encoder->output(encoder,
 							(unsigned char *)
-							my_sps_stream_buff_info.buff_top,
+							encoder->my_sps_stream_buff_info.buff_top,
 							slice_stat.avcbe_SPS_unit_bytes,
 							encoder->output_user_data);
 				}
@@ -808,7 +801,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 				if (encoder->output) {
 					encoder->output(encoder,
 							(unsigned char *)
-							my_pps_stream_buff_info.buff_top,
+							encoder->my_pps_stream_buff_info.buff_top,
 							slice_stat.avcbe_PPS_unit_bytes,
 							encoder->output_user_data);
 				}
@@ -818,8 +811,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 
 			/* output SEI parameter (if AU delimiter is used, SEI parameter must be output after AU delimiter) */
 			return_code =
-			    h264_output_SEI_parameters(encoder,
-						  &my_sei_stream_buff_info);
+			    h264_output_SEI_parameters(encoder);
 			if (return_code != 0) {
 				sprintf(messeage_buf,
 					" Not put SEI parameter : return_code = %06x\n",
@@ -970,35 +962,35 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 	header_output_flag = 1;	/* set to output SPS and PPS for 1st frame */
 
 	/* stream-output-buffer */
-	my_stream_buff_info.buff_top =
+	encoder->my_stream_buff_info.buff_top =
 	    (unsigned char *) &my_stream_buff[0];
-	my_stream_buff_info.buff_size = MY_STREAM_BUFF_SIZE;
+	encoder->my_stream_buff_info.buff_size = MY_STREAM_BUFF_SIZE;
 
 	/* Access Unit Delimiter-output-buffer */
-	my_extra_stream_buff_info.buff_top =
+	encoder->my_extra_stream_buff_info.buff_top =
 	    (unsigned char *) &my_extra_stream_buff[0];
-	my_extra_stream_buff_info.buff_size = 16;
-	extra_stream_buff = &my_extra_stream_buff_info;
+	encoder->my_extra_stream_buff_info.buff_size = 16;
+	extra_stream_buff = &encoder->my_extra_stream_buff_info;
 
 	/* SPS-output-buffer */
-	my_sps_stream_buff_info.buff_top =
+	encoder->my_sps_stream_buff_info.buff_top =
 	    ALIGN(&my_sps_stream_buff[0], 32);
-	my_sps_stream_buff_info.buff_size = MY_SPS_STREAM_BUFF_SIZE;
+	encoder->my_sps_stream_buff_info.buff_size = MY_SPS_STREAM_BUFF_SIZE;
 
 	/* PPS-output-buffer */
-	my_pps_stream_buff_info.buff_top =
+	encoder->my_pps_stream_buff_info.buff_top =
 	    ALIGN(&my_pps_stream_buff[0], 32);
-	my_pps_stream_buff_info.buff_size = MY_PPS_STREAM_BUFF_SIZE;
+	encoder->my_pps_stream_buff_info.buff_size = MY_PPS_STREAM_BUFF_SIZE;
 
 	/* SEI-output-buffer */
-	my_sei_stream_buff_info.buff_top =
+	encoder->my_sei_stream_buff_info.buff_top =
 	    (unsigned char *) &my_sei_stream_buff[0];
-	my_sei_stream_buff_info.buff_size = MY_SEI_STREAM_BUFF_SIZE;
+	encoder->my_sei_stream_buff_info.buff_size = MY_SEI_STREAM_BUFF_SIZE;
 
 	/* Filler Data-output-buffer */
-	my_filler_data_buff_info.buff_top =
+	encoder->my_filler_data_buff_info.buff_top =
 	    (unsigned char *) &my_filler_data_buff[0];
-	my_filler_data_buff_info.buff_size = MY_FILLER_DATA_BUFF_SIZE;
+	encoder->my_filler_data_buff_info.buff_size = MY_FILLER_DATA_BUFF_SIZE;
 
 	dummy_nal_buf_addr = dummy_nal_buf;
 	while (1) {
@@ -1020,7 +1012,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 			    avcbe_encode_picture(encoder->stream_info, frm,
 						 encoder->set_intra,
 						 encoder->output_type,
-						 &my_sps_stream_buff_info,
+						 &encoder->my_sps_stream_buff_info,
 						 NULL);
 
 			if (return_code == AVCBE_SPS_OUTPUTTED) {	/* 6 */
@@ -1053,7 +1045,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 			    avcbe_encode_picture(encoder->stream_info, frm,
 						 encoder->set_intra,
 						 encoder->output_type,
-						 &my_pps_stream_buff_info,
+						 &encoder->my_pps_stream_buff_info,
 						 NULL);
 			if (return_code == AVCBE_PPS_OUTPUTTED) {	/* 7 */
 				//sprintf(messeage_buf, " encode_1file:avcbe_encode_picture OUTPUT PICTURE PARAMETER SET frm=%d,seq_no=%d ",
@@ -1083,8 +1075,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 		/* output SEI data (if AU delimiter is NOT used) */
 		if (extra_stream_buff == NULL) {
 			return_code =
-			    h264_output_SEI_parameters(encoder,
-						  &my_sei_stream_buff_info);
+			    h264_output_SEI_parameters(encoder);
 			if (return_code != 0) {
 				sprintf(messeage_buf,
 					" Not put SEI parameter : return_code = %06x\n",
@@ -1148,7 +1139,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 		    avcbe_encode_picture(encoder->stream_info, frm,
 					 encoder->set_intra,
 					 encoder->output_type,
-					 &my_stream_buff_info,
+					 &encoder->my_stream_buff_info,
 					 extra_stream_buff);
 		gettimeofday(&tv1, &tz);
 		printf("ret=%ld,enc_pic1=%lu,", return_code, tv1.tv_usec);
@@ -1312,7 +1303,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 							 set_intra,
 							 encoder->
 							 output_type,
-							 &my_sps_stream_buff_info,
+							 &encoder->my_sps_stream_buff_info,
 							 NULL);
 
 				if (return_code == AVCBE_SPS_OUTPUTTED) {	/* 6 */
@@ -1336,7 +1327,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 						encoder->output(encoder,
 								(unsigned
 								 char *)
-								my_sps_stream_buff_info.buff_top,
+								encoder->my_sps_stream_buff_info.buff_top,
 								slice_stat.avcbe_SPS_unit_bytes,
 								encoder->output_user_data);
 					}
@@ -1362,7 +1353,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 							 set_intra,
 							 encoder->
 							 output_type,
-							 &my_pps_stream_buff_info,
+							 &encoder->my_pps_stream_buff_info,
 							 NULL);
 				if (return_code == AVCBE_PPS_OUTPUTTED) {	/* 7 */
 					//sprintf(messeage_buf, " encode_1file:avcbe_encode_picture OUTPUT PICTURE PARAMETER SET frm=%d,seq_no=%d ", 
@@ -1385,7 +1376,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 						encoder->output(encoder,
 								(unsigned
 								 char *)
-								my_pps_stream_buff_info.buff_top,
+								encoder->my_pps_stream_buff_info.buff_top,
 								slice_stat.avcbe_PPS_unit_bytes,
 								encoder->output_user_data);
 					}
@@ -1408,7 +1399,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 				if (encoder->output) {
 					encoder->output(encoder,
 							(unsigned char *)
-							my_sps_stream_buff_info.buff_top,
+							encoder->my_sps_stream_buff_info.buff_top,
 							slice_stat.avcbe_SPS_unit_bytes,
 							encoder->output_user_data);
 				}
@@ -1416,7 +1407,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 				if (encoder->output) {
 					encoder->output(encoder,
 							(unsigned char *)
-							my_pps_stream_buff_info.buff_top,
+							encoder->my_pps_stream_buff_info.buff_top,
 							slice_stat.avcbe_PPS_unit_bytes,
 							encoder->output_user_data);
 				}
@@ -1426,8 +1417,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 
 			/* output SEI parameter (if AU delimiter is used, SEI parameter must be output after AU delimiter) */
 			return_code =
-			    h264_output_SEI_parameters(encoder,
-						  &my_sei_stream_buff_info);
+			    h264_output_SEI_parameters(encoder);
 			if (return_code != 0) {
 				sprintf(messeage_buf,
 					" Not put SEI parameter : return_code = %06x\n",
@@ -1537,7 +1527,7 @@ h264_encode_run (SHCodecs_Encoder * encoder, long stream_type)
 	}
 	if (encoder->output_filler_enable == 1) {
 		return_code =
-		    avcbe_put_filler_data(&my_stream_buff_info,
+		    avcbe_put_filler_data(&encoder->my_stream_buff_info,
 					  encoder->other_options_h264.
 					  avcbe_put_start_code, 2);
 	}
