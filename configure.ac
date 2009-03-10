@@ -6,7 +6,7 @@ AC_PREREQ(2.53)
 
 AC_CANONICAL_TARGET
 
-AM_INIT_AUTOMAKE(libshcodecs, 0.8.5)
+AM_INIT_AUTOMAKE(libshcodecs, 0.9.0)
 AM_CONFIG_HEADER(config.h)
 
 ################################################################################
@@ -26,7 +26,7 @@ AM_CONFIG_HEADER(config.h)
 #     then set AGE to 0.                                                       #
 #                                                                              #
 ################################################################################
-SHARED_VERSION_INFO="3:0:1"
+SHARED_VERSION_INFO="4:0:0"
 SHLIB_VERSION_ARG=""
 
 # Checks for programs.
