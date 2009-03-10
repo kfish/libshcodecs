@@ -21,7 +21,7 @@
 #define DEFAULT_WIDTH 320
 #define DEFAULT_HEIGHT 240
 
-#define INPUT_BUF_SIZE	(256 * 1024)
+#define INPUT_BUF_SIZE	(4 * 256 * 1024)
 
 /* #define _DEBUG */
 
@@ -200,7 +200,7 @@ int main(int argc, char **argv)
 		bytes_decoded = shcodecs_decode (decoder, input_buffer + si_ipos, si_isize - si_ipos);
 		debug_printf (" decoded %d bytes\n", bytes_decoded);
                 if (bytes_decoded > 0) total_input_consumed += bytes_decoded;
-        } while (bytes_decoded >= 0 && update_input (decoder, bytes_decoded) == 0);
+        } while (bytes_decoded > 0 && update_input (decoder, bytes_decoded) == 0);
 
 	/* Finalize the decode output, in case a final MPEG4 frame is available */
 	shcodecs_decoder_finalize (decoder);
