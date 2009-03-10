@@ -63,4 +63,3 @@ unsigned long *my_stream_buff;
 unsigned long *my_end_code_buff;
 unsigned long *my_stream_buff_bak;
 unsigned long *my_end_code_buff_bak;
-unsigned long *kernel_memory_for_vpu_top;

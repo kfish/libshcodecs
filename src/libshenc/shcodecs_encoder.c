@@ -17,7 +17,6 @@ extern unsigned long *my_stream_buff;
 extern unsigned long *my_end_code_buff;
 extern unsigned long *my_stream_buff_bak;
 extern unsigned long *my_end_code_buff_bak;
-extern unsigned long *kernel_memory_for_vpu_top;
 
 int vpu4_clock_on(void);
 int vpu4_clock_off(void);
@@ -186,7 +185,6 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	encoder->sdr_base = m4iph_sdr_malloc(width_height * (max_frame + 3), 32);
 	if (encoder->sdr_base == NULL)
 		exit(1);
-	kernel_memory_for_vpu_top = encoder->sdr_base;
 	for (i = 0; i < max_frame; i++) {
 		encoder->my_frame_memory_capt[i] =
 		    (unsigned long *) (encoder->sdr_base + width_height * i);
