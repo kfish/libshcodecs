@@ -36,7 +36,6 @@ char *dummy_nal_buf_addr;
 /*----------------------------------------------------------*/
 
 /* for AU delimiter */
-unsigned long my_pps_stream_buff[MY_PPS_STREAM_BUFF_SIZE / 4 + 8];	/* for PPS */
 unsigned long my_filler_data_buff[MY_FILLER_DATA_BUFF_SIZE / 4];	/* for FillerData */
 unsigned long my_sei_stream_buff[MY_SEI_STREAM_BUFF_SIZE / 4];	/* for SEI */
 

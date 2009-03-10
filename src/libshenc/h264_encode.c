@@ -25,7 +25,6 @@
 
 extern unsigned long *my_stream_buff;
 extern unsigned long *my_end_code_buff;	/* for End Code */
-extern unsigned long my_pps_stream_buff[];	/* for PPS */
 extern unsigned long my_sei_stream_buff[];	/* for SEI */
 extern unsigned long my_filler_data_buff[];	/* for FillerData(CPB  Buffer) */
 
@@ -428,7 +427,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 
 	/* PPS-output-buffer */
 	encoder->my_pps_stream_buff_info.buff_top =
-	    ALIGN(&my_pps_stream_buff[0], 32);
+	    ALIGN(&encoder->my_pps_stream_buff[0], 32);
 	encoder->my_pps_stream_buff_info.buff_size = MY_PPS_STREAM_BUFF_SIZE;
 
 	/* SEI-output-buffer */
@@ -976,7 +975,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 
 	/* PPS-output-buffer */
 	encoder->my_pps_stream_buff_info.buff_top =
-	    ALIGN(&my_pps_stream_buff[0], 32);
+	    ALIGN(&encoder->my_pps_stream_buff[0], 32);
 	encoder->my_pps_stream_buff_info.buff_size = MY_PPS_STREAM_BUFF_SIZE;
 
 	/* SEI-output-buffer */
