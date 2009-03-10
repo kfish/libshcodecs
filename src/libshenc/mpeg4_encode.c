@@ -30,7 +30,6 @@
 
 /* #define DEBUG */
 
-extern char *dummy_nal_buf;
 #define USE_BVOP
 
 /*** Image-capture-field area ***/

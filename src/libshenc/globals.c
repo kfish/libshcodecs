@@ -28,8 +28,6 @@
 /* Table and variables which are used if the avcbe_encode_picture 
  * function returns on each 1-slice */
 /*----------------------------------------------------------*/
-char *dummy_nal_buf;
-char *dummy_nal_buf_addr;
 
 /*----------------------------------------------------------------------------------------------*/
 //unsigned long my_yuv_data[MY_INPUT_YUV_DATA_BUFF_SIZE/4];     /* array for input YUV data. */   

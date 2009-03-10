@@ -28,9 +28,6 @@ extern long encode_time;
 /*----------------------------------------------------------*/
 /*       data for NAL unit encoding                         */
 /*----------------------------------------------------------*/
-extern char *dummy_nal_buf;
-extern char *dummy_nal_buf_addr;
-
 unsigned long m4iph_sleep_time_get(void);
 
 /*-------------------------------------------------------------------------------*/
@@ -982,7 +979,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 	    (unsigned char *) &encoder->my_filler_data_buff[0];
 	encoder->my_filler_data_buff_info.buff_size = MY_FILLER_DATA_BUFF_SIZE;
 
-	dummy_nal_buf_addr = dummy_nal_buf;
+	encoder->dummy_nal_buf_addr = encoder->dummy_nal_buf;
 	while (1) {
 		/*--------------------- Repeating by frame numbers --------------------------*/
 
@@ -1227,10 +1224,10 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 
 		if (return_code == AVCBE_SLICE_REMAIN) {	/* 5 */
 
-			memcpy(dummy_nal_buf_addr, (char *) &encoder->my_stream_buff[0], tmp_slice_size);	/* in byte unit */
+			memcpy(encoder->dummy_nal_buf_addr, (char *) &encoder->my_stream_buff[0], tmp_slice_size);	/* in byte unit */
 			encoder->slice_total_size += tmp_slice_size;
 			encoder->tmp_pic_total_bytes += tmp_slice_size;	/* total size of 1-frame */
-			dummy_nal_buf_addr += tmp_slice_size;	/* update the address of buffer for 1-slice */
+			encoder->dummy_nal_buf_addr += tmp_slice_size;	/* update the address of buffer for 1-slice */
 
 		} else if (return_code == AVCBE_FRAME_SKIPPED) {	/* 1 */
 
@@ -1238,7 +1235,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 			encoder->slice_total_size -= encoder->tmp_pic_total_bytes;
 
 			/* make the address which dummy_nal_buf_addr has, to the top address of dummy_nal_buf[] */
-			dummy_nal_buf_addr = dummy_nal_buf;
+			encoder->dummy_nal_buf_addr = encoder->dummy_nal_buf;
 			encoder->tmp_pic_total_bytes = 0;
 
 			frm += encoder->frame_no_increment;
@@ -1432,21 +1429,21 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 				}
 			}
 			/* copy the bitstream of 1-slice newly encoded, and add the size to the total size of 1-frame */
-			memcpy(dummy_nal_buf_addr, (char *) &encoder->my_stream_buff[0], tmp_slice_size);	/* in byte unit */
+			memcpy(encoder->dummy_nal_buf_addr, (char *) &encoder->my_stream_buff[0], tmp_slice_size);	/* in byte unit */
 			encoder->slice_total_size += tmp_slice_size;	/* the size of 1-slice newly encoded */
 			encoder->tmp_pic_total_bytes += tmp_slice_size;	/* total size of 1-frame */
-			dummy_nal_buf_addr += tmp_slice_size;	/* update the address of buffer for 1-slice */
+			encoder->dummy_nal_buf_addr += tmp_slice_size;	/* update the address of buffer for 1-slice */
 			/* concatenate slice header and slice data */
 			if (encoder->output) {
 				encoder->output(encoder,
-						(unsigned char *)dummy_nal_buf,
+						(unsigned char *)encoder->dummy_nal_buf,
 						encoder->tmp_pic_total_bytes,
 						encoder->output_user_data);
 			}
 			/* clear the size of 1-frame */
 			encoder->tmp_pic_total_bytes = 0;
 			/* make the address which dummy_nal_buf_addr has, to the top address of dummy_nal_buf[] */
-			dummy_nal_buf_addr = dummy_nal_buf;
+			encoder->dummy_nal_buf_addr = encoder->dummy_nal_buf;
 		}		/* the end of 'if (return_code == AVCBE_ENCODE_SUCCESS)' */
 		streamsize_total +=
 		    (slice_stat.avcbe_encoded_slice_bits / 8);

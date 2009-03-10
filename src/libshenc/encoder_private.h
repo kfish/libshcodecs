@@ -107,6 +107,9 @@ struct _SHCodecs_Encoder {
 	unsigned long *my_end_code_buff;
 	unsigned long *my_end_code_buff_bak;
 
+	char *dummy_nal_buf;
+	char *dummy_nal_buf_addr;
+
 	/* General encoder internals (general_accessors.c) */
 	long frame_number_to_encode;
 	long frame_no_increment;	/* Increment value of Frame number to be encoded for 

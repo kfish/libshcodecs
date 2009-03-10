@@ -11,8 +11,6 @@
 
 #include "encoder_private.h"
 
-extern char *dummy_nal_buf;
-
 int vpu4_clock_on(void);
 int vpu4_clock_off(void);
 
@@ -68,8 +66,8 @@ set_VPU4_param(SHCodecs_Encoder * encoder)
 	// vpu4_param->m4iph_temporary_buff_size = MY_WORK_AREA_SIZE;
 	if (encoder->my_work_area == NULL) {
 		encoder->my_work_area = malloc(MY_WORK_AREA_SIZE);	/* 4 bytes alignment */
-		dummy_nal_buf = malloc(MY_DUMMY_NAL_BUFF_SIZE);
-		memset(dummy_nal_buf, 0, MY_DUMMY_NAL_BUFF_SIZE);
+		encoder->dummy_nal_buf = malloc(MY_DUMMY_NAL_BUFF_SIZE);
+		memset(encoder->dummy_nal_buf, 0, MY_DUMMY_NAL_BUFF_SIZE);
 		printf("my_work_area=%pX\n", encoder->my_work_area);
 		if (encoder->my_work_area == NULL) {
 			printf("Memoey allocation error\n");
@@ -230,11 +228,11 @@ void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
 	m4iph_vpu_close();
 
 	free(encoder->my_work_area);
-	free(encoder);
-
 	free(encoder->my_stream_buff_bak);
 	free(encoder->my_end_code_buff_bak);
-	free(dummy_nal_buf);
+	free(encoder->dummy_nal_buf);
+
+	free(encoder);
 
 	return;
 }
