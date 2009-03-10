@@ -31,13 +31,6 @@
 char *dummy_nal_buf;
 char *dummy_nal_buf_addr;
 
-/*----------------------------------------------------------*/
-/*       Stream-output buffer                               */
-/*----------------------------------------------------------*/
-
-/* for AU delimiter */
-unsigned long my_sei_stream_buff[MY_SEI_STREAM_BUFF_SIZE / 4];	/* for SEI */
-
 /*----------------------------------------------------------------------------------------------*/
 //unsigned long my_yuv_data[MY_INPUT_YUV_DATA_BUFF_SIZE/4];     /* array for input YUV data. */   
 

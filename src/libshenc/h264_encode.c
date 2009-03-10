@@ -25,7 +25,6 @@
 
 extern unsigned long *my_stream_buff;
 extern unsigned long *my_end_code_buff;	/* for End Code */
-extern unsigned long my_sei_stream_buff[];	/* for SEI */
 
 extern long encode_time;
 
@@ -431,7 +430,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 
 	/* SEI-output-buffer */
 	encoder->my_sei_stream_buff_info.buff_top =
-	    (unsigned char *) &my_sei_stream_buff[0];
+	    (unsigned char *) &encoder->my_sei_stream_buff[0];
 	encoder->my_sei_stream_buff_info.buff_size = MY_SEI_STREAM_BUFF_SIZE;
 
 	/* Filler Data-output-buffer */
@@ -978,7 +977,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 
 	/* SEI-output-buffer */
 	encoder->my_sei_stream_buff_info.buff_top =
-	    (unsigned char *) &my_sei_stream_buff[0];
+	    (unsigned char *) &encoder->my_sei_stream_buff[0];
 	encoder->my_sei_stream_buff_info.buff_size = MY_SEI_STREAM_BUFF_SIZE;
 
 	/* Filler Data-output-buffer */
