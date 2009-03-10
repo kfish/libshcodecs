@@ -124,7 +124,7 @@ shcodecs_encoder_get_c_bytes (SHCodecs_Encoder * encoder);
 int
 shcodecs_encoder_run (SHCodecs_Encoder * encoder);
 
-/*
+/**
  * Get the width in pixels of the encoded image
  * \param encoder The SHCodecs_Encoder* handle
  * \returns The width in pixels
@@ -132,7 +132,7 @@ shcodecs_encoder_run (SHCodecs_Encoder * encoder);
  */
 int shcodecs_encoder_get_width (SHCodecs_Encoder * encoder);
 
-/*
+/**
  * Get the height in pixels of the encoded image
  * \param encoder The SHCodecs_Encoder* handle
  * \returns The height in pixels
