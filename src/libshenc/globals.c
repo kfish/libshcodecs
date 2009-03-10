@@ -40,7 +40,3 @@ char *dummy_nal_buf_addr;
 volatile long m4iph_vpu_cn_flg;
 #endif				/* DISABLE_INT */
 
-/* From shcodecs_encoder.c */
-
-unsigned long *my_end_code_buff;
-unsigned long *my_end_code_buff_bak;

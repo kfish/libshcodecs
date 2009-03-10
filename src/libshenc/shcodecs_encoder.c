@@ -13,9 +13,6 @@
 
 extern char *dummy_nal_buf;
 
-extern unsigned long *my_end_code_buff;
-extern unsigned long *my_end_code_buff_bak;
-
 int vpu4_clock_on(void);
 int vpu4_clock_off(void);
 
@@ -199,8 +196,8 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	    (unsigned long *) (encoder->sdr_base + width_height * i);
 	encoder->my_stream_buff_bak = malloc(MY_STREAM_BUFF_SIZE + 31);
 	encoder->my_stream_buff = ALIGN(encoder->my_stream_buff_bak, 32);
-	my_end_code_buff_bak = malloc(MY_END_CODE_BUFF_SIZE + 31);
-	my_end_code_buff = ALIGN(my_end_code_buff_bak, 32);
+	encoder->my_end_code_buff_bak = malloc(MY_END_CODE_BUFF_SIZE + 31);
+	encoder->my_end_code_buff = ALIGN(encoder->my_end_code_buff_bak, 32);
 
 	if (encoder->format == SHCodecs_Format_H264) {
 		h264_encode_init (encoder, AVCBE_H264);
@@ -236,7 +233,7 @@ void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
 	free(encoder);
 
 	free(encoder->my_stream_buff_bak);
-	free(my_end_code_buff_bak);
+	free(encoder->my_end_code_buff_bak);
 	free(dummy_nal_buf);
 
 	return;

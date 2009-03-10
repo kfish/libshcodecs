@@ -51,23 +51,6 @@ unsigned long m4iph_sleep_time_get(void);
 // #define MY_MB_WORK_AREA_SIZE       28000   /* QCIF size DataPartioning=ON, Bitrate=64000 : 6500 + 21500 */
 // #endif /* MULTI_STREAM */
 
-extern unsigned long *my_end_code_buff;
-extern unsigned long *my_end_code_buff_bak;
-
-
-static void
-get_new_stream_buf(avcbe_stream_info * context,
-  		   char *previous_stream_buff, long output_size,
-		   char **next_stream_buff, long *stream_buff_size)
-{
-	printf
-	    (" get_new_stream_buf: p_s_b = %p, output_size = %lX s_b_s=0x%lX \n",
-	     previous_stream_buff, output_size, *stream_buff_size);
-	*next_stream_buff = (char *) &my_end_code_buff[1];
-	*stream_buff_size = MY_STREAM_BUFF_SIZE;
-
-}
-
 static int
 mpeg4_encode_init_other_options (SHCodecs_Encoder * encoder)
 {
@@ -203,17 +186,17 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder, long stream_type)
 					&(encoder->paramR),
 					&(encoder->other_options_mpeg4),
 					// RSM (avcbe_buf_continue_userproc_ptr)NULL, &WORK_ARRY[0], 
-					(avcbe_buf_continue_userproc_ptr)
-					get_new_stream_buf, &WORK_ARRY[0],
-					&WORK_ARRY[1], &encoder->stream_info);
+					(avcbe_buf_continue_userproc_ptr) NULL,
+					&WORK_ARRY[0], &WORK_ARRY[1],
+					&encoder->stream_info);
 #else
 	return_code = avcbe_init_encode(&(encoder->encoding_property),
 					&(encoder->paramR),
 					&(encoder->other_options_mpeg4),
 					// RSM (avcbe_buf_continue_userproc_ptr)NULL, &WORK_ARRY[0], NULL, 
-					(avcbe_buf_continue_userproc_ptr)
-					get_new_stream_buf, &WORK_ARRY[0],
-					NULL, &encoder->stream_info);
+					(avcbe_buf_continue_userproc_ptr) NULL,
+					&WORK_ARRY[0], NULL,
+					&encoder->stream_info);
 #endif				/* VPU4IP */
 	if (return_code < 0) {	/* error */
 		if (return_code == -1) {
@@ -709,7 +692,7 @@ mpeg4_encode_run (SHCodecs_Encoder * encoder, long stream_type)
 
 	/*--- The MPEG-4&H.264 Encoder Library API (required-9)@ends encoding ---*/
 	my_end_code_buff_info.buff_top =
-	    (unsigned char *) &my_end_code_buff[0];
+	    (unsigned char *) &encoder->my_end_code_buff[0];
 	my_end_code_buff_info.buff_size = MY_END_CODE_BUFF_SIZE;
 
 	/* return value is byte unit */
@@ -731,7 +714,7 @@ mpeg4_encode_run (SHCodecs_Encoder * encoder, long stream_type)
 			my_size =
 			    encoder->output(encoder,
 					    (unsigned char *)
-					    &my_end_code_buff[0],
+					    &encoder->my_end_code_buff[0],
 					    return_code,
 					    encoder->output_user_data);
 		}

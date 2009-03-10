@@ -23,8 +23,6 @@
 
 #include "encoder_private.h"
 
-extern unsigned long *my_end_code_buff;	/* for End Code */
-
 extern long encode_time;
 
 /*----------------------------------------------------------*/
@@ -1495,7 +1493,7 @@ h264_encode_run (SHCodecs_Encoder * encoder, long stream_type)
 
 	/*--- The MPEG-4&H.264 Encoder Library API (required-9)@ends encoding ---*/
 	my_end_code_buff_info.buff_top =
-	    (unsigned char *) &my_end_code_buff[0];
+	    (unsigned char *) &encoder->my_end_code_buff[0];
 	my_end_code_buff_info.buff_size = MY_END_CODE_BUFF_SIZE;
 
 	return_code = avcbe_put_end_code(encoder->stream_info, &my_end_code_buff_info, AVCBE_END_OF_STRM);	/* return value is byte unit */
@@ -1511,7 +1509,7 @@ h264_encode_run (SHCodecs_Encoder * encoder, long stream_type)
 	} else {
 		if (encoder->output) {
 			encoder->output(encoder, (unsigned char *)
-					&my_end_code_buff[0], return_code,
+					&encoder->my_end_code_buff[0], return_code,
 					encoder->output_user_data);
 		}
 	}

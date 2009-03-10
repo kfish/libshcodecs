@@ -104,6 +104,8 @@ struct _SHCodecs_Encoder {
 
 	unsigned long *my_stream_buff;
 	unsigned long *my_stream_buff_bak;
+	unsigned long *my_end_code_buff;
+	unsigned long *my_end_code_buff_bak;
 
 	/* General encoder internals (general_accessors.c) */
 	long frame_number_to_encode;
