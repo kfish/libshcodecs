@@ -122,6 +122,8 @@ struct _SHCodecs_Encoder {
 	TAVCBE_STREAM_BUFF my_sei_stream_buff_info;	/* for SEI */
 	TAVCBE_STREAM_BUFF my_filler_data_buff_info;	/* for FillerData(CPB  Buffer) */
 
+	unsigned long my_extra_stream_buff[16 / 4];
+
 	long slice_total_size;
 	long tmp_pic_total_bytes;
 	avcbe_other_options_h264 other_options_h264;	/* parameters to control details */

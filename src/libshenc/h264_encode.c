@@ -25,7 +25,6 @@
 
 extern unsigned long *my_stream_buff;
 extern unsigned long *my_end_code_buff;	/* for End Code */
-extern unsigned long my_extra_stream_buff[];	/* for AUD */
 extern unsigned long my_sps_stream_buff[];	/* for SPS */
 extern unsigned long my_pps_stream_buff[];	/* for PPS */
 extern unsigned long my_sei_stream_buff[];	/* for SEI */
@@ -420,7 +419,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 	encoder->my_stream_buff_info.buff_size = MY_STREAM_BUFF_SIZE;
 	/* Access Unit Delimiter-output-buffer */
 	encoder->my_extra_stream_buff_info.buff_top =
-	    (unsigned char *) &my_extra_stream_buff[0];
+	    (unsigned char *) &encoder->my_extra_stream_buff[0];
 	encoder->my_extra_stream_buff_info.buff_size = 16;
 	extra_stream_buff = &encoder->my_extra_stream_buff_info;
 	/* SPS-output-buffer */
@@ -684,8 +683,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 				if (encoder->output) {
 					encoder->output(encoder,
 							(unsigned char *)
-							&my_extra_stream_buff
-							[0],
+							&encoder->my_extra_stream_buff[0],
 							slice_stat.avcbe_AU_unit_bytes,
 							encoder->output_user_data);
 				}
@@ -968,7 +966,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 
 	/* Access Unit Delimiter-output-buffer */
 	encoder->my_extra_stream_buff_info.buff_top =
-	    (unsigned char *) &my_extra_stream_buff[0];
+	    (unsigned char *) &encoder->my_extra_stream_buff[0];
 	encoder->my_extra_stream_buff_info.buff_size = 16;
 	extra_stream_buff = &encoder->my_extra_stream_buff_info;
 
@@ -1281,8 +1279,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 				if (encoder->output) {
 					encoder->output(encoder,
 							(unsigned char *)
-							&my_extra_stream_buff
-							[0],
+							&encoder->my_extra_stream_buff[0],
 							slice_stat.avcbe_AU_unit_bytes,
 							encoder->output_user_data);
 				}
