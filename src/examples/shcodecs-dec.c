@@ -40,12 +40,29 @@ static int local_close (void);
 /* XXX: public function, what is this? */
 long m4iph_enc_continue(long output_bits);
 
+static void
+usage (const char * progname)
+{
+  printf ("Usage: %s [options] ...\n", progname);
+  printf ("Encode a YUV file using the SH-Mobile VPU\n");
+  printf ("\nFile options\n");
+  printf ("  -i, --input            Set the input filename\n");
+  printf ("  -o, --output           Set the output filename\n");
+  printf ("\nEncoding format\n");
+  printf ("  -f, --format           Set the encoding format [h264, mpeg4]\n");
+  printf ("\nDimensions\n");
+  printf ("  -w, --width            Set the input image width in pixels\n");
+  printf ("  -h, --height           Set the input image height in pixels\n");
+  printf ("  -s, --size             Set the input image size [qcif, cif, qvga, vga]\n");
+}
+
 static struct option stLong_options[] = {
         { "format", 1, 0, 'f'},
         { "output", 1, 0, 'o'},
         { "input" , 1, 0, 'i'},
         { "width" , 1, 0, 'w'},
-        { "height", 1, 0, 'h'}
+        { "height", 1, 0, 'h'},
+        { "size", 1, 0, 's'}
 };
 
 /* local vars, removed from ST_STREAM_INFO */
@@ -98,10 +115,12 @@ int main(int argc, char **argv)
 	int ret=0, stream_type = SHCodecs_Format_H264, i, w, h, c;
 	char input_filename[MAXPATHLEN], output_filename[MAXPATHLEN];
 	struct sched_param stSchePara;
-        int bytes_decoded;
+        int bytes_decoded, frames_decoded;
+
+        char * progname = argv[0];
 
 	if (argc == 1) {
-		debug_printf("argument error!\n");
+		usage(progname);
 		exit(0);
 	}
 	setvbuf(stdout, NULL, _IONBF, 0);
@@ -114,7 +133,7 @@ int main(int argc, char **argv)
 	h = DEFAULT_HEIGHT;
 
 	while (1) {
-		c = getopt_long(argc, argv, "f:o:i:w:h:", stLong_options, &i);
+		c = getopt_long(argc, argv, "f:o:i:w:h:s:", stLong_options, &i);
 		if (c == -1)
 			break;
 
@@ -147,8 +166,25 @@ int main(int argc, char **argv)
 			if (optarg)
 				h = strtoul(optarg, NULL, 10);
 			break;
+		case 's':
+			if (optarg) {
+				if (!strncasecmp (optarg, "qcif", 4)) {
+					w = 176;
+					h = 144;
+				} else if (!strncmp (optarg, "cif", 3)) {
+					w = 352;
+					h = 288;
+				} else if (!strncmp (optarg, "qvga", 4)) {
+					w = 320;
+					h = 240;
+				} else if (!strncmp (optarg, "vga", 3)) {
+					w = 640;
+					h = 480;
+				}
+			}
+			break;
 		default:
-			debug_printf("argument error!\n");
+			usage(progname);
 			exit(-2);
 		}
 	}
@@ -198,12 +234,16 @@ int main(int argc, char **argv)
         do {
 		debug_printf ("Calling shcodecs_decode (si_ipos %d, si_isize %d) ...", si_ipos, si_isize);
 		bytes_decoded = shcodecs_decode (decoder, input_buffer + si_ipos, si_isize - si_ipos);
-		debug_printf (" decoded %d bytes\n", bytes_decoded);
+		frames_decoded = shcodecs_decoder_get_frame_count (decoder);
+		debug_printf ("Decoded frame %d (%d bytes)\n", frames_decoded, bytes_decoded);
                 if (bytes_decoded > 0) total_input_consumed += bytes_decoded;
         } while (bytes_decoded > 0 && update_input (decoder, bytes_decoded) == 0);
 
 	/* Finalize the decode output, in case a final MPEG4 frame is available */
 	shcodecs_decoder_finalize (decoder);
+
+	frames_decoded = shcodecs_decoder_get_frame_count (decoder);
+	printf ("Total frames decoded: %d\n", frames_decoded);
 
         local_close ();
 
