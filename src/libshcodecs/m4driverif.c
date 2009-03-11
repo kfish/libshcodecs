@@ -185,7 +185,9 @@ int m4iph_vpu_open(void)
 	if (ret < 0)
 		return ret;
 	
+#ifdef DEBUG
 	printf("found matching UIO device at %s\n", uio_dev.path);
+#endif
 
 	ret = setup_uio_map(&uio_dev, 0, &uio_mmio);
 	if (ret < 0)
