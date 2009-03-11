@@ -97,9 +97,17 @@ shcodecs_decode (SHCodecs_Decoder * decoder, unsigned char * data, int len);
  * which may result in a final frame being extracted. The previously
  * registered callback will be called if a complete frame is decoded.
  * \param decoder The SHCodecs_Decoder* handle
- * \returns The number of final frames extracted
+ * \returns The number of final frames extracted by this call
  */
 int
-shcodecs_decode_finalize (SHCodecs_Decoder * decoder);
+shcodecs_decoder_finalize (SHCodecs_Decoder * decoder);
+
+/**
+ * Retrieve the count of decoded frames.
+ * \param decoder The SHCodecs_Decoder* handle
+ * \returns The total number of frames decoded by \a decoder
+ */
+int
+shcodecs_decoder_get_frame_count (SHCodecs_Decoder * decoder);
 
 #endif /* __SHCODECS_DECODER_H__ */

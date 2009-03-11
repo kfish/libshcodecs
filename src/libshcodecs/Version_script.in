@@ -14,6 +14,7 @@
 		shcodecs_decode;
 		shcodecs_decoder_finalize;
 		shcodecs_decoder_set_frame_by_frame;
+		shcodecs_decoder_get_frame_count;
 
 		global_context;
 		m4iph_enc_continue;

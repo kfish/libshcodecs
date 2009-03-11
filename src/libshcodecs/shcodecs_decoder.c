@@ -56,6 +56,8 @@ SHCodecs_Decoder *shcodecs_decoder_init(int width, int height, int format)
 	decoder->decoded_cb = NULL;
 	decoder->decoded_cb_data = NULL;
 
+	decoder->frame_count = 0;
+
 	/* Initialize m4iph */
 	m4iph_vpu_open();
 	m4iph_sdr_open();
@@ -164,6 +166,14 @@ shcodecs_decoder_finalize (SHCodecs_Decoder * decoder)
 	decoder->needs_finalization = 0;
 
 	return ret;
+}
+
+int
+shcodecs_decoder_get_frame_count (SHCodecs_Decoder * decoder)
+{
+	if (decoder == NULL) return -1;
+
+	return decoder->frame_count;
 }
 
 /***********************************************************/
@@ -687,6 +697,8 @@ static int extract_frame(SHCodecs_Decoder * decoder, long frame_index)
 				    luma_size >> 1,
 				    decoder->decoded_cb_data);
 	}
+
+	decoder->frame_count++;
 
 	m4iph_unmap_sdr_mem(yf, luma_size + (luma_size >> 1) + ry + 31);
 

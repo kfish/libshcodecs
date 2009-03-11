@@ -45,7 +45,7 @@ struct _SHCodecs_Decoder {
 	int		si_ilen;	/* Size of current frame/slice */
 	size_t		si_isize;	/* Total size of input data */
 	FrameInfo	*si_flist;
-	int		si_fnum;	/* Frame number */
+	int		si_fnum;	/* Number of frames in temp frame list */
 	int		si_fx;		/* Width of frame */
 	int		si_fy;		/* Height of frame */
 	int		si_max_fx;	/* Maximum frame width */
@@ -65,6 +65,7 @@ struct _SHCodecs_Decoder {
 	long		index_old;
 	int		needs_finalization;
 	int		frame_by_frame;
+	int		frame_count;
 };
 
 
