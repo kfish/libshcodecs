@@ -136,6 +136,14 @@ shcodecs_decode(SHCodecs_Decoder * decoder, unsigned char *data, int len)
 int
 shcodecs_decoder_finalize (SHCodecs_Decoder * decoder)
 {
+	decoder->needs_finalization = 2;
+
+	return decoder_start (decoder);
+}
+
+static int
+shcodecs_decoder_output_partial (SHCodecs_Decoder * decoder)
+{
 	M4VSD_MULTISTREAM_VARIABLES *var;
 	struct M4VSD_IMAGE_TABLE *image;
 	int ret = 0;
@@ -147,23 +155,36 @@ shcodecs_decoder_finalize (SHCodecs_Decoder * decoder)
 
 	/* printf("DecW=%d, list[0]=%d, list[1]=%d\n",image->DecW,image->ref_pic_list[0],image->ref_pic_list[1]); */
 #ifdef DEBUG
-	printf ("DecW=%d, list[0]=%d, list[1]=%d\n",
+	printf ("shcodecs_decoder_finalize: DecW=%d, list[0]=%d, list[1]=%d\n",
 		     image->DecW,
 		     image->ref_pic_list[0],
 		     image->ref_pic_list[1]);
 #endif
 	if (decoder->index_old != image->ref_pic_list[0]) {
+#ifdef DEBUG
+		printf ("shcodecs_decoder_finalize: type 1\n");
+#endif
 		extract_frame(decoder, image->ref_pic_list[0]);
 		ret = 1;
 	} else if (decoder->index_old != image->DecW) {
+#ifdef DEBUG
+		printf ("shcodecs_decoder_finalize: type 2\n");
+#endif
 		extract_frame(decoder, image->DecW);
 		ret = 1;
 	} else if (decoder->index_old != image->ref_pic_list[1]) {
+#ifdef DEBUG
+		printf ("shcodecs_decoder_finalize: type 3\n");
+#endif
 		extract_frame(decoder, image->ref_pic_list[1]);
 		ret = 1;
+	} else {
+#ifdef DEBUG
+		printf ("shcodecs_decoder_finalize: Not handled!\n");
+#endif
 	}
 
-	decoder->needs_finalization = 0;
+	decoder->needs_finalization--;
 
 	return ret;
 }
@@ -426,7 +447,10 @@ static int decoder_start(SHCodecs_Decoder * decoder)
 
 			if (index < 0) {
 	 			if ((decoded == 0) && (decoder->si_type != F_H264)) {
-					decoder->needs_finalization = 1;
+#ifdef DEBUG
+					printf ("shcodecs_decoder: needs finalization\n");
+#endif
+					shcodecs_decoder_output_partial (decoder);
 				}
 
 #ifdef DEBUG
@@ -449,7 +473,7 @@ static int decoder_start(SHCodecs_Decoder * decoder)
 #ifdef DEBUG
 		printf("%16d,dpb_mode=%d\n", decoder->si_fnum, dpb_mode);
 #endif
-	} while (decoded);
+	} while (decoded || decoder->needs_finalization);
 
 	/* Return number of bytes consumed */
 	return decoder->si_ipos;
