@@ -414,6 +414,8 @@ static int decoder_start(SHCodecs_Decoder * decoder)
 	image = &var->image;
 	/* printf("\n\nDecoding Frames:                 "); */
 
+	decoder->si_valid = 1;
+
 	do {
 		decoded = 0;
 
@@ -437,7 +439,7 @@ static int decoder_start(SHCodecs_Decoder * decoder)
 			dpb_mode = 1;
 		}
 
-		while (1) {
+		while (decoder->si_valid) {
 			long index = avcbd_get_decoded_frame(decoder->si_ctxt, dpb_mode);
 #ifdef DEBUG
 			printf
