@@ -1,17 +1,21 @@
-/*****************************************************************************
-*                                                                            *
-*  SuperH MEPG-4 Video Encode Library                                        *
-*                                                                            *
-*    Copyright (C) Renesas Technology Corp., 2005. All rights reserved.      *
-*                                                                            *
-*    Version　1.0 :   m4vse_api_sub.h                                        *
-*                                 2005/02/02 19:30  Renesas Technology Corp. *
-*                                                                            *
-*****************************************************************************/
-
-/*--------------------------------------------------------------------------*/
-/*  1.000  2004.06.22  start codes (VPU4版で新規作成)                       */
-/*--------------------------------------------------------------------------*/
+/*
+ * libshcodecs: A library for controlling SH-Mobile hardware codecs
+ * Copyright (C) 2009 Renesas Technology Corp.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston MA  02110-1301 USA
+ */
 
 #ifndef	M4VSE_API_SUB_H
 #define	M4VSE_API_SUB_H

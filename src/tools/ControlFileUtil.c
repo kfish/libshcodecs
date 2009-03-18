@@ -1,21 +1,21 @@
-/*****************************************************************************
-*                                                                            *
-*  SuperH MEPG-4 Video Encode Library TOOL                                   *
-*                                                                            *
-*    Copyright (C) Renesas Technology Corp., 2004-2005. All rights reserved. *
-*                                                                            *
-*    Version　2.0 :   ControlFileUtil.c                                      *
-*                                 2005/06/07 13:05  Renesas Technology Corp. *
-*                                                                            *
-*****************************************************************************/
-
-/*--------------------------------------------------------------------------*/
-/*  1.000  2004.08.04  start codes                                          */
-/*--------------------------------------------------------------------------*/
-/* コントロールファイルからの読み出し関数群 */
-/* （ファイル名の拡張子は、「.c」でも、「.cpp」でもＯＫです。） */
-
-					       /*#include "stdafx.h" *//* 必要に応じてコメント化すること */
+/*
+ * libshcodecs: A library for controlling SH-Mobile hardware codecs
+ * Copyright (C) 2009 Renesas Technology Corp.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston MA  02110-1301 USA
+ */
 
 #include <stdio.h>
 #include <string.h>

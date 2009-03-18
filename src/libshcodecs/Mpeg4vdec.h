@@ -1,13 +1,22 @@
-/******************************************************************************
-* SuperH Series MPEG-4 Video Decoder Module                                   *
-*                                                                             *
-*                                                                             *
-*    Copyright (C) Renesas Technology Corp., 2002-2003. All rights reserved.  *
-*                                                                             *
-*    Version 1.3 : mpeg4vdec.h      2003/10/02 19:36 Renesas Technology Corp. *
-*    Version 1.4 : mpeg4vdec.h      2003/12/15 00:00 Renesas Technology Corp. *
-*                                                                             *
-******************************************************************************/
+/*
+ * libshcodecs: A library for controlling SH-Mobile hardware codecs
+ * Copyright (C) 2009 Renesas Technology Corp.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston MA  02110-1301 USA
+ */
+
 #ifndef _M4VSDECPUBLIC_H_
 #define _M4VSDECPUBLIC_H_
 

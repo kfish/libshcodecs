@@ -1,13 +1,21 @@
- /*****************************************************************************
-*                                                                            *
-*  SuperH MEPG-4 Video Encode Library TOOL                                   *
-*                                                                            *
-*    Copyright (C) Renesas Technology Corp., 2005. All rights reserved.      *
-*                                                                            *
-*    Version¡¡1.0 :   ControlFileUtil.h                                      *
-*                                 2005/04/26 13:30  Renesas Technology Corp. *
-*                                                                            *
-*****************************************************************************/
+/*
+ * libshcodecs: A library for controlling SH-Mobile hardware codecs
+ * Copyright (C) 2009 Renesas Technology Corp.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston MA  02110-1301 USA
+ */
 
 #ifndef	CONTROL_FILE_UTIL_H
 #define	CONTROL_FILE_UTIL_H
