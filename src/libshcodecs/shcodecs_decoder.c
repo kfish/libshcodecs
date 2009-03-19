@@ -800,6 +800,20 @@ static int usr_get_input_mpeg4(SHCodecs_Decoder * decoder, void *dst)
 
         len = decoder->si_isize - decoder->si_ipos;
         if (len < 3) return -2;
+
+	/* Always keep a buffer of lookahead data, unless we are finalizing.
+         * The amount to keep is a heuristic based on the likely size of a
+         * large encoded frame.
+         * By returning 0 early, we force the application to either push more
+         * data or (if there is no more) to finalize.
+         */
+        if (!decoder->needs_finalization && len < (decoder->si_max_fx*decoder->si_max_fy/8)) {
+#ifdef DEBUG
+	        printf ("usr_get_input_mpeg4: not enough data, going back for more\n");
+#endif
+                return 0;
+        }
+
 #ifdef DEBUG
         printf ("my usr_get_input_mpeg4: len %ld\n", len);
         if (len >=8) {
