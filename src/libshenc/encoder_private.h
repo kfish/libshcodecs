@@ -111,7 +111,7 @@ struct _SHCodecs_Encoder {
 	long output_type;	/* Header insertion flag for m4vse_encode_picture function */
 
 	/* Working values */
-	unsigned long * sdr_base;
+	unsigned long sdr_base;
 	TAVCBE_FMEM LDEC_ARRY[3];	/* Always set the head of STREAMAREA section! */
 	TAVCBE_FMEM CAPTF_ARRY[3];
 	unsigned long *my_work_area;
