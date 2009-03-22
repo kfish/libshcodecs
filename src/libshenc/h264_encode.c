@@ -535,8 +535,8 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 
 		/*--- copy yuv data to the image-capture-field area each frame (one of the user application's own functions) ---*/
 		if (encoder->input) {
-			encoder->addr_y = addr_y;
-			encoder->addr_c = addr_c;
+			encoder->addr_y = (unsigned char *)addr_y;
+			encoder->addr_c = (unsigned char *)addr_c;
 			return_code =
 			    encoder->input(encoder, encoder->input_user_data);
 			if (return_code < 0) {	/* error */
@@ -1087,8 +1087,8 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 	/*--- copy yuv data to the image-capture-field area each frame (one of the user application's own functions) ---*/
 		if (encoder->slice_mb_counter == 0) {
 			if (encoder->input) {
-			        encoder->addr_y = addr_y;
-			        encoder->addr_c = addr_c;
+			        encoder->addr_y = (unsigned char *)addr_y;
+			        encoder->addr_c = (unsigned char *)addr_c;
 				return_code =
 				    encoder->input(encoder, encoder->input_user_data);
 				if (return_code < 0) {	/* error */

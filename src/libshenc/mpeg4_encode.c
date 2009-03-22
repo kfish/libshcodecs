@@ -465,8 +465,8 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 #endif				/* USE_BVOP */
 
 		if (encoder->input) {
-                        encoder->addr_y = addr_y;
-                        encoder->addr_c = addr_c;
+                        encoder->addr_y = (unsigned char *)addr_y;
+                        encoder->addr_c = (unsigned char *)addr_c;
 			return_code =
 			    encoder->input(encoder, encoder->input_user_data);
 			if (return_code < 0) {	/* error */
@@ -518,7 +518,7 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 #else
 #ifdef DEBUG
 		printf
-		    ("encode_picture_for_mpeg4: avcbe_encode_picture (%x, %ld, %ld, %ld, {%ld, %x})\n",
+		    ("encode_picture_for_mpeg4: avcbe_encode_picture (%p, %ld, %ld, %ld, {%ld, %p})\n",
 		     encoder->stream_info, frm, encoder->set_intra,
 		     encoder->output_type,
 		     my_stream_buff_info.buff_size,
@@ -536,7 +536,7 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 
 #ifdef DEBUG
 		printf
-		    ("encode_picture_for_mpeg4: avcbe_encode_picture returned %dn",
+		    ("encode_picture_for_mpeg4: avcbe_encode_picture returned %ld\n",
 		     return_code);
 #endif
 
@@ -660,10 +660,7 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 		}
 		frm += encoder->frame_no_increment;
 		encoder->frame_counter++;
-//printf("encoder->frame_counter=%d\n",encoder->frame_counter);
-	}			/* while */
-
-	/*------ End of repeating by frame numbers ------------*/
+	}
 
 	return (0);
 }

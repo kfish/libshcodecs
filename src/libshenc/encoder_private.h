@@ -100,8 +100,8 @@ struct _SHCodecs_Encoder {
 	/* Internal */
         int initialized; /* Is avcbe_encode_init() done? */
 	int y_bytes; /* Bytes used by Y input plane; CbCr plane uses y_bytes/2 */
-        unsigned long * addr_y; /* VPU address to write next Y plane; updated by encoder backends */
-        unsigned long * addr_c; /* VPU address to write next C plane; updated by encoder backends */
+        unsigned char * addr_y; /* VPU address to write next Y plane; updated by encoder backends */
+        unsigned char * addr_c; /* VPU address to write next C plane; updated by encoder backends */
 
 	avcbe_stream_info *stream_info;
 	long frm; /* Current frame */
