@@ -187,7 +187,7 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	/* stream buffer 0 clear */
 	encode_time_init();
 	vpu4_clock_on();
-	width_height = width + height;
+	width_height = width * height;
 	width_height += (width_height / 2);
 	max_frame = 2;
 	encoder->sdr_base = m4iph_sdr_malloc(width_height * (max_frame + 3), 32);
@@ -232,7 +232,7 @@ void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
 
 	if (encoder == NULL) return;
 
-	width_height = encoder->width + encoder->height;
+	width_height = encoder->width * encoder->height;
 	width_height += (width_height / 2);
 	m4iph_sdr_free(encoder->sdr_base, width_height * (max_frame + 3));
 
