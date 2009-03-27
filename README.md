@@ -1,3 +1,5 @@
+libshcodecs
+===========
 
 libshcodecs: A library for controlling SH-Mobile hardware codecs
 Copyright (C) 2009 Renesas Technology Corp.
