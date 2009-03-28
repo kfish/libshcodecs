@@ -48,6 +48,12 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder,
 
 APPLI_INFO ainfo;		/* User Application Data */
 
+static void
+usage (const char * progname)
+{
+  printf ("Usage: %s <control file>\n", progname);
+  printf ("Decode a video file using the SH-Mobile VPU\n");
+}
 
 /* SHCodecs_Encoder_Input callback for acquiring an image from the CEU */
 static int get_input(SHCodecs_Encoder * encoder, void *user_data)
@@ -71,8 +77,8 @@ int main(int argc, char *argv[])
 	int return_code;
 	long stream_type;
 
-	if (argc != 2) {
-		fprintf(stderr, "Usage: %s control-file.ctl", argv[0]);
+	if (argc != 2 || !strncmp (argv[1], "-h", 2) || !strncmp (argv[1], "--help", 6)) {
+		usage (argv[0]);
 		return -1;
 	}
 
