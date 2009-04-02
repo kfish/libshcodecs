@@ -6,9 +6,6 @@ INCLUDES = -I$(top_builddir) \
 SHCODECSDIR = ../libshcodecs
 SHCODECS_LIBS = $(SHCODECSDIR)/libshcodecs.la -lm
 
-SHENCDIR = ../libshenc
-SHENC_LIBS = $(SHENCDIR)/libshenc.la -lm
-
 #AM_CFLAGS = -v -Wall -O2 -I $(SRC_PATH) -fPIC -fno-common -m4-nofpu
 
 bin_PROGRAMS = shcodecs-enc shcodecs-capenc shcodecs-cap
@@ -36,7 +33,7 @@ shcodecs_enc_CFLAGS = -v -Wall -O2 -I $(srcdir) -fPIC -fno-common \
 	-DVPU_FILEOUT=1 -DTEL_TRACE_LEVEL2=1 -DSH_X=1 -DLINUX_VPU=1CFLAGS \
 	-DVPU3IP -DVPU4IP -DMPEG4SP -DVPU4S
 
-shcodecs_enc_LDADD = -lstdc++ $(SHENC_LIBS) $(SHCODECS_LIBS) $(VPU4_ENC_LIBS)
+shcodecs_enc_LDADD = -lstdc++ $(SHCODECS_LIBS) $(VPU4_ENC_LIBS)
 
 shcodecs_capenc_SOURCES =  \
 	shcodecs-capenc.c \
@@ -55,7 +52,7 @@ shcodecs_capenc_CFLAGS = -v -Wall -O2 -I $(srcdir) -fPIC -fno-common \
 	-DVPU_FILEOUT=1 -DTEL_TRACE_LEVEL2=1 -DSH_X=1 -DLINUX_VPU=1CFLAGS \
 	-DVPU3IP -DVPU4IP -DMPEG4SP -DVPU4S
 
-shcodecs_capenc_LDADD = -lstdc++ $(SHENC_LIBS) $(SHCODECS_LIBS) $(VPU4_ENC_LIBS)
+shcodecs_capenc_LDADD = -lstdc++ $(SHCODECS_LIBS) $(VPU4_ENC_LIBS)
 
 shcodecs_cap_SOURCES = capture.c shcodecs-cap.c
 

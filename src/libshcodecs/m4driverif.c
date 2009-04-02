@@ -125,7 +125,7 @@ static int setup_uio_map(struct uio_device *udp, int nr,
 struct uio_device uio_dev;
 struct uio_map uio_mmio, uio_mem;
 
-extern void *global_context;
+/* extern void *global_context; */
 static int sleep_time;
 static unsigned long sdr_base, sdr_start, sdr_end;
 unsigned long _BM4VSD_BGN, _BM4VSD_END;
@@ -185,7 +185,7 @@ long m4iph_sleep(void)
 		tm = 1000 - (tv.tv_usec - tv1.tv_usec) / 1000;
 	}
 	sleep_time += tm;
-	avcbd_idr_adjust(global_context);
+	/* avcbd_idr_adjust(global_context); */
 	return 0;
 }
 
@@ -202,9 +202,7 @@ int m4iph_vpu_open(void)
 	if (ret < 0)
 		return ret;
 
-#ifdef DEBUG
 	printf("found matching UIO device at %s\n", uio_dev.path);
-#endif
 
 	ret = setup_uio_map(&uio_dev, 0, &uio_mmio);
 	if (ret < 0)
@@ -321,6 +319,7 @@ unsigned long m4iph_sdr_read(unsigned char *address, unsigned char *buffer,
 	return count;
 }
 
+/* Same arg order as memcpy; does alignment on dest */
 void m4iph_sdr_write(unsigned char *address, unsigned char *buffer,
 		     unsigned long count)
 {
@@ -497,7 +496,7 @@ int avcbd_idr_adjust(void *context)
 {
 	TAVCBD_VARIABLES *var;
 
-	if ((!context) || ((short) context & 3)) {
+	if ((!context) || ((int) context & 3)) {
 		return AVCBD_PARAM_ERROR;
 	}
 	var = (TAVCBD_VARIABLES *) context;

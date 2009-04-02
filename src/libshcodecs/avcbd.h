@@ -17,8 +17,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston MA  02110-1301 USA
  */
 
-/** \file avcbd.h
- *  \brief Prototype declarations of the API functions.
+/**\file avcbd.h
+ *\brief Prototype declarations of the API functions.
  */
 
 #ifndef _AVCBD_H_
