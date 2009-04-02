@@ -5,8 +5,3 @@ INCLUDES = -I$(top_builddir) \
 
 SHCODECSDIR = ../libshcodecs
 SHCODECS_LIBS = $(SHCODECSDIR)/libshcodecs.la -lm
-
-bin_PROGRAMS = shcodecs-dec
-
-shcodecs_dec_SOURCES = shcodecs-dec.c
-shcodecs_dec_LDADD = $(SHCODECS_LIBS)

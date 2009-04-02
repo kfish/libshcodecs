@@ -4,17 +4,20 @@ INCLUDES = -I$(top_builddir) \
            -I$(top_srcdir)/include
 
 SHCODECSDIR = ../libshcodecs
-SHCODECS_LIBS = $(SHCODECSDIR)/libshcodecs.la -lm
+SHCODECS_LIBS = $(SHCODECSDIR)/libshcodecs.la $(VPU4_ENC_LIBS) $(VPU4_DEC_LIBS) -lm
 
 #AM_CFLAGS = -v -Wall -O2 -I $(SRC_PATH) -fPIC -fno-common -m4-nofpu
 
-bin_PROGRAMS = shcodecs-enc shcodecs-capenc shcodecs-cap
+bin_PROGRAMS = shcodecs-dec shcodecs-enc shcodecs-capenc shcodecs-cap
 
 noinst_HEADERS = \
 	avcbencsmp.h \
 	capture.h \
 	ControlFileUtil.h \
 	veu_colorspace.h
+
+shcodecs_dec_SOURCES = shcodecs-dec.c
+shcodecs_dec_LDADD = $(SHCODECS_LIBS)
 
 shcodecs_enc_SOURCES =  \
 	shcodecs-enc.c \
@@ -33,7 +36,7 @@ shcodecs_enc_CFLAGS = -v -Wall -O2 -I $(srcdir) -fPIC -fno-common \
 	-DVPU_FILEOUT=1 -DTEL_TRACE_LEVEL2=1 -DSH_X=1 -DLINUX_VPU=1CFLAGS \
 	-DVPU3IP -DVPU4IP -DMPEG4SP -DVPU4S
 
-shcodecs_enc_LDADD = -lstdc++ $(SHCODECS_LIBS) $(VPU4_ENC_LIBS)
+shcodecs_enc_LDADD = -lstdc++ $(SHCODECS_LIBS)
 
 shcodecs_capenc_SOURCES =  \
 	shcodecs-capenc.c \
@@ -52,7 +55,7 @@ shcodecs_capenc_CFLAGS = -v -Wall -O2 -I $(srcdir) -fPIC -fno-common \
 	-DVPU_FILEOUT=1 -DTEL_TRACE_LEVEL2=1 -DSH_X=1 -DLINUX_VPU=1CFLAGS \
 	-DVPU3IP -DVPU4IP -DMPEG4SP -DVPU4S
 
-shcodecs_capenc_LDADD = -lstdc++ $(SHCODECS_LIBS) $(VPU4_ENC_LIBS)
+shcodecs_capenc_LDADD = -lstdc++ $(SHCODECS_LIBS)
 
 shcodecs_cap_SOURCES = capture.c shcodecs-cap.c
 
