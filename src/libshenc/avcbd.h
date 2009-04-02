@@ -244,8 +244,7 @@ extern "C" {
 						    /**< signed 32bit value */
 		unsigned char num_ref_frames_in_pic_order_cnt_cycle;
 							     /**< [0,255] */
-		signed short
-		    delta_offset_for_ref_frame[AVCBD_MAX_POC_CYCLE];
+		signed short delta_offset_for_ref_frame[AVCBD_MAX_POC_CYCLE];
 									/**< sum of signed 32bit value */
 		unsigned char num_ref_frames;
 				      /**< total number of ref frame. [0,16] */
