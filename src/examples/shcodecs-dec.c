@@ -48,10 +48,6 @@ static int update_input(SHCodecs_Decoder * decoder, int len);
 static int local_init (char *pInputfile, char *pOutputfile);
 static int local_close (void);
 
-
-/* XXX: public function, what is this? */
-long m4iph_enc_continue(long output_bits);
-
 static void
 usage (const char * progname)
 {
@@ -94,7 +90,7 @@ long total_output_bytes = 0;
 void debug_printf(__const char *__restrict __format, ...)
 {
 #ifdef _DEBUG
-	printf(__format);
+        printf(__format);
 #endif
 }
 
@@ -128,6 +124,7 @@ int main(int argc, char **argv)
 	char input_filename[MAXPATHLEN], output_filename[MAXPATHLEN];
 	struct sched_param stSchePara;
         int bytes_decoded, frames_decoded;
+        size_t n;
 
         char * progname = argv[0];
 
@@ -244,12 +241,24 @@ int main(int argc, char **argv)
 
         /* decode main loop */
         do {
-		debug_printf ("Calling shcodecs_decode (si_ipos %d, si_isize %d) ...", si_ipos, si_isize);
-		bytes_decoded = shcodecs_decode (decoder, input_buffer + si_ipos, si_isize - si_ipos);
+                int rem;
+
+		bytes_decoded = shcodecs_decode (decoder, input_buffer, si_isize);
 		frames_decoded = shcodecs_decoder_get_frame_count (decoder);
-		debug_printf ("Decoded frame %d (%d bytes)\n", frames_decoded, bytes_decoded);
                 if (bytes_decoded > 0) total_input_consumed += bytes_decoded;
-        } while (bytes_decoded > 0 && update_input (decoder, bytes_decoded) == 0);
+                
+                rem = si_isize - bytes_decoded;
+	        memmove(input_buffer, input_buffer + bytes_decoded, rem);
+                n = read (input_fd, input_buffer + rem, INPUT_BUF_SIZE - rem);
+                if (n < 0) break;
+
+                si_isize = rem + n;
+        } while (!(n == 0 && bytes_decoded == 0));
+
+	bytes_decoded = shcodecs_decode (decoder, input_buffer, si_isize);
+        if (bytes_decoded > 0) total_input_consumed += bytes_decoded;
+
+        debug_printf ("\nshcodecs-dec: Finalizing ...\n");
 
 	/* Finalize the decode output, in case a final MPEG4 frame is available */
 	shcodecs_decoder_finalize (decoder);
@@ -352,51 +361,3 @@ local_close (void)
 	debug_printf("%ld,%ld\n",tv.tv_sec,tv.tv_usec);
 	return 0;
 }
- 
-
-
-/*
- * m4iph_enc_continue
- *
- */
-long m4iph_enc_continue(long output_bits)
-{
-	return 1;
-}
-
-/*
- * update_input
- * Increment pointer to the input bitstream after decoding a frame/slice.
- */
-static int update_input(SHCodecs_Decoder * decoder, int len)
-{
-	int current_pos = si_ipos + len;
-	int rem = si_isize - current_pos;
-	int count;
-
-	if (rem<=0) {
-                return -1;
-        }
-	if (rem < INPUT_BUF_SIZE/2 /* && si_isize == INPUT_BUF_SIZE */) {
-		debug_printf ("Refilling buffer: ");
-		debug_printf ("Remaining bytes %d, moving from %d to 0\n", rem, current_pos);
-		memmove(input_buffer, input_buffer + current_pos, rem);
-		debug_printf ("Reading %d bytes at pos %d\n", si_isize - rem, rem);
-		si_ipos = 0;
-		
-		do {
-			count = read(input_fd, input_buffer + rem, INPUT_BUF_SIZE - rem);
-			if (count > 0)
-				rem += count;
-		} while (count > 0 && count < 100);
-		si_isize = rem;
-		debug_printf ("New size of buffer is %d bytes\n", si_isize);
-	} else if ((size_t)current_pos < si_isize) {
-		si_ipos = current_pos;
-	} else {
-		return -1;
-	}
-
-	return 0;
-}
-

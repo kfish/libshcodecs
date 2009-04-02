@@ -36,7 +36,7 @@
 #define VPU4IP
 #include "m4vsd_h263dec.h"
 
-/*#define DEBUG*/
+/* #define DEBUG */
 
 /* XXX: Forward declarations */
 static int decode_frame(SHCodecs_Decoder * decoder);
@@ -148,7 +148,11 @@ shcodecs_decode(SHCodecs_Decoder * decoder, unsigned char *data, int len)
 int
 shcodecs_decoder_finalize (SHCodecs_Decoder * decoder)
 {
-	decoder->needs_finalization = 2;
+        if (decoder->si_type != F_MPEG4) {
+                return 0;
+        }
+
+	decoder->needs_finalization = 1;
 
 	return decoder_start (decoder);
 }
@@ -160,40 +164,28 @@ shcodecs_decoder_output_partial (SHCodecs_Decoder * decoder)
 	struct M4VSD_IMAGE_TABLE *image;
 	int ret = 0;
 
-	if (!decoder->needs_finalization) return 0;
+	if (!decoder->needs_finalization) {
+                return 0;
+        }
 
 	var = (M4VSD_MULTISTREAM_VARIABLES *) decoder->si_ctxt;
 	image = &var->image;
 
-	/* printf("DecW=%d, list[0]=%d, list[1]=%d\n",image->DecW,image->ref_pic_list[0],image->ref_pic_list[1]); */
 #ifdef DEBUG
-	printf ("shcodecs_decoder_finalize: DecW=%d, list[0]=%d, list[1]=%d\n",
+	printf ("shcodecs_decoder_output_partial: DecW=%d, list[0]=%d, list[1]=%d\n",
 		     image->DecW,
 		     image->ref_pic_list[0],
 		     image->ref_pic_list[1]);
 #endif
 	if (decoder->index_old != image->ref_pic_list[0]) {
-#ifdef DEBUG
-		printf ("shcodecs_decoder_finalize: type 1\n");
-#endif
 		extract_frame(decoder, image->ref_pic_list[0]);
 		ret = 1;
 	} else if (decoder->index_old != image->DecW) {
-#ifdef DEBUG
-		printf ("shcodecs_decoder_finalize: type 2\n");
-#endif
 		extract_frame(decoder, image->DecW);
 		ret = 1;
 	} else if (decoder->index_old != image->ref_pic_list[1]) {
-#ifdef DEBUG
-		printf ("shcodecs_decoder_finalize: type 3\n");
-#endif
 		extract_frame(decoder, image->ref_pic_list[1]);
 		ret = 1;
-	} else {
-#ifdef DEBUG
-		printf ("shcodecs_decoder_finalize: Not handled!\n");
-#endif
 	}
 
 	decoder->needs_finalization--;
@@ -433,8 +425,18 @@ static int decoder_start(SHCodecs_Decoder * decoder)
 
 		if (decode_frame(decoder) < 0) {
 #ifdef DEBUG
-			printf("%d frames decoded\n", decoder->si_fnum);
+			printf("decoder_start:: %d frames decoded\n", decoder->si_fnum);
 #endif
+
+#if 1
+                        if (!decoder->needs_finalization) {
+#ifdef DEBUG
+			printf("decoder_start:: need data!\n");
+#endif
+                                goto need_data;
+                        }
+#endif
+
 			decoded = 0;
 			if (decoder->si_type == F_H264)
 				dpb_mode = 2;
@@ -443,51 +445,34 @@ static int decoder_start(SHCodecs_Decoder * decoder)
                                 //m4iph_vpu4_reset();
                         }
                 } else {
-#ifdef DEBUG
-			printf
-			    ("shcodecs_decoder::decoder_start: decoded\n");
-#endif
 			decoded = 1;
 			dpb_mode = 1;
 		}
 
-		while (decoder->si_valid) {
+		while (1) {
 			long index = avcbd_get_decoded_frame(decoder->si_ctxt, dpb_mode);
-#ifdef DEBUG
-			printf
-			    ("shcodecs_decoder:: avcbd_get_decoded_frame returned index %ld\n",
-			     index);
-#endif
 
 			if (index < 0) {
 	 			if ((decoded == 0) && (decoder->si_type != F_H264)) {
-#ifdef DEBUG
-					printf ("shcodecs_decoder: needs finalization\n");
-#endif
 					shcodecs_decoder_output_partial (decoder);
 				}
-
-#ifdef DEBUG
-				printf
-				    ("shcodecs_decoder::decoder->last_frame_status.error_num: %d\n",
-				     decoder->last_frame_status.error_num);
-#endif
 
 				if (decoder->last_frame_status.error_num == AVCBD_PIC_NOTCODED_VOP) {
 					extract_frame(decoder, image->ref_pic_list[0]);
 				}
 				break;
 			} else {
-			        extract_frame(decoder, index);
-			        decoder->index_old = index;
+		                extract_frame(decoder, index);
+		                decoder->index_old = index;
                         }
 		}
 
-		decoder->si_fnum++;
 #ifdef DEBUG
-		printf("%16d,dpb_mode=%d\n", decoder->si_fnum, dpb_mode);
+		printf("%16d,dpb_mode=%d\n", decoder->si_fnum++, dpb_mode);
 #endif
-	} while (decoded || decoder->needs_finalization);
+	} while (decoded);
+
+need_data:
 
 	/* Return number of bytes consumed */
 	return decoder->si_ipos;
@@ -528,20 +513,14 @@ static int decode_frame(SHCodecs_Decoder * decoder)
 	int max_mb;
 	TAVCBD_FRAME_SIZE frame_size;
 	static long counter = 0;
-
-#ifdef DEBUG
-	printf("shcodecs_decoder::decode_frame IN\n");
-#endif
+        int input_len;
 
 	max_mb = decoder->si_mbnum;
 	do {
 		int curr_len;
 		err = -1;
 
-		if (get_input(decoder, decoder->si_nalb) <= 0) {
-#ifdef DEBUG
-			printf("get_input failed\n");
-#endif
+		if ((input_len = get_input(decoder, decoder->si_nalb) <= 0)) {
 			return -2;
 		}
 		if (decoder->si_type == F_H264) {
@@ -575,20 +554,28 @@ static int decode_frame(SHCodecs_Decoder * decoder)
 			unsigned char *ptr;
 			long hosei = 0;
 
+#ifdef DEBUG
+                        printf ("shcodecs_decoder::decode_frame: MPEG4 ptr = input + ipos %d\n", decoder->si_ipos);
+#endif
+
 			ptr = decoder->si_input + decoder->si_ipos;
 
 			ret = avcbd_search_vop_header(decoder->si_ctxt,
 						      ptr,
 						      decoder->si_ilen);
-#if 0
+
 			if (ret < 0) {
-				if (*ptr != 0 || *(ptr + 1) != 0) {
-					break;
-				}
-			}
-#else
-                        if (ret < 0) break;
+#ifdef DEBUG
+                                printf ("shcodecs_decoder::decode_frame: MPEG4 search_vop_header < 0\n");
 #endif
+                                if (decoder->needs_finalization) {
+				        if (*ptr != 0 || *(ptr + 1) != 0) {
+                                                break;
+                                        }
+                                } else {
+                                        break;
+                                }
+                        }
 
 #if 0 /* WTF? */
 			if (decoder->si_ilen & 31)
@@ -603,6 +590,7 @@ static int decode_frame(SHCodecs_Decoder * decoder)
 				}
 			}
 #endif
+
 			avcbd_set_stream_pointer(decoder->si_ctxt,
 						 decoder->si_input + decoder->si_ipos,
 						 decoder->si_ilen + hosei, NULL);
@@ -712,8 +700,7 @@ static int extract_frame(SHCodecs_Decoder * decoder, long frame_index)
 	int pagesize = getpagesize();
 
 #ifdef DEBUG
-	printf("Output Frame %d, frame_index=%d\n", frame_cnt++,
-	       frame_index);
+	printf("extract_frame: output frame %d, frame_index=%d\n", frame_cnt++, frame_index);
 #endif
 	ymem = (unsigned long) frame->Y_fmemp;
 	cmem = (unsigned long) frame->C_fmemp;
@@ -801,47 +788,27 @@ static int usr_get_input_mpeg4(SHCodecs_Decoder * decoder, void *dst)
         len = decoder->si_isize - decoder->si_ipos;
         if (len < 3) return -2;
 
+        if (decoder->needs_finalization) {
+#ifdef DEBUG
+                printf ("my usr_get_input_mpeg4: finalizing, returning %ld\n", len);
+#endif
+                        return len;
+        }
+
 	/* Always keep a buffer of lookahead data, unless we are finalizing.
          * The amount to keep is a heuristic based on the likely size of a
          * large encoded frame.
          * By returning 0 early, we force the application to either push more
          * data or (if there is no more) to finalize.
          */
-        if (!decoder->needs_finalization && len < (decoder->si_max_fx*decoder->si_max_fy/8)) {
+        if (len < (decoder->si_max_fx*decoder->si_max_fy/4)) {
 #ifdef DEBUG
 	        printf ("usr_get_input_mpeg4: not enough data, going back for more\n");
 #endif
                 return 0;
         }
 
-#ifdef DEBUG
-        printf ("my usr_get_input_mpeg4: len %ld\n", len);
-        if (len >=8) {
-          printf ("%02x %02x %02x %02x %02x %02x %02x %02x\n",
-                  c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7]);
-        }
-#endif
-        c+=4;
-        for (i=4; i < len; i++) {
-                if (*c == 0x01) {
-                        if (zeroes==2) {
-                                ret = i-1;
-                                break;
-                        } else if (zeroes==3) {
-                                ret = i-2;
-                                break;
-                        }
-                }
-                if (*c++ == 0) {
-                        if (zeroes<3) zeroes++;
-                } else {
-                        zeroes=0;
-                }
-        }
-#ifdef DEBUG
-        printf ("my usr_get_input_mpeg4: returning %ld\n", ret);
-#endif
-        return ret;
+        return len;
 }
 
 /*
