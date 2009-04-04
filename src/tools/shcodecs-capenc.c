@@ -100,12 +100,10 @@ int main(int argc, char *argv[])
 		 ainfo.buf_output_directry,
 		 ainfo.buf_output_stream_file);
 
-	printf("ainfo.input_file_name_buf = %s \n",
-	       ainfo.input_file_name_buf);
-	printf("ainfo.output_file_name_buf = %s \n",
-	       ainfo.output_file_name_buf);
-	ainfo.ceu =
-	    sh_ceu_open("/dev/video0", ainfo.xpic, ainfo.ypic);
+	printf("Input file: %s\n", ainfo.input_file_name_buf);
+	printf("Output file: %s\n", ainfo.output_file_name_buf);
+
+	ainfo.ceu = sh_ceu_open("/dev/video0", ainfo.xpic, ainfo.ypic);
 
 	sh_veu_open();
 

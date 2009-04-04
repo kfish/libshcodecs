@@ -173,8 +173,6 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder, long stream_type)
 	long area_width, area_height;
         unsigned long i;
 
-	DisplayMessage(" 1 calling avcbe_init_encode ", 1);
-
 	/*--- The MPEG-4&H.264 Encoder Library API(required-4)@initialize the 
 	 * variables ---*/
 	WORK_ARRY[0].area_size = MY_WORK_AREA_SIZE;
@@ -292,7 +290,9 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder, long stream_type)
 	return_code =
 	    avcbe_init_memory(encoder->stream_info, nrefframe, nldecfmem, encoder->LDEC_ARRY,
 			      area_width, area_height);
+#ifdef DEBUG
 	printf("avcbe_init_memory=%ld\n", return_code);
+#endif
 
 	if (return_code != 0) {
 		if (return_code == -1) {
@@ -432,7 +432,6 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 	captfmem.Y_fmemp = (unsigned char *) encoder->CAPTF_ARRY[0].Y_fmemp;
 	captfmem.C_fmemp = (unsigned char *) encoder->CAPTF_ARRY[0].C_fmemp;
 	while (1) {	/*---- Repeating by frame numbers -------------------------*/
-		printf("while---");
 		if (encoder->frame_number_to_encode == encoder->frame_counter) {
 			break;
 		}
@@ -547,10 +546,12 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 			tm = 1000 - (tv.tv_usec - tv1.tv_usec) / 1000;
 		}
 		encode_time += tm;
+#ifdef DEBUG
 		printf("Total encode time = %ldmsec(%lumsec),", tm,
 		       encode_time_get());
 		printf("Total sleep  time = %ld(msec)\n",
 		       m4iph_sleep_time_get());
+#endif
 		vpu4_clock_off();
 #endif				/* CAPT_INPUT */
 
@@ -594,10 +595,12 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 			encoder->error_return_code = return_code;
 			return (-11);
 		} else if (return_code == AVCBE_ENCODE_SUCCESS) {	/* 0 */
+#ifdef DEBUG
 			sprintf(messeage_buf,
 				" encode_1file_mpeg4:avcbe_encode_picture SUCCESS  frm=%ld,seq_no=%ld ",
 				frm, encoder->frame_counter);
 			DisplayMessage(messeage_buf, 1);
+#endif
 			/* the second parameter 'ldec' value must be changed when *
 			 * the avcbe_set_image_pointer function is called on next time. */
 		} else if (return_code == AVCBE_FRAME_SKIPPED) {	/* 1 */
@@ -678,11 +681,13 @@ mpeg4_encode_run (SHCodecs_Encoder * encoder, long stream_type)
 	encoder->error_return_function = 0;	/* add at Version2 */
 	encoder->error_return_code = 0;	/* add at Version2 */
 
+#ifdef DEBUG
 	if (stream_type == AVCBE_MPEG4) {
 		DisplayMessage("MPEG-4 Encode Start! ", 1);
 	} else {
 		DisplayMessage("H.263 Encode Start! ", 1);
 	}
+#endif
 
 	/*--- The MPEG-4 Encoder Library API(required-2)@start encoding ---*/
 

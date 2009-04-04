@@ -95,10 +95,8 @@ int main(int argc, char *argv[])
 		 ainfo.buf_output_directry,
 		 ainfo.buf_output_stream_file);
 
-	printf("ainfo.input_file_name_buf = %s \n",
-	       ainfo.input_file_name_buf);
-	printf("ainfo.output_file_name_buf = %s \n",
-	       ainfo.output_file_name_buf);
+	printf("Input file: %s\n", ainfo.input_file_name_buf);
+	printf("Output file: %s\n", ainfo.output_file_name_buf);
 
 	encoder =
 	    shcodecs_encoder_init(ainfo.xpic, ainfo.ypic,

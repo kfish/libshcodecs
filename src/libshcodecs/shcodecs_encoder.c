@@ -74,8 +74,10 @@ set_VPU4_param(SHCodecs_Encoder * encoder)
 	/* Temporary Buffer Address */
 	tb = (unsigned long)m4iph_sdr_malloc(MY_STREAM_BUFF_SIZE, 32);
 	vpu4_param->m4iph_temporary_buff_address = tb;
+#ifdef DEBUG
 	printf("m4iph_temporary_buff_address=%lX, size=%d\n", tb,
 	       MY_STREAM_BUFF_SIZE);
+#endif
 	/* Temporary Buffer Size */
 	vpu4_param->m4iph_temporary_buff_size = MY_STREAM_BUFF_SIZE;
 	// vpu4_param->m4iph_temporary_buff_size = MY_WORK_AREA_SIZE;
@@ -83,7 +85,9 @@ set_VPU4_param(SHCodecs_Encoder * encoder)
 		encoder->my_work_area = malloc(MY_WORK_AREA_SIZE);	/* 4 bytes alignment */
 		encoder->dummy_nal_buf = malloc(MY_DUMMY_NAL_BUFF_SIZE);
 		memset(encoder->dummy_nal_buf, 0, MY_DUMMY_NAL_BUFF_SIZE);
+#ifdef DEBUG
 		printf("my_work_area=%pX\n", encoder->my_work_area);
+#endif
 		if (encoder->my_work_area == NULL) {
 			printf("Memoey allocation error\n");
 			exit(-200);
@@ -196,8 +200,10 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	for (i = 0; i < max_frame; i++) {
 		encoder->my_frame_memory_capt[i] =
 		    (unsigned long *) (encoder->sdr_base + width_height * i);
+#ifdef DEBUG
 		printf("my_frame_memory_capt[%d]=%p\n", i,
 		       encoder->my_frame_memory_capt[i]);
+#endif
 	}
 	encoder->my_frame_memory_ldec1 =
 	    (unsigned long *) (encoder->sdr_base + width_height * i);
