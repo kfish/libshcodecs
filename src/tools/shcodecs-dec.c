@@ -260,7 +260,7 @@ int main(int argc, char **argv)
 
         debug_printf ("\nshcodecs-dec: Finalizing ...\n");
 
-	/* Finalize the decode output, in case a final MPEG4 frame is available */
+	/* Finalize the decode output, in case a final frame is available */
 	shcodecs_decoder_finalize (decoder);
 
 	frames_decoded = shcodecs_decoder_get_frame_count (decoder);
