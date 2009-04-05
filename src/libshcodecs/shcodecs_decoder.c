@@ -148,10 +148,6 @@ shcodecs_decode(SHCodecs_Decoder * decoder, unsigned char *data, int len)
 int
 shcodecs_decoder_finalize (SHCodecs_Decoder * decoder)
 {
-        if (decoder->si_type != F_MPEG4) {
-                return 0;
-        }
-
 	decoder->needs_finalization = 1;
 
 	return decoder_start (decoder);
@@ -738,7 +734,22 @@ static int extract_frame(SHCodecs_Decoder * decoder, long frame_index)
  */
 static int usr_get_input_h264(SHCodecs_Decoder * decoder, void *dst)
 {
-	long size = 0;
+	long len, size = 0;
+
+        len = decoder->si_isize - decoder->si_ipos;
+
+	/* Always keep a buffer of lookahead data, unless we are finalizing.
+         * The amount to keep is a heuristic based on the likely size of a
+         * large encoded frame.
+         * By returning 0 early, we force the application to either push more
+         * data or (if there is no more) to finalize.
+         */
+        if (!decoder->needs_finalization && len < (decoder->si_max_fx*decoder->si_max_fy/4)) {
+#ifdef DEBUG
+	        printf ("usr_get_input_h264: not enough data, going back for more\n");
+#endif
+                return 0;
+        }
 
 	/* skip pre-gap */
 	size = avcbd_search_start_code(
@@ -747,7 +758,9 @@ static int usr_get_input_h264(SHCodecs_Decoder * decoder, void *dst)
 		  0x01);
 
 	if (size < 0) {
-		/* m4iph_avcbd_perror("avcbd_search_start_code()", size); */
+#ifdef DEBUG
+		m4iph_avcbd_perror("avcbd_search_start_code()", size);
+#endif
 		return -1;
 	}
 
