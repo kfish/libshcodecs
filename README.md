@@ -36,7 +36,7 @@ The decoder will process the input buffer, and call the provided callback
 function each time a frame is decoded. The output is given in two bitplanes
 of YUV 4:2:0.
 
-For a full decoder example, see src/examples/shcodecs-dec.c
+For a full decoder example, see src/tools/shcodecs-dec.c
 
 To encode video data, an application provides both input and output callback
 functions:
