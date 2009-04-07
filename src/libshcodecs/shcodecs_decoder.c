@@ -38,6 +38,8 @@
 
 /* #define DEBUG */
 
+#define MAX_BUF_SIZE (4 * 256 * 1024)
+
 /* XXX: Forward declarations */
 static int decode_frame(SHCodecs_Decoder * decoder);
 static int extract_frame(SHCodecs_Decoder * decoder, long frame_index);
@@ -137,12 +139,24 @@ shcodecs_decoder_set_decoded_callback(SHCodecs_Decoder * decoder,
 int
 shcodecs_decode(SHCodecs_Decoder * decoder, unsigned char *data, int len)
 {
-	decoder->si_input = data;
-	decoder->si_ipos = 0;
-	decoder->si_ilen = len;
-	decoder->si_isize = len;
+        int nused=0, total_used=0;
 
-	return decoder_start(decoder);
+        decoder->si_input = data;
+
+        while (len > 0) {
+                decoder->si_input += nused;
+	        decoder->si_ipos = 0;
+                decoder->si_ilen = MIN (MAX_BUF_SIZE, len);
+        	decoder->si_isize = decoder->si_ilen;
+
+                if ((nused = decoder_start(decoder)) <= 0)
+                        break;
+
+                total_used += nused;
+                len -= nused;
+        }
+
+        return total_used;
 }
 
 int
