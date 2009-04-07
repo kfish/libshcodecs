@@ -85,22 +85,19 @@ int main(int argc, char *argv[])
 		return (-1);
 	}
 
-	/* 入力ディレクトリ */
+	/* Input path */
 	snprintf(ainfo.input_file_name_buf, 256, "%s/%s",
 		 ainfo.buf_input_yuv_file_with_path,
 		 ainfo.buf_input_yuv_file);
+	printf("Input file: %s\n", ainfo.input_file_name_buf);
 
-	/* 出力ディレクトリ */
+	/* Output path */
 	snprintf(ainfo.output_file_name_buf, 256, "%s/%s",
 		 ainfo.buf_output_directry,
 		 ainfo.buf_output_stream_file);
-
-	printf("Input file: %s\n", ainfo.input_file_name_buf);
 	printf("Output file: %s\n", ainfo.output_file_name_buf);
 
-	encoder =
-	    shcodecs_encoder_init(ainfo.xpic, ainfo.ypic,
-                                  stream_type);
+	encoder = shcodecs_encoder_init(ainfo.xpic, ainfo.ypic, stream_type);
 
 	shcodecs_encoder_set_input_callback(encoder, get_input, &ainfo);
 	shcodecs_encoder_set_output_callback(encoder, write_output,
@@ -137,10 +134,4 @@ int main(int argc, char *argv[])
 	}
 
 	shcodecs_encoder_close(encoder);
-
-#if 0
-	printf("Total encode time = %d(msec)\n", encode_time_get());
-	printf("Total sleep  time = %d(msec)\n", m4iph_sleep_time_get());
-	/* TODO vpu4_reg_close(); */
-#endif
 }
