@@ -8,5 +8,5 @@ Description: A library for controlling SH-Mobile hardware codecs
 Requires:
 Version: @VERSION@
 Libs: -L${libdir} -lshcodecs
-Libs.private: @VPU4_LIBS@
+Libs.private: @VPU4_DEC_LIBS@ @VPU4_ENC_LIBS@
 Cflags: -I${includedir}
