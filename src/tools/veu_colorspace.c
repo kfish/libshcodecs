@@ -20,6 +20,7 @@
 /*
  * SuperH VEU color space conversion and stretching
  * Based on MPlayer Vidix driver by Magnus Damm
+ * Modified by Takanari Hayama to support NV12->RGB565 conversion
  */
 
 #include <stdio.h>
@@ -596,6 +597,69 @@ sh_veu_rgb565_to_nv12(unsigned char *rgb565_in,
 	write_reg(&sh_veu_uio_mmio, 0x100, VEVTR);	/* ack int, write 0 to bit 0 */
 
 	printf("sh_veu_rgb565_to_nv12 OUT\n");
+
+        return 0;
+}
+
+int
+sh_veu_nv12_to_rgb565(unsigned char *y_in,
+		      unsigned char *c_in,
+		      unsigned char *rgb565_out,
+		      unsigned long width, unsigned long height,
+		      unsigned long pitch_in,
+		      unsigned long pitch_out)
+{
+	printf("%s IN\n", __FUNCTION__);
+
+	write_reg(&sh_veu_uio_mmio, pitch_in, VESWR);
+	write_reg(&sh_veu_uio_mmio, width | (height << 16), VESSR);
+	write_reg(&sh_veu_uio_mmio, 0, VBSSR);	/* not using bundle mode */
+
+	write_reg(&sh_veu_uio_mmio, pitch_out, VEDWR);
+
+	write_reg(&sh_veu_uio_mmio, (unsigned long)y_in, VSAYR);
+	write_reg(&sh_veu_uio_mmio, (unsigned long)c_in, VSACR);
+
+	write_reg(&sh_veu_uio_mmio, (unsigned long)rgb565_out, VDAYR);
+
+	/* byte swap setting */
+	//write_reg(&sh_veu_uio_mmio, 0x66, VSWPR);
+	write_reg(&sh_veu_uio_mmio, 0x60 | 0x07, VSWPR);
+
+	/* conversion setting RGB15 -> NV12 */
+	//write_reg(&sh_veu_uio_mmio, (6 << 16) | (3 << 8) | 1, VTRCR);
+	//write_reg(&sh_veu_uio_mmio, (5 << 8) | 3, VTRCR);
+	write_reg(&sh_veu_uio_mmio, (6 << 16) | 2, VTRCR);
+
+	set_scale(&sh_veu_uio_mmio, 0, width, width);
+	set_scale(&sh_veu_uio_mmio, 1, height, height);
+
+	write_reg(&sh_veu_uio_mmio, 1, VEIER);	/* enable interrupt in VEU */
+
+	/* Enable interrupt in UIO driver */
+	{
+		unsigned long enable = 1;
+		int ret;
+
+		if ((ret =
+		     write(sh_veu_uio_dev.fd, &enable,
+			   sizeof(u_long))) != (sizeof(u_long))) {
+			printf("veu csp: write error\n");
+		}
+	}
+
+	write_reg(&sh_veu_uio_mmio, 1, VESTR);	/* start operation */
+
+	/* Wait for an interrupt */
+	{
+		unsigned long n_pending;
+
+		read(sh_veu_uio_dev.fd, &n_pending, sizeof(u_long));
+	}
+
+	write_reg(&sh_veu_uio_mmio, 0x100, VEVTR);	/* ack int, write 0 to bit 0 */
+
+	printf("%s OUT\n", __FUNCTION__);
 
         return 0;
 }

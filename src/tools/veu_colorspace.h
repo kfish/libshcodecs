@@ -29,4 +29,10 @@ int sh_veu_rgb565_to_nv12(unsigned char *rgb565_in,
 			  unsigned char *c_out,
 			  unsigned long width, unsigned long height);
 
+int sh_veu_nv12_to_rgb565(unsigned char *y_in,
+			  unsigned char *c_in,
+			  unsigned char *rgb565_out,
+			  unsigned long width, unsigned long height,
+			  unsigned long pitch);
+
 #endif				/* __VEU_COLORSPACE_H__ */
