@@ -70,11 +70,26 @@ shcodecs_decoder_set_decoded_callback (SHCodecs_Decoder * decoder,
  * will scan for packet boundaries.
  * \param decoder The SHCodecs_Decoder* handle
  * \param frame_by_frame Flag: Input data is passed in one frame blocks
+ * if set to a non-zero value.
  * \retval 0 Success
  */
 int
 shcodecs_decoder_set_frame_by_frame (SHCodecs_Decoder * decoder,
                                      int frame_by_frame);
+
+/**
+ * Set the data output mode to use physical addresses.
+ * If the calling application is interfacing to other IP blocks such as
+ * the VEU, then set this function. Otherwise, decoded frame output will
+ * be mapped to userspace addresses, usable by normal applications.
+ * \param decoder The SHCodecs_Decoder* handle
+ * \param use_physical Flag: Physical addresses will be reported for
+ * output frame data if set to a non-zero value.
+ * \retval 0 Success
+ */
+int
+shcodecs_decoder_set_use_physical (SHCodecs_Decoder * decoder,
+                                   int use_physical);
 
 /**
  * Decode a buffer of input data. This function will call the previously

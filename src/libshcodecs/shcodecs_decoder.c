@@ -120,6 +120,15 @@ shcodecs_decoder_set_frame_by_frame (SHCodecs_Decoder * decoder, int frame_by_fr
 }
 
 int
+shcodecs_decoder_set_use_physical (SHCodecs_Decoder * decoder, int use_physical)
+{
+        if (!decoder) return -1;
+
+        decoder->use_physical = use_physical;
+
+        return 0;
+}
+int
 shcodecs_decoder_set_decoded_callback(SHCodecs_Decoder * decoder,
 				      SHCodecs_Decoded_Callback decoded_cb,
 				      void *user_data)
@@ -714,28 +723,40 @@ static int extract_frame(SHCodecs_Decoder * decoder, long frame_index)
 #endif
 	ymem = (unsigned long) frame->Y_fmemp;
 	cmem = (unsigned long) frame->C_fmemp;
-	page = ymem & ~(pagesize - 1);
-	ry = (unsigned long) ymem - page;
-	yf = m4iph_map_sdr_mem((void *) page,
-			       luma_size + (luma_size >> 1) + ry + 31);
-	if (yf == NULL) {
-		printf("%s: Aborting since mmap() failed.\n",
-		       __FUNCTION__);
-		abort();
-	}
-	/* C component should immediately follow the Y component */
-	cf = ALIGN(yf + ry + luma_size, 32);
 
-	/* Call user's output callback */
-	if (decoder->decoded_cb) {
-		decoder->decoded_cb(decoder, yf + ry, luma_size, cf,
-				    luma_size >> 1,
-				    decoder->decoded_cb_data);
-	}
+        if (decoder->use_physical) {
+                /* Call user's output callback */
+	        if (decoder->decoded_cb) {
+		        decoder->decoded_cb(decoder, 
+		        		    ymem, luma_size, 
+		        		    cmem, luma_size >> 1,
+		        		    decoder->decoded_cb_data);
+	        }
+        } else {
+	        page = ymem & ~(pagesize - 1);
+	        ry = (unsigned long) ymem - page;
+	        yf = m4iph_map_sdr_mem((void *) page,
+			       luma_size + (luma_size >> 1) + ry + 31);
+	        if (yf == NULL) {
+	        	printf("%s: Aborting since mmap() failed.\n",
+	        	       __FUNCTION__);
+	        	abort();
+	        }
+	        /* C component should immediately follow the Y component */
+	        cf = ALIGN(yf + ry + luma_size, 32);
+
+                /* Call user's output callback */
+	        if (decoder->decoded_cb) {
+		        decoder->decoded_cb(decoder, 
+		        		    yf + ry, luma_size, 
+		        		    cf, luma_size >> 1,
+		        		    decoder->decoded_cb_data);
+	        }
+
+	        m4iph_unmap_sdr_mem(yf, luma_size + (luma_size >> 1) + ry + 31);
+        }
 
 	decoder->frame_count++;
-
-	m4iph_unmap_sdr_mem(yf, luma_size + (luma_size >> 1) + ry + 31);
 
 	return 0;
 }
