@@ -57,8 +57,13 @@ int open_input_image_file(APPLI_INFO * appli_info)
 int open_output_file(APPLI_INFO * appli_info)
 {
 	appli_info->output_file_fp = NULL;
-	appli_info->output_file_fp =
-	    fopen(appli_info->output_file_name_buf, "wb");
+
+        if (!strcmp (appli_info->output_file_name_buf, "-")) {
+	        appli_info->output_file_fp = stdout;
+        } else {
+	        appli_info->output_file_fp =
+	            fopen(appli_info->output_file_name_buf, "wb");
+        }
 
 	if (appli_info->output_file_fp == NULL) {
 		return (-1);
