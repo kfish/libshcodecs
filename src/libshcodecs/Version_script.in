@@ -15,7 +15,7 @@
 		shcodecs_decoder_finalize;
 		shcodecs_decoder_set_frame_by_frame;
 		shcodecs_decoder_get_frame_count;
-		shcodecs_decoder_use_physical;
+		shcodecs_decoder_set_use_physical;
 
 		shcodecs_encoder_init;
 		shcodecs_encoder_close;
