@@ -203,7 +203,7 @@ int m4iph_vpu_open(void)
 		return ret;
 
 #ifdef DEBUG
-	printf("found matching UIO device at %s\n", uio_dev.path);
+	fprintf(stderr, "found matching UIO device at %s\n", uio_dev.path);
 #endif
 
 	ret = setup_uio_map(&uio_dev, 0, &uio_mmio);
@@ -234,7 +234,7 @@ unsigned long m4iph_reg_table_read(unsigned long *addr,
 
 #if DEBUG
 	for (offset = 0; offset < nr_longs; offset++)
-		printf("%s: addr = %p, data = %08lx\n", __FUNCTION__,
+		fprintf(stderr, "%s: addr = %p, data = %08lx\n", __FUNCTION__,
 		       addr++, *data++);
 #endif
 	return nr_longs;
@@ -253,7 +253,7 @@ void m4iph_reg_table_write(unsigned long *addr, unsigned long *data,
 
 #if DEBUG
 	for (offset = 0; offset < nr_longs; offset++) {
-		printf("%s: addr = %p, data = %08lx\n", __FUNCTION__, addr,
+		fprintf(stderr, "%s: addr = %p, data = %08lx\n", __FUNCTION__, addr,
 		       *data);
 		addr++;
 		data++;
@@ -310,9 +310,9 @@ unsigned long m4iph_sdr_read(unsigned char *address, unsigned char *buffer,
 	    (unsigned char *) m4iph_map_sdr_mem((void *) addr,
 						count + roundoff);
 	if (buf == NULL) {
-		printf("%s: Aborting since mmap() failed.\n",
+		fprintf(stderr, "%s: Aborting since mmap() failed.\n",
 		       __FUNCTION__);
-		printf("%s: address = %p, buffer = %p, count = %ld\n",
+		fprintf(stderr, "%s: address = %p, buffer = %p, count = %ld\n",
 		       __FUNCTION__, address, buffer, count);
 		abort();
 	}
@@ -344,9 +344,9 @@ void m4iph_sdr_write(unsigned char *address, unsigned char *buffer,
 	    (unsigned char *) m4iph_map_sdr_mem((void *) addr,
 						count + roundoff);
 	if (buf == NULL) {
-		printf("%s: Aborting since mmap() failed.\n",
+		fprintf(stderr, "%s: Aborting since mmap() failed.\n",
 		       __FUNCTION__);
-		printf("%s: address = %p, buffer = %p, count = %ld\n",
+		fprintf(stderr, "%s: address = %p, buffer = %p, count = %ld\n",
 		       __FUNCTION__, address, buffer, count);
 		abort();
 	}
@@ -368,9 +368,9 @@ void m4iph_sdr_memset(unsigned long *address, unsigned long data,
 	    (unsigned char *) m4iph_map_sdr_mem((void *) addr,
 						count + roundoff);
 	if (buf == NULL) {
-		printf("%s: Aborting since mmap() failed.\n",
+		fprintf(stderr, "%s: Aborting since mmap() failed.\n",
 		       __FUNCTION__);
-		printf("%s: address = %p, data = %08lx, count = %ld\n",
+		fprintf(stderr, "%s: address = %p, data = %08lx, count = %ld\n",
 		       __FUNCTION__, address, data, count);
 		abort();
 	}
@@ -390,7 +390,7 @@ void *m4iph_sdr_malloc(unsigned long count, int align)
 	if (sdr_base + size >= sdr_end) {
 		fprintf(stderr, "%s: Allocation of size %ld failed\n",
 			__FUNCTION__, count);
-		printf("sdr_base = %08lx, sdr_end = %08lx\n", sdr_base,
+		fprintf(stderr, "sdr_base = %08lx, sdr_end = %08lx\n", sdr_base,
 		       sdr_end);
 		return NULL;
 	}

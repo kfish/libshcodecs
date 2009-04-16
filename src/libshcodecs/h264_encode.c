@@ -355,7 +355,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 	long tm, ret;
 
 #ifdef DEBUG
-	printf("encode_picture_unit IN\n");
+	fprintf(stderr, "encode_picture_unit IN\n");
 #endif
 
 	addr_y = (unsigned long *) encoder->CAPTF_ARRY[0].Y_fmemp;
@@ -567,7 +567,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 		/* set to output slice header and slice data */
 		encoder->output_type = AVCBE_OUTPUT_SLICE;	/* Header insertion flag */
 		/*--- The MPEG-4 Encoder Library API (required-8)@encode each screen of display data ---*/
-//              printf("enc_pic0=%ld,",tv.tv_usec);
+//              fprintf(stderr, "enc_pic0=%ld,",tv.tv_usec);
 		gettimeofday(&tv, &tz);
 		return_code =
 		    avcbe_encode_picture(encoder->stream_info, frm,
@@ -576,7 +576,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 					 &encoder->my_stream_buff_info,
 					 extra_stream_buff);
 		gettimeofday(&tv1, &tz);
-//              printf("ret=%d,enc_pic1=%ld,",return_code,tv1.tv_usec);
+//              fprintf(stderr, "ret=%d,enc_pic1=%ld,",return_code,tv1.tv_usec);
 		tm = (tv1.tv_usec - tv.tv_usec) / 1000;
 		if (tm < 0) {
 			tm = 1000 - (tv.tv_usec - tv1.tv_usec) / 1000;
@@ -584,16 +584,16 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 		encode_time += tm;
 
 #ifdef DEBUG
-		printf
-		    ("encode_picture_unit: avcbe_encode_picture() returned %d\n",
+		fprintf
+		    (stderr, "encode_picture_unit: avcbe_encode_picture() returned %d\n",
 		     return_code);
 #endif
 
-//              printf("Total encode time = %d(msec),",encode_time_get());
-//              printf("Total sleep  time = %d(msec)\n",m4iph_sleep_time_get());
+//              fprintf(stderr, "Total encode time = %d(msec),",encode_time_get());
+//              fprintf(stderr, "Total sleep  time = %d(msec)\n",m4iph_sleep_time_get());
 		if (return_code < 0) {	/* error */
 			if (return_code == AVCBE_ENCODE_ERROR) {	/* -1 */
-				printf("%s:%d:", __FUNCTION__, __LINE__);
+				fprintf(stderr, "%s:%d:", __FUNCTION__, __LINE__);
 				DisplayMessage
 				    (" encode_1file_h264:avcbe_encode_picture PARAMETER ERROR! ",
 				     1);
@@ -861,7 +861,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 	}			/* while */
 	/*---------------------- End of repeating by frame numbers -----------------------------*/
 #ifdef DEBUG
-	printf("encode_picture_unit OUT\n");
+	fprintf(stderr, "encode_picture_unit OUT\n");
 #endif
 
 	return (0);
@@ -891,7 +891,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 	long tm, ret;
 
 #ifdef DEBUG
-	printf("encode_nal_unit\n");
+	fprintf(stderr, "encode_nal_unit\n");
 #endif
 
 	addr_y = (unsigned long *) encoder->CAPTF_ARRY[0].Y_fmemp;
@@ -1127,7 +1127,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 		/* set to output slice header and slice data */
 		encoder->output_type = AVCBE_OUTPUT_SLICE;	/* Header insertion flag */
 		gettimeofday(&tv, &tz);
-		printf("enc_pic0=%ld,", tv.tv_usec);
+		fprintf(stderr, "enc_pic0=%ld,", tv.tv_usec);
 		/*--- The MPEG-4 Encoder Library API (required-8)@encode each screen of display data ---*/
 		return_code =
 		    avcbe_encode_picture(encoder->stream_info, frm,
@@ -1136,18 +1136,18 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 					 &encoder->my_stream_buff_info,
 					 extra_stream_buff);
 		gettimeofday(&tv1, &tz);
-		printf("ret=%ld,enc_pic1=%lu,", return_code, tv1.tv_usec);
+		fprintf(stderr, "ret=%ld,enc_pic1=%lu,", return_code, tv1.tv_usec);
 		tm = (tv1.tv_usec - tv.tv_usec) / 1000;
 		if (tm < 0) {
 			tm = 1000 - (tv.tv_usec - tv1.tv_usec) / 1000;
 		}
 		encode_time += tm;
-		printf("Total encode time = %ld(msec),", encode_time_get());
-		printf("Total sleep  time = %ld(msec)\n",
+		fprintf(stderr, "Total encode time = %ld(msec),", encode_time_get());
+		fprintf(stderr, "Total sleep  time = %ld(msec)\n",
 		       m4iph_sleep_time_get());
 		if (return_code < 0) {	/* error */
 			if (return_code == AVCBE_ENCODE_ERROR) {	/* -1 */
-				printf("%s:", __FUNCTION__);
+				fprintf(stderr, "%s:", __FUNCTION__);
 				DisplayMessage
 				    (" encode_1file_h264:avcbe_encode_picture PARAMETER ERROR! ",
 				     1);

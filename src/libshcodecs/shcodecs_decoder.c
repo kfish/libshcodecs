@@ -191,7 +191,7 @@ shcodecs_decoder_output_partial (SHCodecs_Decoder * decoder)
 	image = &var->image;
 
 #ifdef DEBUG
-	printf ("shcodecs_decoder_output_partial: DecW=%d, list[0]=%d, list[1]=%d\n",
+	fprintf (stderr, "shcodecs_decoder_output_partial: DecW=%d, list[0]=%d, list[1]=%d\n",
 		     image->DecW,
 		     image->ref_pic_list[0],
 		     image->ref_pic_list[1]);
@@ -444,13 +444,13 @@ static int decoder_start(SHCodecs_Decoder * decoder)
 
 		if (decode_frame(decoder) < 0) {
 #ifdef DEBUG
-			printf("decoder_start:: %d frames decoded\n", decoder->si_fnum);
+			fprintf(stderr, "decoder_start:: %d frames decoded\n", decoder->si_fnum);
 #endif
 
 #if 1
                         if (!decoder->needs_finalization) {
 #ifdef DEBUG
-			printf("decoder_start:: need data!\n");
+			fprintf(stderr, "decoder_start:: need data!\n");
 #endif
                                 goto need_data;
                         }
@@ -487,7 +487,7 @@ static int decoder_start(SHCodecs_Decoder * decoder)
 		}
 
 #ifdef DEBUG
-		printf("%16d,dpb_mode=%d\n", decoder->si_fnum++, dpb_mode);
+		fprintf(stderr, "%16d,dpb_mode=%d\n", decoder->si_fnum++, dpb_mode);
 #endif
 	} while (decoded);
 
@@ -509,7 +509,7 @@ static int increment_input (SHCodecs_Decoder * decoder, int len)
 	int count;
 
 #ifdef DEBUG
-	printf("shcodecs_decoder::increment_input IN, rem=%d\n", rem);
+	fprintf(stderr, "shcodecs_decoder::increment_input IN, rem=%d\n", rem);
 #endif
 
 	if ((size_t)current_pos <= decoder->si_isize) {
@@ -547,8 +547,8 @@ static int decode_frame(SHCodecs_Decoder * decoder)
 			long len = decoder->si_ilen;
 
 #ifdef DEBUG
-			printf
-			    ("shcodecs_decoder::decode_frame: H.264 len %d: %02x%02x%02x%02x %02x%02x%02x%02x\n",
+			fprintf
+			    (stderr, "shcodecs_decoder::decode_frame: H.264 len %d: %02x%02x%02x%02x %02x%02x%02x%02x\n",
 			     decoder->si_ilen, input[0], input[1],
 			     input[2], input[3], input[4], input[5],
 			     input[6], input[7]);
@@ -565,8 +565,8 @@ static int decode_frame(SHCodecs_Decoder * decoder)
 #endif
 			ret = avcbd_set_stream_pointer(decoder->si_ctxt, input, len, NULL);
 #ifdef DEBUG
-			printf
-			    ("shcodecs_decoder::decode_frame: H.264 avcbd_set_stream_pointer returned %ld\n",
+			fprintf
+			    (stderr, "shcodecs_decoder::decode_frame: H.264 avcbd_set_stream_pointer returned %ld\n",
 			     ret);
 #endif
 		} else {
@@ -574,7 +574,7 @@ static int decode_frame(SHCodecs_Decoder * decoder)
 			long hosei = 0;
 
 #ifdef DEBUG
-                        printf ("shcodecs_decoder::decode_frame: MPEG4 ptr = input + ipos %d\n", decoder->si_ipos);
+                        fprintf (stderr, "shcodecs_decoder::decode_frame: MPEG4 ptr = input + ipos %d\n", decoder->si_ipos);
 #endif
 
 			ptr = decoder->si_input + decoder->si_ipos;
@@ -585,7 +585,7 @@ static int decode_frame(SHCodecs_Decoder * decoder)
 
 			if (ret < 0) {
 #ifdef DEBUG
-                                printf ("shcodecs_decoder::decode_frame: MPEG4 search_vop_header < 0\n");
+                                fprintf (stderr, "shcodecs_decoder::decode_frame: MPEG4 search_vop_header < 0\n");
 #endif
                                 if (decoder->needs_finalization) {
 				        if (*ptr != 0 || *(ptr + 1) != 0) {
@@ -618,8 +618,8 @@ static int decode_frame(SHCodecs_Decoder * decoder)
 		/* XXX: lock VPU */
 		ret = avcbd_decode_picture(decoder->si_ctxt, decoder->si_ilen * 8);
 #ifdef DEBUG
-		printf
-		    ("shcodecs_decoder::decode_frame: avcbd_decode_picture returned %d\n", ret);
+		fprintf
+		    (stderr, "shcodecs_decoder::decode_frame: avcbd_decode_picture returned %d\n", ret);
 #endif
 		ret = avcbd_get_last_frame_stat(decoder->si_ctxt, &decoder->last_frame_status);
 		counter = 1;
@@ -659,11 +659,11 @@ static int decode_frame(SHCodecs_Decoder * decoder)
 		}
 
 #ifdef DEBUG
-		printf
-		    ("shcodecs_decoder::decode_frame: decoder->last_frame_status.read_slices = %d\n",
+		fprintf
+		    (stderr, "shcodecs_decoder::decode_frame: decoder->last_frame_status.read_slices = %d\n",
 		     decoder->last_frame_status.read_slices);
-		printf
-		    ("shcodecs_decoder::decode_frame: decoder->last_frame_status.last_macroblock_pos = %d (< max_mb %d?)\n",
+		fprintf
+		    (stderr, "shcodecs_decoder::decode_frame: decoder->last_frame_status.last_macroblock_pos = %d (< max_mb %d?)\n",
 		     decoder->last_frame_status.last_macroblock_pos,
 		     max_mb);
 #endif
@@ -719,7 +719,7 @@ static int extract_frame(SHCodecs_Decoder * decoder, long frame_index)
 	int pagesize = getpagesize();
 
 #ifdef DEBUG
-	printf("extract_frame: output frame %d, frame_index=%d\n", frame_cnt++, frame_index);
+	fprintf(stderr, "extract_frame: output frame %d, frame_index=%d\n", frame_cnt++, frame_index);
 #endif
 	ymem = (unsigned long) frame->Y_fmemp;
 	cmem = (unsigned long) frame->C_fmemp;
@@ -738,7 +738,7 @@ static int extract_frame(SHCodecs_Decoder * decoder, long frame_index)
 	        yf = m4iph_map_sdr_mem((void *) page,
 			       luma_size + (luma_size >> 1) + ry + 31);
 	        if (yf == NULL) {
-	        	printf("%s: Aborting since mmap() failed.\n",
+	        	fprintf(stderr, "%s: Aborting since mmap() failed.\n",
 	        	       __FUNCTION__);
 	        	abort();
 	        }
@@ -781,7 +781,7 @@ static int usr_get_input_h264(SHCodecs_Decoder * decoder, void *dst)
          */
         if (!decoder->needs_finalization && len < (decoder->si_max_fx*decoder->si_max_fy/4)) {
 #ifdef DEBUG
-	        printf ("usr_get_input_h264: not enough data, going back for more\n");
+	        fprintf (stderr, "usr_get_input_h264: not enough data, going back for more\n");
 #endif
                 return 0;
         }
@@ -838,7 +838,7 @@ static int usr_get_input_mpeg4(SHCodecs_Decoder * decoder, void *dst)
 
         if (decoder->needs_finalization) {
 #ifdef DEBUG
-                printf ("my usr_get_input_mpeg4: finalizing, returning %ld\n", len);
+                fprintf (stderr, "my usr_get_input_mpeg4: finalizing, returning %ld\n", len);
 #endif
                         return len;
         }
@@ -851,7 +851,7 @@ static int usr_get_input_mpeg4(SHCodecs_Decoder * decoder, void *dst)
          */
         if (len < (decoder->si_max_fx*decoder->si_max_fy/4)) {
 #ifdef DEBUG
-	        printf ("usr_get_input_mpeg4: not enough data, going back for more\n");
+	        fprintf (stderr, "usr_get_input_mpeg4: not enough data, going back for more\n");
 #endif
                 return 0;
         }

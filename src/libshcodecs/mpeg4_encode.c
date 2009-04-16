@@ -226,7 +226,7 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder, long stream_type)
 	}
 
 	if (encoder->other_options_mpeg4.avcbe_quant_type == 1) {	/* add @061121 */
-		printf("avcbe_set_quant_type1()\n");
+		fprintf(stderr, "avcbe_set_quant_type1()\n");
 		return_code =
 		    SetQuantMatrix(encoder->stream_info, QMAT_MPEG_TYPE_ANIME1_INTRA,
 				   QMAT_MPEG_TYPE_ANIME1_NONINTRA);
@@ -278,10 +278,10 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder, long stream_type)
 					       (area_width * area_height));
 			encoder->CAPTF_ARRY[i].Y_fmemp = (unsigned char *) addr_y;
 			encoder->CAPTF_ARRY[i].C_fmemp = (unsigned char *) addr_c;
-			printf("addr_y=%p,addr_c=%p\n", addr_y, addr_c);
+			fprintf(stderr, "addr_y=%p,addr_c=%p\n", addr_y, addr_c);
 		}
 		nldecfmem = encoder->other_options_mpeg4.avcbe_b_vop_num;	/* LDEC_ARRY[2]AB-VOP[JfR[ho 050106 */
-		printf("b_vop_num=%lu\n", nldecfmem);
+		fprintf(stderr, "b_vop_num=%lu\n", nldecfmem);
 //              m4vse_output_local_image_of_b_vop = AVCBE_ON; /* 050302 */
 	}
 #endif				/* USE_BVOP */
@@ -291,7 +291,7 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder, long stream_type)
 	    avcbe_init_memory(encoder->stream_info, nrefframe, nldecfmem, encoder->LDEC_ARRY,
 			      area_width, area_height);
 #ifdef DEBUG
-	printf("avcbe_init_memory=%ld\n", return_code);
+	fprintf(stderr, "avcbe_init_memory=%ld\n", return_code);
 #endif
 
 	if (return_code != 0) {
@@ -329,7 +329,7 @@ clip_image_data_for_H263(SHCodecs_Encoder * encoder,
 
 	width = encoder->width;
 	height = encoder->height;
-	printf("clip_image: width=%ld, height=%ld,addr_y=%p,addr_c=%p\n",
+	fprintf(stderr, "clip_image: width=%ld, height=%ld,addr_y=%p,addr_c=%p\n",
 	       width, height, addr_y, addr_c);
 	addr_y_2 = malloc(width * height);
 	addr_c_2 = malloc(width * height / 2);
@@ -456,7 +456,7 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 					addr_c = addr_c_tbl[index];
 					captfmem.Y_fmemp = (unsigned char *) addr_y;	/* 050210 captfmem add */
 					captfmem.C_fmemp = (unsigned char *) addr_c;	/* 050210 captfmem add */
-					printf("BVOP index=%ld\n", index);
+					fprintf(stderr, "BVOP index=%ld\n", index);
 					break;
 				}
 			}
@@ -484,7 +484,7 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 		if (stream_type != AVCBE_MPEG4) {
 			return_code =
 			    clip_image_data_for_H263(encoder, addr_y, addr_c);
-			printf("H.263...clip_image_sata=%ld\n",
+			fprintf(stderr, "H.263...clip_image_sata=%ld\n",
 			       return_code);
 		}
 		return_code =
@@ -516,8 +516,8 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 		vpu4_clock_off();
 #else
 #ifdef DEBUG
-		printf
-		    ("encode_picture_for_mpeg4: avcbe_encode_picture (%p, %ld, %ld, %ld, {%ld, %p})\n",
+		fprintf
+		    (stderr, "encode_picture_for_mpeg4: avcbe_encode_picture (%p, %ld, %ld, %ld, {%ld, %p})\n",
 		     encoder->stream_info, frm, encoder->set_intra,
 		     encoder->output_type,
 		     my_stream_buff_info.buff_size,
@@ -534,8 +534,8 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 		gettimeofday(&tv1, &tz);
 
 #ifdef DEBUG
-		printf
-		    ("encode_picture_for_mpeg4: avcbe_encode_picture returned %ld\n",
+		fprintf
+		    (stderr, "encode_picture_for_mpeg4: avcbe_encode_picture returned %ld\n",
 		     return_code);
 #endif
 
@@ -547,9 +547,9 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 		}
 		encode_time += tm;
 #ifdef DEBUG
-		printf("Total encode time = %ldmsec(%lumsec),", tm,
+		fprintf(stderr, "Total encode time = %ldmsec(%lumsec),", tm,
 		       encode_time_get());
-		printf("Total sleep  time = %ld(msec)\n",
+		fprintf(stderr, "Total sleep  time = %ld(msec)\n",
 		       m4iph_sleep_time_get());
 #endif
 		vpu4_clock_off();

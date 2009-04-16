@@ -86,9 +86,9 @@ unsigned long avcbe_insert_filler_data_for_cpb_buffer(unsigned long
 /*-------------------------------------------------------------------------*/
 void DisplayMessage(char *message_text, int line_feed_flag)
 {
-	printf("%s", message_text);
+	fprintf(stderr, "%s", message_text);
 	if (line_feed_flag == 1) {
-		printf("\n");
+		fprintf(stderr, "\n");
 	}
 }
 
