@@ -89,13 +89,13 @@ int main(int argc, char *argv[])
 	snprintf(ainfo.input_file_name_buf, 256, "%s/%s",
 		 ainfo.buf_input_yuv_file_with_path,
 		 ainfo.buf_input_yuv_file);
-	printf("Input file: %s\n", ainfo.input_file_name_buf);
+	fprintf(stderr, "Input file: %s\n", ainfo.input_file_name_buf);
 
 	/* Output path */
 	snprintf(ainfo.output_file_name_buf, 256, "%s/%s",
 		 ainfo.buf_output_directry,
 		 ainfo.buf_output_stream_file);
-	printf("Output file: %s\n", ainfo.output_file_name_buf);
+	fprintf(stderr, "Output file: %s\n", ainfo.output_file_name_buf);
 
 	encoder = shcodecs_encoder_init(ainfo.xpic, ainfo.ypic, stream_type);
 
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
 	/* set parameters for use in encoding */
 	return_code = select_inputfile_set_param(encoder, &ainfo);
 	if (return_code == -1) {	/* error */
-		printf ("select_inputfile_set_param ERROR! \n");
+		fprintf (stderr, "select_inputfile_set_param ERROR! \n");
 		return (-3);
 	}
 

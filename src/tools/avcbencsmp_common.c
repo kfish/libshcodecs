@@ -38,7 +38,7 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder,
 	    GetFromCtrlFtoEncParam(encoder, appli_info);
 
 	if (return_code == -1) {
-		printf("Control file not found !\n");
+		fprintf(stderr, "Control file not found !\n");
 		/* コントロールファイルが見つからないなどのエラー */
 		return (-256);
 	}

@@ -2537,7 +2537,7 @@ int GetFromCtrlFtoEncParam(SHCodecs_Encoder * encoder,
 	return_value = GetValueFromCtrlFile(fp_in, "yuv_CbCr_format", &status_flag);	/* 050520 */
 	if (status_flag == 1) {
 #ifdef DEBUG
-		printf("yuv_CbCr_format=%ld\n", return_value);
+		fprintf(stderr, "yuv_CbCr_format=%ld\n", return_value);
 #endif
 		appli_info->yuv_CbCr_format = (char) return_value;
 	}

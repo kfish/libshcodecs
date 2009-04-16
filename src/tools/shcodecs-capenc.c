@@ -100,8 +100,8 @@ int main(int argc, char *argv[])
 		 ainfo.buf_output_directry,
 		 ainfo.buf_output_stream_file);
 
-	printf("Input file: %s\n", ainfo.input_file_name_buf);
-	printf("Output file: %s\n", ainfo.output_file_name_buf);
+	fprintf(stderr, "Input file: %s\n", ainfo.input_file_name_buf);
+	fprintf(stderr, "Output file: %s\n", ainfo.output_file_name_buf);
 
 	ainfo.ceu = sh_ceu_open("/dev/video0", ainfo.xpic, ainfo.ypic);
 
@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
 	/* set parameters for use in encoding */
 	return_code = select_inputfile_set_param(encoder, &ainfo);
 	if (return_code == -1) {	/* error */
-		printf ("select_inputfile_set_param ERROR! \n");
+		fprintf (stderr, "select_inputfile_set_param ERROR! \n");
 		return (-3);
 	}
 

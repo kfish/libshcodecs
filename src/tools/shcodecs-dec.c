@@ -264,7 +264,7 @@ int main(int argc, char **argv)
 	shcodecs_decoder_finalize (decoder);
 
 	frames_decoded = shcodecs_decoder_get_frame_count (decoder);
-	printf ("Total frames decoded: %d\n", frames_decoded);
+	fprintf (stderr, "Total frames decoded: %d\n", frames_decoded);
 
         local_close ();
 
@@ -272,8 +272,8 @@ int main(int argc, char **argv)
 
 	debug_printf("Total sleep  time = %d(msec)\n",(int)m4iph_sleep_time_get());
 
-        printf ("Total bytes consumed: %ld\n", total_input_consumed);
-        printf ("Total bytes output: %ld\n", total_output_bytes);
+        fprintf (stderr, "Total bytes consumed: %ld\n", total_input_consumed);
+        fprintf (stderr, "Total bytes output: %ld\n", total_output_bytes);
 
 	return ret;
 }

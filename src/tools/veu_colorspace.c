@@ -250,7 +250,9 @@ static int sh_veu_probe(int verbose, int force)
 	if (ret < 0)
 		return ret;
 
-	printf("found matching UIO device at %s\n", sh_veu_uio_dev.path);
+#ifdef DEBUG
+	fprintf(stderr, "found matching UIO device at %s\n", sh_veu_uio_dev.path);
+#endif
 
 	ret = setup_uio_map(&sh_veu_uio_dev, 0, &sh_veu_uio_mmio);
 	if (ret < 0)
@@ -547,7 +549,7 @@ sh_veu_rgb565_to_nv12(unsigned char *rgb565_in,
 {
 	unsigned long stride;
 
-	printf("sh_veu_rgb565_to_nv12 IN\n");
+	fprintf(stderr, "sh_veu_rgb565_to_nv12 IN\n");
 
 	stride = (width + 15) & ~15;
 
@@ -581,7 +583,7 @@ sh_veu_rgb565_to_nv12(unsigned char *rgb565_in,
 		if ((ret =
 		     write(sh_veu_uio_dev.fd, &enable,
 			   sizeof(u_long))) != (sizeof(u_long))) {
-			printf("veu csp: write error\n");
+			fprintf(stderr, "veu csp: write error\n");
 		}
 	}
 
@@ -596,7 +598,7 @@ sh_veu_rgb565_to_nv12(unsigned char *rgb565_in,
 
 	write_reg(&sh_veu_uio_mmio, 0x100, VEVTR);	/* ack int, write 0 to bit 0 */
 
-	printf("sh_veu_rgb565_to_nv12 OUT\n");
+	fprintf(stderr, "sh_veu_rgb565_to_nv12 OUT\n");
 
         return 0;
 }
@@ -609,7 +611,7 @@ sh_veu_nv12_to_rgb565(unsigned char *y_in,
 		      unsigned long pitch_in,
 		      unsigned long pitch_out)
 {
-	printf("%s IN\n", __FUNCTION__);
+	fprintf(stderr, "%s IN\n", __FUNCTION__);
 
 	write_reg(&sh_veu_uio_mmio, pitch_in, VESWR);
 	write_reg(&sh_veu_uio_mmio, width | (height << 16), VESSR);
@@ -644,7 +646,7 @@ sh_veu_nv12_to_rgb565(unsigned char *y_in,
 		if ((ret =
 		     write(sh_veu_uio_dev.fd, &enable,
 			   sizeof(u_long))) != (sizeof(u_long))) {
-			printf("veu csp: write error\n");
+			fprintf(stderr, "veu csp: write error\n");
 		}
 	}
 
@@ -659,7 +661,7 @@ sh_veu_nv12_to_rgb565(unsigned char *y_in,
 
 	write_reg(&sh_veu_uio_mmio, 0x100, VEVTR);	/* ack int, write 0 to bit 0 */
 
-	printf("%s OUT\n", __FUNCTION__);
+	fprintf(stderr, "%s OUT\n", __FUNCTION__);
 
         return 0;
 }

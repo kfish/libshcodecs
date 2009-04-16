@@ -46,8 +46,8 @@ int open_input_image_file(APPLI_INFO * appli_info)
 	    fopen(appli_info->input_file_name_buf, "rb");
 
 	if (appli_info->input_yuv_fp == NULL) {
-		printf("ERROR: can't open file %s \n",
-		       appli_info->input_file_name_buf);
+		fprintf(stderr, "ERROR: can't open file %s \n",
+		        appli_info->input_file_name_buf);
 		return (-1);
 	}
 
@@ -108,7 +108,7 @@ capture_image_cb(sh_ceu * ceu, const unsigned char *frame_data, size_t length,
 	/* Input file data to user memory */
 	w_addr_yuv = malloc(hsiz * ysiz * 2);
 	if (w_addr_yuv == NULL) {
-		printf("capture_image_cb: malloc error.\n");
+		fprintf(stderr, "capture_image_cb: malloc error.\n");
 		exit(-1);
 	}
 	memset(w_addr_yuv, 0, hsiz * ysiz);
@@ -339,7 +339,7 @@ int load_1frame_from_image_file(SHCodecs_Encoder * encoder,
 	/* Input file data to user memory */
 	w_addr_yuv = malloc(hsiz * ysiz * 2);
 	if (w_addr_yuv == NULL) {
-		printf("load_1frame_from_image_file: malloc error.\n");
+		fprintf(stderr, "load_1frame_from_image_file: malloc error.\n");
 		exit(-1);
 	}
 	memset(w_addr_yuv, 0, hsiz * ysiz);
@@ -356,7 +356,7 @@ int load_1frame_from_image_file(SHCodecs_Encoder * encoder,
 	Cb_buf_ptr = malloc(hsiz * ysiz / 2);
 	Cr_buf_ptr = malloc(hsiz * ysiz / 2);
 	if (Cb_buf_ptr == NULL || Cr_buf_ptr == NULL) {
-		printf("malloc error \n");
+		fprintf(stderr, "malloc error \n");
 		exit(-1);
 	}
 	if (appli_info->yuv_CbCr_format == 1) {	/* 1:CbSCrS */
