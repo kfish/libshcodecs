@@ -92,9 +92,13 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "Input file: %s\n", ainfo.input_file_name_buf);
 
 	/* Output path */
-	snprintf(ainfo.output_file_name_buf, 256, "%s/%s",
-		 ainfo.buf_output_directry,
-		 ainfo.buf_output_stream_file);
+        if (!strcmp (ainfo.buf_output_stream_file, "-")) {
+                snprintf (ainfo.output_file_name_buf, 256, "-");
+        } else {
+	        snprintf(ainfo.output_file_name_buf, 256, "%s/%s",
+	        	 ainfo.buf_output_directry,
+	        	 ainfo.buf_output_stream_file);
+        }
 	fprintf(stderr, "Output file: %s\n", ainfo.output_file_name_buf);
 
 	encoder = shcodecs_encoder_init(ainfo.xpic, ainfo.ypic, stream_type);

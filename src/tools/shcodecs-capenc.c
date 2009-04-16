@@ -96,9 +96,13 @@ int main(int argc, char *argv[])
 		 ainfo.buf_input_yuv_file);
 
 	/* 出力ディレクトリ */
-	snprintf(ainfo.output_file_name_buf, 256, "%s/%s",
-		 ainfo.buf_output_directry,
-		 ainfo.buf_output_stream_file);
+        if (!strcmp (ainfo.buf_output_stream_file, "-")) {
+                snprintf (ainfo.output_file_name_buf, 256, "-");
+        } else {
+	        snprintf(ainfo.output_file_name_buf, 256, "%s/%s",
+	        	 ainfo.buf_output_directry,
+	        	 ainfo.buf_output_stream_file);
+        }
 
 	fprintf(stderr, "Input file: %s\n", ainfo.input_file_name_buf);
 	fprintf(stderr, "Output file: %s\n", ainfo.output_file_name_buf);
