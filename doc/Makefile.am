@@ -1,6 +1,6 @@
 docdir=$(prefix)/share/doc/@PACKAGE@
 
-man_MANS =
+man_MANS = shcodecs-dec.1 shcodecs-enc.1 shcodecs-capenc.1
 
 EXTRA_DIST = $(man_MANS) Doxyfile.in
 

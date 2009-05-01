@@ -52,7 +52,7 @@ static void
 usage (const char * progname)
 {
   printf ("Usage: %s <control file>\n", progname);
-  printf ("Decode a video file using the SH-Mobile VPU\n");
+  printf ("Encode V4L2 video input using the SH-Mobile VPU\n");
 }
 
 /* SHCodecs_Encoder_Input callback for acquiring an image from the CEU */

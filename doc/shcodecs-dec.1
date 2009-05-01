@@ -1,0 +1,44 @@
+.TH "shcodecs-dec" 1 "May 2009" "SH Codecs" "Linux-SH Multimedia"
+
+.SH NAME
+shcodecs-dec \- Decode a video file using the SH-Mobile VPU
+
+.SH SYNOPSIS
+
+.B \fBshcodecs-dec\fR [\-w \fBwidth\fR | \-\-width \fBwidth\fR ] [\-h \fBheight\fR | \-\-height \fBheight\fR ] [\-s \fBsize\fR | \-\-size
+\fBsize\fR } [\-f \fBformat\fR | \-\-format \fBformat\fR ] [\-i \fBfilename\fR | \-\-input \fBfilename\fR ] [\-o \fBfilename\fR | \-\-output \fBfilename\fR ]
+
+.SH OPTIONS
+.PP
+\fBshcodecs-dec\fR accepts the following options:
+
+.SS "File options"
+.IP "\-i \fBfilename\fR, \-\-input \fBfilename\fR" 10
+Set the input filename.
+
+.IP "\-o \fBfilename\fR, \-\-output \fBfilename\fR" 10
+Set the output filename.
+
+.SS "Encoding format"
+.IP "\-f \fBformat\fR, \-\-format \fBformat\fR" 10
+Set the encoding format [h264, mpeg4].
+
+.SS "Dimensions"
+.IP "\-w \fBwidth\fR, \-\-width \fBwidth\fR" 10
+Set the input image width in pixels.
+
+.IP "\-h \fBheight\fR, \-\-height \fBheight\fR" 10
+Set the input image height in pixels.
+
+.IP "\-s \fBsize\fR, \-\-size \fBsize\fR" 10
+Set the input image size [qcif, cif, qvga, vga].
+
+.SH DESCRIPTION
+.B shcodecs-dec
+Decode an input file using the SH-Mobile VPU
+
+.SH AUTHORS
+
+shcodecs-dec was written by Conrad Parker
+
+Please report bugs to <conrad@metadecks.org>
