@@ -5,4 +5,5 @@ pkgdata_DATA = \
 	k264-v4l2.ctl \
 	k264-v4l2-stream.ctl \
 	KMp4_000.ctl \
-	KMp4-v4l2.ctl
+	KMp4-v4l2.ctl \
+	KMp4-v4l2-stream.ctl
