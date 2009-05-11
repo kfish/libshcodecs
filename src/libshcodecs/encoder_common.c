@@ -82,17 +82,6 @@ unsigned long avcbe_insert_filler_data_for_cpb_buffer(unsigned long
 }
 
 /*-------------------------------------------------------------------------*/
-/*      display characters on terminal                                     */
-/*-------------------------------------------------------------------------*/
-void DisplayMessage(char *message_text, int line_feed_flag)
-{
-	fprintf(stderr, "%s", message_text);
-	if (line_feed_flag == 1) {
-		fprintf(stderr, "\n");
-	}
-}
-
-/*-------------------------------------------------------------------------*/
 /*      dummy function			                                           */
 /*-------------------------------------------------------------------------*/
 long m4iph_dec_continue()

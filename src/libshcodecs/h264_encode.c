@@ -30,6 +30,8 @@
 
 #include "encoder_private.h"
 
+/* #define DEBUG */
+
 extern long encode_time;
 
 /*----------------------------------------------------------*/
@@ -59,9 +61,7 @@ int h264_encode_init (SHCodecs_Encoder * encoder, long stream_type)
 				    &(encoder->encoding_property), (void *)
 				    &(encoder->other_options_h264));
 	if (return_code != 0) {	/* error */
-		DisplayMessage
-		    (" encode_1file_h264:avcbe_set_default_param ERROR! ",
-		     1);
+		fprintf (stderr, " %s: avcbe_set_default_param ERROR!\n", __func__);
 		encoder->error_return_function = -102;
 		encoder->error_return_code = return_code;
 		return (-102);
@@ -113,21 +113,13 @@ h264_encode_deferred_init(SHCodecs_Encoder * encoder, long stream_type)
 			      &WORK_ARRY[0], &WORK_ARRY[1], &encoder->stream_info);
 	if (return_code < 0) {	/* error */
 		if (return_code == -1) {
-			DisplayMessage
-			    (" encode_1file_h264:avcbe_init_encode PARAMETER ERROR! ",
-			     1);
+			fprintf (stderr, " %s: avcbe_init_encode PARAMETER ERROR!\n", __func__);
 		} else if (return_code == -2) {
-			DisplayMessage
-			    (" encode_1file_h264:avcbe_init_encode PARAMETER CHANGED! (Maybe Error) ",
-			     1);
+			fprintf (stderr, " %s: avcbe_init_encode PARAMETER CHANGED! (Maybe Error)\n", __func__);
 		} else if (return_code == -3) {
-			DisplayMessage
-			    (" encode_1file_h264:avcbe_init_encode SEQUENCE ERROR! ",
-			     1);
+			fprintf (stderr, " %s: avcbe_init_encode SEQUENCE ERROR!\n", __func__);
 		} else if (return_code == -4) {
-			DisplayMessage
-			    (" encode_1file_h264:avcbe_init_encode WORK-AREA SIZE SHORT ERROR! ",
-			     1);
+			fprintf (stderr, " %s: avcbe_init_encode WORK-AREA SIZE SHORT ERROR!\n", __func__);
 		}
 		encoder->error_return_function = -106;
 		encoder->error_return_code = return_code;
@@ -170,17 +162,11 @@ h264_encode_deferred_init(SHCodecs_Encoder * encoder, long stream_type)
 			      area_width, area_height);
 	if (return_code != 0) {
 		if (return_code == -1) {
-			DisplayMessage
-			    (" encode_1file_h264:avcbe_init_memory PARAMETER ERROR! ",
-			     1);
+			fprintf (stderr, " %s: avcbe_init_memory PARAMETER ERROR!\n", __func__);
 		} else if (return_code == -3) {
-			DisplayMessage
-			    (" encode_1file_h264:avcbe_init_memory SEQUENCE ERROR! ",
-			     1);
+			fprintf (stderr, " %s: avcbe_init_memory SEQUENCE ERROR!\n", __func__);
 		} else if (return_code == -4) {
-			DisplayMessage
-			    (" encode_1file_h264:avcbe_init_encode WORK-AREA SIZE SHORT ERROR! ",
-			     1);
+			fprintf (stderr, " %s: avcbe_init_encode WORK-AREA SIZE SHORT ERROR!\n", __func__);
 		}
 		encoder->error_return_function = -107;
 		encoder->error_return_code = return_code;
@@ -343,7 +329,6 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 	long streamsize_total, streamsize_per_frame;
 	long return_code;
 	long frm;
-	char messeage_buf[256];
 	unsigned char *ptr;
 	unsigned long *addr_y, *addr_c;
 	long area_width, area_height, i;
@@ -355,7 +340,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 	long tm, ret;
 
 #ifdef DEBUG
-	fprintf(stderr, "encode_picture_unit IN\n");
+	fprintf(stderr, "%s: IN\n", __func__);
 #endif
 
 	addr_y = (unsigned long *) encoder->CAPTF_ARRY[0].Y_fmemp;
@@ -456,11 +441,10 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 						 NULL);
 			if (return_code == AVCBE_SPS_OUTPUTTED) {	/* 6 */
 #if 0
-				sprintf(messeage_buf,
-					" encode_1file_h264:avcbe_encode_picture OUTPUT SEQUENCE PARAMETER SET frm=%d,seq_no=%d ",
+				fprintf (stderr,
+					" %s: avcbe_encode_picture OUTPUT SEQUENCE PARAMETER SET frm=%d,seq_no=%d\n",, __func__,
 					(int) frm,
 					(int) encoder->frame_counter);
-				DisplayMessage(messeage_buf, 1);
 #endif
 				/* get the size of SPS data in byte unit */
 				avcbe_get_last_slice_stat(encoder->stream_info,
@@ -468,11 +452,10 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 				encoder->SPS_PPS_header_bytes =
 				    slice_stat.avcbe_SPS_unit_bytes;
 			} else {
-				sprintf(messeage_buf,
-					"%s:%d: ERROR OUTPUT SEQUENCE PARAMETER SET return_code=%d ",
+				fprintf (stderr,
+					"%s:%d: ERROR OUTPUT SEQUENCE PARAMETER SET return_code=%d\n",
 					__FUNCTION__, __LINE__,
 					(int) return_code);
-				DisplayMessage(messeage_buf, 1);
 				encoder->error_return_function = -111;
 				encoder->error_return_code =
 				    return_code;
@@ -488,13 +471,12 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 						 &encoder->my_pps_stream_buff_info,
 						 NULL);
 			if (return_code == AVCBE_PPS_OUTPUTTED) {	/* 7 */
-				//sprintf(messeage_buf, " encode_1file:avcbe_encode_picture OUTPUT PICTURE PARAMETER SET frm=%d,seq_no=%d ",
+				//fprintf (stderr, " %s: avcbe_encode_picture OUTPUT PICTURE PARAMETER SET frm=%d,seq_no=%d\n", __func__,
 				//                       (int)frm, (int)encoder->frame_counter);
-				sprintf(messeage_buf,
-					"Encoded frame %5d, sequence no %5d",
+				fprintf (stderr,
+					"Encoded frame %5d, sequence no %5d\n",
 					(int) frm,
 					(int) encoder->frame_counter);
-				DisplayMessage(messeage_buf, 1);
 
 				/* get the size of PPS data in byte unit */
 				avcbe_get_last_slice_stat(encoder->stream_info,
@@ -502,10 +484,9 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 				encoder->SPS_PPS_header_bytes +=
 				    slice_stat.avcbe_PPS_unit_bytes;
 			} else {
-				sprintf(messeage_buf,
-					" ERROR OUTPUT PICTURE PARAMETER SET return_code=%d ",
+				fprintf (stderr,
+					" ERROR OUTPUT PICTURE PARAMETER SET return_code=%d\n",
 					(int) return_code);
-				DisplayMessage(messeage_buf, 1);
 				encoder->error_return_function = -111;
 				encoder->error_return_code =
 				    return_code;
@@ -518,17 +499,15 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 			return_code =
 			    h264_output_SEI_parameters(encoder);
 			if (return_code != 0) {
-				sprintf(messeage_buf,
+				fprintf (stderr,
 					" Not put SEI parameter : return_code = %06x\n",
 					(int) return_code);
-				DisplayMessage(messeage_buf, 1);
 			} else {
 #if 0
-				sprintf(messeage_buf,
+				fprintf (stderr,
 					"%s:%d: Put SEI parameter : return_code = %d\n",
 					__FUNCTION__, __LINE__,
 					(int) return_code);
-				DisplayMessage(messeage_buf, 1);
 #endif
 			}
 		}
@@ -540,9 +519,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 			return_code =
 			    encoder->input(encoder, encoder->input_user_data);
 			if (return_code < 0) {	/* error */
-				DisplayMessage
-				    (" encode_1file_h264: ERROR acquiring input image! ",
-				     1);
+				fprintf (stderr, " %s: ERROR acquiring input image!\n", __func__);
 				encoder->error_return_function = -108;
 				encoder->error_return_code =
 				    return_code;
@@ -556,9 +533,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 					    ref1, ref2);
 		if (return_code != 0) {
 			if (return_code == -1) {
-				DisplayMessage
-				    (" encode_1file_h264:avcbe_set_image_pointer PARAMETER ERROR! ",
-				     1);
+				fprintf (stderr, " %s: avcbe_set_image_pointer PARAMETER ERROR!\n", __func__);
 			}
 			encoder->error_return_function = -109;
 			encoder->error_return_code = return_code;
@@ -584,8 +559,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 		encode_time += tm;
 
 #ifdef DEBUG
-		fprintf
-		    (stderr, "encode_picture_unit: avcbe_encode_picture() returned %d\n",
+		fprintf (stderr, "encode_picture_unit: avcbe_encode_picture() returned %d\n",
 		     return_code);
 #endif
 
@@ -593,40 +567,25 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 //              fprintf(stderr, "Total sleep  time = %d(msec)\n",m4iph_sleep_time_get());
 		if (return_code < 0) {	/* error */
 			if (return_code == AVCBE_ENCODE_ERROR) {	/* -1 */
-				fprintf(stderr, "%s:%d:", __FUNCTION__, __LINE__);
-				DisplayMessage
-				    (" encode_1file_h264:avcbe_encode_picture PARAMETER ERROR! ",
-				     1);
+				fprintf (stderr, " %s: avcbe_encode_picture PARAMETER ERROR!\n", __func__);
 
 			} else if (return_code == AVCBE_NOT_IN_ORDER_ERROR) {	/* -3 */
-				DisplayMessage
-				    (" encode_1file_h264:avcbe_encode_picture SEQUENCE ERROR! ",
-				     1);
+				fprintf (stderr, " %s: avcbe_encode_picture SEQUENCE ERROR!\n", __func__);
 
 			} else if (return_code == AVCBE_OUTPUT_BUFFER_SHORT_ERROR) {	/* -4 */
-				DisplayMessage
-				    (" encode_1file_h264:avcbe_encode_picture OUTPUT BUFFER SIZE SHORT ERROR! ",
-				     1);
+				fprintf (stderr, " %s: avcbe_encode_picture OUTPUT BUFFER SIZE SHORT ERROR!\n", __func__);
 
 			} else if (return_code == AVCBE_VPU_ERROR_AFTER_ENCODING) {	/* -6 */
-				DisplayMessage
-				    (" encode_1file_h264:avcbe_encode_picture VPU4 ERROR! ",
-				     1);
+				fprintf (stderr, " %s: avcbe_encode_picture VPU4 ERROR!\n", __func__);
 
 			} else if (return_code == AVCBE_TEMPORARY_BUFFER_SHORT_ERROR) {	/* -8 */
-				DisplayMessage
-				    (" encode_1file_h264:avcbe_encode_picture TEMPORARY_BUFFER SIZE SHORT ERROR! ",
-				     1);
+				fprintf (stderr, " %s: avcbe_encode_picture TEMPORARY_BUFFER SIZE SHORT ERROR!\n", __func__);
 
 			} else if (return_code == AVCBE_VUI_PARAMETERS_NOT_SPECIFIED_ERROR) {	/* -9 */
-				DisplayMessage
-				    (" encode_1file_h264:avcbe_encode_picture VUI_PARAMETERS NOT SPECIFIED ERROR! ",
-				     1);
+				fprintf (stderr, " %s: avcbe_encode_picture VUI_PARAMETERS NOT SPECIFIED ERROR!\n", __func__);
 
 			} else if (return_code == AVCBE_WORK_AREA_SHORT_ERROR) {	/* -99 */
-				DisplayMessage
-				    (" encode_1file_h264:avcbe_encode_picture OTHER WORK SIZE SHORT ERROR! ",
-				     1);
+				fprintf (stderr, " %s: avcbe_encode_picture OTHER WORK SIZE SHORT ERROR!\n", __func__);
 
 			}
 			encoder->error_return_function = -111;
@@ -634,30 +593,30 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 			return (-111);
 
 		} else if (return_code == AVCBE_ENCODE_SUCCESS) {	/* 0 */
-//                      sprintf(messeage_buf, " encode_1file_h264:avcbe_encode_picture SUCCESS  frm=%d,seq_no=%d ", (int)frm, (int)encoder->frame_counter);
-//                      DisplayMessage(messeage_buf, 1);
+//                      fprintf (stderr, " %s: avcbe_encode_picture SUCCESS  frm=%d,seq_no=%d\n", __func__,
+//                      (int)frm, (int)encoder->frame_counter);
 		} else if (return_code == AVCBE_FRAME_SKIPPED) {	/* 1 */
-			sprintf(messeage_buf,
-				" encode_1file_h264:avcbe_encode_picture THIS FRAME SKIPPED(Not Encoded)  frm=%d,seq_no=%d ",
+			fprintf (stderr,
+				" %s: avcbe_encode_picture THIS FRAME SKIPPED(Not Encoded)  frm=%d,seq_no=%d\n",
+                                __func__,
 				(int) frm,
 				(int) encoder->frame_counter);
-			DisplayMessage(messeage_buf, 1);
 
 			/* the second parameter 'ldec' value must NOT be changed when the avcbe_set_image_pointer function is called on next time. */
 			encoder->frame_skip_num++;
 
 		} else if (return_code == AVCBE_SLICE_REMAIN) {	/* 5 */
-			sprintf(messeage_buf,
-				" encode_1file_h264:avcbe_encode_picture YET 1 PICTURE NOT FINISHED frm=%d,seq_no=%d ",
+			fprintf (stderr,
+				" %s: avcbe_encode_picture YET 1 PICTURE NOT FINISHED frm=%d,seq_no=%d\n",
+                                __func__,
 				(int) frm,
 				(int) encoder->frame_counter);
-			DisplayMessage(messeage_buf, 1);
 		} else {
-			sprintf(messeage_buf,
-				" encode_1file_h264:avcbe_encode_picture UNKNOWN RETURN CODE=%d  frm=%d,seq_no=%d ",
+			fprintf (stderr,
+				" %s: avcbe_encode_picture UNKNOWN RETURN CODE=%d  frm=%d,seq_no=%d\n",
+                                __func__,
 				(int) return_code, (int) frm,
 				(int) encoder->frame_counter);
-			DisplayMessage(messeage_buf, 1);
 		}
 		/* get the information about the just encoded frame (slice) */
 		avcbe_get_last_slice_stat(encoder->stream_info, &slice_stat);
@@ -702,11 +661,11 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 							 NULL);
 				if (return_code == AVCBE_SPS_OUTPUTTED) {	/* 6 */
 #if 0
-					sprintf(messeage_buf,
-						" encode_1file_h264:avcbe_encode_picture OUTPUT SEQUENCE PARAMETER SET frm=%d,seq_no=%d ",
+					fprintf (stderr,
+						" %s: avcbe_encode_picture OUTPUT SEQUENCE PARAMETER SET frm=%d,seq_no=%d\n",
+                                                __func__,
 						(int) frm, (int)
 						encoder->frame_counter);
-					DisplayMessage(messeage_buf, 1);
 #endif
 
 					/* get the size of SPS data in byte unit */
@@ -725,10 +684,9 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 								encoder->output_user_data);
 					}
 				} else {
-					sprintf(messeage_buf,
-						" ERROR OUTPUT SEQUENCE PARAMETER SET return_code=%d ",
+					fprintf (stderr,
+						" ERROR OUTPUT SEQUENCE PARAMETER SET return_code=%d\n",
 						(int) return_code);
-					DisplayMessage(messeage_buf, 1);
 					encoder->error_return_function =
 					    -111;
 					encoder->error_return_code =
@@ -747,13 +705,13 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 							 &encoder->my_pps_stream_buff_info,
 							 NULL);
 				if (return_code == AVCBE_PPS_OUTPUTTED) {	/* 7 */
-					//sprintf(messeage_buf, " encode_1file_h264:avcbe_encode_picture OUTPUT PICTURE PARAMETER SET frm=%d,seq_no=%d ",
+					//fprintf (stderr, " %s: avcbe_encode_picture OUTPUT PICTURE PARAMETER SET frm=%d,seq_no=%d\n",
+					//                       __func__,
 					//                       (int)frm, (int)encoder->frame_counter);
-					sprintf(messeage_buf,
-						"Encoded frame %5d, sequence no %5d",
+					fprintf (stderr,
+						"Encoded frame %5d, sequence no %5d\n",
 						(int) frm, (int)
 						encoder->frame_counter);
-					DisplayMessage(messeage_buf, 1);
 
 					/* get the size of PPS data in byte unit */
 					avcbe_get_last_slice_stat(encoder->stream_info,
@@ -771,10 +729,9 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 								encoder->output_user_data);
 					}
 				} else {
-					sprintf(messeage_buf,
-						" ERROR OUTPUT PICTURE PARAMETER SET return_code=%d ",
+					fprintf (stderr,
+						" ERROR OUTPUT PICTURE PARAMETER SET return_code=%d\n",
 						(int) return_code);
-					DisplayMessage(messeage_buf, 1);
 					encoder->error_return_function =
 					    -111;
 					encoder->error_return_code =
@@ -808,17 +765,15 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 			return_code =
 			    h264_output_SEI_parameters(encoder);
 			if (return_code != 0) {
-				sprintf(messeage_buf,
+				fprintf (stderr,
 					" Not put SEI parameter : return_code = %06x\n",
 					(int) return_code);
-				DisplayMessage(messeage_buf, 1);
 			} else {
 #if 0
-				sprintf(messeage_buf,
+				fprintf (stderr,
 					"%s:%d Put SEI parameter : return_code = %d\n",
 					__FUNCTION__, __LINE__,
 					(int) return_code);
-				DisplayMessage(messeage_buf, 1);
 #endif
 			}
 
@@ -845,11 +800,10 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 						encoder->output_user_data);
 			}
 #if 0
-			sprintf(messeage_buf,
-				" encode_1file_h264:avcbe_encode_picture SUCCESS  frm=%d,seq_no=%d,size=%d ",
+			fprintf (stderr,
+				" %s: avcbe_encode_picture SUCCESS  frm=%d,seq_no=%d,size=%d\n", __func__,
 				(int) frm, (int) encoder->frame_counter,
 				streamsize_per_frame);
-			DisplayMessage(messeage_buf, 1);
 #endif
 		}		/* the end of 'if (return_code == AVCBE_ENCODE_SUCCESS)' */
 		if (return_code == AVCBE_ENCODE_SUCCESS) {
@@ -861,7 +815,7 @@ h264_encode_picture_unit(SHCodecs_Encoder * encoder, long stream_type)
 	}			/* while */
 	/*---------------------- End of repeating by frame numbers -----------------------------*/
 #ifdef DEBUG
-	fprintf(stderr, "encode_picture_unit OUT\n");
+	fprintf(stderr, "%s: OUT\n", __func__);
 #endif
 
 	return (0);
@@ -877,7 +831,6 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 	long streamsize_total;
 	long return_code;
 	long frm;
-	char messeage_buf[256];
 	unsigned long *addr_y, *addr_c;
 	long area_width, area_height;
 
@@ -891,7 +844,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 	long tm, ret;
 
 #ifdef DEBUG
-	fprintf(stderr, "encode_nal_unit\n");
+	fprintf(stderr, "%s: IN\n", __func__);
 #endif
 
 	addr_y = (unsigned long *) encoder->CAPTF_ARRY[0].Y_fmemp;
@@ -1011,11 +964,11 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 
 			if (return_code == AVCBE_SPS_OUTPUTTED) {	/* 6 */
 #if 0
-				sprintf(messeage_buf,
-					" encode_1file:avcbe_encode_picture OUTPUT SEQUENCE PARAMETER SET frm=%d,seq_no=%d ",
+				fprintf (stderr,
+					" %s: avcbe_encode_picture OUTPUT SEQUENCE PARAMETER SET frm=%d,seq_no=%d\n",
+                                        __func__,
 					(int) frm,
 					(int) encoder->frame_counter);
-				DisplayMessage(messeage_buf, 1);
 #endif
 
 				/* get the size of SPS data in byte unit */
@@ -1024,10 +977,9 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 				encoder->SPS_PPS_header_bytes =
 				    slice_stat.avcbe_SPS_unit_bytes;
 			} else {
-				sprintf(messeage_buf,
-					" ERROR OUTPUT SEQUENCE PARAMETER SET return_code=%d ",
+				fprintf (stderr,
+					" ERROR OUTPUT SEQUENCE PARAMETER SET return_code=%d\n",
 					(int) return_code);
-				DisplayMessage(messeage_buf, 1);
 				encoder->error_return_function = -111;
 				encoder->error_return_code =
 				    return_code;
@@ -1042,13 +994,13 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 						 &encoder->my_pps_stream_buff_info,
 						 NULL);
 			if (return_code == AVCBE_PPS_OUTPUTTED) {	/* 7 */
-				//sprintf(messeage_buf, " encode_1file:avcbe_encode_picture OUTPUT PICTURE PARAMETER SET frm=%d,seq_no=%d ",
+				//fprintf (stderr, " %s: avcbe_encode_picture OUTPUT PICTURE PARAMETER SET frm=%d,seq_no=%d\n",
+				//                       __func__,
 				//                       (int)frm, (int)encoder->frame_counter);
-				sprintf(messeage_buf,
-					"Encoded frame %5d, sequence no %5d",
+				fprintf (stderr,
+					"Encoded frame %5d, sequence no %5d\n",
 					(int) frm,
 					(int) encoder->frame_counter);
-				DisplayMessage(messeage_buf, 1);
 
 				/* get the size of PPS data in byte unit */
 				avcbe_get_last_slice_stat(encoder->stream_info,
@@ -1056,10 +1008,9 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 				encoder->SPS_PPS_header_bytes +=
 				    slice_stat.avcbe_PPS_unit_bytes;
 			} else {
-				sprintf(messeage_buf,
-					" ERROR OUTPUT PICTURE PARAMETER SET return_code=%d ",
+				fprintf (stderr,
+					" ERROR OUTPUT PICTURE PARAMETER SET return_code=%d\n",
 					(int) return_code);
-				DisplayMessage(messeage_buf, 1);
 				encoder->error_return_function = -111;
 				encoder->error_return_code =
 				    return_code;
@@ -1071,16 +1022,14 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 			return_code =
 			    h264_output_SEI_parameters(encoder);
 			if (return_code != 0) {
-				sprintf(messeage_buf,
+				fprintf (stderr,
 					" Not put SEI parameter : return_code = %06x\n",
 					(int) return_code);
-				DisplayMessage(messeage_buf, 1);
 			} else {
-				sprintf(messeage_buf,
+				fprintf (stderr,
 					"%s:%d Put SEI parameter : return_code = %d\n",
 					__FUNCTION__, __LINE__,
 					(int) return_code);
-				DisplayMessage(messeage_buf, 1);
 			}
 		}
 
@@ -1092,9 +1041,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 				return_code =
 				    encoder->input(encoder, encoder->input_user_data);
 				if (return_code < 0) {	/* error */
-					DisplayMessage
-					    (" encode_1file_h264: ERROR acquiring input image! ",
-					     1);
+					fprintf (stderr, " %s: ERROR acquiring input image!\n", __func__);
 					encoder->error_return_function =
 					    -108;
 					encoder->error_return_code =
@@ -1113,9 +1060,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 
 			if (return_code != 0) {
 				if (return_code == -1) {
-					DisplayMessage
-					    (" encode_1file_h264:avcbe_set_image_pointer PARAMETER ERROR! ",
-					     1);
+					fprintf (stderr, " %s: avcbe_set_image_pointer PARAMETER ERROR!\n", __func__);
 				}
 				encoder->error_return_function = -109;
 				encoder->error_return_code =
@@ -1147,41 +1092,19 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 		       m4iph_sleep_time_get());
 		if (return_code < 0) {	/* error */
 			if (return_code == AVCBE_ENCODE_ERROR) {	/* -1 */
-				fprintf(stderr, "%s:", __FUNCTION__);
-				DisplayMessage
-				    (" encode_1file_h264:avcbe_encode_picture PARAMETER ERROR! ",
-				     1);
-
+				fprintf (stderr, " %s: avcbe_encode_picture PARAMETER ERROR!\n", __func__);
 			} else if (return_code == AVCBE_NOT_IN_ORDER_ERROR) {	/* -3 */
-				DisplayMessage
-				    (" encode_1file_h264:avcbe_encode_picture SEQUENCE ERROR! ",
-				     1);
-
+				fprintf (stderr, " %s: avcbe_encode_picture SEQUENCE ERROR!\n", __func__);
 			} else if (return_code == AVCBE_OUTPUT_BUFFER_SHORT_ERROR) {	/* -4 */
-				DisplayMessage
-				    (" encode_1file_h264:avcbe_encode_picture OUTPUT BUFFER SIZE SHORT ERROR! ",
-				     1);
-
+				fprintf (stderr, " %s: avcbe_encode_picture OUTPUT BUFFER SIZE SHORT ERROR!\n", __func__);
 			} else if (return_code == AVCBE_VPU_ERROR_AFTER_ENCODING) {	/* -6 */
-				DisplayMessage
-				    (" encode_1file_h264:avcbe_encode_picture VPU4 ERROR! ",
-				     1);
-
+				fprintf (stderr, " %s: avcbe_encode_picture VPU4 ERROR!\n", __func__);
 			} else if (return_code == AVCBE_TEMPORARY_BUFFER_SHORT_ERROR) {	/* -8 */
-				DisplayMessage
-				    (" encode_1file_h264:avcbe_encode_picture TEMPORARY_BUFFER SIZE SHORT ERROR! ",
-				     1);
-
+				fprintf (stderr, " %s: avcbe_encode_picture TEMPORARY_BUFFER SIZE SHORT ERROR!\n", __func__);
 			} else if (return_code == AVCBE_VUI_PARAMETERS_NOT_SPECIFIED_ERROR) {	/* -9 */
-				DisplayMessage
-				    (" encode_1file_h264:avcbe_encode_picture VUI_PARAMETERS NOT SPECIFIED ERROR! ",
-				     1);
-
+				fprintf (stderr, " %s: avcbe_encode_picture VUI_PARAMETERS NOT SPECIFIED ERROR!\n", __func__);
 			} else if (return_code == AVCBE_WORK_AREA_SHORT_ERROR) {	/* -99 */
-				DisplayMessage
-				    (" encode_1file_h264:avcbe_encode_picture OTHER WORK SIZE SHORT ERROR! ",
-				     1);
-
+				fprintf (stderr, " %s: avcbe_encode_picture OTHER WORK SIZE SHORT ERROR!\n", __func__);
 			}
 
 			encoder->error_return_function = -111;
@@ -1189,34 +1112,33 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 			return (-111);
 
 		} else if (return_code == AVCBE_ENCODE_SUCCESS) {	/* 0 */
-			sprintf(messeage_buf,
-				" encode_1file_h264:avcbe_encode_picture SUCCESS  frm=%d,seq_no=%d ",
+			fprintf (stderr,
+				" %s: avcbe_encode_picture SUCCESS  frm=%d,seq_no=%d\n", __func__,
 				(int) frm,
 				(int) encoder->frame_counter);
-			DisplayMessage(messeage_buf, 1);
 
 		} else if (return_code == AVCBE_FRAME_SKIPPED) {	/* 1 */
-			sprintf(messeage_buf,
-				" encode_1file_h264:avcbe_encode_picture THIS FRAME SKIPPED(Not Encoded)  frm=%d,seq_no=%d ",
+			fprintf (stderr,
+				" %s: avcbe_encode_picture THIS FRAME SKIPPED(Not Encoded)  frm=%d,seq_no=%d\n",
+                                __func__,
 				(int) frm,
 				(int) encoder->frame_counter);
-			DisplayMessage(messeage_buf, 1);
 			/* the second parameter 'ldec' value must NOT be changed when the avcbe_set_image_pointer function is called on next time. */
 			encoder->frame_skip_num++;
 
 		} else if (return_code == AVCBE_SLICE_REMAIN) {	/* 5 */
-			sprintf(messeage_buf,
-				" encode_1file_h264:avcbe_encode_picture YET 1 PICTURE NOT FINISHED frm=%d,seq_no=%d ",
+			fprintf (stderr,
+				" %s: avcbe_encode_picture YET 1 PICTURE NOT FINISHED frm=%d,seq_no=%d\n",
+                                __func__,
 				(int) frm,
 				(int) encoder->frame_counter);
-			DisplayMessage(messeage_buf, 1);
 
 		} else {
-			sprintf(messeage_buf,
-				" encode_1file_h264:avcbe_encode_picture UNKNOWN RETURN CODE=%d  frm=%d,seq_no=%d ",
+			fprintf (stderr,
+				" %s: avcbe_encode_picture UNKNOWN RETURN CODE=%d  frm=%d,seq_no=%d\n",
+                                __func__,
 				(int) return_code, (int) frm,
 				(int) encoder->frame_counter);
-			DisplayMessage(messeage_buf, 1);
 		}
 
 		/* get the information about the just encoded slice */
@@ -1279,8 +1201,7 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 							slice_stat.avcbe_AU_unit_bytes,
 							encoder->output_user_data);
 				}
-				DisplayMessage("Put Access Unit Delimiter",
-					       1);
+				fprintf (stderr, "Put Access Unit Delimiter\n");
 			}
 
 			/* If the type is IDR-picture, output SPS and PPS data (for 2nd frame and later) */
@@ -1301,11 +1222,11 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 
 				if (return_code == AVCBE_SPS_OUTPUTTED) {	/* 6 */
 #if 0
-					sprintf(messeage_buf,
-						" encode_1file:avcbe_encode_picture OUTPUT SEQUENCE PARAMETER SET frm=%d,seq_no=%d ",
+					fprintf (stderr,
+						" %s: avcbe_encode_picture OUTPUT SEQUENCE PARAMETER SET frm=%d,seq_no=%d\n",
+                                                __func__,
 						(int) frm, (int)
 						encoder->frame_counter);
-					DisplayMessage(messeage_buf, 1);
 #endif
 
 					/* get the size of SPS data in byte unit */
@@ -1326,11 +1247,10 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 					}
 
 				} else {
-					sprintf(messeage_buf,
-						"%s: ERROR OUTPUT SEQUENCE PARAMETER SET return_code=%d ",
+					fprintf (stderr,
+						"%s: ERROR OUTPUT SEQUENCE PARAMETER SET return_code=%d\n",
 						__FUNCTION__,
 						(int) return_code);
-					DisplayMessage(messeage_buf, 1);
 					encoder->error_return_function =
 					    -111;
 					encoder->error_return_code =
@@ -1349,13 +1269,13 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 							 &encoder->my_pps_stream_buff_info,
 							 NULL);
 				if (return_code == AVCBE_PPS_OUTPUTTED) {	/* 7 */
-					//sprintf(messeage_buf, " encode_1file:avcbe_encode_picture OUTPUT PICTURE PARAMETER SET frm=%d,seq_no=%d ", 
+					//fprintf (stderr, " %s: avcbe_encode_picture OUTPUT PICTURE PARAMETER SET frm=%d,seq_no=%d\n", 
+					//                      __func__,
 					//                      (int)frm, (int)encoder->frame_counter);
-					sprintf(messeage_buf,
-						"Encoded frame %5d, sequence no %5d",
+					fprintf (stderr,
+						"Encoded frame %5d, sequence no %5d\n",
 						(int) frm, (int)
 						encoder->frame_counter);
-					DisplayMessage(messeage_buf, 1);
 
 					/* set to output PPS data */
 					avcbe_get_last_slice_stat(encoder->stream_info,
@@ -1375,10 +1295,9 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 					}
 
 				} else {
-					sprintf(messeage_buf,
-						" ERROR OUTPUT PICTURE PARAMETER SET return_code=%d ",
+					fprintf (stderr,
+						" ERROR OUTPUT PICTURE PARAMETER SET return_code=%d\n",
 						(int) return_code);
-					DisplayMessage(messeage_buf, 1);
 					encoder->error_return_function =
 					    -111;
 					encoder->error_return_code =
@@ -1412,16 +1331,14 @@ h264_encode_nal_unit(SHCodecs_Encoder * encoder, long stream_type)
 			return_code =
 			    h264_output_SEI_parameters(encoder);
 			if (return_code != 0) {
-				sprintf(messeage_buf,
+				fprintf (stderr,
 					" Not put SEI parameter : return_code = %06x\n",
 					(int) return_code);
-				DisplayMessage(messeage_buf, 1);
 			} else {
-				sprintf(messeage_buf,
+				fprintf (stderr,
 					"%s:%d Put SEI parameter : return_code = %d\n",
 					__FUNCTION__, __LINE__,
 					(int) return_code);
-				DisplayMessage(messeage_buf, 1);
 			}
 
 			/* concatenate Filler data(if CPB Buffer overflow) */
@@ -1479,7 +1396,7 @@ h264_encode_run (SHCodecs_Encoder * encoder, long stream_type)
 	encoder->error_return_function = 0;
 	encoder->error_return_code = 0;
 
-	DisplayMessage("H.264 Encode Start! ", 1);
+	fprintf (stderr, "H.264 Encode Start!\n");
 
 	/* encode process function for H.264 (call avcbe_encode_picture func.) */
 	if ((encoder->other_options_h264.avcbe_use_slice == AVCBE_ON) &&
@@ -1503,9 +1420,7 @@ h264_encode_run (SHCodecs_Encoder * encoder, long stream_type)
 	return_code = avcbe_put_end_code(encoder->stream_info, &my_end_code_buff_info, AVCBE_END_OF_STRM);	/* return value is byte unit */
 	if (return_code <= 0) {
 		if (return_code == -4) {
-			DisplayMessage
-			    (" encode_1file_h264:avcbe_close_encode OUTPUT BUFFER SIZE SHORT ERROR! ",
-			     1);
+			fprintf (stderr, " %s: avcbe_close_encode OUTPUT BUFFER SIZE SHORT ERROR!\n", __func__);
 		}
 		encoder->error_return_function = -116;
 		encoder->error_return_code = return_code;

@@ -118,9 +118,6 @@
 //#define  OUTPUT_BUF_SIZE (256*1024*4)
 
 /*-------------- proto-type declaration ----------------------------*/
-/*--- the functions in avcbencsmp_common.c ---*/
-int avcbe_enc(long stream_type);
-void DisplayMessage(char *message_text, int line_feed_flag);
 
 void encode_time_init(void);
 unsigned long encode_time_get(void);

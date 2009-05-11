@@ -152,9 +152,7 @@ mpeg4_encode_init (SHCodecs_Encoder * encoder, long stream_type)
 				    &(encoder->encoding_property), (void *)
 				    &(encoder->other_options_mpeg4));
 	if (return_code != 0) {	/* error */
-		DisplayMessage
-		    (" encode_1file_mpeg4:avcbe_set_default_param ERROR! ",
-		     1);
+		fprintf (stderr, " %s: avcbe_set_default_param ERROR!\n", __func__);
 		encoder->error_return_function = -2;
 		encoder->error_return_code = return_code;
 		return (-2);
@@ -204,21 +202,13 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder, long stream_type)
 #endif				/* VPU4IP */
 	if (return_code < 0) {	/* error */
 		if (return_code == -1) {
-			DisplayMessage
-			    (" encode_1file_mpeg4:avcbe_init_encode PARAMETER ERROR! ",
-			     1);
+			fprintf (stderr, " %s: avcbe_init_encode PARAMETER ERROR!\n", __func__);
 		} else if (return_code == -2) {
-			DisplayMessage
-			    (" encode_1file_mpeg4:avcbe_init_encode PARAMETER CHANGED! (Maybe Error) ",
-			     1);
+			fprintf (stderr, " %s: avcbe_init_encode PARAMETER CHANGED! (Maybe Error)\n", __func__);
 		} else if (return_code == -3) {
-			DisplayMessage
-			    (" encode_1file_mpeg4:avcbe_init_encode SEQUENCE ERROR! ",
-			     1);
+			fprintf (stderr, " %s: avcbe_init_encode SEQUENCE ERROR!\n", __func__);
 		} else if (return_code == -4) {
-			DisplayMessage
-			    (" encode_1file_mpeg4:avcbe_init_encode WORK-AREA SIZE SHORT ERROR! ",
-			     1);
+			fprintf (stderr, " %s: avcbe_init_encode WORK-AREA SIZE SHORT ERROR!\n", __func__);
 		}
 		encoder->error_return_function = -6;
 		encoder->error_return_code = return_code;
@@ -296,17 +286,11 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder * encoder, long stream_type)
 
 	if (return_code != 0) {
 		if (return_code == -1) {
-			DisplayMessage
-			    (" encode_1file_mpeg4:avcbe_init_memory PARAMETER ERROR! ",
-			     1);
+			fprintf (stderr, " %s: avcbe_init_memory PARAMETER ERROR!\n", __func__);
 		} else if (return_code == -3) {
-			DisplayMessage
-			    (" encode_1file_mpeg4:avcbe_init_memory SEQUENCE ERROR! ",
-			     1);
+			fprintf (stderr, " %s: avcbe_init_memory SEQUENCE ERROR!\n", __func__);
 		} else if (return_code == -4) {
-			DisplayMessage
-			    (" encode_1file_mpeg4:avcbe_init_encode WORK-AREA SIZE SHORT ERROR! ",
-			     1);
+			fprintf (stderr, " %s: avcbe_init_encode WORK-AREA SIZE SHORT ERROR!\n", __func__);
 		}
 		encoder->error_return_function = -7;
 		encoder->error_return_code = return_code;
@@ -381,7 +365,6 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 	long stream_bits, streamsize_per_frame, streamsize_total;
 	long return_code;
 	long frm;
-	char messeage_buf[256];
 	unsigned long *addr_y, *addr_c;
 	TAVCBE_FMEM captfmem;
 	long area_width, area_height;
@@ -442,9 +425,7 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 						   &frame_check_array[0]);
 			if (return_code < 0) {	/* error */
 				if (return_code == -1) {
-					DisplayMessage
-					    (" encode_1file:avcbe_get_buffer_check PARAMETER ERROR! ",
-					     1);
+					fprintf (stderr, " %s: avcbe_get_buffer_check PARAMETER ERROR!\n", __func__);
 				}
 				return (-14);
 			}
@@ -469,9 +450,7 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 			return_code =
 			    encoder->input(encoder, encoder->input_user_data);
 			if (return_code < 0) {	/* error */
-				DisplayMessage
-				    (" encode_1file_mpeg4: ERROR acquiring input image! ",
-				     1);
+				fprintf (stderr, " %s: ERROR acquiring input image!\n", __func__);
 				encoder->error_return_function = -8;
 				encoder->error_return_code =
 				    return_code;
@@ -492,9 +471,7 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 					    ref2);
 		if (return_code != 0) {
 			if (return_code == -1) {
-				DisplayMessage
-				    (" encode_1file_mpeg4:avcbe_set_image_pointer PARAMETER ERROR! ",
-				     1);
+				fprintf (stderr, " %s: avcbe_set_image_pointer PARAMETER ERROR!\n", __func__);
 			}
 			encoder->error_return_function = -9;
 			encoder->error_return_code = return_code;
@@ -557,80 +534,56 @@ mpeg4_encode_picture (SHCodecs_Encoder * encoder,
 
 		if (return_code < 0) {	/* error */
 			if (return_code == AVCBE_ENCODE_ERROR) {	/* -1 */
-				DisplayMessage
-				    (" encode_1file_mpeg4:avcbe_encode_picture PARAMETER ERROR! ",
-				     1);
-
+				fprintf (stderr, " %s: avcbe_encode_picture PARAMETER ERROR!\n", __func__);
 			} else if (return_code == AVCBE_NOT_IN_ORDER_ERROR) {	/* -3 */
-				DisplayMessage
-				    (" encode_1file_mpeg4:avcbe_encode_picture SEQUENCE ERROR! ",
-				     1);
-
+				fprintf (stderr, " %s: avcbe_encode_picture SEQUENCE ERROR!\n", __func__);
 			} else if (return_code == AVCBE_OUTPUT_BUFFER_SHORT_ERROR) {	/* -4 */
-				DisplayMessage
-				    (" encode_1file_mpeg4:avcbe_encode_picture OUTPUT BUFFER SIZE SHORT ERROR! ",
-				     1);
-
+				fprintf (stderr, " %s: avcbe_encode_picture OUTPUT BUFFER SIZE SHORT ERROR!\n", __func__);
 			} else if (return_code == AVCBE_VPU_ERROR_AFTER_ENCODING) {	/* -6 */
-				DisplayMessage
-				    (" encode_1file_mpeg4:avcbe_encode_picture VPU4 ERROR! ",
-				     1);
-
+				fprintf (stderr, " %s: avcbe_encode_picture VPU4 ERROR!\n", __func__);
 			} else if (return_code == AVCBE_TEMPORARY_BUFFER_SHORT_ERROR) {	/* -8 */
-				DisplayMessage
-				    (" encode_1file_mpeg4:avcbe_encode_picture TEMPORARY_BUFFER SIZE SHORT ERROR! ",
-				     1);
-
+				fprintf (stderr, " %s: avcbe_encode_picture TEMPORARY_BUFFER SIZE SHORT ERROR!\n", __func__);
 			} else if (return_code == AVCBE_WORK_AREA_SHORT_ERROR) {	/* -99 */
-				DisplayMessage
-				    (" encode_1file_mpeg4:avcbe_encode_picture OTHER WORK SIZE SHORT ERROR! ",
-				     1);
-
+				fprintf (stderr, " %s: avcbe_encode_picture OTHER WORK SIZE SHORT ERROR!\n", __func__);
 			} else if (return_code == AVCBE_QUANT_MATRIX_NOT_SPECIFIED_ERROR) {	/* -11 */
-				DisplayMessage
-				    (" encode_1file_mpeg4:avcbe_encode_picture QUANT_MATRIX_NOT_SPECIFIED ERROR! ",
-				     1);
-			}
+				fprintf (stderr, " %s: avcbe_encode_picture QUANT_MATRIX_NOT_SPECIFIED ERROR!\n", __func__);
+                        }
 			encoder->error_return_function = -11;
 			encoder->error_return_code = return_code;
 			return (-11);
 		} else if (return_code == AVCBE_ENCODE_SUCCESS) {	/* 0 */
 #ifdef DEBUG
-			sprintf(messeage_buf,
-				" encode_1file_mpeg4:avcbe_encode_picture SUCCESS  frm=%ld,seq_no=%ld ",
+			fprintf (stderr,
+				" %s: avcbe_encode_picture SUCCESS  frm=%ld,seq_no=%ld\n", __func__);
 				frm, encoder->frame_counter);
-			DisplayMessage(messeage_buf, 1);
 #endif
 			/* the second parameter 'ldec' value must be changed when *
 			 * the avcbe_set_image_pointer function is called on next time. */
 		} else if (return_code == AVCBE_FRAME_SKIPPED) {	/* 1 */
-			sprintf(messeage_buf,
-				" encode_1file_mpeg4:avcbe_encode_picture THIS FRAME SKIPPED(Not Encoded)  frm=%ld,seq_no=%ld ",
+			fprintf (stderr,
+				" %s: avcbe_encode_picture THIS FRAME SKIPPED(Not Encoded)  frm=%ld,seq_no=%ld\n", __func__,
 				frm, encoder->frame_counter);
-			DisplayMessage(messeage_buf, 1);
 			/* the second parameter 'ldec' value must NOT be changed *
 			 * when the avcbe_set_image_pointer function is called on next time. */
 			encoder->frame_skip_num++;
 		} else if (return_code == AVCBE_EMPTY_VOP_OUTPUTTED) {	/* 2 */
-			sprintf(messeage_buf,
-				" encode_1file_mpeg4:avcbe_encode_picture EMPTY VOP CREATED  frm=%ld,seq_no=%ld ",
+			fprintf (stderr,
+				" %s: avcbe_encode_picture EMPTY VOP CREATED  frm=%ld,seq_no=%ld\n", __func__,
 				frm, encoder->frame_counter);
-			DisplayMessage(messeage_buf, 1);
 			/* the second parameter 'ldec' value must NOT be changed *
 			 * when the avcbe_set_image_pointer function is called on next time. */
 
 		} else if (return_code == AVCBE_B_VOP_OUTPUTTED) {	/* 4 */
-			sprintf(messeage_buf,
-				" encode_1file_mpeg4:avcbe_encode_picture B-VOP OUTPUTTED  frm=%ld,seq_no=%ld ",
+			fprintf (stderr,
+				" %s:avcbe_encode_picture B-VOP OUTPUTTED  frm=%ld,seq_no=%ld\n", __func__,
 				frm, encoder->frame_counter);
-			DisplayMessage(messeage_buf, 1);
 			/* the second parameter 'ldec' value is ignored when B-VOP is used */
 		} else {
-			sprintf(messeage_buf,
-				" encode_1file_mpeg4:avcbe_encode_picture UNKNOWN RETURN CODE=%ld  frm=%ld,seq_no=%ld ",
+			fprintf (stderr,
+				" %s: avcbe_encode_picture UNKNOWN RETURN CODE=%ld  frm=%ld,seq_no=%ld\n",
+                                __func__,
 				return_code, frm,
 				encoder->frame_counter);
-			DisplayMessage(messeage_buf, 1);
 		}
 		avcbe_get_last_frame_stat(encoder->stream_info, &frame_stat);
 		if ((return_code == AVCBE_ENCODE_SUCCESS)
@@ -683,9 +636,9 @@ mpeg4_encode_run (SHCodecs_Encoder * encoder, long stream_type)
 
 #ifdef DEBUG
 	if (stream_type == AVCBE_MPEG4) {
-		DisplayMessage("MPEG-4 Encode Start! ", 1);
+		fprintf (stderr, "MPEG-4 Encode Start!\n");
 	} else {
-		DisplayMessage("H.263 Encode Start! ", 1);
+		fprintf (stderr, "H.263 Encode Start!\n");
 	}
 #endif
 
@@ -709,9 +662,7 @@ mpeg4_encode_run (SHCodecs_Encoder * encoder, long stream_type)
 			       AVCBE_VOSE);
 	if (return_code <= 0) {
 		if (return_code == -4) {
-			DisplayMessage
-			    (" encode_1file_mpeg4:avcbe_close_encode OUTPUT BUFFER SIZE SHORT ERROR! ",
-			     1);
+			fprintf (stderr, " %s: avcbe_close_encode OUTPUT BUFFER SIZE SHORT ERROR!\n", __func__);
 		}
 		encoder->error_return_function = -16;
 		encoder->error_return_code = return_code;
