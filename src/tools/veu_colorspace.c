@@ -23,6 +23,10 @@
  * Modified by Takanari Hayama to support NV12->RGB565 conversion
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
