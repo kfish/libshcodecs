@@ -28,6 +28,9 @@
 #include <fcntl.h>
 #include <setjmp.h>
 #include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <signal.h>
 
 #include <shcodecs/shcodecs_encoder.h>
 
@@ -38,7 +41,7 @@
 
 #include "ControlFileUtil.h"
 
-#define DEBUG
+/* #define DEBUG */
 
 #define USE_BVOP
 
@@ -50,7 +53,8 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder,
 			       APPLI_INFO * appli_info);
 
 
-APPLI_INFO ainfo;		/* User Application Data */
+SHCodecs_Encoder *encoder; /* Encoder */
+APPLI_INFO ainfo; /* Application Data */
 
 static void
 usage (const char * progname)
@@ -74,9 +78,35 @@ static int write_output(SHCodecs_Encoder * encoder,
 	return fwrite(data, 1, length, appli_info->output_file_fp);
 }
 
+void cleanup (void)
+{
+	if (ainfo.ceu != NULL)
+                sh_ceu_stop_capturing(ainfo.ceu);
+
+        if (encoder != NULL)
+	        shcodecs_encoder_close(encoder);
+
+	sh_veu_close();
+
+        if (ainfo.ceu != NULL)
+	        sh_ceu_close(ainfo.ceu);
+}
+
+void sig_handler(int sig)
+{
+	cleanup ();
+
+#ifdef DEBUG
+        fprintf (stderr, "Got signal %d\n", sig);
+#endif
+
+        /* Send ourselves the signal: see http://www.cons.org/cracauer/sigint.html */
+	signal(sig, SIG_DFL);
+	kill(getpid(), sig);
+}
+
 int main(int argc, char *argv[])
 {
-	SHCodecs_Encoder *encoder;
 	int encode_return_code;
 	int return_code;
 	long stream_type;
@@ -110,6 +140,11 @@ int main(int argc, char *argv[])
 
 	fprintf(stderr, "Input file: %s\n", ainfo.input_file_name_buf);
 	fprintf(stderr, "Output file: %s\n", ainfo.output_file_name_buf);
+
+        encoder = NULL;
+        ainfo.ceu = NULL;
+        signal (SIGINT, sig_handler);
+        signal (SIGPIPE, sig_handler);
 
 	ainfo.ceu = sh_ceu_open("/dev/video0", ainfo.xpic, ainfo.ypic);
 
@@ -148,9 +183,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "Encode Success\n");
 	}
 
-	sh_ceu_stop_capturing(ainfo.ceu);
-
-	shcodecs_encoder_close(encoder);
+        cleanup ();
 
 #if 0
 	printf("Total encode time = %d(msec)\n", encode_time_get());
@@ -158,7 +191,4 @@ int main(int argc, char *argv[])
 	/* TODO vpu4_reg_close(); */
 #endif
 
-	sh_veu_close();
-
-	sh_ceu_close(ainfo.ceu);
 }

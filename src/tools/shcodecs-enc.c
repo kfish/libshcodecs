@@ -28,6 +28,9 @@
 #include <fcntl.h>
 #include <setjmp.h>
 #include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <signal.h>
 
 #include <shcodecs/shcodecs_encoder.h>
 
@@ -43,7 +46,8 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder,
 			       APPLI_INFO * appli_info);
 
 
-APPLI_INFO ainfo;		/* User Application Data */
+SHCodecs_Encoder *encoder; /* Encoder */
+APPLI_INFO ainfo; /* Application Data */
 
 static void
 usage (const char * progname)
@@ -67,9 +71,27 @@ static int write_output(SHCodecs_Encoder * encoder,
 	return fwrite(data, 1, length, appli_info->output_file_fp);
 }
 
+void cleanup (void)
+{
+        if (encoder != NULL)
+	        shcodecs_encoder_close(encoder);
+}
+
+void sig_handler(int sig)
+{
+	cleanup ();
+
+#ifdef DEBUG
+        fprintf (stderr, "Got signal %d\n", sig);
+#endif
+
+        /* Send ourselves the signal: see http://www.cons.org/cracauer/sigint.html */
+	signal(sig, SIG_DFL);
+	kill(getpid(), sig);
+}
+
 int main(int argc, char *argv[])
 {
-	SHCodecs_Encoder *encoder;
 	int encode_return_code;
 	int return_code;
 	long stream_type;
@@ -104,6 +126,11 @@ int main(int argc, char *argv[])
 	        	 ainfo.buf_output_stream_file);
         }
 	fprintf(stderr, "Output file: %s\n", ainfo.output_file_name_buf);
+
+        encoder = NULL;
+        ainfo.ceu = NULL;
+        signal (SIGINT, sig_handler);
+        signal (SIGPIPE, sig_handler);
 
 	encoder = shcodecs_encoder_init(ainfo.xpic, ainfo.ypic, stream_type);
 
@@ -141,5 +168,5 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "Encode Success\n");
 	}
 
-	shcodecs_encoder_close(encoder);
+	cleanup ();
 }
