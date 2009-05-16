@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
 	        	 ainfo.buf_output_stream_file);
         }
 
-	fprintf(stderr, "Input file: %s\n", ainfo.input_file_name_buf);
+	fprintf(stderr, "Input device: %s\n", ainfo.input_file_name_buf);
 	fprintf(stderr, "Output file: %s\n", ainfo.output_file_name_buf);
 
         encoder = NULL;
@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
         signal (SIGINT, sig_handler);
         signal (SIGPIPE, sig_handler);
 
-	ainfo.ceu = sh_ceu_open("/dev/video0", ainfo.xpic, ainfo.ypic);
+	ainfo.ceu = sh_ceu_open(ainfo.input_file_name_buf, ainfo.xpic, ainfo.ypic);
 
 	sh_veu_open();
 
