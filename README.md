@@ -69,6 +69,20 @@ instructions.
 
 [0]: http://www.renesas.com/fmwk.jsp?cnt=sh_mobile_family_landing.jsp&fp=/products/mpumcu/sh_mobile/
 
+Kernel configuration
+--------------------
+
+libshcodecs uses the Linux kernel UIO support for the SH-Mobile VPU, which was
+added in 2.6.27.
+
+The following kernel boot option reserves physically contiguous memory for VPU use:
+
+    memchunk.vpu=4m
+
+In order to encode 2 video streams, this amount reserved should be increased:
+
+    memchunk.vpu=8m
+
 License
 -------
 
