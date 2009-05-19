@@ -35,7 +35,12 @@ Set the input image size [qcif, cif, qvga, vga].
 
 .SH DESCRIPTION
 .B shcodecs-dec
-Decode an input file using the SH-Mobile VPU
+Decode an input file using the SH-Mobile VPU.
+
+.SH BENCHMARKING
+The decoded output is discarded if no output filename is
+specified; this can be useful for benchmarking. Alternatively,
+specify /dev/null as the output filename.
 
 .SH AUTHORS
 
