@@ -42,7 +42,7 @@
 #include <unistd.h>
 #include <errno.h>
 
-#include "config.h"
+#include "veu_colorspace.h"
 
 #define SH_VEU_RESERVE_TOP (512 << 10)
 #define YUV_COLOR
@@ -67,6 +67,13 @@ struct sh_veu_uio_device {
 	char *path;
 	int fd;
 };
+
+struct uio_map {
+	unsigned long address;
+	unsigned long size;
+	void *iomem;
+};
+
 
 #define MAXUIOIDS  100
 #define MAXNAMELEN 256
@@ -102,12 +109,6 @@ static int locate_sh_veu_uio_device(char *name,
 
 	return 0;
 }
-
-struct uio_map {
-	unsigned long address;
-	unsigned long size;
-	void *iomem;
-};
 
 static int setup_uio_map(struct sh_veu_uio_device *udp, int nr,
 			 struct uio_map *ump)
@@ -173,6 +174,21 @@ static int setup_uio_map(struct sh_veu_uio_device *udp, int nr,
 #define VCOFFR 0x224		/* color conversion offset */
 #define VCBR   0x228		/* color conversion clip */
 
+#define VTRCR_DST_FMT_YCBCR420 (0 << 22)
+#define VTRCR_DST_FMT_YCBCR422 (1 << 22)
+#define VTRCR_DST_FMT_YCBCR444 (2 << 22)
+#define VTRCR_DST_FMT_RGB565   (6 << 16)
+#define VTRCR_SRC_FMT_YCBCR420 (0 << 14)
+#define VTRCR_SRC_FMT_YCBCR422 (1 << 14)
+#define VTRCR_SRC_FMT_YCBCR444 (2 << 14)
+#define VTRCR_SRC_FMT_RGB565   (3 << 8)
+#define VTRCR_BT601            (0 << 3)
+#define VTRCR_BT709            (1 << 3)
+#define VTRCR_FULL_COLOR_CONV  (1 << 2)
+#define VTRCR_TE_BIT_SET       (1 << 1)
+#define VTRCR_RY_SRC_YCBCR     0
+#define VTRCR_RY_SRC_RGB       1
+
 /* Helper functions for reading registers. */
 
 static unsigned long read_reg(struct uio_map *ump, int reg_nr)
@@ -207,6 +223,12 @@ static void set_scale(struct uio_map *ump, int vertical,
 			frac -= 8;	/* round down if scaling up */
 		else
 			frac += 8;	/* round up if scaling down */
+	}
+
+	/* Fix calculation for 1 to 1 scaling */
+	if (size_in == size_out){
+		mant = 0;
+		frac = 0;
 	}
 
 	/* set scale */
@@ -538,7 +560,7 @@ int sh_veu_open(void)
 	sh_veu_probe(0, 0);
 	sh_veu_init();
 
-        return 0;
+	return 0;
 }
 
 void sh_veu_close(void)
@@ -546,128 +568,216 @@ void sh_veu_close(void)
 }
 
 int
-sh_veu_rgb565_to_nv12(unsigned char *rgb565_in,
-		      unsigned char *y_out,
-		      unsigned char *c_out,
-		      unsigned long width, unsigned long height)
+sh_veu_operation(
+	unsigned int veu_index,
+	unsigned char *src_py,
+	unsigned char *src_pc,
+	unsigned long src_width,
+	unsigned long src_height,
+	unsigned long src_pitch,
+	int src_fmt,
+	unsigned char *dst_py,
+	unsigned char *dst_pc,
+	unsigned long dst_width,
+	unsigned long dst_height,
+	unsigned long dst_pitch,
+	int dst_fmt,
+	int rotate)
 {
-	unsigned long stride;
+	/* Ignore veu_index as we onyl support one VEU at the moment */
+	struct uio_map *ump = &sh_veu_uio_mmio;
+	veu_index;
 
-	fprintf(stderr, "sh_veu_rgb565_to_nv12 IN\n");
+#ifdef DEBUG
+	fprintf(stderr, "%s IN\n", __FUNCTION__);
+	fprintf(stderr, "src_fmt=%X: src_width=%d, src_height=%d src_pitch=%d\n",
+		src_fmt, src_width, src_height, src_pitch);
+	fprintf(stderr, "dst_fmt=%x: dst_width=%d, dst_height=%d dst_pitch=%d\n",
+		dst_fmt, dst_width, dst_height, dst_pitch);
+	fprintf(stderr, "rotate=%d\n", rotate);
+#endif
 
-	stride = (width + 15) & ~15;
+	/* Rotate can't be performed at the same time as a scale! */
+	if (rotate && (src_width != dst_height))
+		return -1;
+	if (rotate && (dst_width != src_height))
+		return -1;
 
-	write_reg(&sh_veu_uio_mmio, stride * 2, VESWR);
-	write_reg(&sh_veu_uio_mmio, width | (height << 16), VESSR);
-	write_reg(&sh_veu_uio_mmio, 0, VBSSR);	/* not using bundle mode */
+	/* source */
+	write_reg(ump, (unsigned long)src_py, VSAYR);
+	write_reg(ump, (unsigned long)src_pc, VSACR);
 
-	write_reg(&sh_veu_uio_mmio, stride, VEDWR);
+	write_reg(ump, (src_height << 16) | src_width, VESSR);
 
-	write_reg(&sh_veu_uio_mmio, (unsigned long)rgb565_in, VSAYR);
+	if (src_fmt == RGB565)
+		src_pitch *= 2;
+	write_reg(ump, src_pitch, VESWR);
+	write_reg(ump, 0, VBSSR);	/* not using bundle mode */
 
-	write_reg(&sh_veu_uio_mmio, (unsigned long)y_out, VDAYR);
-	write_reg(&sh_veu_uio_mmio, (unsigned long)c_out, VDACR);	/* unused for RGB */
 
-	//write_reg(&sh_veu_uio_mmio, 0x66, VSWPR);
-	write_reg(&sh_veu_uio_mmio, 0x60 | 0x07, VSWPR);
-	//write_reg(&sh_veu_uio_mmio, (6 << 16) | (3 << 8) | 1, VTRCR);
-	//write_reg(&sh_veu_uio_mmio, (5 << 8) | 3, VTRCR);
-	write_reg(&sh_veu_uio_mmio, (6 << 16) | 2, VTRCR);
+	/* dest */
+	if (rotate) {
+		int src_vblk  = (src_height+15)/16;
+		int src_sidev = (src_height+15)%16 + 1;
+		int src_density = 2;	/* for RGB565 and YCbCr422 */
+		int offset;
 
-	set_scale(&sh_veu_uio_mmio, 0, width, width);
-	set_scale(&sh_veu_uio_mmio, 1, height, height);
+		if ((src_fmt & FMT_MASK) == YCbCr420)
+			src_density = 1;
+		offset = ((src_vblk-2)*16 + src_sidev) * src_density;
 
-	write_reg(&sh_veu_uio_mmio, 1, VEIER);	/* enable interrupt in VEU */
+		write_reg(ump, (unsigned long)dst_py + offset, VDAYR);
+		write_reg(ump, (unsigned long)dst_pc + offset, VDACR);
+	} else {
+		write_reg(ump, (unsigned long)dst_py, VDAYR);
+		write_reg(ump, (unsigned long)dst_pc, VDACR);
+	}
+
+	if (dst_fmt == RGB565)
+		dst_pitch *= 2;
+	write_reg(ump, dst_pitch, VEDWR);
+
+	/* byte/word swapping */
+	{
+		unsigned long vswpr = 0;
+		if (src_fmt == RGB565)
+			vswpr |= 0x6;
+		else
+			vswpr |= 0x7;
+		if (dst_fmt == RGB565)
+			vswpr |= 0x60;
+		else
+			vswpr |= 0x70;
+		write_reg(ump, vswpr, VSWPR);
+#if DEBUG
+		fprintf(stderr, "vswpr=0x%X\n", vswpr);
+#endif
+	}
+
+
+	/* transform control */
+	{
+		unsigned long vtrcr = 0;
+		if ((src_fmt & FMT_MASK) == RGB565) {
+			vtrcr |= VTRCR_RY_SRC_RGB;
+			vtrcr |= VTRCR_SRC_FMT_RGB565;
+		} else {
+			vtrcr |= VTRCR_RY_SRC_YCBCR;
+			if ((src_fmt & FMT_MASK) == YCbCr420)
+				vtrcr |= VTRCR_SRC_FMT_YCBCR420;
+			else
+				vtrcr |= VTRCR_SRC_FMT_YCBCR422;
+		}
+
+		if ((dst_fmt & FMT_MASK) == RGB565) {
+			vtrcr |= VTRCR_DST_FMT_RGB565;
+		} else {
+			if ((dst_fmt & FMT_MASK) == YCbCr420)
+				vtrcr |= VTRCR_DST_FMT_YCBCR420;
+			else
+				vtrcr |= VTRCR_DST_FMT_YCBCR422;
+		}
+
+		if ((src_fmt & FMT_MASK) != (dst_fmt & FMT_MASK)) {
+			vtrcr |= VTRCR_TE_BIT_SET;
+			if ((src_fmt & YCBCR_FULL_RANGE) || (dst_fmt & YCBCR_FULL_RANGE))
+				vtrcr |= VTRCR_FULL_COLOR_CONV;
+			if ((src_fmt & YCBCR_BT709) || (dst_fmt & YCBCR_BT709))
+				vtrcr |= VTRCR_BT709;
+		}
+		write_reg(ump, vtrcr, VTRCR);
+#if DEBUG
+		fprintf(stderr, "vtrcr=0x%X\n", vtrcr);
+#endif
+	}
+
+	if (ump->size > VBSRR) {	/* VEU2H on SH7723 */
+		/* color conversion matrix */
+		write_reg(ump, 0x0cc5, VMCR00);
+		write_reg(ump, 0x0950, VMCR01);
+		write_reg(ump, 0x0000, VMCR02);
+		write_reg(ump, 0x397f, VMCR10);
+		write_reg(ump, 0x0950, VMCR11);
+		write_reg(ump, 0x3cdd, VMCR12);
+		write_reg(ump, 0x0000, VMCR20);
+		write_reg(ump, 0x0950, VMCR21);
+		write_reg(ump, 0x1023, VMCR22);
+		write_reg(ump, 0x00800010, VCOFFR);
+	}
+
+	set_scale(ump, 0, src_width,  dst_width);
+	set_scale(ump, 1, src_height, dst_height);
+
+	if (rotate) {
+		write_reg(ump, 1, VFMCR);
+		write_reg(ump, 0, VRFCR);
+	}
+	else {
+		write_reg(ump, 0, VFMCR);
+	}
+
+	write_reg(ump, 1, VEIER);	/* enable interrupt in VEU */
 
 	/* Enable interrupt in UIO driver */
 	{
 		unsigned long enable = 1;
 		int ret;
 
-		if ((ret =
-		     write(sh_veu_uio_dev.fd, &enable,
-			   sizeof(u_long))) != (sizeof(u_long))) {
-			fprintf(stderr, "veu csp: write error\n");
+		if ((ret = write(sh_veu_uio_dev.fd, &enable,
+		                 sizeof(u_long))) != (sizeof(u_long))) {
+			fprintf(stderr, "veu csp: write error returned %d\n", ret);
 		}
 	}
 
-	write_reg(&sh_veu_uio_mmio, 1, VESTR);	/* start operation */
+	write_reg(ump, 1, VESTR);	/* start operation */
 
 	/* Wait for an interrupt */
 	{
 		unsigned long n_pending;
-
 		read(sh_veu_uio_dev.fd, &n_pending, sizeof(u_long));
 	}
 
-	write_reg(&sh_veu_uio_mmio, 0x100, VEVTR);	/* ack int, write 0 to bit 0 */
+	write_reg(ump, 0x100, VEVTR);	/* ack int, write 0 to bit 0 */
 
-	fprintf(stderr, "sh_veu_rgb565_to_nv12 OUT\n");
+#ifdef DEBUG
+	fprintf(stderr, "%s OUT\n", __FUNCTION__);
+#endif
 
-        return 0;
+	return 0;
+}
+
+
+
+int
+sh_veu_rgb565_to_nv12 (
+	unsigned char *rgb565_in,
+	unsigned char *y_out,
+	unsigned char *c_out,
+	unsigned long width,
+	unsigned long height)
+{
+	return sh_veu_operation(
+		0,
+		rgb565_in, NULL,  width, height, width, RGB565,
+		y_out,     c_out, width, height, width, YCbCr420,
+		0);
 }
 
 int
-sh_veu_nv12_to_rgb565(unsigned char *y_in,
-		      unsigned char *c_in,
-		      unsigned char *rgb565_out,
-		      unsigned long width, unsigned long height,
-		      unsigned long pitch_in,
-		      unsigned long pitch_out)
+sh_veu_nv12_to_rgb565(
+	unsigned char *y_in,
+	unsigned char *c_in,
+	unsigned char *rgb565_out,
+	unsigned long width,
+	unsigned long height,
+	unsigned long pitch_in,
+	unsigned long pitch_out)
 {
-	fprintf(stderr, "%s IN\n", __FUNCTION__);
-
-	write_reg(&sh_veu_uio_mmio, pitch_in, VESWR);
-	write_reg(&sh_veu_uio_mmio, width | (height << 16), VESSR);
-	write_reg(&sh_veu_uio_mmio, 0, VBSSR);	/* not using bundle mode */
-
-	write_reg(&sh_veu_uio_mmio, pitch_out, VEDWR);
-
-	write_reg(&sh_veu_uio_mmio, (unsigned long)y_in, VSAYR);
-	write_reg(&sh_veu_uio_mmio, (unsigned long)c_in, VSACR);
-
-	write_reg(&sh_veu_uio_mmio, (unsigned long)rgb565_out, VDAYR);
-
-	/* byte swap setting */
-	//write_reg(&sh_veu_uio_mmio, 0x66, VSWPR);
-	write_reg(&sh_veu_uio_mmio, 0x60 | 0x07, VSWPR);
-
-	/* conversion setting RGB15 -> NV12 */
-	//write_reg(&sh_veu_uio_mmio, (6 << 16) | (3 << 8) | 1, VTRCR);
-	//write_reg(&sh_veu_uio_mmio, (5 << 8) | 3, VTRCR);
-	write_reg(&sh_veu_uio_mmio, (6 << 16) | 2, VTRCR);
-
-	set_scale(&sh_veu_uio_mmio, 0, width, width);
-	set_scale(&sh_veu_uio_mmio, 1, height, height);
-
-	write_reg(&sh_veu_uio_mmio, 1, VEIER);	/* enable interrupt in VEU */
-
-	/* Enable interrupt in UIO driver */
-	{
-		unsigned long enable = 1;
-		int ret;
-
-		if ((ret =
-		     write(sh_veu_uio_dev.fd, &enable,
-			   sizeof(u_long))) != (sizeof(u_long))) {
-			fprintf(stderr, "veu csp: write error\n");
-		}
-	}
-
-	write_reg(&sh_veu_uio_mmio, 1, VESTR);	/* start operation */
-
-	/* Wait for an interrupt */
-	{
-		unsigned long n_pending;
-
-		read(sh_veu_uio_dev.fd, &n_pending, sizeof(u_long));
-	}
-
-	write_reg(&sh_veu_uio_mmio, 0x100, VEVTR);	/* ack int, write 0 to bit 0 */
-
-	fprintf(stderr, "%s OUT\n", __FUNCTION__);
-
-        return 0;
+	return sh_veu_operation(
+		0,
+		y_in,       c_in, width, height, pitch_in,  YCbCr420,
+		rgb565_out, NULL, width, height, pitch_out, RGB565,
+		0);
 }
 
 #if 0
