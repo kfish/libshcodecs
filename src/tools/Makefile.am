@@ -8,7 +8,7 @@ SHCODECS_LIBS = $(SHCODECSDIR)/libshcodecs.la $(VPU4_ENC_LIBS) $(VPU4_DEC_LIBS) 
 
 #AM_CFLAGS = -v -Wall -O2 -I $(SRC_PATH) -fPIC -fno-common -m4-nofpu
 
-bin_PROGRAMS = shcodecs-dec shcodecs-enc shcodecs-capenc shcodecs-cap
+bin_PROGRAMS = shcodecs-dec shcodecs-enc shcodecs-capenc shcodecs-cap shcodecs-play
 
 noinst_HEADERS = \
 	avcbencsmp.h \
@@ -18,6 +18,9 @@ noinst_HEADERS = \
 
 shcodecs_dec_SOURCES = shcodecs-dec.c
 shcodecs_dec_LDADD = $(SHCODECS_LIBS)
+
+shcodecs_play_SOURCES = shcodecs-play.c veu_colorspace.c
+shcodecs_play_LDADD = -lrt -lpthread $(SHCODECS_LIBS)
 
 shcodecs_enc_SOURCES =  \
 	shcodecs-enc.c \
