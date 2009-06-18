@@ -1,0 +1,32 @@
+.TH "shcodecs-record" 1 "June 2009" "SH Codecs" "Linux-SH Multimedia"
+
+.SH NAME
+shcodecs-record \- Encode V4L2 video input using the SH-Mobile VPU
+
+.SH SYNOPSIS
+
+.B \fBshcodecs-record\fR \fIcontrol-file\fR
+
+.B \fBshcodecs-record\fR [\-r \fBrotate on,off\fR | \-\-rotate \fBrotate on,off\fR ] [\-i \fBcontrol-file\fR | \-\-input \fBcontrol-file\fR ]
+
+.SH OPTIONS
+.PP
+\fBshcodecs-record\fR accepts the following options:
+
+.SS "File options"
+.IP "\-i \fBcontrol-file\fR, \-\-input \fBcontrol-file\fR" 10
+Set the control file.
+
+.SS "Camera rotate"
+.IP "\-r \fBrotate on,off\fR, \-\-rotate \fBrotate on,off\fR" 10
+If non-zero the camera image is rotated and cropped before encoding.
+
+.SH DESCRIPTION
+.B shcodecs-record
+Encodes V4L2 video input using the SH-Mobile VPU
+
+.SH AUTHORS
+
+shcodecs-record was written by Phil Edworthy & Jeremy Baker, based on earlier work by Conrad Parker.
+
+Please report bugs to <phil.edworthy@renesas.com>

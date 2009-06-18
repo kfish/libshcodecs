@@ -43,6 +43,17 @@ int sh_veu_open(void);
 
 void sh_veu_close(void);
 
+/*
+ * Allocate memory from the VEU UIO region.
+ * \param [in] size Size of memory to allocate
+ * \param [in] align Required memory alignment
+ * \param [out] pp_phy_addr Pointer to physical memory
+ * \param [out] pp_uio_addr Pointer to user space address
+ */
+int
+sh_veu_get_mem(int size, int align, void **pp_phy_addr, void **pp_uio_addr);
+
+
 /* Perform (scale|rotate) & crop between YCbCr 4:2:0 & RG565 surfaces */
 int
 sh_veu_operation(

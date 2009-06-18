@@ -26,7 +26,22 @@ typedef void (*sh_process_callback) (sh_ceu * ceu, const unsigned char *frame_da
 
 sh_ceu *sh_ceu_open(const char *device_name, int width, int height);
 
+sh_ceu *sh_ceu_open_userio(const char *device_name, int width, int height);
+
 void sh_ceu_close(sh_ceu * ceu);
+
+/**
+ * Set the data output mode to use physical addresses.
+ * If the calling application is interfacing to other IP blocks such as
+ * the VEU, then set this function. Otherwise, captured frame output will
+ * be mapped to userspace addresses, usable by normal applications.
+ * \param ceu The ceu handle
+ * \param use_physical Flag: Physical addresses will be reported for
+ * output frame data if set to a non-zero value.
+ * \retval 0 Success
+ */
+int
+sh_ceu_set_use_physical(sh_ceu * ceu, int use_physical);
 
 void sh_ceu_start_capturing(sh_ceu * ceu);
 

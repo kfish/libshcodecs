@@ -261,9 +261,9 @@ static void set_scale(struct uio_map *ump, int vertical,
 }
 
 /* global variables yuck */
-
-struct sh_veu_uio_device sh_veu_uio_dev;
-struct uio_map sh_veu_uio_mmio, sh_veu_uio_mem;
+static struct sh_veu_uio_device sh_veu_uio_dev;
+static struct uio_map sh_veu_uio_mmio, sh_veu_uio_mem;
+static unsigned long sdr_base, sdr_start, sdr_end;
 
 static int sh_veu_probe(int verbose, int force)
 {
@@ -290,6 +290,31 @@ static int sh_veu_probe(int verbose, int force)
 
 	return ret;
 }
+
+int
+sh_veu_get_mem(int size, int align, void **pp_phy_addr, void **pp_uio_addr)
+{
+	unsigned long new_sdr_base;
+
+	if (align > 0)
+		new_sdr_base = ((sdr_base + (align - 1)) & ~(align - 1));
+	else
+		new_sdr_base = sdr_base;
+
+	if (new_sdr_base + size >= sdr_end) {
+		fprintf(stderr, "%s: Allocation of size %d failed\n", __FUNCTION__, size);
+		fprintf(stderr, "sdr_base = %08lx, sdr_end = %08lx\n", sdr_base, sdr_end);
+		*pp_phy_addr = NULL;
+		*pp_uio_addr = NULL;
+		return -1;
+	}
+	*pp_phy_addr = (void *)new_sdr_base;
+	*pp_uio_addr = sh_veu_uio_mem.iomem + (new_sdr_base - sh_veu_uio_mem.address);
+
+	sdr_base = new_sdr_base + size;
+	return 0;
+}
+
 
 //struct sh_veu_plane _src, _dst, _tmp;
 
@@ -560,12 +585,17 @@ int sh_veu_open(void)
 	sh_veu_probe(0, 0);
 	sh_veu_init();
 
+	sdr_base = sdr_start = sh_veu_uio_mem.address;
+	sdr_end = sdr_base + sh_veu_uio_mem.size;
+
 	return 0;
 }
 
 void sh_veu_close(void)
 {
+	sdr_base = sdr_start = sdr_end = 0;
 }
+
 
 int
 sh_veu_operation(
@@ -586,7 +616,6 @@ sh_veu_operation(
 {
 	/* Ignore veu_index as we onyl support one VEU at the moment */
 	struct uio_map *ump = &sh_veu_uio_mmio;
-	veu_index;
 
 #ifdef DEBUG
 	fprintf(stderr, "%s IN\n", __FUNCTION__);

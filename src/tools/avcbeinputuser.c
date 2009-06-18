@@ -434,6 +434,7 @@ void close_input_image_file(APPLI_INFO * appli_info)
 void close_output_file(APPLI_INFO * appli_info)
 {
 	if (appli_info->output_file_fp != NULL) {
+		fflush(appli_info->output_file_fp);
 		fclose(appli_info->output_file_fp);
 		appli_info->output_file_fp = NULL;
 	}

@@ -99,6 +99,20 @@ shcodecs_encoder_input_provide (SHCodecs_Encoder * encoder,
 
 
 /**
+ * Get the user space pointer to the next input buffer.
+ * The byte sizes of these planes do not vary unless the image dimensions vary,
+ * and can be retrieved with shcodecs_encoder_get_y_bytes() and
+ * shcodecs_encoder_get_c_bytes().
+ * \param encoder The SHCodecs_Encoder* handle
+ * \param pp_y_input Address of the pointer to luma
+ * \param pp_c_input Address of the pointer to chroma
+ * \retval 0 Success
+ */
+int
+shcodecs_encoder_get_input_buf (SHCodecs_Encoder *encoder, 
+                                unsigned char **pp_y_input, unsigned char **pp_c_input);
+
+/**
  * Get the size in bytes of a Y plane of input data.
  * \param encoder The SHCodecs_Encoder* handle
  * \returns size in bytes of Y plane.
