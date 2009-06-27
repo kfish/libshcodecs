@@ -111,6 +111,21 @@ shcodecs_decode (SHCodecs_Decoder * decoder, unsigned char * data, int len);
  * Finalize decoding of a stream. This will flush any partial decode state,
  * which may result in a final frame being extracted. The previously
  * registered callback will be called if a complete frame is decoded.
+ * Note that previously generated frames will be referenced, so do not
+ * free any of the image buffers you were using for shcodecs_decode()
+ * before calling this function.
+ *
+ * finalize() generates the final frames after all input data has been read
+ * in. The reason the call exists is that the encoded data order is not
+ * necessarily the same as presentation order, so the frames are re-ordered.
+ * finalize() signals to the decoder that the re-ordering buffer should be
+ * flushed.
+ *
+ * The encoded data for most video frames is a description of the difference
+ * between this and previous video images, which is why it needs to
+ * reference the previously generated frames (both during normal decode and
+ * during finalization).
+ *
  * \param decoder The SHCodecs_Decoder* handle
  * \returns The number of final frames extracted by this call
  */
