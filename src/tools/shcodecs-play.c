@@ -169,7 +169,7 @@ static int display_flip(struct private_data *pvt)
 }
 
 
-static int display_open(struct private_data *pvt, char *device)
+static int display_open(struct private_data *pvt, const char *device)
 {
 	if ((pvt->fb_handle = open(device, O_RDWR)) < 0) {
 		fprintf(stderr, "Open %s: %s.\n", device, strerror(errno));
@@ -411,6 +411,7 @@ int main(int argc, char **argv)
 	int stream_type = SHCodecs_Format_H264;
 	int i, rc, bytes_decoded;
 	char c, video_filename[MAXPATHLEN];
+	const char *fbname;
 	struct timeval start, end, duration;
 	struct private_data pvt_data;
 	struct private_data *pvt;
@@ -424,8 +425,15 @@ int main(int argc, char **argv)
 	pvt = &pvt_data;
 
 	/* Initialize display */
-	if (!display_open(pvt, "/dev/fb")) {
-		fprintf(stderr, "Unable to initialise display\n");
+	fbname = getenv("FRAMEBUFFER");
+	if (!fbname) {
+		if (access("/dev/.devfsd", F_OK) == 0) {
+			fbname = "/dev/fb/0";
+		} else {
+			fbname = "/dev/fb0";
+		}
+	}
+	if (!display_open(pvt, fbname)) {
 		exit(-3);
 	}
 
