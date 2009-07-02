@@ -93,15 +93,15 @@ struct _SHCodecs_Encoder {
 	SHCodecs_Encoder_Output output;
 	void *output_user_data;
 
-        /* Internal encode error tracking */
-        long error_return_function;	/* ID of the API function when error ocuured *//* add at Version2 */
-        long error_return_code;	/* return_value of the API function when error ocuured *//* add at Version2 */
+	/* Internal encode error tracking */
+	long error_return_function;	/* ID of the API function when error ocuured *//* add at Version2 */
+	long error_return_code;	/* return_value of the API function when error ocuured *//* add at Version2 */
 
 	/* Internal */
-        int initialized; /* Is avcbe_encode_init() done? */
+	int initialized; /* Is avcbe_encode_init() done? */
 	int y_bytes; /* Bytes used by Y input plane; CbCr plane uses y_bytes/2 */
-        unsigned char * addr_y; /* VPU address to write next Y plane; updated by encoder backends */
-        unsigned char * addr_c; /* VPU address to write next C plane; updated by encoder backends */
+	unsigned char * addr_y; /* VPU address to write next Y plane; updated by encoder backends */
+	unsigned char * addr_c; /* VPU address to write next C plane; updated by encoder backends */
 
 	avcbe_stream_info *stream_info;
 	long frm; /* Current frame */
@@ -139,14 +139,14 @@ struct _SHCodecs_Encoder {
 	M4IPH_VPU4_INIT_OPTION vpu4_param;	/* parameters of VPU4 */
 	OTHER_API_ENC_PARAM other_API_enc_param;
 
-        /* MPEG-4 specific internals */
+	/* MPEG-4 specific internals */
 	avcbe_other_options_mpeg4 other_options_mpeg4;	/* parameters to control details */
 
-        /* H.264 specific internals */
-	TAVCBE_STREAM_BUFF my_stream_buff_info, my_extra_stream_buff_info;
-	TAVCBE_STREAM_BUFF my_sps_stream_buff_info;	/* for SPS */
-	TAVCBE_STREAM_BUFF my_pps_stream_buff_info;	/* for PPS */
-	TAVCBE_STREAM_BUFF my_sei_stream_buff_info;	/* for SEI */
+	/* H.264 specific internals */
+	TAVCBE_STREAM_BUFF my_stream_buff_info, aud_buf_info;
+	TAVCBE_STREAM_BUFF sps_buf_info;	/* for SPS */
+	TAVCBE_STREAM_BUFF pps_buf_info;	/* for PPS */
+	TAVCBE_STREAM_BUFF sei_buf_info;	/* for SEI */
 	TAVCBE_STREAM_BUFF my_filler_data_buff_info;	/* for FillerData(CPB  Buffer) */
 
 	unsigned long my_extra_stream_buff[16 / 4];
