@@ -114,7 +114,7 @@ output_data(SHCodecs_Encoder *enc, int type, void *buf, long length)
 int
 h264_encode_init (SHCodecs_Encoder *enc, long stream_type)
 {
-	long rc = 0;
+	long rc;
 
 	enc->error_return_code = 0;
 
@@ -133,7 +133,7 @@ h264_encode_init (SHCodecs_Encoder *enc, long stream_type)
 static int
 h264_encode_deferred_init(SHCodecs_Encoder *enc, long stream_type)
 {
-	long rc = 0;
+	long rc;
 	unsigned long nldecfmem;
 	unsigned char *addr_y, *addr_c;
 	TAVCBE_WORKAREA WORK_ARRY;
@@ -367,7 +367,7 @@ h264_encode_frame(SHCodecs_Encoder *enc, unsigned char *py, unsigned char *pc)
 
 		gettimeofday(&tv, NULL);
 
-		/* Encode the slice */
+		/* Encode the frame */
 		enc_rc = avcbe_encode_picture(enc->stream_info, enc->frm,
 					 AVCBE_ANY_VOP,
 					 AVCBE_OUTPUT_SLICE,
@@ -522,7 +522,7 @@ h264_encode(SHCodecs_Encoder *enc)
 			enc->addr_c = enc->CAPTF_ARRY[0].C_fmemp;
 			rc = enc->input(enc, enc->input_user_data);
 			if (rc < 0) {
-				fprintf (stderr, " %s: ERROR acquiring input image!\n", __func__);
+				fprintf (stderr, "%s: ERROR acquiring input image!\n", __func__);
 				enc->error_return_code = rc;
 				return rc;
 			}
@@ -553,7 +553,7 @@ h264_encode_run (SHCodecs_Encoder *enc, long stream_type)
 	if (rc != 0)
 		return rc;
 
-	/* The MPEG-4&H.264 Encoder Library API (required-9) End encoding */
+	/* End encoding */
 	end_code_buff_info.buff_top = (unsigned char *) &enc->my_end_code_buff[0];
 	end_code_buff_info.buff_size = MY_END_CODE_BUFF_SIZE;
 
