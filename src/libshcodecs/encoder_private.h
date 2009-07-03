@@ -105,6 +105,8 @@ struct _SHCodecs_Encoder {
 
 	avcbe_stream_info *stream_info;
 	long frm; /* Current frame */
+	long ldec;	/* Index to current working frame */
+	long ref1;	/* Index to reference frame */
 	long frame_skip_num; /* Number of frames skipped */
 	long frame_counter; /* The number of encoded frames */
 	long set_intra;	/* Forced intra-mode flag for m4vse_encode_picture function */
@@ -125,9 +127,6 @@ struct _SHCodecs_Encoder {
 	unsigned long *my_stream_buff_bak;
 	unsigned long *my_end_code_buff;
 	unsigned long *my_end_code_buff_bak;
-
-	char *dummy_nal_buf;
-	char *dummy_nal_buf_addr;
 
 	/* General encoder internals (general_accessors.c) */
 	long frame_number_to_encode;
@@ -155,12 +154,7 @@ struct _SHCodecs_Encoder {
 	unsigned long my_filler_data_buff[MY_FILLER_DATA_BUFF_SIZE / 4];	/* for FillerData */
 	unsigned long my_sei_stream_buff[MY_SEI_STREAM_BUFF_SIZE / 4];	/* for SEI */
 
-	long slice_total_size;
-	long tmp_pic_total_bytes;
 	avcbe_other_options_h264 other_options_h264;	/* parameters to control details */
-	unsigned long mb_num_of_picture;	/* total number of mb in picture */
-	unsigned long slice_mb_counter;	/* counter of mb_num_of_picture */
-	long SPS_PPS_header_bytes;	/* bytes of SPS and PPS */
 	unsigned char ref_frame_num;	/* »²¾È¥Õ¥ì¡¼¥à¿ô¡Ê1 or 2) (H.264¤Î¤ß¡Ë */
 	long output_filler_enable;	/* enable flag to put Filler Data for CPB Buffer Over *//* 050519 */
 	long output_filler_data;	/* for FillerData(CPB  Buffer) *//* add at Version2 */

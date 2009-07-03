@@ -87,8 +87,6 @@ set_VPU4_param(SHCodecs_Encoder * encoder)
 	// vpu4_param->m4iph_temporary_buff_size = MY_WORK_AREA_SIZE;
 	if (encoder->my_work_area == NULL) {
 		encoder->my_work_area = malloc(MY_WORK_AREA_SIZE);	/* 4 bytes alignment */
-		encoder->dummy_nal_buf = malloc(MY_DUMMY_NAL_BUFF_SIZE);
-		memset(encoder->dummy_nal_buf, 0, MY_DUMMY_NAL_BUFF_SIZE);
 #ifdef DEBUG
 		fprintf(stderr, "my_work_area=%pX\n", encoder->my_work_area);
 #endif
@@ -141,7 +139,7 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	long return_code;
         int i;
 
-	encoder = malloc(sizeof(SHCodecs_Encoder));
+	encoder = calloc(1, sizeof(SHCodecs_Encoder));
 	if (encoder == NULL)
 		return NULL;
 
@@ -166,9 +164,6 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	encoder->set_intra = AVCBE_ANY_VOP;
 	encoder->output_type = AVCBE_OUTPUT_NONE;
 
-	encoder->mb_num_of_picture = 0;
-	encoder->slice_mb_counter = 0;
-	encoder->SPS_PPS_header_bytes = 0;
 	encoder->output_filler_enable = 0;
 	encoder->output_filler_data = 0;
 
@@ -255,7 +250,6 @@ void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
 	free(encoder->my_work_area);
 	free(encoder->my_stream_buff_bak);
 	free(encoder->my_end_code_buff_bak);
-	free(encoder->dummy_nal_buf);
 
 	free(encoder);
 

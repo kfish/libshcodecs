@@ -31,12 +31,13 @@
 #include "avcbe.h"		/* SuperH MEPG-4&H.264 Video Encode Library Header */
 #include "m4iph_vpu4.h"		/* SuperH MEPG-4&H.264 Video Driver Library Header */
 #include "encoder_common.h"		/* User Application Sample Header */
+#include "m4driverif.h"
 
 #include "encoder_private.h"
 
 #define OUTPUT_ERROR_MSGS
-#define OUTPUT_INFO_MSGS
-//#define OUTPUT_STEAM_INFO
+//#define OUTPUT_INFO_MSGS
+//#define OUTPUT_STREAM_INFO
 
 #define NUM_LDEC_FRAMES 3
 
@@ -46,44 +47,26 @@ unsigned long m4iph_sleep_time_get(void);
 
 
 #ifdef OUTPUT_ERROR_MSGS
-/* Error messages */
-const char *vpu_err_txt[] = {
-	"",
-	"Parameter error",
-	"Parameter changed (maybe an error)",
-	"Function call made out of order",
-	"Output buffer too small",
-	"",
-	"VPU4 error",
-	"",
-	"Temporary buffer too small",
-	"VUI parameter not specified error",
-	"",
-	"Quant matrix not specified",
-};
-
+#define MSG_LEN 127
 static long
-vpu_err_msg(SHCodecs_Encoder *encoder, const char *func, int line, long rc)
+vpu_err(SHCodecs_Encoder *enc, const char *func, int line, long rc)
 {
-	long index = -rc;
-	if (index > 0 && index < 11) {
-		fprintf (stderr, " %s, line %d: returned %ld (%s)\n",
-				 func, line, rc, vpu_err_txt[index]);
-	} else if (rc == AVCBE_WORK_AREA_SHORT_ERROR) {	/* -99 */
-		fprintf (stderr, " %s: OTHER WORK SIZE SHORT ERROR!\n", func);
-	}
-	encoder->error_return_code = rc;
+	char msg[MSG_LEN+1];
+	msg[MSG_LEN] = 0;
+	snprintf(msg, MSG_LEN, "%s, line %d: returned %ld", func, line, rc);
+	m4iph_avcbd_perror(msg, rc);
+	enc->error_return_code = rc;
 	return rc;
 }
 #else
-#define vpu_err_msg(encoder, func, line, rc) (rc)
+#define vpu_err(enc, func, line, rc) (rc)
 #endif
 
 
 #ifdef OUTPUT_INFO_MSGS
 /* Information messages */
-const char *vpu_info_txt[] = {
-	"Sucess",
+static const char *vpu_info_txt[] = {
+	"Success",
 	"Frame skipped",
 	"Empty VOP has been output",
 	"",
@@ -94,157 +77,135 @@ const char *vpu_info_txt[] = {
 };
 
 static void
-vpu_info_msg(SHCodecs_Encoder *encoder, const char *func, int line, long frm, long rc)
+vpu_info_msg(SHCodecs_Encoder *enc, const char *func, int line, long frm, long rc)
 {
 	if (rc > 0 && rc < 8) {
-		fprintf (stderr, " %s, line %d: returned %ld (%s) frm=%d,seq_no=%d\n",
-				func, line, rc, vpu_info_txt[rc],
-				(int) frm,
-				(int) encoder->frame_counter);
+		fprintf (stderr, "%s, line %d: returned %ld (%s) frm=%d,seq_no=%d\n",
+			func, line, rc, vpu_info_txt[rc],
+			(int) frm,
+			(int) enc->frame_counter);
 	}
 } 
 #else
-#define vpu_info_msg(encoder, func, line, rc)
+#define vpu_info_msg(encoder, func, line, frm, rc)
 #endif
 
 
-enum {SEI, SPS, PPS, AUD, DATA, FILL, END};
-#ifdef OUTPUT_STEAM_INFO
-static const char*data_name[] = {"SEI", "SPS", "PPS", "AUD", "DATA", "FILL", "END"};
+enum {SEI, SPS, PPS, AUD, IDATA, PDATA, FILL, END};
+#ifdef OUTPUT_STREAM_INFO
+static const char*data_name[] =
+	{"SEI", "SPS", "PPS", "AUD", "I", "P", "FILL", "END"};
 #endif
 
 static void
-output_data(SHCodecs_Encoder *encoder, int type, void *buf, long length)
+output_data(SHCodecs_Encoder *enc, int type, void *buf, long length)
 {
-#ifdef OUTPUT_STEAM_INFO
-	fprintf (stderr, "output %s (%d bytes)\n", data_name[type], length);
+#ifdef OUTPUT_STREAM_INFO
+	fprintf (stderr, "output %s (%d bytes)\n", data_name[type], (int)length);
 #endif
-	if (encoder->output) {
-		encoder->output(encoder,
-				(unsigned char *)buf, length,
-				encoder->output_user_data);
+	if (enc->output) {
+		enc->output(enc,
+			(unsigned char *)buf, length,
+			enc->output_user_data);
 	}
 }
 
 
 int
-h264_encode_init (SHCodecs_Encoder *encoder, long stream_type)
+h264_encode_init (SHCodecs_Encoder *enc, long stream_type)
 {
-	long return_code = 0;
+	long rc = 0;
 
-	encoder->error_return_code = 0;
-	encoder->slice_total_size = 0;
-	encoder->tmp_pic_total_bytes = 0;
+	enc->error_return_code = 0;
 
-	/* The MPEG-4 Encoder Library API(required-2) Start encoding */
-	/* needs be called only once */
 	avcbe_start_encoding();
 
-	/* The MPEG-4&H.264 Encoder Library API(required-3)
-	   Set default values for the parameters */
-	/* can be called only once or for the number of streams */
-	return_code =
-	    avcbe_set_default_param(stream_type, AVCBE_RATE_NORMAL,
-				    &(encoder->encoding_property),
-				    (void *)&(encoder->other_options_h264));
-	if (return_code != 0) {
-		return vpu_err_msg(encoder, __func__, __LINE__, return_code);
-	}
+	/* Set default values for the parameters */
+	rc = avcbe_set_default_param(stream_type, AVCBE_RATE_NORMAL,
+				    &(enc->encoding_property),
+				    (void *)&(enc->other_options_h264));
+	if (rc != 0)
+		return vpu_err(enc, __func__, __LINE__, rc);
 
 	return 0;
 }
 
 static int
-h264_encode_deferred_init(SHCodecs_Encoder *encoder, long stream_type)
+h264_encode_deferred_init(SHCodecs_Encoder *enc, long stream_type)
 {
-	long return_code = 0;
+	long rc = 0;
 	unsigned long nldecfmem;
 	unsigned char *addr_y, *addr_c;
-	TAVCBE_WORKAREA WORK_ARRY[2];
+	TAVCBE_WORKAREA WORK_ARRY;
 	long area_width, area_height;
 	int i;
 	avcbe_other_options_h264 *options;
 
-	/* The MPEG-4&H.264 Encoder Library API(required-4)
-	   Initialize the variables */
-	WORK_ARRY[0].area_size = MY_WORK_AREA_SIZE;
-	WORK_ARRY[0].area_top = (unsigned char *) encoder->my_work_area;
+	/* Initialize VPU parameters & local frame memory */
+	WORK_ARRY.area_size = MY_WORK_AREA_SIZE;
+	WORK_ARRY.area_top = (unsigned char *) enc->my_work_area;
 
-#ifndef VPU4IP
-	WORK_ARRY[1].area_size = MY_MB_WORK_AREA_SIZE;
-	WORK_ARRY[1].area_top = (unsigned char *) my_mb_work_area;
-#else
-	WORK_ARRY[1].area_size = 0;
-	WORK_ARRY[1].area_top = (unsigned char *) NULL;
-#endif /* VPU4IP */
-
-	options = &encoder->other_options_h264;
+	options = &enc->other_options_h264;
 
 	if (options->avcbe_ratecontrol_cpb_buffer_mode == AVCBE_MANUAL) {
 		options->avcbe_ratecontrol_cpb_offset = (unsigned long)
-		    avcbe_calc_cpb_buff_offset(encoder->encoding_property.avcbe_bitrate,
+		    avcbe_calc_cpb_buff_offset(enc->encoding_property.avcbe_bitrate,
 		     	(options->avcbe_ratecontrol_cpb_max_size *
 				 options->avcbe_ratecontrol_cpb_buffer_unit_size),
 				90);
 	}
-	return_code =
-	    avcbe_init_encode(&(encoder->encoding_property),
-				&(encoder->paramR),
+	rc = avcbe_init_encode(&(enc->encoding_property),
+				&(enc->paramR),
 				options,
 				(avcbe_buf_continue_userproc_ptr) NULL,
-				&WORK_ARRY[0], &WORK_ARRY[1], &encoder->stream_info);
-	if (return_code < 0) {
-		return vpu_err_msg(encoder, __func__, __LINE__, return_code);
-	}
+				&WORK_ARRY, NULL, &enc->stream_info);
+	if (rc < 0)
+		return vpu_err(enc, __func__, __LINE__, rc);
+
 	nldecfmem = 2;
 
-	/* make size multiples of 16 */
-	area_width = ((encoder->width + 15) / 16) * 16;
-	area_height = ((encoder->height + 15) / 16) * 16;
+	/* Make size multiples of 16 */
+	area_width = ((enc->width + 15) / 16) * 16;
+	area_height = ((enc->height + 15) / 16) * 16;
 
 	/* Local decode images */
-	encoder->LDEC_ARRY[0].Y_fmemp = (unsigned char *) &encoder->my_frame_memory_ldec1[0];
-	encoder->LDEC_ARRY[1].Y_fmemp = (unsigned char *) &encoder->my_frame_memory_ldec2[0];
-	encoder->LDEC_ARRY[2].Y_fmemp = (unsigned char *) &encoder->my_frame_memory_ldec3[0];
+	enc->LDEC_ARRY[0].Y_fmemp = (unsigned char *) &enc->my_frame_memory_ldec1[0];
+	enc->LDEC_ARRY[1].Y_fmemp = (unsigned char *) &enc->my_frame_memory_ldec2[0];
+	enc->LDEC_ARRY[2].Y_fmemp = (unsigned char *) &enc->my_frame_memory_ldec3[0];
 	for (i=0; i<NUM_LDEC_FRAMES; i++) {
-		encoder->LDEC_ARRY[i].C_fmemp = encoder->LDEC_ARRY[i].Y_fmemp + (area_width * area_height);
+		enc->LDEC_ARRY[i].C_fmemp =
+			enc->LDEC_ARRY[i].Y_fmemp + (area_width * area_height);
 	}
 
-	/* The MPEG-4&H.264 Encoder Library API(required-5)
-	   Specify the address in the image-work-field area */
-	return_code =
-	    avcbe_init_memory(encoder->stream_info,
-				encoder->ref_frame_num,
-				nldecfmem, encoder->LDEC_ARRY,
+	rc = avcbe_init_memory(enc->stream_info,
+				enc->ref_frame_num,
+				nldecfmem, enc->LDEC_ARRY,
 				area_width, area_height);
-	if (return_code != 0) {
-		return vpu_err_msg(encoder, __func__, __LINE__, return_code);
-	}
+	if (rc != 0)
+		return vpu_err(enc, __func__, __LINE__, rc);
 
-	/* Start address of the image-capture-field area must be arranged in 32 bytes alignment. */
-	/* And, this area must be arranged in non-cacheable space. */
-	addr_y = (unsigned char *)encoder->my_frame_memory_capt[0];
+	/* Input buffer */
+	addr_y = (unsigned char *)enc->my_frame_memory_capt[0];
 	addr_c = addr_y + (area_width * area_height);
+	enc->CAPTF_ARRY[0].Y_fmemp = addr_y;
+	enc->CAPTF_ARRY[0].C_fmemp = addr_c;
 
-	/* Capture-image */
-	encoder->CAPTF_ARRY[0].Y_fmemp = addr_y;
-	encoder->CAPTF_ARRY[0].C_fmemp = addr_c;
+	enc->initialized = 1;
 
-	encoder->initialized = 1;
-
-	return (0);
+	return 0;
 }
 
 /* returns 0 on success */
 static long
-h264_output_SEI_parameters(SHCodecs_Encoder *encoder)
+h264_output_SEI_parameters(SHCodecs_Encoder *enc)
 {
-	OTHER_API_ENC_PARAM *params = &encoder->other_API_enc_param;
+	OTHER_API_ENC_PARAM *params = &enc->other_API_enc_param;
 	long return_value = 0;
 	long length;
 	int num_sei_msgs;
 	int i;
 
+	/* H.264 Spec: The buffer period SEI message is the first SEI NAL unit */
 	char sei_msg[] = {
 		params->out_buffering_period_SEI,
 		params->out_pic_timing_SEI,
@@ -269,41 +230,41 @@ h264_output_SEI_parameters(SHCodecs_Encoder *encoder)
 
 	num_sei_msgs = sizeof(sei_msg);
 
-	/* output SEI parameters */
+	/* Output SEI parameters */
 	for (i=0; i<num_sei_msgs; i++)
 	{
 		if (sei_msg[i] == AVCBE_ON) {
 			length = avcbe_put_SEI_parameters(
-						encoder->stream_info,
+						enc->stream_info,
 						sei_arg1[i],
 						sei_arg2[i],
-						&(encoder->sei_buf_info));
+						&(enc->sei_buf_info));
 
 			if (length > 0) {
-				output_data(encoder, SEI, encoder->sei_buf_info.buff_top, length);
+				output_data(enc, SEI,
+					enc->sei_buf_info.buff_top, length);
 			} else {
-				vpu_err_msg(encoder, __func__, __LINE__, length);
+				vpu_err(enc, __func__, __LINE__, length);
 				return_value |= (0x1 << i);
 			}
 		}
 	}
 
-	return (return_value);
+	return return_value;
 }
 
 static long
-setup_veu_params(SHCodecs_Encoder *encoder)
+setup_veu_params(SHCodecs_Encoder *enc)
 {
 	avcbe_vui_main_param *vui_param;
-	long return_code, length;
+	long rc, length;
 
-	vui_param = &encoder->other_API_enc_param.vui_main_param;
+	vui_param = &enc->other_API_enc_param.vui_main_param;
 
-	/* get the size of CPB-buffer to set 'cpb_size_scale' of HRD */
-	length = avcbe_get_cpb_buffer_size(encoder->stream_info);
-	if (length <= 0) {
-		return vpu_err_msg(encoder, __func__, __LINE__, length);
-	}
+	/* Get the size of CPB-buffer to set 'cpb_size_scale' of HRD */
+	length = avcbe_get_cpb_buffer_size(enc->stream_info);
+	if (length <= 0)
+		return vpu_err(enc, __func__, __LINE__, length);
 
 	if (vui_param->avcbe_nal_hrd_parameters_present_flag == AVCBE_ON) {
 		vui_param->avcbe_nal_hrd_param.avcbe_cpb_size_scale = length;
@@ -311,499 +272,302 @@ setup_veu_params(SHCodecs_Encoder *encoder)
 		vui_param->avcbe_vcl_hrd_param.avcbe_cpb_size_scale = length;
 	}
 
-	return_code = avcbe_set_VUI_parameters(encoder->stream_info, vui_param);
-	if (return_code != 0) {
-		return vpu_err_msg(encoder, __func__, __LINE__, return_code);
-	}
+	rc = avcbe_set_VUI_parameters(enc->stream_info, vui_param);
+	if (rc != 0)
+		return vpu_err(enc, __func__, __LINE__, rc);
+
 	return 0;
 }
 
 /* Get SPS & PPS data, but do not output it */
 static long
-h264_encode_sps_pps(SHCodecs_Encoder *encoder, avcbe_slice_stat *slice_stat, long frm)
+h264_encode_sps_pps(SHCodecs_Encoder *enc, avcbe_slice_stat *slice_stat, long frm)
 {
-	long return_code;
+	long rc;
 
 	/* SPS data */
-	return_code = avcbe_encode_picture(
-					encoder->stream_info, frm,
-					AVCBE_ANY_VOP,
-					AVCBE_OUTPUT_SPS,
-					&encoder->sps_buf_info,
-					NULL);
-	if (return_code != AVCBE_SPS_OUTPUTTED) {
-		return vpu_err_msg(encoder, __func__, __LINE__, return_code);
-	}
+	rc = avcbe_encode_picture(
+				enc->stream_info, frm,
+				AVCBE_ANY_VOP,
+				AVCBE_OUTPUT_SPS,
+				&enc->sps_buf_info,
+				NULL);
+	if (rc != AVCBE_SPS_OUTPUTTED)
+		return vpu_err(enc, __func__, __LINE__, rc);
 
-	/* get the size */
-	avcbe_get_last_slice_stat(encoder->stream_info, slice_stat);
+	/* Get the size */
+	avcbe_get_last_slice_stat(enc->stream_info, slice_stat);
 
 
 	/* PPS data */
-	return_code = avcbe_encode_picture(
-					encoder->stream_info, frm,
-					AVCBE_ANY_VOP,
-					AVCBE_OUTPUT_PPS,
-					&encoder->pps_buf_info,
-					NULL);
-	if (return_code != AVCBE_PPS_OUTPUTTED) {
-		return vpu_err_msg(encoder, __func__, __LINE__, return_code);
-	}
+	rc = avcbe_encode_picture(
+				enc->stream_info, frm,
+				AVCBE_ANY_VOP,
+				AVCBE_OUTPUT_PPS,
+				&enc->pps_buf_info,
+				NULL);
+	if (rc != AVCBE_PPS_OUTPUTTED)
+		return vpu_err(enc, __func__, __LINE__, rc);
 
-	/* get the size */
-	avcbe_get_last_slice_stat(encoder->stream_info, slice_stat);
+	/* Get the size */
+	avcbe_get_last_slice_stat(enc->stream_info, slice_stat);
 
 	return 0;
 }
 
-/*----------------------------------------------------------------------*/
-/* Encode by 1 picture unit without/with using slice division for H.264 */
-/*----------------------------------------------------------------------*/
+/* Encode a whole frame for H.264 */
 static long
-h264_encode_picture_unit(SHCodecs_Encoder *encoder, long stream_type)
+h264_encode_frame(SHCodecs_Encoder *enc, unsigned char *py, unsigned char *pc)
 {
-	unsigned long ldec, ref1, ref2;
-	long streamsize_per_frame;
-	long return_code;
-	long frm;
-	unsigned long *addr_y, *addr_c;
-	long i;
+	long rc, enc_rc;
 	avcbe_slice_stat slice_stat;
+	TAVCBE_FMEM input_buf;
 	TAVCBE_STREAM_BUFF *extra_stream_buff;
+	char pic_type;
 	struct timeval tv, tv1;
 	long tm;
+	int start_of_frame;
+	long nal_size;
 
-	addr_y = (unsigned long *) encoder->CAPTF_ARRY[0].Y_fmemp;
-	addr_c = (unsigned long *) encoder->CAPTF_ARRY[0].C_fmemp;
+	start_of_frame = 1;
 
-	/* Setup VUI parameters */
-	if (encoder->other_options_h264.avcbe_out_vui_parameters == AVCBE_ON) {
-		return_code = setup_veu_params(encoder);
-		if (return_code != 0) {
-			return (-113);
-		}
+	input_buf.Y_fmemp = py;
+	input_buf.C_fmemp = pc;
+	extra_stream_buff = &enc->aud_buf_info;
+
+	/* Specify the input frame address */
+	rc = avcbe_set_image_pointer(enc->stream_info,
+				    &input_buf, enc->ldec, enc->ref1, 0);
+	if (rc != 0)
+		return vpu_err(enc, __func__, __LINE__, rc);
+
+	/* Encode SPS and PPS for 1st frame */
+	if (enc->frame_counter == 0) {
+		rc = h264_encode_sps_pps(enc, &slice_stat, enc->frm);
+		if (rc != 0)
+			return rc;
 	}
 
-	ldec = 0;		/* Index number of the image-work-field area (0 to N-1) (for avcbe_set_image */
-	ref1 = ref2 = 0;
-	frm = 0;		/* Frame number to be encoded (for avcbe_encode_picture function) */
-	encoder->frame_counter = 0;
-	encoder->frame_skip_num = 0;
-	encoder->slice_mb_counter = 0;
-	encoder->mb_num_of_picture = 0;
+#ifdef OUTPUT_STREAM_INFO
+	fprintf(stderr, "\nFrame %d:\n", enc->frame_counter);
+#endif
 
-	/* stream output buffer */
-	encoder->my_stream_buff_info.buff_top = (unsigned char *) &encoder->my_stream_buff[0];
-	encoder->my_stream_buff_info.buff_size = MY_STREAM_BUFF_SIZE;
-
-	/* Access Unit Delimiter (AUD) output buffer */
-	encoder->aud_buf_info.buff_top = (unsigned char *) &encoder->my_extra_stream_buff[0];
-	encoder->aud_buf_info.buff_size = 16;
-	extra_stream_buff = &encoder->aud_buf_info;
-
-	/* SPS output buffer */
-	encoder->sps_buf_info.buff_top = ALIGN(&encoder->my_sps_stream_buff[0], 32);
-	encoder->sps_buf_info.buff_size = MY_SPS_STREAM_BUFF_SIZE;
-
-	/* PPS output buffer */
-	encoder->pps_buf_info.buff_top = ALIGN(&encoder->my_pps_stream_buff[0], 32);
-	encoder->pps_buf_info.buff_size = MY_PPS_STREAM_BUFF_SIZE;
-
-	/* SEI output buffer */
-	encoder->sei_buf_info.buff_top = (unsigned char *) &encoder->my_sei_stream_buff[0];
-	encoder->sei_buf_info.buff_size = MY_SEI_STREAM_BUFF_SIZE;
-
-	/* Filler Data output buffer */
-	encoder->my_filler_data_buff_info.buff_top = (unsigned char *) &encoder->my_filler_data_buff[0];
-	encoder->my_filler_data_buff_info.buff_size = MY_FILLER_DATA_BUFF_SIZE;
-
-
-	/*--------------------- Repeating by frame numbers --------------------------*/
-	while (encoder->frame_counter < encoder->frame_number_to_encode) {
+	/* Continue encoding until a frame has been encoded or skipped */
+	while (1) {
 
 		/* Reset the amount of filler data used */	
-		encoder->output_filler_data = 0;
+		enc->output_filler_data = 0;
 
-		/* Encode SPS and PPS for 1st frame */
-		if (encoder->frame_counter == 0) {
-			return_code = h264_encode_sps_pps(encoder, &slice_stat, frm);
-			if (return_code != 0) {
-				return return_code;
-			}
-		}
-
-		/* output SEI data (if AU delimiter is NOT used) */
+		/* Output SEI data (if AU delimiter is NOT used) */
 		if (extra_stream_buff == NULL) {
-			h264_output_SEI_parameters(encoder);
-		}
-
-		/* Get the encoder input frame */
-		if (encoder->input) {
-			encoder->addr_y = (unsigned char *)addr_y;
-			encoder->addr_c = (unsigned char *)addr_c;
-			return_code = encoder->input(encoder, encoder->input_user_data);
-			if (return_code < 0) {
-				fprintf (stderr, " %s: ERROR acquiring input image!\n", __func__);
-				encoder->error_return_code = return_code;
-				return (-108);
-			}
-		}
-
-		/* The MPEG-4 Encoder Library API(required-7)
-		   Specify the input frame address */
-		return_code = avcbe_set_image_pointer(encoder->stream_info,
-						&encoder->CAPTF_ARRY[0], ldec, ref1, ref2);
-		if (return_code != 0) {
-			return vpu_err_msg(encoder, __func__, __LINE__, return_code);
+			rc = h264_output_SEI_parameters(enc);
+			if (rc != 0)
+				return rc;
 		}
 
 		gettimeofday(&tv, NULL);
 
-		/* The MPEG-4 Encoder Library API (required-8)
-		   Encode each frame */
-		return_code =
-		    avcbe_encode_picture(encoder->stream_info, frm,
+		/* Encode the slice */
+		enc_rc = avcbe_encode_picture(enc->stream_info, enc->frm,
 					 AVCBE_ANY_VOP,
 					 AVCBE_OUTPUT_SLICE,
-					 &encoder->my_stream_buff_info,
+					 &enc->my_stream_buff_info,
 					 extra_stream_buff);
 		gettimeofday(&tv1, NULL);
 		tm = (tv1.tv_usec - tv.tv_usec) / 1000;
-		if (tm < 0) {
+		if (tm < 0)
 			tm = 1000 - (tv.tv_usec - tv1.tv_usec) / 1000;
-		}
 		encode_time += tm;
 
-		if (return_code < 0) {
-			return vpu_err_msg(encoder, __func__, __LINE__, return_code);
+		if (enc_rc < 0)
+			return vpu_err(enc, __func__, __LINE__, enc_rc);
+		vpu_info_msg(enc, __func__, __LINE__, enc->frm, enc_rc);
+
+		if (enc_rc == AVCBE_FRAME_SKIPPED) {
+			enc->frame_skip_num++;
 		}
-		vpu_info_msg(encoder, __func__, __LINE__, frm, return_code);
+		if ((enc_rc == AVCBE_SLICE_REMAIN)
+		    || (enc_rc == AVCBE_ENCODE_SUCCESS)) {
 
-		/* get the information about the just encoded frame (slice) */
-		avcbe_get_last_slice_stat(encoder->stream_info, &slice_stat);
-		encoder->slice_mb_counter = slice_stat.avcbe_encoded_MB_num;
-		encoder->mb_num_of_picture = slice_stat.avcbe_total_MB_in_frame;
+			/* Get the information about the encoded slice */
+			avcbe_get_last_slice_stat(enc->stream_info, &slice_stat);
+			nal_size = (slice_stat.avcbe_encoded_slice_bits + 7) / 8;
+			pic_type = slice_stat.avcbe_encoded_pic_type;
 
-		if (return_code == AVCBE_FRAME_SKIPPED) {
-			encoder->frame_skip_num++;
-		}
-		else if (return_code == AVCBE_ENCODE_SUCCESS) {
-			/* 1 picture unit */
-			if (ldec == 0) {
-				ldec = 1;
-				ref1 = 0;
-			} else {
-				ldec = 0;
-				ref1 = 1;
-			}
-
-			/* output AU delimiter */
-			if (extra_stream_buff != NULL) {
-				output_data(encoder, AUD, &encoder->my_extra_stream_buff[0],
-				            slice_stat.avcbe_AU_unit_bytes);
-			}
-
-			/* If the type is IDR-picture, encode SPS and PPS data (for 2nd frame and later) */
-			if ((encoder->frame_counter > 0)
-			    && (slice_stat.avcbe_encoded_pic_type == AVCBE_IDR_PIC)) {
-				return_code = h264_encode_sps_pps(encoder, &slice_stat, frm);
-				if (return_code != 0) {
-					return return_code;
+			if (start_of_frame) {
+				/* Output AU delimiter */
+				if (extra_stream_buff != NULL) {
+					output_data(enc, AUD, enc->aud_buf_info.buff_top,
+						slice_stat.avcbe_AU_unit_bytes);
 				}
-			}
-			/* output SPS data and PPS data */
-			output_data(encoder, SPS, encoder->sps_buf_info.buff_top,
-			            slice_stat.avcbe_SPS_unit_bytes);
-			output_data(encoder, PPS, encoder->pps_buf_info.buff_top,
-			            slice_stat.avcbe_PPS_unit_bytes);
 
-			/* output SEI parameter */
-			h264_output_SEI_parameters(encoder);
+				/* If the type is IDR-picture, encode SPS and PPS data (after 1st frame) */
+				if ((enc->frame_counter > 0)
+				     && (pic_type == AVCBE_IDR_PIC)) {
+					rc = h264_encode_sps_pps(enc, &slice_stat, enc->frm);
+					if (rc != 0)
+						return rc;
+				}
+				if ((enc->frame_counter == 0)
+				    || (pic_type == AVCBE_IDR_PIC)) {
+					/* output SPS data and PPS data */
+					output_data(enc, SPS, enc->sps_buf_info.buff_top,
+						slice_stat.avcbe_SPS_unit_bytes);
+					output_data(enc, PPS, enc->pps_buf_info.buff_top,
+						slice_stat.avcbe_PPS_unit_bytes);
+				}
 
-			/* output Filler data (if CPB Buffer overflow) */
-			if ((encoder->output_filler_enable == 1)
-			    && (encoder->output_filler_data > 0)) {
-				output_data(encoder, FILL, &encoder->my_filler_data_buff[0], encoder->output_filler_data);
+				/* output SEI parameter */
+				rc = h264_output_SEI_parameters(enc);
+				if (rc != 0)
+					return rc;
+
+				/* output Filler data (if CPB Buffer overflow) */
+				if ((enc->output_filler_enable == 1)
+				    && (enc->output_filler_data > 0)) {
+					output_data(enc, FILL,
+						enc->my_filler_data_buff_info.buff_top,
+						enc->output_filler_data);
+				}
+
+				start_of_frame = 0;
 			}
 
 			/* Output slice data */
-			streamsize_per_frame = ((slice_stat.avcbe_encoded_slice_bits + 7) / 8);
-			output_data(encoder, DATA, &encoder->my_stream_buff[0], streamsize_per_frame);
+			if ((pic_type == AVCBE_IDR_PIC)
+			    || (pic_type == AVCBE_I_PIC)) {
+				output_data(enc, IDATA,
+					enc->my_stream_buff_info.buff_top, nal_size);
+			} else {
+				output_data(enc, PDATA,
+					enc->my_stream_buff_info.buff_top, nal_size);
+			}
+		}
 
-		} /* if (return_code == AVCBE_ENCODE_SUCCESS) */
+	
+		/* End of a frame? */
+		if (enc_rc == AVCBE_ENCODE_SUCCESS) {	
+			/* Switch the indexes to the reference and locally decoded frames */
+			if (enc->ldec == 0) {
+				enc->ldec = 1;
+				enc->ref1 = 0;
+			} else {
+				enc->ldec = 0;
+				enc->ref1 = 1;
+			}
+		}
 
-		frm += encoder->frame_no_increment;
-		encoder->frame_counter++;
+		if ((enc_rc == AVCBE_FRAME_SKIPPED)
+		    || (enc_rc == AVCBE_ENCODE_SUCCESS)) {
+			/* Move to next input frame */
+			enc->frm += enc->frame_no_increment;
+			enc->frame_counter++;
+			break;
+		}
 
 	} /* while */
-	/*---------------------- End of repeating by frame numbers -----------------------------*/
 
-	return (0);
+	return 0;
 }
 
-/*------------------------------*/
-/* Encode by NAL unit for H.264 */
-/*------------------------------*/
 static long
-h264_encode_nal_unit(SHCodecs_Encoder *encoder, long stream_type)
+h264_encode(SHCodecs_Encoder *enc)
 {
-	unsigned long ldec, ref1, ref2;
-	long tmp_slice_size;
-	long return_code;
-	long frm;
-	unsigned long *addr_y, *addr_c;
-	avcbe_slice_stat slice_stat;
-	TAVCBE_STREAM_BUFF *extra_stream_buff;
-	struct timeval tv, tv1;
-	long tm;
-
-	addr_y = (unsigned long *) encoder->CAPTF_ARRY[0].Y_fmemp;
-	addr_c = (unsigned long *) encoder->CAPTF_ARRY[0].C_fmemp;
+	long rc;
 
 	/* Setup VUI parameters */
-	if (encoder->other_options_h264.avcbe_out_vui_parameters == AVCBE_ON) {
-		return_code = setup_veu_params(encoder);
-		if (return_code != 0) {
-			return (-113);
-		}
+	if (enc->other_options_h264.avcbe_out_vui_parameters == AVCBE_ON) {
+		rc = setup_veu_params(enc);
+		if (rc != 0)
+			return rc;
 	}
 
-	ldec = 0;		/* Index number of the image-work-field area (0 to N-1) (for avcbe_set_image_pointer function) */
-	ref1 = ref2 = 0;
-	frm = 0;		/* Frame number to be encoded (for avcbe_encode_picture function) */
+	enc->ldec = 0;		/* Index number of the image-work-field area */
+	enc->ref1 = 0;
+	enc->frm = 0;		/* Frame number to be encoded */
 
-	encoder->frame_counter = 0;
-	encoder->frame_skip_num = 0;
-	encoder->slice_mb_counter = 0;
-	encoder->mb_num_of_picture = 0;
+	enc->frame_counter = 0;
+	enc->frame_skip_num = 0;
 
 	/* stream output buffer */
-	encoder->my_stream_buff_info.buff_top = (unsigned char *) &encoder->my_stream_buff[0];
-	encoder->my_stream_buff_info.buff_size = MY_STREAM_BUFF_SIZE;
+	enc->my_stream_buff_info.buff_top = (unsigned char *) &enc->my_stream_buff[0];
+	enc->my_stream_buff_info.buff_size = MY_STREAM_BUFF_SIZE;
 
 	/* Access Unit Delimiter (AUD) output buffer */
-	encoder->aud_buf_info.buff_top = (unsigned char *) &encoder->my_extra_stream_buff[0];
-	encoder->aud_buf_info.buff_size = 16;
-	extra_stream_buff = &encoder->aud_buf_info;
+	enc->aud_buf_info.buff_top = (unsigned char *) &enc->my_extra_stream_buff[0];
+	enc->aud_buf_info.buff_size = 16;
 
 	/* SPS output buffer */
-	encoder->sps_buf_info.buff_top = ALIGN(&encoder->my_sps_stream_buff[0], 32);
-	encoder->sps_buf_info.buff_size = MY_SPS_STREAM_BUFF_SIZE;
+	enc->sps_buf_info.buff_top = ALIGN(&enc->my_sps_stream_buff[0], 32);
+	enc->sps_buf_info.buff_size = MY_SPS_STREAM_BUFF_SIZE;
 
 	/* PPS output buffer */
-	encoder->pps_buf_info.buff_top = ALIGN(&encoder->my_pps_stream_buff[0], 32);
-	encoder->pps_buf_info.buff_size = MY_PPS_STREAM_BUFF_SIZE;
+	enc->pps_buf_info.buff_top = ALIGN(&enc->my_pps_stream_buff[0], 32);
+	enc->pps_buf_info.buff_size = MY_PPS_STREAM_BUFF_SIZE;
 
 	/* SEI output buffer */
-	encoder->sei_buf_info.buff_top = (unsigned char *) &encoder->my_sei_stream_buff[0];
-	encoder->sei_buf_info.buff_size = MY_SEI_STREAM_BUFF_SIZE;
+	enc->sei_buf_info.buff_top = (unsigned char *) &enc->my_sei_stream_buff[0];
+	enc->sei_buf_info.buff_size = MY_SEI_STREAM_BUFF_SIZE;
 
 	/* Filler Data output buffer */
-	encoder->my_filler_data_buff_info.buff_top = (unsigned char *) &encoder->my_filler_data_buff[0];
-	encoder->my_filler_data_buff_info.buff_size = MY_FILLER_DATA_BUFF_SIZE;
+	enc->my_filler_data_buff_info.buff_top = (unsigned char *) &enc->my_filler_data_buff[0];
+	enc->my_filler_data_buff_info.buff_size = MY_FILLER_DATA_BUFF_SIZE;
 
-	encoder->dummy_nal_buf_addr = encoder->dummy_nal_buf;
+	/* For all frames to encode */
+	while (enc->frame_counter < enc->frame_number_to_encode) {
 
-	/*--------------------- Repeating by frame numbers --------------------------*/
-	while (encoder->frame_counter < encoder->frame_number_to_encode) {
-
-		/* Reset the amount of filler data used */	
-		encoder->output_filler_data = 0;
-
-		/* Encode SPS and PPS for 1st frame */
-		if (encoder->frame_counter == 0) {
-			return_code = h264_encode_sps_pps(encoder, &slice_stat, frm);
-			if (return_code != 0) {
-				return return_code;
+		/* Get the encoder input frame */
+		if (enc->input) {
+			enc->addr_y = enc->CAPTF_ARRY[0].Y_fmemp;
+			enc->addr_c = enc->CAPTF_ARRY[0].C_fmemp;
+			rc = enc->input(enc, enc->input_user_data);
+			if (rc < 0) {
+				fprintf (stderr, " %s: ERROR acquiring input image!\n", __func__);
+				enc->error_return_code = rc;
+				return rc;
 			}
 		}
 
-		/* output SEI data (if AU delimiter is NOT used) */
-		if (extra_stream_buff == NULL) {
-		    h264_output_SEI_parameters(encoder);
-		}
+		/* Encode the frame */
+		rc = h264_encode_frame(enc, enc->addr_y, enc->addr_c);
+		if (rc != 0)
+			return rc;
+	}
 
-		/* Start of a new frame? */
-		if (encoder->slice_mb_counter == 0) {
-
-			/* Get the encoder input frame */
-			if (encoder->input) {
-				encoder->addr_y = (unsigned char *)addr_y;
-				encoder->addr_c = (unsigned char *)addr_c;
-				return_code = encoder->input(encoder, encoder->input_user_data);
-				if (return_code < 0) {
-					fprintf (stderr, " %s: ERROR acquiring input image!\n", __func__);
-					encoder->error_return_code = return_code;
-					return (-108);
-				}
-			}
-
-			/* Tell the middleware about the new input buffer */
-			return_code = avcbe_set_image_pointer(encoder->stream_info,
-						    &encoder->CAPTF_ARRY[0], ldec, ref1, ref2);
-			if (return_code != 0) {
-				return vpu_err_msg(encoder, __func__, __LINE__, return_code);
-			}
-		}
-
-		gettimeofday(&tv, NULL);
-
-		/* output slice header and slice data */
-		return_code =
-		    avcbe_encode_picture(encoder->stream_info, frm,
-					 AVCBE_ANY_VOP,
-					 AVCBE_OUTPUT_SLICE,
-					 &encoder->my_stream_buff_info,
-					 extra_stream_buff);
-		gettimeofday(&tv1, NULL);
-		tm = (tv1.tv_usec - tv.tv_usec) / 1000;
-		if (tm < 0) {
-			tm = 1000 - (tv.tv_usec - tv1.tv_usec) / 1000;
-		}
-		encode_time += tm;
-
-		if (return_code < 0) {
-			return vpu_err_msg(encoder, __func__, __LINE__, return_code);
-		}
-		vpu_info_msg(encoder, __func__, __LINE__, frm, return_code);
-
-		/* get the information about the just encoded slice */
-		avcbe_get_last_slice_stat(encoder->stream_info, &slice_stat);
-		encoder->slice_mb_counter = slice_stat.avcbe_encoded_MB_num;
-		encoder->mb_num_of_picture = slice_stat.avcbe_total_MB_in_frame;
-
-		/* get the size in bytes of the encoded slice */
-		tmp_slice_size = (slice_stat.avcbe_encoded_slice_bits + 7) / 8;
-
-		if (return_code == AVCBE_SLICE_REMAIN) {
-
-			memcpy(encoder->dummy_nal_buf_addr, (char *) &encoder->my_stream_buff[0], tmp_slice_size);
-			encoder->slice_total_size += tmp_slice_size;
-			encoder->tmp_pic_total_bytes += tmp_slice_size;	/* total size of 1-frame */
-			encoder->dummy_nal_buf_addr += tmp_slice_size;	/* update the address of buffer for 1-slice */
-
-		} else if (return_code == AVCBE_FRAME_SKIPPED) {
-
-			/* if the frame is skipped, the size of slice data which are already put, must be subtracted */
-			encoder->slice_total_size -= encoder->tmp_pic_total_bytes;
-
-			/* make the address which dummy_nal_buf_addr has, to the top address of dummy_nal_buf[] */
-			encoder->dummy_nal_buf_addr = encoder->dummy_nal_buf;
-			encoder->tmp_pic_total_bytes = 0;
-
-			frm += encoder->frame_no_increment;
-			encoder->frame_counter++;
-			encoder->slice_mb_counter = 0;
-
-			encoder->frame_skip_num++;
-
-		} else if (return_code == AVCBE_ENCODE_SUCCESS) {	
-
-			/* end of frame? */
-			if (encoder->slice_mb_counter == encoder->mb_num_of_picture) {
-				/* Switch the indexes to the reference and locally decoded frames */
-				if (ldec == 0) {
-					ldec = 1;
-					ref1 = 0;
-				} else {
-					ldec = 0;
-					ref1 = 1;
-				}
-			}
-
-			/* output AU delimiter */
-			if (extra_stream_buff != NULL) {
-				output_data(encoder, AUD, &encoder->my_extra_stream_buff[0], slice_stat.avcbe_AU_unit_bytes);
-			}
-
-			/* If the type is IDR-picture, encode SPS and PPS data (for 2nd frame and later) */
-			if ((encoder->frame_counter > 0)
-			    && (slice_stat.avcbe_encoded_pic_type == AVCBE_IDR_PIC)) {
-				return_code = h264_encode_sps_pps(encoder, &slice_stat, frm);
-				if (return_code != 0) {
-					return return_code;
-				}
-			}
-			/* output SPS data and PPS data */
-			output_data(encoder, SPS, encoder->sps_buf_info.buff_top, slice_stat.avcbe_SPS_unit_bytes);
-			output_data(encoder, PPS, encoder->pps_buf_info.buff_top, slice_stat.avcbe_PPS_unit_bytes);
-
-			/* output SEI parameter */
-			h264_output_SEI_parameters(encoder);
-
-			/* output Filler data (if CPB Buffer overflow) */
-			if ((encoder->output_filler_enable == 1)
-			    && (encoder->output_filler_data > 0)) {
-				output_data(encoder, FILL, &encoder->my_filler_data_buff[0], encoder->output_filler_data);
-			}
-
-			/* copy the bitstream of 1-slice newly encoded, and add the size to the total size of 1-frame */
-			memcpy(encoder->dummy_nal_buf_addr, (char *) &encoder->my_stream_buff[0], tmp_slice_size);
-			encoder->slice_total_size += tmp_slice_size;	/* the size of 1-slice newly encoded */
-			encoder->tmp_pic_total_bytes += tmp_slice_size;	/* total size of 1-frame */
-			encoder->dummy_nal_buf_addr += tmp_slice_size;	/* update the address of buffer for 1-slice */
-
-			/* Output slice data */
-			output_data(encoder, DATA, encoder->dummy_nal_buf, encoder->tmp_pic_total_bytes);
-
-			/* clear the size of 1-frame */
-			encoder->tmp_pic_total_bytes = 0;
-			/* make the address which dummy_nal_buf_addr has, to the top address of dummy_nal_buf[] */
-			encoder->dummy_nal_buf_addr = encoder->dummy_nal_buf;
-
-		} /* if (return_code == AVCBE_ENCODE_SUCCESS) */
-
-		/* end of frame? */
-		if (encoder->slice_mb_counter == encoder->mb_num_of_picture) {
-			frm += encoder->frame_no_increment;
-			encoder->frame_counter++;
-			encoder->slice_mb_counter = 0;
-		}
-
-	} /* while */
-	/*---------------------- End of repeating by frame numbers -----------------------------*/
-
-	return (0);
+	return 0;
 }
 
 int
-h264_encode_run (SHCodecs_Encoder *encoder, long stream_type)
+h264_encode_run (SHCodecs_Encoder *enc, long stream_type)
 {
-	long return_code, length;
-	TAVCBE_STREAM_BUFF my_end_code_buff_info;
+	long rc, length;
+	TAVCBE_STREAM_BUFF end_code_buff_info;
 
-	if (!encoder->initialized)
-		h264_encode_deferred_init (encoder, stream_type);
-
-	encoder->error_return_code = 0;
-
-	/* encode process function for H.264 (call avcbe_encode_picture func.) */
-	if ((encoder->other_options_h264.avcbe_use_slice == AVCBE_ON) &&
-	    (encoder->other_options_h264.avcbe_call_unit == AVCBE_CALL_PER_NAL)) {
-		return_code = h264_encode_nal_unit(encoder, stream_type);
-	} else {
-		return_code = h264_encode_picture_unit(encoder, stream_type);
+	if (!enc->initialized) {
+		rc = h264_encode_deferred_init(enc, stream_type);
+		if (rc != 0)
+			return rc;
 	}
-	if (return_code != 0) {
-		return (-115);
-	}
+
+	rc = h264_encode(enc);
+	if (rc != 0)
+		return rc;
 
 	/* The MPEG-4&H.264 Encoder Library API (required-9) End encoding */
-	my_end_code_buff_info.buff_top = (unsigned char *) &encoder->my_end_code_buff[0];
-	my_end_code_buff_info.buff_size = MY_END_CODE_BUFF_SIZE;
+	end_code_buff_info.buff_top = (unsigned char *) &enc->my_end_code_buff[0];
+	end_code_buff_info.buff_size = MY_END_CODE_BUFF_SIZE;
 
-	length = avcbe_put_end_code(encoder->stream_info, &my_end_code_buff_info, AVCBE_END_OF_STRM);
-	if (length <= 0) {
-		return vpu_err_msg(encoder, __func__, __LINE__, length);
-	}
-	output_data(encoder, END, &encoder->my_end_code_buff[0], length);
+	length = avcbe_put_end_code(enc->stream_info, &end_code_buff_info, AVCBE_END_OF_STRM);
+	if (length <= 0)
+		return vpu_err(enc, __func__, __LINE__, length);
+	output_data(enc, END, &enc->my_end_code_buff[0], length);
 
-	if (encoder->output_filler_enable == 1) {
-		return_code =
-		    avcbe_put_filler_data(&encoder->my_stream_buff_info,
-					  encoder->other_options_h264.avcbe_put_start_code, 2);
+	if (enc->output_filler_enable == 1) {
+		rc = avcbe_put_filler_data(&enc->my_stream_buff_info,
+				enc->other_options_h264.avcbe_put_start_code, 2);
 		// TODO shouldn't this be output?
 	}
-	return (0);
+
+	return 0;
 }
 
