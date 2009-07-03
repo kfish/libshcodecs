@@ -24,11 +24,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <malloc.h>
 
 #include "m4driverif.h"
 #include "m4iph_vpu4.h"		/* SuperH MEPG-4&H.264 Video Driver Library Header */
 
 #include "encoder_private.h"
+
+#define NUM_LDEC_FRAMES 3
 
 int vpu4_clock_on(void);
 int vpu4_clock_off(void);
@@ -59,7 +62,7 @@ set_VPU4_param(SHCodecs_Encoder * encoder)
 	vpu4_param->m4iph_vpu_endian = 0x000003FF;	/* for Little Endian */
 #else
 	vpu4_param->m4iph_vpu_endian = 0x00000000;	/* for Big Endian */
-#endif				/* _LIT */
+#endif
 
 
 	/* Interrupt */
@@ -67,7 +70,7 @@ set_VPU4_param(SHCodecs_Encoder * encoder)
 	vpu4_param->m4iph_vpu_interrupt_enable = M4IPH_OFF;
 #else
 	vpu4_param->m4iph_vpu_interrupt_enable = M4IPH_ON;
-#endif				/* DISABLE_INT */
+#endif
 
 	/* Supply of VPU4 Clock */
 	vpu4_param->m4iph_vpu_clock_supply_control = 0;	/* 'clock_supply_enable' -> 'clock_supply_control' changed when Version2 */
@@ -75,26 +78,10 @@ set_VPU4_param(SHCodecs_Encoder * encoder)
 	/* Address Mask chage */
 	vpu4_param->m4iph_vpu_mask_address_disable = M4IPH_OFF;
 
-	/* Temporary Buffer Address */
+	/* Temporary Buffer */
 	tb = (unsigned long)m4iph_sdr_malloc(MY_STREAM_BUFF_SIZE, 32);
 	vpu4_param->m4iph_temporary_buff_address = tb;
-#ifdef DEBUG
-	fprintf(stderr, "m4iph_temporary_buff_address=%lX, size=%d\n", tb,
-	       MY_STREAM_BUFF_SIZE);
-#endif
-	/* Temporary Buffer Size */
 	vpu4_param->m4iph_temporary_buff_size = MY_STREAM_BUFF_SIZE;
-	// vpu4_param->m4iph_temporary_buff_size = MY_WORK_AREA_SIZE;
-	if (encoder->my_work_area == NULL) {
-		encoder->my_work_area = malloc(MY_WORK_AREA_SIZE);	/* 4 bytes alignment */
-#ifdef DEBUG
-		fprintf(stderr, "my_work_area=%pX\n", encoder->my_work_area);
-#endif
-		if (encoder->my_work_area == NULL) {
-			fprintf(stderr, "Memory allocation error\n");
-			exit(-200);
-		}
-	}
 }
 
 static int
@@ -135,9 +122,10 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 					SHCodecs_Format format)
 {
 	SHCodecs_Encoder *encoder;
-        long width_height, max_frame=2;
+	long width_height, max_frame=2;
 	long return_code;
-        int i;
+	int i, j;
+	unsigned char *pFramesBase, *pY;
 
 	encoder = calloc(1, sizeof(SHCodecs_Encoder));
 	if (encoder == NULL)
@@ -146,41 +134,38 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	m4iph_vpu_open();
 	m4iph_sdr_open();
 
-        set_dimensions (encoder, width, height);
+	set_dimensions (encoder, width, height);
 	encoder->format = format;
 
 	encoder->input = NULL;
 	encoder->output = NULL;
 
-        encoder->error_return_function = 0;
-        encoder->error_return_code = 0;
+	encoder->error_return_function = 0;
+	encoder->error_return_code = 0;
 
-        encoder->initialized = 0;
+	encoder->initialized = 0;
 
-        encoder->frame_number_to_encode = 1;
-        encoder->frm = 0;
-        encoder->frame_no_increment = 1;
-        encoder->frame_skip_num = 0;
+	encoder->frame_number_to_encode = 1;
+	encoder->frm = 0;
+	encoder->frame_no_increment = 1;
+	encoder->frame_skip_num = 0;
 
 	encoder->output_filler_enable = 0;
 	encoder->output_filler_data = 0;
 
 	m4iph_sleep_time_init();
 
-	/*--- set the parameters of VPU4 (one of the user application's own functions) ---*/
-	encoder->my_work_area = NULL;
+	/* Set the VPU parameters */
 	set_VPU4_param(encoder);
 
-	/*--- The MPEG-4&H.264 Encoder Library API (common to MPEG-4&H.264 Decoder) 
-	 * (required-1)@initialize VPU4 ---*/
-	/* needs be called only once */
+	/* Initialize VPU */
 	return_code = m4iph_vpu4_init(&(encoder->vpu4_param));
-	if (return_code < 0) {	/* error */
+	if (return_code < 0) {
 		if (return_code == -1) {
 			fprintf(stderr,
-				"encode_1file_mpeg4:m4iph_vpu4_init PARAMETER ERROR!\n");
+				"%s: m4iph_vpu4_init PARAMETER ERROR!\n", __func__);
 		}
-		return NULL;
+		goto err;
 	}
 
 	init_other_API_enc_param(&encoder->other_API_enc_param);
@@ -191,37 +176,54 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	width_height = width * height;
 	width_height += (width_height / 2);
 	max_frame = 2;
-	encoder->sdr_base = (unsigned long)m4iph_sdr_malloc(width_height * (max_frame + 3), 32);
-	if (encoder->sdr_base == 0)
-		exit(1);
-	for (i = 0; i < max_frame; i++) {
-		encoder->my_frame_memory_capt[i] =
-		    (unsigned long *) (encoder->sdr_base + width_height * i);
-#ifdef DEBUG
-		fprintf(stderr, "my_frame_memory_capt[%d]=%p\n", i,
-		       encoder->my_frame_memory_capt[i]);
-#endif
+	pFramesBase = m4iph_sdr_malloc(width_height * (max_frame + 3), 32);
+	encoder->sdr_base = (unsigned long)pFramesBase;
+	if (!pFramesBase)
+		goto err;
+
+	/* Input buffers */
+	for (i=0; i < max_frame; i++) {
+		pY = pFramesBase + width_height * i;
+		encoder->input_frames[i].Y_fmemp = pY;
+		encoder->input_frames[i].C_fmemp = pY + encoder->y_bytes;
 	}
-	encoder->my_frame_memory_ldec1 =
-	    (unsigned long *) (encoder->sdr_base + width_height * i);
-	i++;
-	encoder->my_frame_memory_ldec2 =
-	    (unsigned long *) (encoder->sdr_base + width_height * i);
-	i++;
-	encoder->my_frame_memory_ldec3 =
-	    (unsigned long *) (encoder->sdr_base + width_height * i);
-	encoder->my_stream_buff_bak = malloc(MY_STREAM_BUFF_SIZE + 31);
-	encoder->my_stream_buff = ALIGN(encoder->my_stream_buff_bak, 32);
-	encoder->my_end_code_buff_bak = malloc(MY_END_CODE_BUFF_SIZE + 31);
-	encoder->my_end_code_buff = ALIGN(encoder->my_end_code_buff_bak, 32);
+
+	/* Local decode images */
+	for (j=0; j<NUM_LDEC_FRAMES; j++) {
+		pY = pFramesBase + width_height * i;
+		encoder->local_frames[j].Y_fmemp = pY;
+		encoder->local_frames[j].C_fmemp = pY + encoder->y_bytes;
+		i++;
+	}
+
+	encoder->work_area.area_size = MY_WORK_AREA_SIZE;
+	encoder->work_area.area_top = memalign(MY_WORK_AREA_SIZE, 4);
+	if (!encoder->work_area.area_top)
+		goto err;
+
+	encoder->stream_buff_info.buff_size = MY_STREAM_BUFF_SIZE;
+	encoder->stream_buff_info.buff_top = memalign(MY_STREAM_BUFF_SIZE, 32);
+	if (!encoder->stream_buff_info.buff_top)
+		goto err;
+
+	encoder->end_code_buff_info.buff_size = MY_END_CODE_BUFF_SIZE;
+	encoder->end_code_buff_info.buff_top = memalign(MY_END_CODE_BUFF_SIZE, 32);
+	if (!encoder->end_code_buff_info.buff_top)
+		goto err;
 
 	if (encoder->format == SHCodecs_Format_H264) {
-		h264_encode_init (encoder, AVCBE_H264);
+		return_code = h264_encode_init (encoder, AVCBE_H264);
 	} else {
-		mpeg4_encode_init (encoder, AVCBE_MPEG4);
+		return_code = mpeg4_encode_init (encoder, AVCBE_MPEG4);
 	}
+	if (return_code < 0)
+		goto err;
 
 	return encoder;
+
+err:
+	shcodecs_encoder_close(encoder);
+	return NULL;
 }
 
 /**
@@ -231,7 +233,7 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
  */
 void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
 {
-        long width_height, max_frame=2;
+	long width_height, max_frame=2;
 
 	if (encoder == NULL) return;
 
@@ -245,13 +247,15 @@ void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
 	m4iph_sdr_close();
 	m4iph_vpu_close();
 
-	free(encoder->my_work_area);
-	free(encoder->my_stream_buff_bak);
-	free(encoder->my_end_code_buff_bak);
+	if (encoder->format == SHCodecs_Format_H264) {
+		h264_encode_close(encoder);
+	}
+
+	free(encoder->work_area.area_top);
+	free(encoder->stream_buff_info.buff_top);
+	free(encoder->end_code_buff_info.buff_top);
 
 	free(encoder);
-
-	return;
 }
 
 /**
@@ -304,13 +308,13 @@ int shcodecs_encoder_run(SHCodecs_Encoder * encoder)
 
 int
 shcodecs_encoder_input_provide (SHCodecs_Encoder * encoder, 
-                                unsigned char * y_input, unsigned char * c_input)
+				unsigned char * y_input, unsigned char * c_input)
 {
 	/* Write image data to kernel memory for VPU */
 	m4iph_sdr_write(encoder->addr_y, y_input, encoder->y_bytes);
 	m4iph_sdr_write(encoder->addr_c, c_input, encoder->y_bytes / 2);
 
-        return 0;
+	return 0;
 }
 
 

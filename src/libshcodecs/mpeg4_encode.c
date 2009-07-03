@@ -22,17 +22,12 @@
 #endif
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <limits.h>
-#include <ctype.h>
 #include <string.h>
-#include <fcntl.h>
-#include <setjmp.h>
 #include <sys/time.h>
 
 #include "avcbe.h"		/* SuperH MEPG-4&H.264 Video Encode Library Header */
 #include "m4iph_vpu4.h"		/* SuperH MEPG-4&H.264 Video Driver Library Header */
-#include "encoder_common.h"		/* User Application Sample Header */
+#include "encoder_common.h"
 #include "m4driverif.h"
 
 #include "avcbe_inner.h"
@@ -43,8 +38,6 @@
 #define OUTPUT_ERROR_MSGS
 
 #define USE_BVOP
-
-#define NUM_LDEC_FRAMES 3
 
 extern long encode_time;
 
@@ -186,22 +179,15 @@ static int
 mpeg4_encode_deferred_init(SHCodecs_Encoder *enc, long stream_type)
 {
 	long rc;
-	unsigned long nrefframe, nldecfmem, addr_temp;
-	unsigned char *addr_y, *addr_c;
-	TAVCBE_WORKAREA WORK_ARRY;
+	unsigned long nrefframe, nldecfmem;
 	long area_width, area_height;
-	long i;
-	int num_input_bufs;
 
 	/* Initialize VPU parameters & local frame memory */
-	WORK_ARRY.area_size = MY_WORK_AREA_SIZE;
-	WORK_ARRY.area_top = (unsigned char *) enc->my_work_area;
-
 	rc = avcbe_init_encode(&(enc->encoding_property),
 					&(enc->paramR),
 					&(enc->other_options_mpeg4),
 					(avcbe_buf_continue_userproc_ptr) NULL,
-					&WORK_ARRY, NULL,
+					&enc->work_area, NULL,
 					&enc->stream_info);
 	if (rc != 0)
 		return vpu_err(enc, __func__, __LINE__, rc);
@@ -222,38 +208,17 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder *enc, long stream_type)
 	area_height = ((enc->height + 15) / 16) * 16;
 
 #ifdef USE_BVOP
-	num_input_bufs = enc->other_options_mpeg4.avcbe_b_vop_num + 1;
 	if (enc->other_options_mpeg4.avcbe_b_vop_num > 0)
 		nldecfmem = enc->other_options_mpeg4.avcbe_b_vop_num;
 //TODO	m4vse_output_local_image_of_b_vop = AVCBE_ON;
-#else
-	num_input_bufs = 1;
 #endif
-
-	/* Local decode images */
-	enc->LDEC_ARRY[0].Y_fmemp = (unsigned char *) &enc->my_frame_memory_ldec1[0];
-	enc->LDEC_ARRY[1].Y_fmemp = (unsigned char *) &enc->my_frame_memory_ldec2[0];
-	enc->LDEC_ARRY[2].Y_fmemp = (unsigned char *) &enc->my_frame_memory_ldec3[0];
-	for (i=0; i<NUM_LDEC_FRAMES; i++) {
-		enc->LDEC_ARRY[i].C_fmemp =
-			enc->LDEC_ARRY[i].Y_fmemp + (area_width * area_height);
-	}
 
 	rc = avcbe_init_memory(enc->stream_info,
 				nrefframe,
-				nldecfmem, enc->LDEC_ARRY,
+				nldecfmem, enc->local_frames,
 				area_width, area_height);
 	if (rc != 0)
 		return vpu_err(enc, __func__, __LINE__, rc);
-
-
-	/* Input buffers */
-	for (i=0; i < num_input_bufs; i++) {
-		addr_y = (unsigned char *) enc->my_frame_memory_capt[i];
-		addr_c = addr_y + (area_width * area_height);
-		enc->CAPTF_ARRY[i].Y_fmemp = addr_y;
-		enc->CAPTF_ARRY[i].C_fmemp = addr_c;
-	}
 
 	enc->initialized = 1;
 
@@ -343,7 +308,7 @@ mpeg4_encode_frame (SHCodecs_Encoder *enc, long stream_type,
 	rc = avcbe_encode_picture(enc->stream_info, enc->frm,
 				 AVCBE_ANY_VOP,
 				 AVCBE_OUTPUT_NONE,
-				 &enc->my_stream_buff_info, NULL);
+				 &enc->stream_buff_info, NULL);
 
 	gettimeofday(&tv1, NULL);
 	tm = (tv1.tv_usec - tv.tv_usec) / 1000;
@@ -379,13 +344,13 @@ mpeg4_encode_frame (SHCodecs_Encoder *enc, long stream_type,
 		/* Output frame data */
 		if (pic_type == AVCBE_I_VOP) {
 			output_data(enc, IDATA,
-				enc->my_stream_buff_info.buff_top, unit_size);
+				enc->stream_buff_info.buff_top, unit_size);
 		} else if (pic_type == AVCBE_P_VOP) {
 			output_data(enc, PDATA,
-				enc->my_stream_buff_info.buff_top, unit_size);
+				enc->stream_buff_info.buff_top, unit_size);
 		} else {
 			output_data(enc, BDATA,
-				enc->my_stream_buff_info.buff_top, unit_size);
+				enc->stream_buff_info.buff_top, unit_size);
 		}
 	}
 
@@ -401,7 +366,7 @@ mpeg4_encode_picture (SHCodecs_Encoder *enc,
 		      long stream_type)
 {
 	long rc;
-	TAVCBE_FMEM captfmem;
+	TAVCBE_FMEM input_frame;
 #ifdef USE_BVOP
 	unsigned long i;
 	unsigned char *addr_y_tbl[17], *addr_c_tbl[17];
@@ -410,8 +375,8 @@ mpeg4_encode_picture (SHCodecs_Encoder *enc,
 
 #ifdef USE_BVOP
 	for (i=0; i < (enc->other_options_mpeg4.avcbe_b_vop_num + 1); i++) {
-		addr_y_tbl[i] = enc->CAPTF_ARRY[i].Y_fmemp;
-		addr_c_tbl[i] = enc->CAPTF_ARRY[i].C_fmemp;
+		addr_y_tbl[i] = enc->input_frames[i].Y_fmemp;
+		addr_c_tbl[i] = enc->input_frames[i].C_fmemp;
 	}
 #endif
 	
@@ -422,11 +387,8 @@ mpeg4_encode_picture (SHCodecs_Encoder *enc,
 	enc->frame_counter = 0;
 	enc->frame_skip_num = 0;
 
-	captfmem.Y_fmemp = enc->CAPTF_ARRY[0].Y_fmemp;
-	captfmem.C_fmemp = enc->CAPTF_ARRY[0].C_fmemp;
-
-	enc->my_stream_buff_info.buff_top = (unsigned char *) &enc->my_stream_buff[0];
-	enc->my_stream_buff_info.buff_size = MY_STREAM_BUFF_SIZE;
+	input_frame.Y_fmemp = enc->input_frames[0].Y_fmemp;
+	input_frame.C_fmemp = enc->input_frames[0].C_fmemp;
 
 	/* For all frames to encode */
 	while (enc->frame_counter < enc->frame_number_to_encode) {
@@ -442,8 +404,8 @@ mpeg4_encode_picture (SHCodecs_Encoder *enc,
 
 			for (i=0; i < (enc->other_options_mpeg4.avcbe_b_vop_num + 1); i++) {
 				if (frame_check_array[i].avcbe_status == AVCBE_UNLOCK) {
-					captfmem.Y_fmemp = addr_y_tbl[i];
-					captfmem.C_fmemp = addr_c_tbl[i];
+					input_frame.Y_fmemp = addr_y_tbl[i];
+					input_frame.C_fmemp = addr_c_tbl[i];
 					break;
 				}
 			}
@@ -452,8 +414,8 @@ mpeg4_encode_picture (SHCodecs_Encoder *enc,
 
 		/* Get the encoder input frame */
 		if (enc->input) {
-			enc->addr_y = captfmem.Y_fmemp;
-			enc->addr_c = captfmem.C_fmemp;
+			enc->addr_y = input_frame.Y_fmemp;
+			enc->addr_c = input_frame.C_fmemp;
 			rc = enc->input(enc, enc->input_user_data);
 			if (rc < 0) {
 				fprintf (stderr, "%s: ERROR acquiring input image!\n", __func__);
@@ -475,7 +437,6 @@ int
 mpeg4_encode_run (SHCodecs_Encoder *enc, long stream_type)
 {
 	long rc, length;
-	TAVCBE_STREAM_BUFF end_code_buff_info;
 
 	if (!enc->initialized)
 		mpeg4_encode_deferred_init (enc, stream_type);
@@ -487,14 +448,11 @@ mpeg4_encode_run (SHCodecs_Encoder *enc, long stream_type)
 		return vpu_err(enc, __func__, __LINE__, rc);
 
 	/* End encoding */
-	end_code_buff_info.buff_top = (unsigned char *) &enc->my_end_code_buff[0];
-	end_code_buff_info.buff_size = MY_END_CODE_BUFF_SIZE;
-
-	length = avcbe_put_end_code(enc->stream_info, &end_code_buff_info, AVCBE_VOSE);
+	length = avcbe_put_end_code(enc->stream_info, &enc->end_code_buff_info, AVCBE_VOSE);
 	if (length <= 0)
 		return vpu_err(enc, __func__, __LINE__, length);
 
-	output_data(enc, END, &enc->my_end_code_buff[0], length);
+	output_data(enc, END, enc->end_code_buff_info.buff_top, length);
 
 	return (0);
 }

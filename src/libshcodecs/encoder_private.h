@@ -57,28 +57,30 @@ typedef int (*SHCodecs_Encoder_Output) (SHCodecs_Encoder * encoder,
 					unsigned char *data, int length,
 					void *user_data);
 
-typedef struct {		/* add at Version2 */
+typedef struct {
 	long weightdQ_enable;
 	TAVCBE_WEIGHTEDQ_CENTER weightedQ_info_center;	/* API´Ø¿ôavcbe_set_weightedQ()¤ËÅÏ¤¹¤¿¤á¤Î¹½Â¤ÂÎ(1) */
 	TAVCBE_WEIGHTEDQ_RECT weightedQ_info_rect;	/* API´Ø¿ôavcbe_set_weightedQ()¤ËÅÏ¤¹¤¿¤á¤Î¹½Â¤ÂÎ(2) */
 	TAVCBE_WEIGHTEDQ_USER weightedQ_info_user;	/* API´Ø¿ôavcbe_set_weightedQ()¤ËÅÏ¤¹¤¿¤á¤Î¹½Â¤ÂÎ(3) */
 	char weightedQ_table_filepath[256];	/* ½Å¤ßÉÕ¤±¥Æ¡¼¥Ö¥ë¥Õ¥¡¥¤¥ë¤Î¥Ñ¥¹Ì¾ */
 
-	/* Table to set encoding parameter (for H.264 bitstream) */
-	avcbe_vui_main_param vui_main_param;	/* the parameter of the avcbe_set_VUI_parameters function */
+	/* H.264: VUI parameters */
+	avcbe_vui_main_param vui_main_param;
 
-	char out_buffering_period_SEI;	/* whether output buffering_period SEI message (1:output, 2:NOT outputj */
-	char out_pic_timing_SEI;	/* whether output picture_timing SEI message (1:output, 2:NOT outputj */
-	char out_pan_scan_rect_SEI;	/* whether output filler_payload SEI message (1:output, 2:NOT outputj */
-	char out_filler_payload_SEI;	/* whether output picture_timing SEI message (1:output, 2:NOT outputj */
-	char out_recovery_point_SEI;	/* whether output recovery_point SEI message (1:output, 2:NOT outputj */
-	char out_dec_ref_pic_marking_repetition_SEI;	/* whether output dec_ref_pic_marking_repetition SEI message (1:output, 2:NOT outputj */
+	/* H.264: Flags for whether SEI messages are output or not */
+	char out_buffering_period_SEI;
+	char out_pic_timing_SEI;
+	char out_pan_scan_rect_SEI;
+	char out_filler_payload_SEI;
+	char out_recovery_point_SEI;
+	char out_dec_ref_pic_marking_repetition_SEI; /* TODO: Not used */
 
-	avcbe_sei_buffering_period_param sei_buffering_period_param;	/* the parameter of the avcbe_put_SEI_parameters function (1) */
-	avcbe_sei_pic_timing_param sei_pic_timing_param;	/* the parameter of the avcbe_put_SEI_parameters function (2) */
-	avcbe_sei_pan_scan_rect_param sei_pan_scan_rect_param;	/* the parameter of the avcbe_put_SEI_parameters function (3) */
-	avcbe_sei_filler_payload_param sei_filler_payload_param;	/* the parameter of the avcbe_put_SEI_parameters function (4) */
-	avcbe_sei_recovery_point_param sei_recovery_point_param;	/* the parameter of the avcbe_put_SEI_parameters function (5) */
+	/* H.264: SEI data structures */
+	avcbe_sei_buffering_period_param sei_buffering_period_param;
+	avcbe_sei_pic_timing_param sei_pic_timing_param;
+	avcbe_sei_pan_scan_rect_param sei_pan_scan_rect_param;
+	avcbe_sei_filler_payload_param sei_filler_payload_param;
+	avcbe_sei_recovery_point_param sei_recovery_point_param;
 } OTHER_API_ENC_PARAM;
 
 struct _SHCodecs_Encoder {
@@ -94,8 +96,8 @@ struct _SHCodecs_Encoder {
 	void *output_user_data;
 
 	/* Internal encode error tracking */
-	long error_return_function;	/* ID of the API function when error ocuured *//* add at Version2 */
-	long error_return_code;	/* return_value of the API function when error ocuured *//* add at Version2 */
+	long error_return_function;	/* ID of the API function when error ocuured */
+	long error_return_code;	/* return_value of the API function when error ocuured */
 
 	/* Internal */
 	int initialized; /* Is avcbe_encode_init() done? */
@@ -109,23 +111,16 @@ struct _SHCodecs_Encoder {
 	long ref1;	/* Index to reference frame */
 	long frame_skip_num; /* Number of frames skipped */
 	long frame_counter; /* The number of encoded frames */
-	long set_intra;	/* Forced intra-mode flag for m4vse_encode_picture function */
+	long set_intra;	/* Forced intra-mode flag */
 
 	/* Working values */
 	unsigned long sdr_base;
-	TAVCBE_FMEM LDEC_ARRY[3];	/* Always set the head of STREAMAREA section! */
-	TAVCBE_FMEM CAPTF_ARRY[3];
-	unsigned long *my_work_area;
+	TAVCBE_FMEM local_frames[3];
+	TAVCBE_FMEM input_frames[3];
+	TAVCBE_WORKAREA work_area;
 
-	unsigned long *my_frame_memory_capt[19];
-	unsigned long *my_frame_memory_ldec1;
-	unsigned long *my_frame_memory_ldec2;
-	unsigned long *my_frame_memory_ldec3;
-
-	unsigned long *my_stream_buff;
-	unsigned long *my_stream_buff_bak;
-	unsigned long *my_end_code_buff;
-	unsigned long *my_end_code_buff_bak;
+	TAVCBE_STREAM_BUFF stream_buff_info;
+	TAVCBE_STREAM_BUFF end_code_buff_info;
 
 	/* General encoder internals (general_accessors.c) */
 	long frame_number_to_encode;
@@ -138,31 +133,27 @@ struct _SHCodecs_Encoder {
 	OTHER_API_ENC_PARAM other_API_enc_param;
 
 	/* MPEG-4 specific internals */
-	avcbe_other_options_mpeg4 other_options_mpeg4;	/* parameters to control details */
+	avcbe_other_options_mpeg4 other_options_mpeg4;
 
 	/* H.264 specific internals */
-	TAVCBE_STREAM_BUFF my_stream_buff_info, aud_buf_info;
-	TAVCBE_STREAM_BUFF sps_buf_info;	/* for SPS */
-	TAVCBE_STREAM_BUFF pps_buf_info;	/* for PPS */
-	TAVCBE_STREAM_BUFF sei_buf_info;	/* for SEI */
+	TAVCBE_STREAM_BUFF aud_buf_info;
+	TAVCBE_STREAM_BUFF sps_buf_info;
+	TAVCBE_STREAM_BUFF pps_buf_info;
+	TAVCBE_STREAM_BUFF sei_buf_info;
 	TAVCBE_STREAM_BUFF my_filler_data_buff_info;	/* for FillerData(CPB  Buffer) */
-
-	unsigned long my_extra_stream_buff[16 / 4];
-	unsigned long my_sps_stream_buff[MY_SPS_STREAM_BUFF_SIZE / 4 + 8];	/* for SPS */
-	unsigned long my_pps_stream_buff[MY_PPS_STREAM_BUFF_SIZE / 4 + 8];	/* for PPS */
 	unsigned long my_filler_data_buff[MY_FILLER_DATA_BUFF_SIZE / 4];	/* for FillerData */
-	unsigned long my_sei_stream_buff[MY_SEI_STREAM_BUFF_SIZE / 4];	/* for SEI */
 
 	avcbe_other_options_h264 other_options_h264;	/* parameters to control details */
 	unsigned char ref_frame_num;	/* »²¾È¥Õ¥ì¡¼¥à¿ô¡Ê1 or 2) (H.264¤Î¤ß¡Ë */
-	long output_filler_enable;	/* enable flag to put Filler Data for CPB Buffer Over *//* 050519 */
-	long output_filler_data;	/* for FillerData(CPB  Buffer) *//* add at Version2 */
+	long output_filler_enable;	/* enable flag to put Filler Data for CPB Buffer Over */
+	long output_filler_data;	/* for FillerData(CPB  Buffer) */
 
 };
 
 /* Internal prototypes of functions using SHCodecs_Encoder */
 
 int h264_encode_init  (SHCodecs_Encoder * encoder, long stream_type);
+void h264_encode_close(SHCodecs_Encoder *encoder);
 int h264_encode_run (SHCodecs_Encoder * encoder, long stream_type);
 
 int mpeg4_encode_init (SHCodecs_Encoder * encoder, long stream_type);
@@ -172,3 +163,4 @@ int mpeg4_encode_run (SHCodecs_Encoder * encoder, long stream_type);
 void m4iph_sleep_time_init(void);
 
 #endif				/* __ENCODER_PRIVATE_H__ */
+
