@@ -64,7 +64,8 @@
 
 
 /* limitation of VEU2H on SH7723 */
-#define VEU2H_MAX_WIDTH 640
+//#define VEU2H_MAX_WIDTH 640
+#define VEU2H_MAX_WIDTH 1280
 
 #define LCD_BPP 2
 #define U_SEC_PER_SEC 1000000
@@ -130,7 +131,7 @@ usage (const char *progname)
         printf ("\nDimensions of encoded stream\n");
         printf ("  -w, --width        The image width in pixels of the file\n");
         printf ("  -h, --height       The image height in pixels of the file\n");
-        printf ("  -s, --input-size   Set the input image size [qcif, cif, qvga, vga]\n");
+        printf ("  -s, --input size   Set the input image size [qcif, cif, qvga, vga, 720p]\n");
         printf ("\nDimensions of video on the display\n");
         printf ("  -x,                The image width in pixels on the display\n");
         printf ("  -y,                The image height in pixels on the display\n");
@@ -526,6 +527,9 @@ int main(int argc, char **argv)
 				} else if (!strncmp (optarg, "vga", 3)) {
 					pvt->src_w = 640;
 					pvt->src_h = 480;
+				} else if (!strncmp (optarg, "720p", 4)) {
+					pvt->src_w = 1280;
+					pvt->src_h = 720;
 				}
 			}
 			break;
@@ -571,6 +575,9 @@ int main(int argc, char **argv)
 				} else if (!strncmp (optarg, "vga", 3)) {
 					pvt->dst_w = 640;
 					pvt->dst_h = 480;
+				} else if (!strncmp (optarg, "720p", 4)) {
+					pvt->dst_w = 1280;
+					pvt->dst_h = 720;
 				}
 			}
 			break;
