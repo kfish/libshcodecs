@@ -69,7 +69,7 @@ usage (const char * progname)
         printf ("\nDimensions\n");
         printf ("  -w, --width            Set the input image width in pixels\n");
         printf ("  -h, --height           Set the input image height in pixels\n");
-        printf ("  -s, --size             Set the input image size [qcif, cif, qvga, vga]\n");
+        printf ("  -s, --size             Set the input image size [qcif, cif, qvga, vga, 720p]\n");
         printf ("\nFile extensions are interpreted as follows unless otherwise specified:\n");
         printf ("  .m4v    MPEG4\n");
         printf ("  .264    H.264\n");
@@ -204,6 +204,9 @@ int main(int argc, char **argv)
 				} else if (!strncmp (optarg, "vga", 3)) {
 					w = 640;
 					h = 480;
+				} else if (!strncmp (optarg, "720p", 4)) {
+					w = 1280;
+					h = 720;
 				}
 			}
 			break;
