@@ -79,6 +79,7 @@ struct _SHCodecs_Decoder {
 	int		frame_by_frame;
         int             use_physical;
 	int		frame_count;
+	int		last_cb_ret;
 };
 
 

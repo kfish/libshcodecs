@@ -75,6 +75,7 @@ SHCodecs_Decoder *shcodecs_decoder_init(int width, int height, int format)
 	decoder->decoded_cb_data = NULL;
 
 	decoder->frame_count = 0;
+	decoder->last_cb_ret = 0;
 
 	/* Initialize m4iph */
 	m4iph_vpu_open();
@@ -155,6 +156,7 @@ shcodecs_decode(SHCodecs_Decoder * decoder, unsigned char *data, int len)
         int nused=0, total_used=0;
 
         decoder->si_input = data;
+	decoder->last_cb_ret = 0;
 
         while (len > 0) {
                 decoder->si_input += nused;
@@ -167,6 +169,9 @@ shcodecs_decode(SHCodecs_Decoder * decoder, unsigned char *data, int len)
 
                 total_used += nused;
                 len -= nused;
+
+		if (decoder->last_cb_ret != 0)
+			break;
         }
 
         return total_used;
@@ -185,7 +190,7 @@ shcodecs_decoder_output_partial (SHCodecs_Decoder * decoder)
 {
 	M4VSD_MULTISTREAM_VARIABLES *var;
 	struct M4VSD_IMAGE_TABLE *image;
-	int ret = 0;
+	int cb_ret = 0;
 
 	if (!decoder->needs_finalization) {
                 return 0;
@@ -201,19 +206,16 @@ shcodecs_decoder_output_partial (SHCodecs_Decoder * decoder)
 		     image->ref_pic_list[1]);
 #endif
 	if (decoder->index_old != image->ref_pic_list[0]) {
-		extract_frame(decoder, image->ref_pic_list[0]);
-		ret = 1;
+		cb_ret = extract_frame(decoder, image->ref_pic_list[0]);
 	} else if (decoder->index_old != image->DecW) {
-		extract_frame(decoder, image->DecW);
-		ret = 1;
+		cb_ret = extract_frame(decoder, image->DecW);
 	} else if (decoder->index_old != image->ref_pic_list[1]) {
-		extract_frame(decoder, image->ref_pic_list[1]);
-		ret = 1;
+		cb_ret = extract_frame(decoder, image->ref_pic_list[1]);
 	}
 
 	decoder->needs_finalization--;
 
-	return ret;
+	return cb_ret;
 }
 
 int
@@ -435,6 +437,7 @@ static int decoder_start(SHCodecs_Decoder * decoder)
 	int decoded, dpb_mode;
 	M4VSD_MULTISTREAM_VARIABLES *var;
 	struct M4VSD_IMAGE_TABLE *image;
+        int cb_ret=0;
 
 	/* decode */
 	var = (M4VSD_MULTISTREAM_VARIABLES *) decoder->si_ctxt;
@@ -472,20 +475,23 @@ static int decoder_start(SHCodecs_Decoder * decoder)
 			dpb_mode = 1;
 		}
 
-		while (1) {
+		while (cb_ret == 0) {
 			long index = avcbd_get_decoded_frame(decoder->si_ctxt, dpb_mode);
 
 			if (index < 0) {
 	 			if ((decoded == 0) && (decoder->si_type != F_H264)) {
-					shcodecs_decoder_output_partial (decoder);
+					cb_ret = shcodecs_decoder_output_partial (decoder);
+					decoder->last_cb_ret = cb_ret;
 				}
 
 				if (decoder->last_frame_status.error_num == AVCBD_PIC_NOTCODED_VOP) {
-					extract_frame(decoder, image->ref_pic_list[0]);
+					cb_ret = extract_frame(decoder, image->ref_pic_list[0]);
+					decoder->last_cb_ret = cb_ret;
 				}
 				break;
 			} else {
-		                extract_frame(decoder, index);
+		                cb_ret = extract_frame(decoder, index);
+				decoder->last_cb_ret = cb_ret;
 		                decoder->index_old = index;
                         }
 		}
@@ -493,7 +499,7 @@ static int decoder_start(SHCodecs_Decoder * decoder)
 #ifdef DEBUG
 		fprintf(stderr, "%16d,dpb_mode=%d\n", decoder->si_fnum++, dpb_mode);
 #endif
-	} while (decoded);
+	} while (decoded && cb_ret == 0);
 
 need_data:
 
@@ -721,6 +727,7 @@ static int extract_frame(SHCodecs_Decoder * decoder, long frame_index)
 	unsigned char *yf, *cf;
 	static long frame_cnt = 1;
 	int pagesize = getpagesize();
+        int cb_ret=0;
 
 #ifdef DEBUG
 	fprintf(stderr, "extract_frame: output frame %d, frame_index=%d\n", frame_cnt++, frame_index);
@@ -731,10 +738,10 @@ static int extract_frame(SHCodecs_Decoder * decoder, long frame_index)
         if (decoder->use_physical) {
                 /* Call user's output callback */
 	        if (decoder->decoded_cb) {
-		        decoder->decoded_cb(decoder, 
-		        		    ymem, luma_size, 
-		        		    cmem, luma_size >> 1,
-		        		    decoder->decoded_cb_data);
+		        cb_ret = decoder->decoded_cb(decoder, 
+                                                     ymem, luma_size, 
+                                                     cmem, luma_size >> 1,
+                                                     decoder->decoded_cb_data);
 	        }
         } else {
 	        page = ymem & ~(pagesize - 1);
@@ -751,10 +758,10 @@ static int extract_frame(SHCodecs_Decoder * decoder, long frame_index)
 
                 /* Call user's output callback */
 	        if (decoder->decoded_cb) {
-		        decoder->decoded_cb(decoder, 
-		        		    yf + ry, luma_size, 
-		        		    cf, luma_size >> 1,
-		        		    decoder->decoded_cb_data);
+		        cb_ret = decoder->decoded_cb(decoder, 
+                                                     yf + ry, luma_size, 
+                                                     cf, luma_size >> 1,
+                                                     decoder->decoded_cb_data);
 	        }
 
 	        m4iph_unmap_sdr_mem(yf, luma_size + (luma_size >> 1) + ry + 31);
@@ -762,7 +769,7 @@ static int extract_frame(SHCodecs_Decoder * decoder, long frame_index)
 
 	decoder->frame_count++;
 
-	return 0;
+	return cb_ret;
 }
 
 /*
