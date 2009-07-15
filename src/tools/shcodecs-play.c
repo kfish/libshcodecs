@@ -100,6 +100,9 @@ struct private_data {
 	int dst_w;          /* Size of video output */
 	int dst_h;
 
+	int dst_p;          /* Position of video output */
+	int dst_q;
+
 	int src_w;          /* Size of video input */
 	int src_h;
 
@@ -142,6 +145,9 @@ usage (const char *progname)
   printf ("\nDimensions of video on the display\n");
   printf ("  -x,              The image width in pixels on the display\n");
   printf ("  -y,              The image height in pixels on the display\n");
+  printf ("\nPosition of video on the display\n");
+  printf ("  -p,              The horizontal offset in pixels\n");
+  printf ("  -q,              The vertical offset in pixels\n");
 }
 
 /*****************************************************************************/
@@ -335,9 +341,9 @@ void *output_thread(void *data)
 	int dst_offset;
 	struct private_data *pvt = (struct private_data*)data;
 
-	/* Offset for centred output */
-	int x_offset = ((pvt->lcd_w - pvt->dst_w) / 2) & ~16;
-	int y_offset = ((pvt->lcd_h - pvt->dst_h) / 2) & ~16;
+	/* Position */
+	int x_offset = pvt->dst_p;
+	int y_offset = pvt->dst_q;
 
 	while(1) {
 		/* Wait for new frame from the decoder */
@@ -443,12 +449,14 @@ int main(int argc, char **argv)
 	/* Set defaults */
 	pvt->src_w  = DEFAULT_WIDTH;
 	pvt->src_h = DEFAULT_HEIGHT;
+	pvt->dst_p = 0;
+	pvt->dst_q = 0;
 	pvt->dst_w = pvt->lcd_w;
 	pvt->dst_h = pvt->lcd_h;
 	pvt->fps = DEFAULT_FPS;
 
 	while (1) {
-		c = getopt_long(argc, argv, "f:i:w:h:r:x:y:a:s", stLong_options, &i);
+		c = getopt_long(argc, argv, "f:i:w:h:r:x:y:a:s:p:q:", stLong_options, &i);
 		if (c == -1)
 			break;
 
@@ -495,6 +503,14 @@ int main(int argc, char **argv)
 					debug_printf("Limiting output height to LCD height (%d)\n", pvt->dst_h);
 				}
 			break;
+		case 'p':
+			if (optarg)
+				pvt->dst_p = strtoul(optarg, NULL, 10);
+			break;
+		case 'q':
+			if (optarg)
+				pvt->dst_q = strtoul(optarg, NULL, 10);
+			break;
 		case 's':
 			if (optarg) {
 				if (!strncasecmp (optarg, "qcif", 4)) {
@@ -534,10 +550,12 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Too many arguments.\n");
 		exit(-7);
 	}
-
 	/* Ensure the output is no bigger than the LCD */
-	pvt->dst_w = min(pvt->dst_w, pvt->lcd_w);
-	pvt->dst_h = min(pvt->dst_h, pvt->lcd_h);
+	pvt->dst_p = min(pvt->dst_p, pvt->lcd_w);
+	pvt->dst_q = min(pvt->dst_q, pvt->lcd_h);
+	pvt->dst_w = min(pvt->dst_w, pvt->lcd_w - pvt->dst_p);
+	pvt->dst_h = min(pvt->dst_h, pvt->lcd_h - pvt->dst_q);
+
 
 	/* If scaling down and destination is larger than VGA width, limit to VGA */
 	if (pvt->src_w > pvt->dst_w)
@@ -549,6 +567,7 @@ int main(int argc, char **argv)
 	debug_printf("File resolution:    %dx%d\n", pvt->src_w, pvt->src_h);
 	debug_printf("Display resolution: %dx%d\n", pvt->lcd_w, pvt->lcd_h);
 	debug_printf("Output resolution:  %dx%d\n", pvt->dst_w, pvt->dst_h);
+	debug_printf("Output position:    %dx%d\n", pvt->dst_p, pvt->dst_q);
 	debug_printf("Input video file: %s\n", video_filename);
 
 
