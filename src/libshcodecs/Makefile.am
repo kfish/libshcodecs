@@ -6,10 +6,6 @@ INCLUDES = $(INCLTDL) \
 
 EXTRA_DIST = Version_script.in
 
-AM_CFLAGS = -DVPU4 -DDISABLE_INT2 -D_LIT -DANNEX_B
-#AM_CFLAGS = -DANNEX_B
-
-# Libraries to build
 lib_LTLIBRARIES = libshcodecs.la
 
 noinst_HEADERS = \
@@ -43,13 +39,6 @@ libshcodecs_la_SOURCES = \
 	mpeg4_encode.c \
 	QuantMatrix.c
 
-libshcodecs_la_CFLAGS = -v -Wall -O2 -I $(srcdir) -fPIC -fno-common \
-	-DNDEBUG -D_LIT -DSH=1 -DVPU4=1 \
-	-DAZASM=1 -DCACHE_PURGE=1 -DCOEFF_INTERMEM=1 -DFPGA=1 \
-	-DVPU_CBP_USED=1 -DVPU2_V20=1 -DSLEEP_ONCE=1 -DVPU=1 \
-	-DBS_FLUSH=1 -DENCOCE_ENABLE=1 -DTEL_WITHOUT_DISPLAY=1 \
-	-DSMAP=1 -DRC_TM5_ENABLE=1 -DVPU2=1 -DVPU3=1 -DFPGA2=1 \
-	-DVPU_FILEOUT=1 -DTEL_TRACE_LEVEL2=1 -DSH_X=1 -DLINUX_VPU=1CFLAGS \
-	-DVPU3IP -DVPU4IP -DMPEG4SP -DVPU4S
+libshcodecs_la_CFLAGS = -DSH -D_LIT -DVPU4=1 -DVPU3IP -DVPU4IP -DANNEX_B
 libshcodecs_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@
 libshcodecs_la_LIBADD = -lstdc++ $(VPU4_DEC_LIBS) $(VPU4_ENC_LIBS) -lm
