@@ -29,19 +29,19 @@
 extern "C" {
 #endif
 
-	/* ¥¨¥ó¥³¡¼¥É¥Ñ¥é¥á¡¼¥¿¤Î¾å²¼¸Â¥Á¥§¥Ã¥¯ÍÑ *//* 041202,041207,050106 */
-	extern long avcbe_system_min_bitrate;	/* ÆâÉô¥¹¥Ú¥Ã¥¯ *//* 050107 */
-	extern long avcbe_system_max_bitrate;	/* ÆâÉô¥¹¥Ú¥Ã¥¯ *//* 050107 */
-	extern long avcbe_user_min_bitrate;	/* ³°Éô¥¹¥Ú¥Ã¥¯ *//* 050107 */
-	extern long avcbe_user_max_bitrate;	/* ³°Éô¥¹¥Ú¥Ã¥¯ *//* 050107 */
+	/* ã‚¨ãƒ³ã‚³ãƒ¼ãƒ‰ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®ä¸Šä¸‹é™ãƒã‚§ãƒƒã‚¯ç”¨ *//* 041202,041207,050106 */
+	extern long avcbe_system_min_bitrate;	/* å†…éƒ¨ã‚¹ãƒšãƒƒã‚¯ *//* 050107 */
+	extern long avcbe_system_max_bitrate;	/* å†…éƒ¨ã‚¹ãƒšãƒƒã‚¯ *//* 050107 */
+	extern long avcbe_user_min_bitrate;	/* å¤–éƒ¨ã‚¹ãƒšãƒƒã‚¯ *//* 050107 */
+	extern long avcbe_user_max_bitrate;	/* å¤–éƒ¨ã‚¹ãƒšãƒƒã‚¯ *//* 050107 */
 
 	extern long avcbe_min_xpic_size;
-	extern long avcbe_system_max_xpic_size;	/* ÆâÉô¥¹¥Ú¥Ã¥¯ *//* 050107 */
-	extern long avcbe_user_max_xpic_size;	/* ³°Éô¥¹¥Ú¥Ã¥¯ *//* 050107 */
+	extern long avcbe_system_max_xpic_size;	/* å†…éƒ¨ã‚¹ãƒšãƒƒã‚¯ *//* 050107 */
+	extern long avcbe_user_max_xpic_size;	/* å¤–éƒ¨ã‚¹ãƒšãƒƒã‚¯ *//* 050107 */
 
 	extern long avcbe_min_ypic_size;
-	extern long avcbe_system_max_ypic_size;	/* ÆâÉô¥¹¥Ú¥Ã¥¯ *//* 050107 */
-	extern long avcbe_user_max_ypic_size;	/* ³°Éô¥¹¥Ú¥Ã¥¯ *//* 050107 */
+	extern long avcbe_system_max_ypic_size;	/* å†…éƒ¨ã‚¹ãƒšãƒƒã‚¯ *//* 050107 */
+	extern long avcbe_user_max_ypic_size;	/* å¤–éƒ¨ã‚¹ãƒšãƒƒã‚¯ *//* 050107 */
 
 	extern long avcbe_min_frame_rate;
 	extern long avcbe_max_frame_rate;
@@ -49,11 +49,11 @@ extern "C" {
 	extern long avcbe_min_I_vop_interval;
 	extern long avcbe_max_I_vop_interval;
 
-/* 050106 ÄÉ²Ã¤·¤¿¥°¥í¡¼¥Ğ¥ëÊÑ¿ô ¤³¤³¤«¤é */
-	extern long avcbe_system_min_frame_num_resolution;	/* ÆâÉô¥¹¥Ú¥Ã¥¯ *//* 050107 */
-	extern long avcbe_user_min_frame_num_resolution;	/* ³°Éô¥¹¥Ú¥Ã¥¯ *//* 050107 */
-	extern long avcbe_system_max_frame_num_resolution;	/* ÆâÉô¥¹¥Ú¥Ã¥¯ *//* 050309 */
-	extern long avcbe_user_max_frame_num_resolution;	/* ³°Éô¥¹¥Ú¥Ã¥¯ *//* 050309 */
+/* 050106 è¿½åŠ ã—ãŸã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•° ã“ã“ã‹ã‚‰ */
+	extern long avcbe_system_min_frame_num_resolution;	/* å†…éƒ¨ã‚¹ãƒšãƒƒã‚¯ *//* 050107 */
+	extern long avcbe_user_min_frame_num_resolution;	/* å¤–éƒ¨ã‚¹ãƒšãƒƒã‚¯ *//* 050107 */
+	extern long avcbe_system_max_frame_num_resolution;	/* å†…éƒ¨ã‚¹ãƒšãƒƒã‚¯ *//* 050309 */
+	extern long avcbe_user_max_frame_num_resolution;	/* å¤–éƒ¨ã‚¹ãƒšãƒƒã‚¯ *//* 050309 */
 
 	extern long avcbe_min_slice_video_packet_size_mb_h264;	/* 050107 */
 	extern long avcbe_min_slice_video_packet_size_mb_mpeg4;	/* 050107 */
@@ -72,7 +72,7 @@ extern "C" {
 	extern long avcbe_g_max_reaction_param_val;	/* 050618 */
 	extern long avcbe_g_min_reaction_param_val;	/* 050618 */
 
-/*extern long avcbe_max_vop_min_size_mpeg4; avcbe_vop_min_max_size¤ò»È¤¦¤è¤¦¤ËÊÑ¹¹¡ÊVPU4¤ÈVPU4S¤ÇÃÍ¤¬°Û¤Ê¤ë¡Ë050525 */
+/*extern long avcbe_max_vop_min_size_mpeg4; avcbe_vop_min_max_sizeã‚’ä½¿ã†ã‚ˆã†ã«å¤‰æ›´ï¼ˆVPU4ã¨VPU4Sã§å€¤ãŒç•°ãªã‚‹ï¼‰050525 */
 
 	extern long avcbe_max_intra_thr_1_h264;
 	extern long avcbe_max_intra_thr_2_h264;
@@ -80,11 +80,11 @@ extern "C" {
 	extern long avcbe_max_intra_thr_mpeg4;
 
 	extern long avcbe_nc_max_apl;	/* 050426 */
-/* 050106 ÄÉ²Ã¤·¤¿¥°¥í¡¼¥Ğ¥ëÊÑ¿ô ¤³¤³¤Ş¤Ç */
+/* 050106 è¿½åŠ ã—ãŸã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•° ã“ã“ã¾ã§ */
 
 	extern long avcbe_vop_min_max_size;	/* 0500525 */
 
-/* SPS´Ø·¸¤Î¥°¥í¡¼¥Ğ¥ëÊÑ¿ô */
+/* SPSé–¢ä¿‚ã®ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•° */
 	extern long avcbe_g_nal_ref_idc;
 	extern long avcbe_g_seq_parameter_set_ID;
 	extern long avcbe_g_log2_max_frame_num_minus4;
@@ -95,14 +95,14 @@ extern "C" {
 	extern long avcbe_g_offset_for_non_ref_pic;
 	extern long avcbe_g_offset_for_top_to_bottom_field;
 	extern long avcbe_g_num_ref_frames_in_pic_order_cnt_cycle;
-	extern long avcbe_g_offset_for_ref_frame[256];	/* ¸¡Æ¤Í× */
+	extern long avcbe_g_offset_for_ref_frame[256];	/* æ¤œè¨è¦ */
 	extern long avcbe_g_num_ref_frames;
-	/* extern long avcbe_g_frame_mbs_only_flag; *//* baseline¤Ê¤Î¤Ç¾ï¤Ë¡Ö1¡× *//* 041106 */
+	/* extern long avcbe_g_frame_mbs_only_flag; *//* baselineãªã®ã§å¸¸ã«ã€Œ1ã€ *//* 041106 */
 	extern long avcbe_g_direct_8x8_inference_flag;	/* 041104 */
 	extern long avcbe_g_mb_adaptive_frame_field_flag;
 	extern long avcbe_g_vui_parameters_present_flag;
 
-/* PPS´Ø·¸¤Î¥°¥í¡¼¥Ğ¥ëÊÑ¿ô */
+/* PPSé–¢ä¿‚ã®ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•° */
 	extern long avcbe_g_pic_parameter_set_ID;
 	extern long avcbe_g_entropy_coding_mode_flag;	/* 041104 */
 	extern long avcbe_g_pic_order_present_flag;	/* 041104 */
@@ -110,41 +110,41 @@ extern "C" {
 	extern long avcbe_g_num_ref_idx_l0_active_minus1;
 	extern long avcbe_g_deblocking_filter_variables_present_flag;
 
-/* Slice Header´Ø·¸¤Î¥°¥í¡¼¥Ğ¥ëÊÑ¿ô */
+/* Slice Headeré–¢ä¿‚ã®ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•° */
 	extern long avcbe_g_slice_type;
 	extern long avcbe_g_pic_parameter_set_id;
 	extern long avcbe_g_frame_num;
 	extern long avcbe_g_idr_pic_id;
 	extern long avcbe_g_pic_order_cnt_lsb;
-	extern long avcbe_g_delta_pic_order_cnt[2];	/* ¸¡Æ¤Í× */
+	extern long avcbe_g_delta_pic_order_cnt[2];	/* æ¤œè¨è¦ */
 	extern long avcbe_g_num_ref_idx_active_override_flag;
 	extern long avcbe_g_slice_qp_delta;
 	extern long avcbe_g_ref_pic_list_reordering_flag_l0;
 	extern long avcbe_g_adaptive_ref_pic_making_mode_flag;
-	extern long avcbe_g_field_pic_flag;	/* pic timing SEI¤Ç»ÈÍÑ *//* 041227 */
-	extern long avcbe_g_bottom_field_flag;	/* pic timing SEI¤Ç»ÈÍÑ *//* 041227 */
+	extern long avcbe_g_field_pic_flag;	/* pic timing SEIã§ä½¿ç”¨ *//* 041227 */
+	extern long avcbe_g_bottom_field_flag;	/* pic timing SEIã§ä½¿ç”¨ *//* 041227 */
 
-	/* SEI´Ø·¸¤ÎglobalÊÑ¿ô *//* 041214 */
+	/* SEIé–¢ä¿‚ã®globalå¤‰æ•° *//* 041214 */
 	extern long avcbe_g_changing_slice_group_idc;
 	extern long avcbe_g_cpb_removal_delay;	/* 041224 */
-	extern long avcbe_g_max_pic_struct;	/* Picure Timing SEI¤Îpic_structÍÑ *//* 050531 */
-	extern long avcbe_g_max_ct_type;	/* Picure Timing SEI¤Îct_typeÍÑ  Table D-2(ISO/IEC JTC 1/SC 29/WG 11 N6540) *//* 050531 */
-	extern long avcbe_g_max_counting_type;	/* Picure Timing SEI¤Îcounting_typeÍÑ  Table D-3(ISO/IEC JTC 1/SC 29/WG 11 N6540) *//* 050531 */
+	extern long avcbe_g_max_pic_struct;	/* Picure Timing SEIã®pic_structç”¨ *//* 050531 */
+	extern long avcbe_g_max_ct_type;	/* Picure Timing SEIã®ct_typeç”¨  Table D-2(ISO/IEC JTC 1/SC 29/WG 11 N6540) *//* 050531 */
+	extern long avcbe_g_max_counting_type;	/* Picure Timing SEIã®counting_typeç”¨  Table D-3(ISO/IEC JTC 1/SC 29/WG 11 N6540) *//* 050531 */
 
 
-/* ¥ì¡¼¥È¥³¥ó¥È¥í¡¼¥ë´Ø·¸¤Î¥°¥í¡¼¥Ğ¥ëÊÑ¿ô */
+/* ãƒ¬ãƒ¼ãƒˆã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«é–¢ä¿‚ã®ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•° */
 	/*extern unsigned long  avcbe_g_cpb_check_flg; *//* Add 040730 Y.Funabashi */
 	/*extern unsigned long  avcbe_g_cpb_buffer_units; *//* Add 040729 Y.Funabashi */
-	/*extern float                  avcbe_g_cpb_offset; *//* Add 041206 *//* cpb_init_delay¤ÎÂå¤ï¤ê */
-	/*extern float                  avcbe_g_cpb_offset_rate; *//* Add 041213 *//* cpb buffer ¤ËÂĞ¤¹¤ëcpb_lower¤ÎÈÏ°Ï¤Ècpb_min¤ÎÈÏ°Ï¤ÎÈæÎ¨ */
-	/*extern float                  avcbe_g_cpb_stack_rate; *//* Add 050126 *//* cpb buffer ¤Ë³«»Ï»şÅÀ¤ÇÃù¤á¤Æ¤ª¤¯³ä¹ç */
+	/*extern float                  avcbe_g_cpb_offset; *//* Add 041206 *//* cpb_init_delayã®ä»£ã‚ã‚Š */
+	/*extern float                  avcbe_g_cpb_offset_rate; *//* Add 041213 *//* cpb buffer ã«å¯¾ã™ã‚‹cpb_lowerã®ç¯„å›²ã¨cpb_minã®ç¯„å›²ã®æ¯”ç‡ */
+	/*extern float                  avcbe_g_cpb_stack_rate; *//* Add 050126 *//* cpb buffer ã«é–‹å§‹æ™‚ç‚¹ã§è²¯ã‚ã¦ãŠãå‰²åˆ */
 	extern float avcbe_g_cpb_offset_start_rate;	/* 050601 */
 
-	extern unsigned long avcbe_g_skip_limit_max;	/* Add 041207 *//* skip_limit¤ÎºÇÂçÃÍ */
-	extern unsigned long avcbe_g_skip_limit_min;	/* Add 041207 *//* skip_limit¤ÎºÇ¾®ÃÍ */
-	extern float avcbe_g_add_skip_value;	/* Add 041207 *//* skip_counter¤Î²Ã»»ÃÍ */
-	extern float avcbe_g_sub_skip_value;	/* Add 041207 *//* skip_counter¤Î¸º»»ÃÍ */
-	/*extern unsigned long  avcbe_g_I_vop_skip_value; *//* Del 050421 *//* I-VOP¤ò¥¹¥­¥Ã¥×¤·¤¿¾ì¹ç¤ÎÃÍ¤ò¥»¥Ã¥È */
+	extern unsigned long avcbe_g_skip_limit_max;	/* Add 041207 *//* skip_limitã®æœ€å¤§å€¤ */
+	extern unsigned long avcbe_g_skip_limit_min;	/* Add 041207 *//* skip_limitã®æœ€å°å€¤ */
+	extern float avcbe_g_add_skip_value;	/* Add 041207 *//* skip_counterã®åŠ ç®—å€¤ */
+	extern float avcbe_g_sub_skip_value;	/* Add 041207 *//* skip_counterã®æ¸›ç®—å€¤ */
+	/*extern unsigned long  avcbe_g_I_vop_skip_value; *//* Del 050421 *//* I-VOPã‚’ã‚¹ã‚­ãƒƒãƒ—ã—ãŸå ´åˆã®å€¤ã‚’ã‚»ãƒƒãƒˆ */
 	/*extern unsigned long  avcbe_g_filler_data_size; *//* Del 050428 */
 	extern unsigned long avcbe_g_start_bits_factor;	/* Add 040915 Y.Funabashi */
 	extern float avcbe_g_total_bits_clear_factor;	/* Add 040916 Y.Funabashi */
@@ -156,9 +156,9 @@ extern "C" {
 	extern long avcbe_g_cpb_over_skip_enable_H264;	/* 050524 */
 	extern long avcbe_g_vbv_over_skip_enable_mpeg4;	/* 050524 */
 
-/* Q¥³¥ó¥È¥í¡¼¥ë´Ø·¸¤Î¥°¥í¡¼¥Ğ¥ëÊÑ¿ô */
-	extern unsigned long avcbe_g_P_quant_range_value;	/* modify 005124 *//* P¥Õ¥ì¡¼¥à¤ÎQÃÍ¤ÎÊÑÆ°ÈÏ°ÏÀßÄê */
-	extern unsigned long avcbe_g_P_quant_range_value_mpeg4;	/* MPEG-4ÀìÍÑ *//* Add 050428 */
+/* Qã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«é–¢ä¿‚ã®ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•° */
+	extern unsigned long avcbe_g_P_quant_range_value;	/* modify 005124 *//* Pãƒ•ãƒ¬ãƒ¼ãƒ ã®Qå€¤ã®å¤‰å‹•ç¯„å›²è¨­å®š */
+	extern unsigned long avcbe_g_P_quant_range_value_mpeg4;	/* MPEG-4å°‚ç”¨ *//* Add 050428 */
 /*extern long				avcbe_g_1_thr; 050425 */
 /*extern long				avcbe_g_2_thr; 050425 */
 /*extern long				avcbe_g_3_thr; 050425 */
@@ -174,12 +174,12 @@ extern "C" {
 
 	extern long avcbe_g_I_quant_offset;	/* Add 050107 */
 	extern long avcbe_g_I_quant_offset_range;	/* Add 050127 */
-	extern long avcbe_g_I_quant_offset_mpeg4;	/* MPEG-4ÀìÍÑ *//* Add 050420 */
-	extern long avcbe_g_I_quant_offset_range_mpeg4;	/* MPEG-4ÀìÍÑ *//* Add 050420 */
+	extern long avcbe_g_I_quant_offset_mpeg4;	/* MPEG-4å°‚ç”¨ *//* Add 050420 */
+	extern long avcbe_g_I_quant_offset_range_mpeg4;	/* MPEG-4å°‚ç”¨ *//* Add 050420 */
 
 /*extern long				avcbe_g_I_qunat_offset_minus_range_flag; 050421 */
 	extern long avcbe_g_I_quant_offset_limit;	/* Add 050124 */
-	extern long avcbe_g_I_quant_offset_limit_mpeg4;	/* MPEG-4ÀìÍÑ *//* Add 050428 */
+	extern long avcbe_g_I_quant_offset_limit_mpeg4;	/* MPEG-4å°‚ç”¨ *//* Add 050428 */
 
 	/*extern long                           avcbe_g_cost_mv_multiplier;     *//* Del 050421 */
 /*extern long				avcbe_g_prev_remain_buff; 050425 */
@@ -205,21 +205,21 @@ extern "C" {
 	extern long avcbe_g_mq_intra_enable;
 	extern unsigned long avcbe_vpu4s_enable_flag;
 
-	extern unsigned char avcbe_g_use_I_PCM;	/* 041109 *//* Ì¾¾ÎÊÑ¹¹ *//* 060124 */
-	/*extern unsigned char avcbe_put_EP_three_byte; *//* 041109 *//* avcbe_g_insert_emulation_prevention_flag¤ËÅı°ì *//* 060124 */
-	extern unsigned char avcbe_g_primary_pic_type;	/* 041115 *//* Ì¾¾ÎÊÑ¹¹ *//* 060124 */
-	extern unsigned char avcbe_g_slice_next_Q;	/* Ì¾¾ÎÊÑ¹¹ *//* 060124 */
+	extern unsigned char avcbe_g_use_I_PCM;	/* 041109 *//* åç§°å¤‰æ›´ *//* 060124 */
+	/*extern unsigned char avcbe_put_EP_three_byte; *//* 041109 *//* avcbe_g_insert_emulation_prevention_flagã«çµ±ä¸€ *//* 060124 */
+	extern unsigned char avcbe_g_primary_pic_type;	/* 041115 *//* åç§°å¤‰æ›´ *//* 060124 */
+	extern unsigned char avcbe_g_slice_next_Q;	/* åç§°å¤‰æ›´ *//* 060124 */
 
 	/* extern long avcbe_gvop_bits; *//* 041117 */
 
 
 	extern long avcbe_call_vpu_reset;
 
-	extern long avcbe_g_use_intra_offset;	/* 041101 *//* Ì¾¾ÎÊÑ¹¹ *//* 060124 */
+	extern long avcbe_g_use_intra_offset;	/* 041101 *//* åç§°å¤‰æ›´ *//* 060124 */
 
 	extern avcbe_stream_info *avcbe_current_context;	/* 041101 */
 
-	extern long avcbe_g_insert_emulation_prevention_flag;	/* 041102 *//* ¥¹¥È¥ê¡¼¥à¤´¤È¤Ë»ı¤¿¤»¤ëÊÑ¿ô¤ËÂåÆş¤¹¤ë¤è¤¦¤ËÊÑ¹¹ *//* 060124 */
+	extern long avcbe_g_insert_emulation_prevention_flag;	/* 041102 *//* ã‚¹ãƒˆãƒªãƒ¼ãƒ ã”ã¨ã«æŒãŸã›ã‚‹å¤‰æ•°ã«ä»£å…¥ã™ã‚‹ã‚ˆã†ã«å¤‰æ›´ *//* 060124 */
 
 	extern const char *avcbe_get_copyright();
 
