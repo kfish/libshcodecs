@@ -140,6 +140,19 @@ int shcodecs_encoder_get_width (SHCodecs_Encoder * encoder);
  */
 int shcodecs_encoder_get_height (SHCodecs_Encoder * encoder);
 
+/**
+ * Get the physical address of input data.
+ * This function MUST be called from within an SHCodecs_Encoder_Input callback.
+ * \param encoder The SHCodecs_Encoder* handle
+ * \param y_input Pointer to the Y plane of input data
+ * \param c_input Pointer to the CbCr plane of input data
+ * \retval -1 \a encoder invalid
+ */
+int
+shcodecs_encoder_get_input_physical_addr (SHCodecs_Encoder * encoder, 
+                                          unsigned int *addr_y, unsigned int *addr_C);
+
+
 #include <shcodecs/encode_general.h>
 #include <shcodecs/encode_properties.h>
 #include <shcodecs/encode_h264.h>

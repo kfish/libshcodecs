@@ -371,7 +371,24 @@ int
 shcodecs_encoder_get_c_bytes (SHCodecs_Encoder * encoder)
 {
   if (encoder == NULL) return -1;
-
+  
   return encoder->y_bytes/2;
 }
+
+/**
+ * Get the physical address of input data.
+ * \param encoder The SHCodecs_Encoder* handle
+ * \returns size in bytes of CbCr plane.
+ * \retval -1 \a encoder invalid
+ */
+int
+shcodecs_encoder_get_input_physical_addr (SHCodecs_Encoder * encoder, 
+                     unsigned int *addr_y, unsigned int *addr_C)
+{
+  if (encoder == NULL) return -1;
+  *addr_y = (unsigned int)encoder->addr_y;
+  *addr_C = (unsigned int)encoder->addr_c;
+  return 0;
+}
+
 
