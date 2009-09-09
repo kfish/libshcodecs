@@ -80,8 +80,10 @@ struct private_data {
 	unsigned char *fb_screenMem;
 
 	/* Output thread related data */
-	pthread_mutex_t output_mutex;
-	pthread_mutex_t output_done_mutex;
+	pthread_mutex_t	 	mutex;			/* Protect data */
+	pthread_cond_t	  	avail;			/* Frame decoded */
+	pthread_cond_t	  	ready;			/* Scale ready for next frame */
+	int				 	busy;			/* Scale being performed */
 	unsigned char *p_frame_y;
 	unsigned char *p_frame_c;
 
@@ -336,8 +338,6 @@ static void time_add(struct timeval *start, struct timeval *offset, struct timev
 
 void *output_thread(void *data)
 {
-	unsigned char *y_buf;
-	unsigned char *c_buf;
 	int dst_offset;
 	struct private_data *pvt = (struct private_data*)data;
 
@@ -345,41 +345,52 @@ void *output_thread(void *data)
 	int x_offset = pvt->dst_p;
 	int y_offset = pvt->dst_q;
 
-	while(1) {
-		/* Wait for new frame from the decoder */
-		pthread_mutex_lock(&pvt->output_mutex);
+	pthread_mutex_lock (&pvt->mutex);
 
-		/* Copy shared variables */
-		y_buf = pvt->p_frame_y;
-		c_buf = pvt->p_frame_c;
+	while (1)
+	{
+		/* Wait for new frame from the decoder */
+		while (pvt->busy != 1) {
+			pthread_cond_wait (&pvt->avail, &pvt->mutex);
+		}
 
 		/* Use the VEU to scale & perform colour space conversion */
 		dst_offset = ((y_offset * pvt->lcd_w) + x_offset) * LCD_BPP;
-		sh_veu_operation(0, y_buf, c_buf,
+		sh_veu_operation(0, pvt->p_frame_y, pvt->p_frame_c,
 			      pvt->src_w, pvt->src_h, pvt->src_w, YCbCr420,
 			      pvt->fb_screenMem + dst_offset, NULL,
 			      pvt->dst_w, pvt->dst_h, pvt->lcd_w, RGB565, 0);
 
 		display_flip(pvt);
-		pthread_mutex_unlock(&pvt->output_done_mutex);
+
+		/* Signal that we are ready for the next frame */
+		pvt->busy = 0;
+		pthread_cond_signal (&pvt->ready);
 	}
 
 	pthread_exit(NULL);
 }
 
+
 static void
 frame_ready(struct private_data *pvt, unsigned char *y_in, unsigned char *c_in)
 {
+	pthread_mutex_lock (&pvt->mutex);
+
 	/* Ensure the output thread is ready, we don't want the decoder running
         faster than the output */
-	pthread_mutex_lock(&pvt->output_done_mutex);
+	while (pvt->busy) {
+		pthread_cond_wait (&pvt->ready, &pvt->mutex);
+	}
 
 	/* Variables shared between the threads */
 	pvt->p_frame_y = y_in;
 	pvt->p_frame_c = c_in;
+	pvt->busy = 1;
 
 	/* Signal the output thread that a frame is available */
-	pthread_mutex_unlock(&pvt->output_mutex);
+	pthread_cond_signal (&pvt->avail);
+	pthread_mutex_unlock (&pvt->mutex);
 }
 
 
@@ -572,9 +583,10 @@ int main(int argc, char **argv)
 
 
 	/* Output thread initialisation */
-	pthread_mutex_init(&pvt->output_mutex, NULL);
-	pthread_mutex_lock(&pvt->output_mutex);
-	pthread_mutex_init(&pvt->output_done_mutex, NULL);
+	pthread_mutex_init (&pvt->mutex, NULL);
+	pthread_cond_init (&pvt->avail, NULL);
+	pthread_cond_init (&pvt->ready, NULL);
+	pvt->busy = 0;
 
 	rc = pthread_create(&thread_output, NULL, output_thread, pvt);
 	if (rc){
@@ -618,15 +630,19 @@ int main(int argc, char **argv)
 	gettimeofday(&end, 0);
 
 	/* Wait for output thread to finish */
-	pthread_mutex_lock(&pvt->output_done_mutex);
+	pthread_mutex_lock (&pvt->mutex);
+	while (pvt->busy) {
+		pthread_cond_wait (&pvt->ready, &pvt->mutex);
+	}
 
 	shcodecs_decoder_close(decoder);
 	file_read_deinit(pvt);
 	sh_veu_close();
 	display_close(pvt);
 
-	pthread_mutex_destroy(&pvt->output_mutex);
-	pthread_mutex_destroy(&pvt->output_done_mutex);
+	pthread_mutex_destroy(&pvt->mutex);
+	pthread_cond_destroy(&pvt->avail);
+	pthread_cond_destroy(&pvt->ready);
 
 	time_diff(&start, &end, &duration);
 	debug_printf("Frames output = %d\n", pvt->frames_output);
