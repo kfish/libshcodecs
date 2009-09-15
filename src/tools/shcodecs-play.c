@@ -426,8 +426,8 @@ int main(int argc, char **argv)
 {
 	SHCodecs_Decoder *decoder;
 	int stream_type = SHCodecs_Format_H264;
-	int i, rc, bytes_decoded;
-	char c, video_filename[MAXPATHLEN];
+	int c, i, rc, bytes_decoded;
+	char video_filename[MAXPATHLEN];
 	const char *fbname;
 	struct timeval start, end, duration;
 	struct private_data pvt_data;
