@@ -546,7 +546,7 @@ static int decode_frame(SHCodecs_Decoder * decoder)
 
 	max_mb = decoder->si_mbnum;
 	do {
-		int curr_len;
+		int curr_len = 0;
 		err = -1;
 
 		if ((input_len = get_input(decoder, decoder->si_nalb) <= 0)) {
