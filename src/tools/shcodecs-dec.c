@@ -34,6 +34,12 @@
 
 #include <shcodecs/shcodecs_decoder.h>
 
+#ifdef DEBUG
+#define debug_printf	printf
+#else
+#define debug_printf(...)	/* none */
+#endif
+
 #define DEFAULT_WIDTH 320
 #define DEFAULT_HEIGHT 240
 
@@ -86,17 +92,6 @@ size_t		si_isize;	/* Total size of input data */
 
 long total_input_consumed = 0;
 long total_output_bytes = 0;
-
-/*
- * debug_printf
- *
- */
-void debug_printf(__const char *__restrict __format, ...)
-{
-#ifdef _DEBUG
-        printf(__format);
-#endif
-}
 
 /***********************************************************/
 
