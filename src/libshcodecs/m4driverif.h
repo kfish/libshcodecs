@@ -25,7 +25,8 @@
 /* Align address in w bytes boundary. VPU needs 16 bytes alignment.
  * Length of a cache line of SH4/SH4AL-DSP is 32 bytes.
  */
-#define ALIGN(a, w) (void *)(((unsigned long)(a) + (w) - 1) & ~((w) - 1))
+#define ALIGN_NBYTES(a, w) \
+	(void *)(((unsigned long)(a) + (w) - 1) & ~((w) - 1))
 
 #define CHECK_ALLOC(ptr, size, errmsg, label)				\
 	do {								\

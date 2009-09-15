@@ -122,6 +122,7 @@
 void encode_time_init(void);
 unsigned long encode_time_get(void);
 
-#define ALIGN(a, w) (void *)(((unsigned long)(a) + (w) - 1) & ~((w) - 1))
+#define ALIGN_NBYTES(a, w) \
+	(void *)(((unsigned long)(a) + (w) - 1) & ~((w) - 1))
 
 #endif				/* AVCBENCSMP */

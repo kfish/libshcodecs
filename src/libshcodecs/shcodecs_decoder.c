@@ -377,7 +377,7 @@ static int decoder_init(SHCodecs_Decoder * decoder)
 	    M4IPH_CTL_FRAME_UNIT;
 	vpu_init_option.m4iph_vpu_mask_address_disable = M4IPH_OFF;
 	vpu_init_option.m4iph_temporary_buff_address =
-	    (unsigned long) ALIGN(pv_wk_buff, 32);
+	    (unsigned long) ALIGN_NBYTES(pv_wk_buff, 32);
 	vpu_init_option.m4iph_temporary_buff_size = WORK_BUF_SIZE;
 	m4iph_vpu4_init(&vpu_init_option);
 
@@ -390,15 +390,15 @@ static int decoder_init(SHCodecs_Decoder * decoder)
 
 		/* 32 bytes alignemnt to cache line */
 		frame_list[j].Y_fmemp =
-		    ALIGN(decoder->si_flist[j].Y_fmemp, 32);
+		    ALIGN_NBYTES(decoder->si_flist[j].Y_fmemp, 32);
 		frame_list[j].C_fmemp =
-		    ALIGN(decoder->si_flist[j].C_fmemp, 32);
+		    ALIGN_NBYTES(decoder->si_flist[j].C_fmemp, 32);
 	}
 	avcbd_init_sequence(decoder->si_ctxt, decoder->si_ctxt_size,
 			    decoder->si_fnum, frame_list,
 			    decoder->si_max_fx, decoder->si_max_fy, 2,
-			    ALIGN(decoder->si_dp_264, 32),
-			    ALIGN(decoder->si_dp_m4, 32), stream_mode,
+			    ALIGN_NBYTES(decoder->si_dp_264, 32),
+			    ALIGN_NBYTES(decoder->si_dp_m4, 32), stream_mode,
 			    &pv_wk_buff);
 
 	free(frame_list);
@@ -416,8 +416,8 @@ static int decoder_init(SHCodecs_Decoder * decoder)
 #endif
 	} else {
 		TAVCBD_FMEM filtered;
-		filtered.Y_fmemp = ALIGN(decoder->si_ff.Y_fmemp, 32);
-		filtered.C_fmemp = ALIGN(decoder->si_ff.C_fmemp, 32);
+		filtered.Y_fmemp = ALIGN_NBYTES(decoder->si_ff.Y_fmemp, 32);
+		filtered.C_fmemp = ALIGN_NBYTES(decoder->si_ff.C_fmemp, 32);
 		avcbd_set_filter_mode(decoder->si_ctxt, AVCBD_FILTER_DBL,
 				      AVCBD_POST, &filtered);
 	}
@@ -754,7 +754,7 @@ static int extract_frame(SHCodecs_Decoder * decoder, long frame_index)
 	        	abort();
 	        }
 	        /* C component should immediately follow the Y component */
-	        cf = ALIGN(yf + ry + luma_size, 32);
+	        cf = ALIGN_NBYTES(yf + ry + luma_size, 32);
 
                 /* Call user's output callback */
 	        if (decoder->decoded_cb) {
