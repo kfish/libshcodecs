@@ -191,4 +191,5 @@ int main(int argc, char *argv[])
 	/* TODO vpu4_reg_close(); */
 #endif
 
+	return 0;
 }

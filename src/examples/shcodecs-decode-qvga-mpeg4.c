@@ -32,4 +32,6 @@ int main (int argc, char *argv[])
 
          shcodecs_decoder_finalize (decoder);
          shcodecs_decoder_close (decoder);
+
+	 return 0;
 }
