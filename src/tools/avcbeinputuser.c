@@ -36,6 +36,8 @@
 
 #include <shcodecs/shcodecs_encoder.h>
 
+#include <time.h>		/* for timestamp struct
+				   used in linux/videodev2.h*/
 #include <linux/videodev2.h>	/* For pixel formats */
 
 extern unsigned long my_yuv_data[];	/* array for input YUV data */
