@@ -47,6 +47,7 @@ static void usage(FILE * fp, int argc, char **argv)
 		"Options:\n"
 		"-d | --device name   Video device name [/dev/video]\n"
 		"-h | --help          Print this message\n" "", argv[0]);
+        fprintf (fp, "\nPlease report bugs to <linux-sh@vger.kernel.org>\n");
 }
 
 static const char short_options[] = "d:hmru";

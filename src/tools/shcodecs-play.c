@@ -133,23 +133,24 @@ static struct option stLong_options[] = {
 static void
 usage (const char *progname)
 {
-  printf ("Usage: %s [options] ...\n", progname);
-  printf ("Decode a MPEG-4 or H.264 elementry stream and show on the LCD.\n");
-  printf ("\nFile options\n");
-  printf ("  -r               Set the playback speed, frames per second\n");
-  printf ("  -i, --input      Set the video input filename\n");
-  printf ("\nEncoding format\n");
-  printf ("  -f, --format     The file format [h264, mpeg4]\n");
-  printf ("\nDimensions of encoded stream\n");
-  printf ("  -w, --width      The image width in pixels of the file\n");
-  printf ("  -h, --height     The image height in pixels of the file\n");
-  printf ("  -s, --size       Set the input image size [qcif, cif, qvga, vga]\n");
-  printf ("\nDimensions of video on the display\n");
-  printf ("  -x,              The image width in pixels on the display\n");
-  printf ("  -y,              The image height in pixels on the display\n");
-  printf ("\nPosition of video on the display\n");
-  printf ("  -p,              The horizontal offset in pixels\n");
-  printf ("  -q,              The vertical offset in pixels\n");
+        printf ("Usage: %s [options] ...\n", progname);
+        printf ("Decode a MPEG-4 or H.264 elementry stream and show on the LCD.\n");
+        printf ("\nFile options\n");
+        printf ("  -r               Set the playback speed, frames per second\n");
+        printf ("  -i, --input      Set the video input filename\n");
+        printf ("\nEncoding format\n");
+        printf ("  -f, --format     The file format [h264, mpeg4]\n");
+        printf ("\nDimensions of encoded stream\n");
+        printf ("  -w, --width      The image width in pixels of the file\n");
+        printf ("  -h, --height     The image height in pixels of the file\n");
+        printf ("  -s, --size       Set the input image size [qcif, cif, qvga, vga]\n");
+        printf ("\nDimensions of video on the display\n");
+        printf ("  -x,              The image width in pixels on the display\n");
+        printf ("  -y,              The image height in pixels on the display\n");
+        printf ("\nPosition of video on the display\n");
+        printf ("  -p,              The horizontal offset in pixels\n");
+        printf ("  -q,              The vertical offset in pixels\n");
+        printf ("\nPlease report bugs to <linux-sh@vger.kernel.org>\n");
 }
 
 /*****************************************************************************/

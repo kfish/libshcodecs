@@ -61,17 +61,19 @@ static int local_close (void);
 static void
 usage (const char * progname)
 {
-  printf ("Usage: %s [options] ...\n", progname);
-  printf ("Encode a YUV file using the SH-Mobile VPU\n");
-  printf ("\nFile options\n");
-  printf ("  -i, --input            Set the input filename\n");
-  printf ("  -o, --output           Set the output filename\n");
-  printf ("\nEncoding format\n");
-  printf ("  -f, --format           Set the encoding format [h264, mpeg4]\n");
-  printf ("\nDimensions\n");
-  printf ("  -w, --width            Set the input image width in pixels\n");
-  printf ("  -h, --height           Set the input image height in pixels\n");
-  printf ("  -s, --size             Set the input image size [qcif, cif, qvga, vga]\n");
+        printf ("Usage: %s [options] ...\n", progname);
+        printf ("Encode a YCbCr 4:2:0 file using the SH-Mobile VPU\n");
+        printf ("\nFile options\n");
+        printf ("  -i, --input            Set the input filename\n");
+        printf ("  -o, --output           Set the output filename\n");
+        printf ("\nEncoding format\n");
+        printf ("  -f, --format           Set the encoding format [h264, mpeg4]\n");
+        printf ("\nDimensions\n");
+        printf ("  -w, --width            Set the input image width in pixels\n");
+        printf ("  -h, --height           Set the input image height in pixels\n");
+        printf ("  -s, --size             Set the input image size [qcif, cif, qvga, vga]\n");
+	printf ("\n");
+        printf ("Please report bugs to <linux-sh@vger.kernel.org>\n");
 }
 
 static struct option stLong_options[] = {

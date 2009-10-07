@@ -59,8 +59,9 @@ APPLI_INFO ainfo; /* Application Data */
 static void
 usage (const char * progname)
 {
-  printf ("Usage: %s <control file>\n", progname);
-  printf ("Encode V4L2 video input using the SH-Mobile VPU\n");
+        printf ("Usage: %s <control file>\n", progname);
+        printf ("Encode V4L2 video input using the SH-Mobile VPU\n");
+        printf ("\nPlease report bugs to <linux-sh@vger.kernel.org>\n");
 }
 
 /* SHCodecs_Encoder_Input callback for acquiring an image from the CEU */
