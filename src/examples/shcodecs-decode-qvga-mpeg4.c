@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include <shcodecs/shcodecs_decoder.h>
 
@@ -19,7 +20,8 @@ int main (int argc, char *argv[])
 {
          SHCodecs_Decoder * decoder;
          unsigned char buf[BUF_SIZE];
-         size_t n, nused;
+         size_t n;
+	 int nused;
 
          decoder = shcodecs_decoder_init (320, 240, SHCodecs_Format_MPEG4);
          shcodecs_decoder_set_decoded_callback (decoder, vpu4_decoded, NULL);

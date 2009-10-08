@@ -112,6 +112,38 @@ init_other_API_enc_param(OTHER_API_ENC_PARAM * other_API_enc_param)
 }
 
 /**
+ * Deallocate resources used to initialize the VPU4 for encoding,
+ * and reset it for future use.
+ * \param encoder The SHCodecs_Encoder* handle
+ */
+void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
+{
+	long width_height, max_frame=2;
+
+	if (encoder == NULL) return;
+
+	width_height = encoder->width * encoder->height;
+	width_height += (width_height / 2);
+	m4iph_sdr_free((unsigned char *)encoder->sdr_base, width_height * (max_frame + 3));
+
+	m4iph_sdr_free((unsigned char *)encoder->vpu4_param.m4iph_temporary_buff_address,
+		       MY_STREAM_BUFF_SIZE);
+
+	m4iph_sdr_close();
+	m4iph_vpu_close();
+
+	if (encoder->format == SHCodecs_Format_H264) {
+		h264_encode_close(encoder);
+	}
+
+	free(encoder->work_area.area_top);
+	free(encoder->stream_buff_info.buff_top);
+	free(encoder->end_code_buff_info.buff_top);
+
+	free(encoder);
+}
+
+/**
  * Initialize the VPU4 for encoding a given video format.
  * \param width The video image width
  * \param height The video image height
@@ -224,38 +256,6 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 err:
 	shcodecs_encoder_close(encoder);
 	return NULL;
-}
-
-/**
- * Deallocate resources used to initialize the VPU4 for encoding,
- * and reset it for future use.
- * \param encoder The SHCodecs_Encoder* handle
- */
-void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
-{
-	long width_height, max_frame=2;
-
-	if (encoder == NULL) return;
-
-	width_height = encoder->width * encoder->height;
-	width_height += (width_height / 2);
-	m4iph_sdr_free((unsigned char *)encoder->sdr_base, width_height * (max_frame + 3));
-
-	m4iph_sdr_free((unsigned char *)encoder->vpu4_param.m4iph_temporary_buff_address,
-		       MY_STREAM_BUFF_SIZE);
-
-	m4iph_sdr_close();
-	m4iph_vpu_close();
-
-	if (encoder->format == SHCodecs_Format_H264) {
-		h264_encode_close(encoder);
-	}
-
-	free(encoder->work_area.area_top);
-	free(encoder->stream_buff_info.buff_top);
-	free(encoder->end_code_buff_info.buff_top);
-
-	free(encoder);
 }
 
 /**

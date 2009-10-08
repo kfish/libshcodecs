@@ -36,8 +36,6 @@
 #include "decoder_private.h"
 #include "m4iph_vpu4.h"
 #include "m4driverif.h"
-#define VPU3IP
-#define VPU4IP
 #include "m4vsd_h263dec.h"
 
 /* #define DEBUG */
@@ -739,8 +737,8 @@ static int extract_frame(SHCodecs_Decoder * decoder, long frame_index)
                 /* Call user's output callback */
 	        if (decoder->decoded_cb) {
 		        cb_ret = decoder->decoded_cb(decoder, 
-                                                     ymem, luma_size, 
-                                                     cmem, luma_size >> 1,
+                                                     (unsigned char *)ymem, luma_size, 
+                                                     (unsigned char *)cmem, luma_size >> 1,
                                                      decoder->decoded_cb_data);
 	        }
         } else {
