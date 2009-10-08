@@ -127,7 +127,8 @@ static struct option stLong_options[] = {
 	{ "input" , 1, 0, 'i'},
 	{ "width" , 1, 0, 'w'},
 	{ "height", 1, 0, 'h'},
-	{ "size"  , 1, 0, 's'},
+	{ "input-size"  , 1, 0, 's'},
+	{ "output-size"  , 1, 0, 'S'},
 };
 
 static void
@@ -136,20 +137,21 @@ usage (const char *progname)
         printf ("Usage: %s [options] ...\n", progname);
         printf ("Decode a MPEG-4 or H.264 elementry stream and show on the LCD.\n");
         printf ("\nFile options\n");
-        printf ("  -r               Set the playback speed, frames per second\n");
-        printf ("  -i, --input      Set the video input filename\n");
+        printf ("  -r                 Set the playback speed, frames per second\n");
+        printf ("  -i, --input        Set the video input filename\n");
         printf ("\nEncoding format\n");
-        printf ("  -f, --format     The file format [h264, mpeg4]\n");
+        printf ("  -f, --format       The file format [h264, mpeg4]\n");
         printf ("\nDimensions of encoded stream\n");
-        printf ("  -w, --width      The image width in pixels of the file\n");
-        printf ("  -h, --height     The image height in pixels of the file\n");
-        printf ("  -s, --size       Set the input image size [qcif, cif, qvga, vga]\n");
+        printf ("  -w, --width        The image width in pixels of the file\n");
+        printf ("  -h, --height       The image height in pixels of the file\n");
+        printf ("  -s, --input-size   Set the input image size [qcif, cif, qvga, vga]\n");
         printf ("\nDimensions of video on the display\n");
-        printf ("  -x,              The image width in pixels on the display\n");
-        printf ("  -y,              The image height in pixels on the display\n");
+        printf ("  -x,                The image width in pixels on the display\n");
+        printf ("  -y,                The image height in pixels on the display\n");
+        printf ("  -S, --output-size  Set the image display size [qcif, cif, qvga, vga]\n");
         printf ("\nPosition of video on the display\n");
-        printf ("  -p,              The horizontal offset in pixels\n");
-        printf ("  -q,              The vertical offset in pixels\n");
+        printf ("  -p,                The horizontal offset in pixels\n");
+        printf ("  -q,                The vertical offset in pixels\n");
         printf ("\nPlease report bugs to <linux-sh@vger.kernel.org>\n");
 }
 
@@ -468,7 +470,7 @@ int main(int argc, char **argv)
 	pvt->fps = DEFAULT_FPS;
 
 	while (1) {
-		c = getopt_long(argc, argv, "f:i:w:h:r:x:y:a:s:p:q:", stLong_options, &i);
+		c = getopt_long(argc, argv, "f:i:w:h:r:x:y:a:s:S:p:q:", stLong_options, &i);
 		if (c == -1)
 			break;
 
@@ -494,6 +496,23 @@ int main(int argc, char **argv)
 		case 'h':
 			if (optarg)
 				pvt->src_h = strtoul(optarg, NULL, 10);
+			break;
+		case 's':
+			if (optarg) {
+				if (!strncasecmp (optarg, "qcif", 4)) {
+					pvt->src_w = 176;
+					pvt->src_h = 144;
+				} else if (!strncmp (optarg, "cif", 3)) {
+					pvt->src_w = 352;
+					pvt->src_h = 288;
+				} else if (!strncmp (optarg, "qvga", 4)) {
+					pvt->src_w = 320;
+					pvt->src_h = 240;
+				} else if (!strncmp (optarg, "vga", 3)) {
+					pvt->src_w = 640;
+					pvt->src_h = 480;
+				}
+			}
 			break;
 		case 'r':
 			if (optarg)
@@ -523,7 +542,7 @@ int main(int argc, char **argv)
 			if (optarg)
 				pvt->dst_q = strtoul(optarg, NULL, 10);
 			break;
-		case 's':
+		case 'S':
 			if (optarg) {
 				if (!strncasecmp (optarg, "qcif", 4)) {
 					pvt->dst_w = 176;
