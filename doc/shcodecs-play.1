@@ -1,0 +1,57 @@
+.TH "shcodecs-play" 1 "May 2009" "SH Codecs" "Linux-SH Multimedia"
+
+.SH NAME
+shcodecs-play \- Play a video file on the framebuffer, using the SH-Mobile VPU
+
+.SH SYNOPSIS
+
+.B \fBshcodecs-play\fR [\-w \fBwidth\fR | \-\-width \fBwidth\fR ] [\-h \fBheight\fR | \-\-height \fBheight\fR ] [\-s \fBsize\fR | \-\-input-size \fBsize\fR ] [\-x \fBpixels\fR ] [\-y \fBpixels\fR ] [\-S \fBsize\fR | \-\-output-size \fBsize\fR ] [\-f \fBformat\fR | \-\-format \fBformat\fR ] [\-r \fBfps\fR ] [\-i \fBfilename\fR | \-\-input \fBfilename\fR ]
+
+.SH DESCRIPTION
+.B shcodecs-play
+decodes an input file using the SH-Mobile VPU, and shows it on the LCD.
+
+.SH OPTIONS
+.PP
+\fBshcodecs-play\fR accepts the following options:
+
+.SS "File options"
+.IP "\-i \fBfilename\fR, \-\-input \fBfilename\fR" 10
+Set the input filename.
+
+.SS "Encoding format"
+.IP "\-f \fBformat\fR, \-\-format \fBformat\fR" 10
+Set the encoding format [h264, mpeg4].
+
+.SS "Dimensions of encoded stream"
+.IP "\-w \fBwidth\fR, \-\-width \fBwidth\fR" 10
+Set the input image width in pixels.
+
+.IP "\-h \fBheight\fR, \-\-height \fBheight\fR" 10
+Set the input image height in pixels.
+
+.IP "\-s \fBsize\fR, \-\-size \fBsize\fR" 10
+Set the input image size [qcif, cif, qvga, vga].
+
+.SS "Dimensions of video on the display"
+.IP "\-x \fBpixels\fR" 10
+Set the display image width in pixels.
+
+.IP "\-y \fBpixels\fR" 10
+Set the display image height in pixels.
+
+.IP "\-S \fBsize\fR, \-\-output-size \fBsize\fR" 10
+Set the display image size [qcif, cif, qvga, vga].
+
+.SS "Position of the video on the display"
+.IP "\-p \fBoffset\fR" 10
+Set the horizontal offset in pixels.
+
+.IP "\-q \fBoffset\fR" 10
+Set the vertical offset in pixels.
+
+.SH AUTHORS
+
+shcodecs-play was written by Phil Edworthy.
+
+Please report bugs to <linux-sh@vger.kernel.org>
