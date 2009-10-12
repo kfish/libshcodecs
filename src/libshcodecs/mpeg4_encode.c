@@ -392,8 +392,7 @@ mpeg4_encode_picture (SHCodecs_Encoder *enc,
 	input_frame.C_fmemp = enc->input_frames[0].C_fmemp;
 
 	/* For all frames to encode */
-	while (enc->frame_counter < enc->frame_number_to_encode) {
-
+	while (1) {
 #ifdef USE_BVOP
 		/* Find an input buffer that isn't in use */
 		if (enc->other_options_mpeg4.avcbe_b_vop_num > 0) {

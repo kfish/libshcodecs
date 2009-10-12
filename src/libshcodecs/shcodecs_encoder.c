@@ -177,7 +177,6 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 
 	encoder->initialized = 0;
 
-	encoder->frame_number_to_encode = 1;
 	encoder->frm = 0;
 	encoder->frame_no_increment = 1;
 	encoder->frame_skip_num = 0;

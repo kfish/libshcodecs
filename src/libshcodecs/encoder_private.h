@@ -123,7 +123,6 @@ struct _SHCodecs_Encoder {
 	TAVCBE_STREAM_BUFF end_code_buff_info;
 
 	/* General encoder internals (general_accessors.c) */
-	long frame_number_to_encode;
 	long frame_no_increment;	/* Increment value of Frame number to be encoded for 
 					   m4vse_encode_picture function */
 	/* encoding parameters */

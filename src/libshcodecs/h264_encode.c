@@ -506,7 +506,7 @@ h264_encode(SHCodecs_Encoder *enc)
 	enc->my_filler_data_buff_info.buff_size = MY_FILLER_DATA_BUFF_SIZE;
 
 	/* For all frames to encode */
-	while (enc->frame_counter < enc->frame_number_to_encode) {
+	while (1) {
 
 		/* Get the encoder input frame */
 		if (enc->input) {

@@ -331,8 +331,8 @@ int load_1frame_from_image_file(SHCodecs_Encoder * encoder,
 	unsigned long wnum;
 	unsigned char *CbCr_ptr, *Cb_buf_ptr, *Cr_buf_ptr, *ptr;
 
-	if (frame_counter_of_input == shcodecs_encoder_get_frame_number_to_encode(encoder)) {
-		return (0);
+	if (frame_counter_of_input == appli_info->frames_to_encode) {
+		return (1);
 	}
 	input_yuv_fp = appli_info->input_yuv_fp;
 	hsiz = shcodecs_encoder_get_width(encoder);
