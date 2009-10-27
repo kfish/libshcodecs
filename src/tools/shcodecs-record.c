@@ -214,7 +214,7 @@ void *process_capture_thread(void *data)
 	while(1){
 		pthread_mutex_lock(&pvt->capture_done_mutex); 
 
-		shcodecs_encoder_get_input_buf(pvt->encoder, &enc_y, &enc_c);
+		shcodecs_encoder_get_input_physical_addr (pvt->encoder, &enc_y, &enc_c);
 
 		if (!pvt->rotate_cap) {
 			src_w = pvt->ainfo.xpic;

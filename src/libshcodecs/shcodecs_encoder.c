@@ -317,18 +317,6 @@ shcodecs_encoder_input_provide (SHCodecs_Encoder * encoder,
 	return 0;
 }
 
-
-int
-shcodecs_encoder_get_input_buf (SHCodecs_Encoder *encoder, 
-                                unsigned char **pp_y_input,
-                                unsigned char **pp_c_input)
-{
-	*pp_y_input  = encoder->addr_y;
-	*pp_c_input = encoder->addr_c;
-	return 0;
-}
-
-
 /*
  * Get the width in pixels of the encoded image
  * \param encoder The SHCodecs_Encoder* handle
