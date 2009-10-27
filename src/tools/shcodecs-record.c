@@ -280,7 +280,7 @@ int main(int argc, char *argv[])
 	struct private_data *pvt;
 	int return_code, rc;
 	long stream_type;
-	int num_frames;
+	//int num_frames;
 	struct timeval start, finish, diff;
 	float time;
 	pthread_t thread_blit;
@@ -461,12 +461,10 @@ int main(int argc, char *argv[])
 
 	gettimeofday(&finish, 0);
 
-	num_frames = shcodecs_encoder_get_frame_number_to_encode(pvt->encoder);
-
 	timersub(&finish, &start, &diff);
 	time = diff.tv_sec + (float)diff.tv_usec/U_SEC_PER_SEC;
 
-	printf("%d frames captured at %.2f fps\n", num_frames, (float)num_frames/time);
+	//printf("%d frames captured at %.2f fps\n", num_frames, (float)num_frames/time);
 
 	debug_printf("Captured %d frames\n", pvt->captured_frames);
 	debug_printf("Displayed %d frames\n", pvt->output_frames);
