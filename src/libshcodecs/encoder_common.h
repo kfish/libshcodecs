@@ -22,11 +22,30 @@
 
 #include <stdio.h>
 
+#define CAPTURE_720P
+
 //#define MAX_D1
 
-#define CAPTURE_VGA 1
+//#define CAPTURE_VGA 1
 
-#ifdef MAX_D1
+#ifdef CAPTURE_720P
+
+/*----------------------------------------------------------*/
+/*       Image width x Image height x 1.5                   */
+/*----------------------------------------------------------*/
+#define WIDTH_HEIGHT_1_5	1382400	/* 622080=1280 x 720 x 1.5(D1 Size) */
+#define MAX_FRAME 2
+/*----------------------------------------------------------*/
+/*       Other work-field area size                         */
+/*----------------------------------------------------------*/
+#define MY_WORK_AREA_SIZE	1024*512
+
+/*----------------------------------------------------------*/
+/*       Stream-output buffer size for 1 frame              */
+/*----------------------------------------------------------*/
+#define MY_STREAM_BUFF_SIZE	1024*256     /* byte unit */	/* this value must be multiple of 32 */
+
+#elif defined(MAX_D1)
 /*----------------------------------------------------------*/
 /*       Image width x Image height x 1.5                   */
 /*----------------------------------------------------------*/

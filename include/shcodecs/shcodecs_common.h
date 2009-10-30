@@ -23,12 +23,12 @@ typedef enum {
 #define	SHCODECS_MIN_FX		48
 
 /** Maximum frame width */
-#define	SHCODECS_MAX_FX		640
+#define	SHCODECS_MAX_FX		1280
 
 /** Minimum frame height */
 #define	SHCODECS_MIN_FY		48
 
 /** Maximum frame height */
-#define	SHCODECS_MAX_FY		480
+#define	SHCODECS_MAX_FY		720
 
 #endif /* __SHCODECS_COMMON_H__ */
