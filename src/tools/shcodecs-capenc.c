@@ -45,6 +45,8 @@
 
 #define USE_BVOP
 
+#define U_SEC_PER_SEC 1000000
+
 /* capture yuv data to the image-capture-field area each frame */
 int capture_image(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info);
 
@@ -55,6 +57,10 @@ int select_inputfile_set_param(SHCodecs_Encoder * encoder,
 
 SHCodecs_Encoder *encoder; /* Encoder */
 APPLI_INFO ainfo; /* Application Data */
+
+/* Timing */
+int num_frames=0;
+struct timeval start, finish, diff;
 
 static void
 usage (const char * progname)
@@ -68,6 +74,8 @@ usage (const char * progname)
 static int get_input(SHCodecs_Encoder * encoder, void *user_data)
 {
 	APPLI_INFO *appli_info = (APPLI_INFO *) user_data;
+
+	num_frames++;
 	return capture_image(encoder, appli_info);
 }
 
@@ -81,6 +89,16 @@ static int write_output(SHCodecs_Encoder * encoder,
 
 void cleanup (void)
 {
+	float time;
+
+	gettimeofday(&finish, 0);
+
+	timersub(&finish, &start, &diff);
+	time = diff.tv_sec + (float)diff.tv_usec/U_SEC_PER_SEC;
+
+	if (time > 0)
+	        fprintf(stderr, "%d frames captured at %.2f fps\n", num_frames, (float)num_frames/time);
+
 	if (ainfo.ceu != NULL)
                 sh_ceu_stop_capturing(ainfo.ceu);
 
@@ -175,6 +193,7 @@ int main(int argc, char *argv[])
 
 	sh_ceu_start_capturing(ainfo.ceu);
 
+	gettimeofday(&start, 0);
 	encode_return_code = shcodecs_encoder_run(encoder);
 
 	if (encode_return_code < 0) {
