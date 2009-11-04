@@ -198,6 +198,59 @@ shcodecs_encoder_set_frame_rate(SHCodecs_Encoder * encoder,
 	old_value = encoder->encoding_property.avcbe_frame_rate;
 	encoder->encoding_property.avcbe_frame_rate = frame_rate;
 
+
+	
+
+	return old_value;
+}
+
+/**
+* Get the sps_frame_rate_info.
+* \param encoder The SHCodecs_Encoder* handle
+* \returns The sps_frame_rate_info
+* \retval -1 \a encoder invalid
+* \retval -2 \a vui_timing_info is not present
+*/
+float shcodecs_encoder_get_h264_sps_frame_rate_info(SHCodecs_Encoder * encoder)
+{
+	if (encoder == NULL)
+		return -1;
+	if (encoder->other_API_enc_param.vui_main_param.avcbe_timing_info_present_flag == 0)
+		return -2;
+	      
+	return  encoder->other_API_enc_param.vui_main_param.avcbe_time_scale / encoder->other_API_enc_param.vui_main_param.avcbe_num_units_in_tick;
+}
+
+/**
+* Set the frame_rate.
+* \param encoder The SHCodecs_Encoder* handle
+* \param frame_rate_numerator The new value for \a frame_rate_numerator
+* \param frame_rate_denominator The new value for \a frame_rate_denominator
+* \returns The previous value of \a frame_rate
+* \retval -1 \a encoder invalid
+*/
+
+float
+shcodecs_encoder_set_h264_sps_frame_rate_info(SHCodecs_Encoder * encoder,
+				long frame_rate_numerator, long frame_rate_denominator)
+{
+	float old_value;
+
+	if (encoder == NULL)
+		return -1;
+
+	if (encoder->format == SHCodecs_Format_H264){
+
+	    if (encoder->other_options_h264.avcbe_out_vui_parameters == 1){
+	      old_value = encoder->other_API_enc_param.vui_main_param.avcbe_time_scale / encoder->other_API_enc_param.vui_main_param.avcbe_num_units_in_tick;
+	      /* for RTP streaming we need the VUI parameters in the SPS NAL for framerate info*/
+	      /* we need to set out_vui_parameters = 1 in the ctl file */
+	      encoder->other_API_enc_param.vui_main_param.avcbe_num_units_in_tick = frame_rate_denominator;
+	      encoder->other_API_enc_param.vui_main_param.avcbe_timing_info_present_flag = 1;
+	      encoder->other_API_enc_param.vui_main_param.avcbe_time_scale = frame_rate_numerator;
+	    }
+	  }
+
 	return old_value;
 }
 

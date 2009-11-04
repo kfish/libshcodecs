@@ -99,6 +99,28 @@ shcodecs_encoder_set_frame_rate(SHCodecs_Encoder * encoder,
 				long frame_rate);
 
 /**
+* Get the sps_frame_rate_info.
+* \param encoder The SHCodecs_Encoder* handle
+* \returns The sps_frame_rate_info
+* \retval -1 \a encoder invalid
+* \retval -2 \a vui_timing_info is not present
+*/
+float shcodecs_encoder_get_h264_sps_frame_rate_info(SHCodecs_Encoder * encoder);
+
+/**
+* Set the frame_rate.
+* \param encoder The SHCodecs_Encoder* handle
+* \param frame_rate_numerator The new value for \a frame_rate_numerator
+* \param frame_rate_denominator The new value for \a frame_rate_denominator
+* \returns The previous value of \a frame_rate
+* \retval -1 \a encoder invalid
+*/
+
+float
+shcodecs_encoder_set_h264_sps_frame_rate_info(SHCodecs_Encoder * encoder,
+				long frame_rate_numerator, long frame_rate_denominator);
+
+/**
  * Get the I_vop_interval.
  * \param encoder The SHCodecs_Encoder* handle
  * \returns The I_vop_interval

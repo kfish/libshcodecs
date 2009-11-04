@@ -222,6 +222,8 @@
 		shcodecs_encoder_set_ypic_size;
 		shcodecs_encoder_get_frame_rate;
 		shcodecs_encoder_set_frame_rate;
+        shcodecs_encoder_get_h264_sps_frame_rate_info;
+        shcodecs_encoder_set_h264_sps_frame_rate_info;
 		shcodecs_encoder_get_I_vop_interval;
 		shcodecs_encoder_set_I_vop_interval;
 		shcodecs_encoder_get_mv_mode;
