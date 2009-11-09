@@ -574,23 +574,30 @@ int main(int argc, char **argv)
 			exit(-2);
 		}
 	}
-	if (pvt->src_w == -1 || pvt->src_h == -1){
-		fprintf(stderr, "Invalid source width and/or height specified.\n");
-		exit(-3);
+
+        if (optind >= argc) {
+	      usage (argv[0]);
+              goto exit_err;
+        }
+
+	if (optind == (argc-1) && video_filename[0] == '\0') {
+		strncpy(video_filename, argv[optind++], MAXPATHLEN-1);
 	}
 	if ( (strcmp(video_filename, "-") == 0) || (video_filename[0] == '\0') ){
 		fprintf(stderr, "Invalid input file.\n");
 		exit(-4);
+	}
+
+	if (pvt->src_w == -1 || pvt->src_h == -1){
+		fprintf(stderr, "Invalid source width and/or height specified.\n");
+		exit(-3);
 	}
 	if (pvt->src_w < SHCODECS_MIN_FX || pvt->src_w > SHCODECS_MAX_FX
 	    || pvt->src_h < SHCODECS_MIN_FY || pvt->src_h > SHCODECS_MAX_FY) {
 		fprintf(stderr, "Invalid source width and/or height specified.\n");
 		exit(-6);
 	}
-	if (optind > argc){
-		fprintf(stderr, "Too many arguments.\n");
-		exit(-7);
-	}
+
 	/* Ensure the output is no bigger than the LCD */
 	pvt->dst_p = min(pvt->dst_p, pvt->lcd_w);
 	pvt->dst_q = min(pvt->dst_q, pvt->lcd_h);
