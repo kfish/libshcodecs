@@ -55,11 +55,13 @@
 #define DEFAULT_HEIGHT 240
 #define DEFAULT_FPS	25
 
-/* The size of NALs/VOPs varies, it depends on the profile & level */
-/* For worst case NAl size see MaxCPB in the H.264 spec */
-#define MAX_NAL_SIZE (256 * 1024)
-
 /* #define _DEBUG */
+#ifdef _DEBUG
+        #define debug_printf printf
+#else
+        void debug_printf(const char *format, ...) {}
+#endif
+
 
 /* limitation of VEU2H on SH7723 */
 #define VEU2H_MAX_WIDTH 640
@@ -108,6 +110,8 @@ struct private_data {
 	int src_w;          /* Size of video input */
 	int src_h;
 
+	int max_nal_size;
+
 	int fps;            /* Playback speed; frames per second */
 	int frames_output;  /* Number of times the frame decoded callback is called */
 	int frames_dropped; /* Number of times the frame arrives late */
@@ -152,13 +156,6 @@ static struct option long_options[] = {
 	{ "output-size"  , 1, 0, 'S'},
 };
 #endif
-
-void debug_printf(__const char *__restrict __format, ...)
-{
-#ifdef _DEBUG
-	printf(__format);
-#endif
-}
 
 /*****************************************************************************/
 
@@ -241,7 +238,7 @@ static int update_input(struct private_data *pvt, int consumed)
         /* Set up cblist */
         cblist[0] = (const struct aiocb *)aio;
 
-	if (pvt->input_buf_len < MAX_NAL_SIZE)
+	if (pvt->input_buf_len < pvt->max_nal_size)
 	{
 		/* Wait for pending read to complete */
 		aio_suspend(cblist, 1, NULL);
@@ -253,7 +250,7 @@ static int update_input(struct private_data *pvt, int consumed)
 			memcpy(pvt->input_buf + pvt->input_buf_len, pvt->read_buf, read_len);
 			pvt->input_buf_len += read_len;
 
-			aio->aio_nbytes = MAX_NAL_SIZE;
+			aio->aio_nbytes = pvt->max_nal_size;
 			aio->aio_offset += read_len;
 
 			/* Start a new read */
@@ -285,15 +282,15 @@ static int file_read_init(struct private_data *pvt, char *video_filename)
 	/* The input buffer is twice the size of the largest NAL/VOP becuase we
 	   could have 99% of one NAL/VOP unused in the buffer and need to store
 	   the next read data after this */
-	pvt->input_buf = malloc(MAX_NAL_SIZE * 2);
-	pvt->read_buf  = malloc(MAX_NAL_SIZE);
+	pvt->input_buf = malloc(pvt->max_nal_size * 2);
+	pvt->read_buf  = malloc(pvt->max_nal_size);
 	if (pvt->input_buf == NULL || pvt->read_buf == NULL ) {
 		fprintf(stderr, "Memory allocation failed!\n");
 		return -1;
 	}
 
 	aio->aio_buf = pvt->read_buf;
-	aio->aio_nbytes = MAX_NAL_SIZE;
+	aio->aio_nbytes = pvt->max_nal_size;
 	aio->aio_offset = 0;
 
 	/* Start a new read */
@@ -605,6 +602,13 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Invalid source width and/or height specified.\n");
 		exit(-6);
 	}
+
+        /* H.264 spec: Max NAL size is the size of an uncomrpessed immage divided
+           by the "Minimum Compression Ratio", MinCR. This is 2 for most levels
+           but is 4 for levels 3.1 to 4. Since we don't know the level, we just
+           use MinCR=2. */
+        pvt->max_nal_size = (pvt->src_w * pvt->src_h * 3) / 2; /* YCbCr420 */
+        pvt->max_nal_size /= 2; /* Apply MinCR */
 
 	/* Ensure the output is no bigger than the LCD */
 	pvt->dst_p = min(pvt->dst_p, pvt->lcd_w);

@@ -40,8 +40,6 @@
 
 /* #define DEBUG */
 
-#define MAX_BUF_SIZE (4 * 256 * 1024)
-
 /* XXX: Forward declarations */
 static int decode_frame(SHCodecs_Decoder * decoder);
 static int extract_frame(SHCodecs_Decoder * decoder, long frame_index);
@@ -74,6 +72,15 @@ SHCodecs_Decoder *shcodecs_decoder_init(int width, int height, int format)
 
 	decoder->frame_count = 0;
 	decoder->last_cb_ret = 0;
+
+        /* H.264 spec: Max NAL size is the size of an uncomrpessed immage divided
+           by the "Minimum Compression Ratio", MinCR. This is 2 for most levels
+           but is 4 for levels 3.1 to 4. Since we don't know the level, we use
+           MinCR=2 for sizes upto D1 and MinCR=4 for over D1. */
+        decoder->max_nal_size = (width * height * 3) / 2; /* YCbCr420 */
+        decoder->max_nal_size /= 2; /* Apply MinCR */
+        if (width*height > 720*576)
+                decoder->max_nal_size /= 2; /* Apply MinCR */
 
 	/* Initialize m4iph */
 	m4iph_vpu_open();
@@ -159,7 +166,7 @@ shcodecs_decode(SHCodecs_Decoder * decoder, unsigned char *data, int len)
         while (len > 0) {
                 decoder->si_input += nused;
 	        decoder->si_ipos = 0;
-                decoder->si_ilen = MIN (MAX_BUF_SIZE, len);
+                decoder->si_ilen = MIN (decoder->max_nal_size, len);
         	decoder->si_isize = decoder->si_ilen;
 
                 if ((nused = decoder_start(decoder)) <= 0)
@@ -260,18 +267,20 @@ static int stream_init(SHCodecs_Decoder * decoder)
 	memset(decoder->si_ctxt, 0, iContext_ReqWorkSize);
 	global_context = decoder->si_ctxt;
 	if (decoder->si_type == F_H264) {
-		decoder->si_nalb = malloc(NAL_BUF_SIZE);
-		CHECK_ALLOC(decoder->si_nalb, NAL_BUF_SIZE, "NAL buffer",
+		decoder->si_nalb = malloc(decoder->max_nal_size);
+		CHECK_ALLOC(decoder->si_nalb, decoder->max_nal_size, "NAL buffer",
 			    err1);
 	}
 
-	decoder->si_fnum = CFRAME_NUM;
-	iContext_ReqWorkSize = decoder->si_max_fx * decoder->si_max_fy;
-#if 0
-	if (iContext_ReqWorkSize > (352 * 288)) {
-		decoder->si_fnum = decoder->si_fnum / 4;
-	}
-#endif
+        /* Number of reference frames */
+        /* For > D1, limit the number of reference frames to 2. This is a
+           pragmatic approach when we don't know the number of reference
+           frames in the stream... */
+        decoder->si_fnum = CFRAME_NUM;
+        iContext_ReqWorkSize = decoder->si_max_fx * decoder->si_max_fy;
+        if (iContext_ReqWorkSize > (720*576)) {
+                decoder->si_fnum = 2;
+        }
 	decoder->si_flist = calloc(decoder->si_fnum, sizeof(FrameInfo));
 	CHECK_ALLOC(decoder->si_flist,
 		    decoder->si_fnum * sizeof(FrameInfo), "frame list",
@@ -292,8 +301,7 @@ static int stream_init(SHCodecs_Decoder * decoder)
 
 		/* printf("%02d--Y=%X,",i,(int)decoder->si_flist[i].Y_fmemp); */
 		CHECK_ALLOC(decoder->si_flist[i].Y_fmemp,
-			    iContext_ReqWorkSize +
-			    (iContext_ReqWorkSize >> 1),
+			    iContext_ReqWorkSize,
 			    "Y component (kernel memory)", err1);
 
 		/* chroma frame */
@@ -357,9 +365,9 @@ static int decoder_init(SHCodecs_Decoder * decoder)
 	long stream_mode;
 	int j;
 
-	pv_wk_buff = m4iph_sdr_malloc(WORK_BUF_SIZE, 32);
+	pv_wk_buff = m4iph_sdr_malloc(decoder->max_nal_size, 32);
 	/* printf("work buffer = %X\n",(int)pv_wk_buff); */
-	CHECK_ALLOC(pv_wk_buff, WORK_BUF_SIZE, "work buffer (kernel)",
+	CHECK_ALLOC(pv_wk_buff, decoder->max_nal_size, "work buffer (kernel)",
 		    err1);
 
 	vpu_init_option.m4iph_vpu_base_address = 0xfe900000;
@@ -376,7 +384,7 @@ static int decoder_init(SHCodecs_Decoder * decoder)
 	vpu_init_option.m4iph_vpu_mask_address_disable = M4IPH_OFF;
 	vpu_init_option.m4iph_temporary_buff_address =
 	    (unsigned long) ALIGN_NBYTES(pv_wk_buff, 32);
-	vpu_init_option.m4iph_temporary_buff_size = WORK_BUF_SIZE;
+	vpu_init_option.m4iph_temporary_buff_size = decoder->max_nal_size;
 	m4iph_vpu4_init(&vpu_init_option);
 
 	avcbd_start_decoding();

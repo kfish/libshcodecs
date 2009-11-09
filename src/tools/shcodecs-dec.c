@@ -43,8 +43,6 @@
 #define DEFAULT_WIDTH 320
 #define DEFAULT_HEIGHT 240
 
-#define INPUT_BUF_SIZE	(4 * 256 * 1024)
-
 /* #define _DEBUG */
 
 /* XXX: extern declarations, why are these not in a public header for those libs? */
@@ -98,6 +96,7 @@ unsigned char	*input_buffer;	/* Pointer to input buffer */
 int		si_ipos;	/* Current position in input stream */
 size_t		si_isize;	/* Total size of input data */
 
+long max_nal_size;
 long total_input_consumed = 0;
 long total_output_bytes = 0;
 
@@ -254,6 +253,13 @@ int main(int argc, char **argv)
 		exit(-8);
 	}
 
+        /* H.264 spec: Max NAL size is the size of an uncomrpessed immage divided
+           by the "Minimum Compression Ratio", MinCR. This is 2 for most levels
+           but is 4 for levels 3.1 to 4. Since we don't know the level, we just
+           use MinCR=2. */
+        max_nal_size = (w * h * 3) / 2; /* YCbCr420 */
+        max_nal_size /= 2;              /* Apply MinCR */
+
 	/* Open file descriptors to talk to the VPU and SDR drivers */
 
         if ((decoder = shcodecs_decoder_init(w, h, stream_type)) == NULL) {
@@ -274,7 +280,7 @@ int main(int argc, char **argv)
                 
                 rem = si_isize - bytes_decoded;
 	        memmove(input_buffer, input_buffer + bytes_decoded, rem);
-                n = read (input_fd, input_buffer + rem, INPUT_BUF_SIZE - rem);
+                n = read (input_fd, input_buffer + rem, max_nal_size - rem);
                 if (n < 0) break;
 
                 si_isize = rem + n;
@@ -349,13 +355,13 @@ local_init (char *input_filename, char *output_filename)
 		return -51;
 
 	/* Allocate memory for input buffer */
-	input_buffer = malloc(INPUT_BUF_SIZE);
+	input_buffer = malloc(max_nal_size);
 	debug_printf("input buffer = %X\n",(int)input_buffer);
 	if (input_buffer == NULL) goto err2;
 
 	if (input_fd != -1) {
 		/* Fill input buffer */
-		if ((si_isize = read(input_fd, input_buffer, INPUT_BUF_SIZE)) <= 0) {
+		if ((si_isize = read(input_fd, input_buffer, max_nal_size)) <= 0) {
 				perror(input_filename);
 				return -54;
 		}
