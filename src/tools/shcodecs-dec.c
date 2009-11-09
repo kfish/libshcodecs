@@ -76,7 +76,10 @@ usage (const char * progname)
         printf ("Please report bugs to <linux-sh@vger.kernel.org>\n");
 }
 
-static struct option stLong_options[] = {
+static char * optstring = "f:o:i:w:h:s:";
+
+#ifdef HAVE_GETOPT_LONG
+static struct option long_options[] = {
         { "format", 1, 0, 'f'},
         { "output", 1, 0, 'o'},
         { "input" , 1, 0, 'i'},
@@ -84,6 +87,7 @@ static struct option stLong_options[] = {
         { "height", 1, 0, 'h'},
         { "size", 1, 0, 's'}
 };
+#endif
 
 /* local vars, removed from ST_STREAM_INFO */
 int		input_fd;	/* Input file descriptor */
@@ -143,9 +147,17 @@ int main(int argc, char **argv)
 	h = DEFAULT_HEIGHT;
 
 	while (1) {
-		c = getopt_long(argc, argv, "f:o:i:w:h:s:", stLong_options, &i);
+#ifdef HAVE_GETOPT_LONG
+		c = getopt_long(argc, argv, optstring, long_options, &i);
+#else
+		c = getopt (argc, argv, optstring);
+#endif
 		if (c == -1)
 			break;
+                if (c == ':') {
+                        usage (progname);
+                        goto exit_err;
+                }
 
 		switch (c) {
 		case 'f':
@@ -276,7 +288,11 @@ int main(int argc, char **argv)
         fprintf (stderr, "Total bytes consumed: %ld\n", total_input_consumed);
         fprintf (stderr, "Total bytes output: %ld\n", total_output_bytes);
 
-	return ret;
+exit_ok:
+	exit (0);
+
+exit_err:
+	exit (1);
 }
 
 /*

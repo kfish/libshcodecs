@@ -113,24 +113,6 @@ struct private_data {
 	int frames_dropped; /* Number of times the frame arrives late */
 };
 
-
-
-void debug_printf(__const char *__restrict __format, ...)
-{
-#ifdef _DEBUG
-	printf(__format);
-#endif
-}
-
-static struct option stLong_options[] = {
-	{ "format", 1, 0, 'f'},
-	{ "input" , 1, 0, 'i'},
-	{ "width" , 1, 0, 'w'},
-	{ "height", 1, 0, 'h'},
-	{ "input-size"  , 1, 0, 's'},
-	{ "output-size"  , 1, 0, 'S'},
-};
-
 static void
 usage (const char *progname)
 {
@@ -153,6 +135,26 @@ usage (const char *progname)
         printf ("  -p,                The horizontal offset in pixels\n");
         printf ("  -q,                The vertical offset in pixels\n");
         printf ("\nPlease report bugs to <linux-sh@vger.kernel.org>\n");
+}
+
+static char * optstring = "f:i:w:h:r:x:y:a:s:S:p:q:";
+
+#ifdef HAVE_GETOPT_LONG
+static struct option long_options[] = {
+	{ "format", 1, 0, 'f'},
+	{ "input" , 1, 0, 'i'},
+	{ "width" , 1, 0, 'w'},
+	{ "height", 1, 0, 'h'},
+	{ "input-size"  , 1, 0, 's'},
+	{ "output-size"  , 1, 0, 'S'},
+};
+#endif
+
+void debug_printf(__const char *__restrict __format, ...)
+{
+#ifdef _DEBUG
+	printf(__format);
+#endif
 }
 
 /*****************************************************************************/
@@ -470,9 +472,17 @@ int main(int argc, char **argv)
 	pvt->fps = DEFAULT_FPS;
 
 	while (1) {
-		c = getopt_long(argc, argv, "f:i:w:h:r:x:y:a:s:S:p:q:", stLong_options, &i);
+#ifdef HAVE_GETOPT_LONG
+		c = getopt_long(argc, argv, optstring, long_options, &i);
+#else
+		c = getopt (argc, argv, optstring);
+#endif
 		if (c == -1)
 			break;
+                if (c == ':') {
+                        usage (argv[0]);
+                        goto exit_err;
+                }
 
 		switch (c) {
 		case 'f':
@@ -670,6 +680,10 @@ int main(int argc, char **argv)
 	debug_printf("FPS = %10f\n", (double)pvt->frames_output/duration.tv_sec);
 	debug_printf("Late frames = %d\n", pvt->frames_dropped);
 
-	return 0;
+exit_ok:
+	exit (0);
+
+exit_err:
+	exit (1);
 }
 
