@@ -36,6 +36,7 @@
 #include <sys/param.h>
 #include <sys/types.h>
 #include <sys/time.h>
+#include <signal.h>
 #include <linux/videodev2.h>	/* For pixel formats */
 #include <linux/fb.h>
 #include <linux/ioctl.h>
@@ -275,17 +276,50 @@ static int write_output(SHCodecs_Encoder *encoder,
 	return fwrite(data, 1, length, pvt->ainfo.output_file_fp);
 }
 
+struct private_data pvt_data;
+struct timeval start, finish, diff;
 
+void cleanup (void)
+{
+	float time;
+	struct private_data *pvt = &pvt_data;
+
+	gettimeofday(&finish, 0);
+
+	timersub(&finish, &start, &diff);
+	time = diff.tv_sec + (float)diff.tv_usec/U_SEC_PER_SEC;
+
+	debug_printf("Captured %d frames (%.2f fps)\n", pvt->captured_frames,
+		 	(float)pvt->captured_frames/time);
+	debug_printf("Displayed %d frames (%.2f fps)\n", pvt->output_frames,
+			(float)pvt->output_frames/time);
+
+	sh_ceu_stop_capturing(pvt->ainfo.ceu);
+	shcodecs_encoder_close(pvt->encoder);
+	sh_ceu_close(pvt->ainfo.ceu);
+	close_output_file(&pvt->ainfo);
+	display_close(pvt);
+	sh_veu_close();
+}
+
+void sig_handler(int sig)
+{
+	cleanup ();
+
+#ifdef DEBUG
+        fprintf (stderr, "Got signal %d\n", sig);
+#endif
+
+        /* Send ourselves the signal: see http://www.cons.org/cracauer/sigint.html */
+	signal(sig, SIG_DFL);
+	kill(getpid(), sig);
+}
 
 int main(int argc, char *argv[])
 {
-	struct private_data pvt_data;
 	struct private_data *pvt;
 	int return_code, rc;
 	long stream_type;
-	//int num_frames;
-	struct timeval start, finish, diff;
-	float time;
 	pthread_t thread_blit;
 	pthread_t thread_capture;
 	unsigned int pixel_format;
@@ -393,6 +427,8 @@ int main(int argc, char *argv[])
 		return -7;
 	}
 
+        signal (SIGINT, sig_handler);
+        signal (SIGPIPE, sig_handler);
 
 	/* VEU Scaler initialisation */
 	sh_veu_open();
@@ -475,26 +511,9 @@ int main(int argc, char *argv[])
 	if (rc != 0) {
 		fprintf(stderr, "Error encoding, error code=%d\n", rc);
 		rc = -10;
-		goto err_enc;
 	}
 
-	gettimeofday(&finish, 0);
-
-	timersub(&finish, &start, &diff);
-	time = diff.tv_sec + (float)diff.tv_usec/U_SEC_PER_SEC;
-
-	//printf("%d frames captured at %.2f fps\n", num_frames, (float)num_frames/time);
-
-	debug_printf("Captured %d frames\n", pvt->captured_frames);
-	debug_printf("Displayed %d frames\n", pvt->output_frames);
-
-err_enc:
-	sh_ceu_stop_capturing(pvt->ainfo.ceu);
-	shcodecs_encoder_close(pvt->encoder);
-	sh_ceu_close(pvt->ainfo.ceu);
-	close_output_file(&pvt->ainfo);
-	display_close(pvt);
-	sh_veu_close();
+	cleanup ();
 
 	return rc;
 
