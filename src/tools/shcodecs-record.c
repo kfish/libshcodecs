@@ -89,11 +89,14 @@ void close_output_file(APPLI_INFO * appli_info);
 int select_inputfile_set_param(SHCodecs_Encoder *encoder,
 			       APPLI_INFO *appli_info);
 
+static char * optstring = "i:r:";
 
-static struct option stLong_options[] = {
+#ifdef HAVE_GETOPT_LONG
+static struct option long_options[] = {
 	{ "input" , 1, 0, 'i'},
 	{ "rotate", 1, 0, 'r'},
 };
+#endif
 
 static void
 usage (const char * progname)
@@ -304,9 +307,17 @@ int main(int argc, char *argv[])
 	pvt->rotate_cap = 0;
 
 	while (1) {
-		c = getopt_long(argc, argv, "i:r:", stLong_options, &i);
+#ifdef HAVE_GETOPT_LONG
+		c = getopt_long(argc, argv, optstring, long_options, &i);
+#else
+		c = getopt (argc, argv, optstring);
+#endif
 		if (c == -1)
 			break;
+                if (c == ':') {
+                        usage (argv[0]);
+                        goto exit_err;
+                }
 
 		switch (c) {
 		case 'i':
@@ -323,6 +334,14 @@ int main(int argc, char *argv[])
 		}
 	}
 
+        if (optind >= argc) {
+	      usage (argv[0]);
+              goto exit_err;
+        }
+
+	if (optind == (argc-1) && v4l2_filename[0] == '\0') {
+		strncpy(v4l2_filename, argv[optind++], MAXPATHLEN-1);
+	}
 	if ( (strcmp(v4l2_filename, "-") == 0) || (v4l2_filename[0] == '\0') ){
 		fprintf(stderr, "Invalid v4l2 configuration file.\n");
 		return -1;
@@ -478,5 +497,9 @@ err_enc:
 	sh_veu_close();
 
 	return rc;
+
+exit_err:
+	/* General exit, prior to thread creation */
+	exit (1);
 }
 
