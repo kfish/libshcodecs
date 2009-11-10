@@ -116,7 +116,7 @@ struct private_data {
 static void
 usage (const char *progname)
 {
-        printf ("Usage: %s [options] ...\n", progname);
+        printf ("Usage: %s [options] filename\n", progname);
         printf ("Decode a MPEG-4 or H.264 elementry stream and show on the LCD.\n");
         printf ("\nFile options\n");
         printf ("  -r                 Set the playback speed, frames per second\n");
@@ -134,6 +134,9 @@ usage (const char *progname)
         printf ("\nPosition of video on the display\n");
         printf ("  -p,                The horizontal offset in pixels\n");
         printf ("  -q,                The vertical offset in pixels\n");
+        printf ("\nFile extensions are interpreted as follows unless otherwise specified:\n");
+        printf ("  .m4v    MPEG4\n");
+        printf ("  .264    H.264\n");
         printf ("\nPlease report bugs to <linux-sh@vger.kernel.org>\n");
 }
 
@@ -430,7 +433,7 @@ local_vpu4_decoded (SHCodecs_Decoder *decoder,
 int main(int argc, char **argv)
 {
 	SHCodecs_Decoder *decoder;
-	int stream_type = SHCodecs_Format_H264;
+	int stream_type = -1;
 	int c, i, rc, bytes_decoded;
 	char video_filename[MAXPATHLEN];
 	const char *fbname;
@@ -438,6 +441,7 @@ int main(int argc, char **argv)
 	struct private_data pvt_data;
 	struct private_data *pvt;
 	pthread_t thread_output;
+	char * ext;
 
 	if (argc == 1) {
 		usage(argv[0]);
@@ -575,7 +579,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-        if (optind >= argc) {
+        if (optind > argc) {
 	      usage (argv[0]);
               goto exit_err;
         }
@@ -610,6 +614,14 @@ int main(int argc, char **argv)
 		pvt->dst_w = min(pvt->dst_w, VEU2H_MAX_WIDTH);
 	if (pvt->src_h > pvt->dst_h)
 		pvt->dst_h = min(pvt->dst_h, VEU2H_MAX_WIDTH);
+
+	if (stream_type == -1) {
+		ext = strrchr (video_filename, '.');
+		if (ext == NULL || !strncmp (ext, ".264", 4))
+			stream_type = SHCodecs_Format_H264;
+		else
+			stream_type = SHCodecs_Format_MPEG4;
+	}
 
 	debug_printf("Format: %s\n", stream_type == SHCodecs_Format_H264 ? "H.264" : "MPEG4");
 	debug_printf("File resolution:    %dx%d\n", pvt->src_w, pvt->src_h);
