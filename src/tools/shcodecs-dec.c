@@ -72,8 +72,10 @@ usage (const char * progname)
         printf ("  -w, --width            Set the input image width in pixels\n");
         printf ("  -h, --height           Set the input image height in pixels\n");
         printf ("  -s, --size             Set the input image size [qcif, cif, qvga, vga]\n");
-	printf ("\n");
-        printf ("Please report bugs to <linux-sh@vger.kernel.org>\n");
+        printf ("\nFile extensions are interpreted as follows unless otherwise specified:\n");
+        printf ("  .m4v    MPEG4\n");
+        printf ("  .264    H.264\n");
+        printf ("\nPlease report bugs to <linux-sh@vger.kernel.org>\n");
 }
 
 static char * optstring = "f:o:i:w:h:s:";
@@ -125,11 +127,12 @@ local_vpu4_decoded (SHCodecs_Decoder * decoder,
 int main(int argc, char **argv)
 {
         SHCodecs_Decoder * decoder;
-	int ret=0, stream_type = SHCodecs_Format_H264, i, w, h, c;
+	int ret=0, stream_type = -1, i, w, h, c;
 	char input_filename[MAXPATHLEN], output_filename[MAXPATHLEN];
 	struct sched_param stSchePara;
         int bytes_decoded, frames_decoded;
         size_t n;
+	char * ext;
 
         char * progname = argv[0];
 
@@ -232,6 +235,15 @@ int main(int argc, char **argv)
 		debug_printf("Too many arguments.\n");
 		exit(-7);
 	}
+
+	if (stream_type == -1) {
+		ext = strrchr (input_filename, '.');
+		if (ext == NULL || !strncmp (ext, ".264", 4))
+			stream_type = SHCodecs_Format_H264;
+		else
+			stream_type = SHCodecs_Format_MPEG4;
+	}
+
 	debug_printf("Format: %s\n", stream_type == SHCodecs_Format_H264 ? "H.264" : "MPEG4");
 	debug_printf("Resolution: %dx%d\n", w, h);
 	debug_printf("Input  file: %s\n", input_filename);
