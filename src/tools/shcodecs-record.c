@@ -276,7 +276,10 @@ static int write_output(SHCodecs_Encoder *encoder,
 {
 	struct private_data *pvt = (struct private_data*)user_data;
 
-	return fwrite(data, 1, length, pvt->ainfo.output_file_fp);
+	if (fwrite(data, 1, length, pvt->ainfo.output_file_fp) < 0)
+		return -1;
+
+	return 0;
 }
 
 struct private_data pvt_data;
