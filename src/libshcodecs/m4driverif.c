@@ -404,7 +404,7 @@ void *m4iph_sdr_malloc(unsigned long count, int align)
 
 void m4iph_sdr_free(void *address, unsigned long count)
 {
-	fprintf(stderr, "%s() is not required\n", __FUNCTION__);
+	/* fprintf(stderr, "%s() is not required\n", __FUNCTION__); */
 }
 
 #if 0
