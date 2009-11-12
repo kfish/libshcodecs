@@ -65,6 +65,9 @@ struct private_data {
 	int lcd_w;
 	int lcd_h;
 
+	pthread_t thread_blit;
+	pthread_t thread_capture;
+
 	APPLI_INFO ainfo;	/* Capture params */
 	SHCodecs_Encoder *encoder;
 
@@ -298,8 +301,16 @@ void cleanup (void)
 	shcodecs_encoder_close(pvt->encoder);
 	sh_ceu_close(pvt->ainfo.ceu);
 	close_output_file(&pvt->ainfo);
+
+	pthread_cancel (&pvt->thread_blit);
 	display_close(pvt);
+
+	pthread_cancel (&pvt->thread_capture);
 	sh_veu_close();
+
+	pthread_mutex_destroy (&pvt->capture_done_mutex);
+	pthread_mutex_destroy (&pvt->encode_start_mutex);
+	pthread_mutex_destroy (&pvt->capture_start_mutex);
 }
 
 void sig_handler(int sig)
@@ -320,8 +331,6 @@ int main(int argc, char *argv[])
 	struct private_data *pvt;
 	int return_code, rc;
 	long stream_type;
-	pthread_t thread_blit;
-	pthread_t thread_capture;
 	unsigned int pixel_format;
 	char c, v4l2_filename[MAXPATHLEN];
 	const char *fbname;
@@ -416,12 +425,12 @@ int main(int argc, char *argv[])
 	pthread_mutex_lock(&pvt->capture_done_mutex);
 
 	/* Create the threads */
-	rc = pthread_create(&thread_capture, NULL, capture_thread, pvt);
+	rc = pthread_create(&pvt->thread_capture, NULL, capture_thread, pvt);
 	if (rc){
 		fprintf(stderr, "pthread_create failed, exiting\n");
 		return -6;
 	}
-	rc = pthread_create(&thread_blit, NULL, process_capture_thread, pvt);
+	rc = pthread_create(&pvt->thread_blit, NULL, process_capture_thread, pvt);
 	if (rc){
 		fprintf(stderr, "pthread_create failed, exiting\n");
 		return -7;
