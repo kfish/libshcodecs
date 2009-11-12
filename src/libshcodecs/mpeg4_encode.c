@@ -68,17 +68,19 @@ static const char*data_name[] =
 	{"SEI", "SPS", "PPS", "AUD", "I", "P", "B", "FILL", "END"};
 #endif
 
-static void
+static int
 output_data(SHCodecs_Encoder *enc, int type, void *buf, long length)
 {
 #ifdef OUTPUT_STREAM_INFO
 	fprintf (stderr, "output %s (%d bytes)\n", data_name[type], (int)length);
 #endif
 	if (enc->output) {
-		enc->output(enc,
-			(unsigned char *)buf, length,
-			enc->output_user_data);
+		return enc->output(enc,
+				(unsigned char *)buf, length,
+				enc->output_user_data);
 	}
+
+	return 0;
 }
 
 
@@ -287,6 +289,7 @@ mpeg4_encode_frame (SHCodecs_Encoder *enc, long stream_type,
 	long pic_type;
 	struct timeval tv, tv1;
 	long tm;
+	int cb_ret = 0;
 
 	input_buf.Y_fmemp = py;
 	input_buf.C_fmemp = pc;
@@ -344,21 +347,21 @@ mpeg4_encode_frame (SHCodecs_Encoder *enc, long stream_type,
 
 		/* Output frame data */
 		if (pic_type == AVCBE_I_VOP) {
-			output_data(enc, IDATA,
-				enc->stream_buff_info.buff_top, unit_size);
+			cb_ret = output_data(enc, IDATA,
+					enc->stream_buff_info.buff_top, unit_size);
 		} else if (pic_type == AVCBE_P_VOP) {
-			output_data(enc, PDATA,
-				enc->stream_buff_info.buff_top, unit_size);
+			cb_ret = output_data(enc, PDATA,
+					enc->stream_buff_info.buff_top, unit_size);
 		} else {
-			output_data(enc, BDATA,
-				enc->stream_buff_info.buff_top, unit_size);
+			cb_ret = output_data(enc, BDATA,
+					enc->stream_buff_info.buff_top, unit_size);
 		}
 	}
 
 	enc->frm += enc->frame_no_increment;
 	enc->frame_counter++;
 
-	return 0;
+	return cb_ret;
 }
 
 /* Encode process function for MPEG-4/H.263 */
@@ -367,6 +370,7 @@ mpeg4_encode_picture (SHCodecs_Encoder *enc,
 		      long stream_type)
 {
 	long rc;
+	int cb_ret;
 	TAVCBE_FMEM input_frame;
 #ifdef USE_BVOP
 	unsigned long i;
@@ -416,11 +420,11 @@ mpeg4_encode_picture (SHCodecs_Encoder *enc,
 		if (enc->input) {
 			enc->addr_y = input_frame.Y_fmemp;
 			enc->addr_c = input_frame.C_fmemp;
-			rc = enc->input(enc, enc->input_user_data);
-			if (rc < 0) {
+			cb_ret = enc->input(enc, enc->input_user_data);
+			if (cb_ret != 0) {
 				fprintf (stderr, "%s: ERROR acquiring input image!\n", __func__);
-				enc->error_return_code = rc;
-				return rc;
+				enc->error_return_code = cb_ret;
+				return cb_ret;
 			}
 		}
 
@@ -437,6 +441,7 @@ int
 mpeg4_encode_run (SHCodecs_Encoder *enc, long stream_type)
 {
 	long rc, length;
+	int cb_ret=0;
 
 	if (!enc->initialized)
 		mpeg4_encode_deferred_init (enc, stream_type);
@@ -452,8 +457,8 @@ mpeg4_encode_run (SHCodecs_Encoder *enc, long stream_type)
 	if (length <= 0)
 		return vpu_err(enc, __func__, __LINE__, length);
 
-	output_data(enc, END, enc->end_code_buff_info.buff_top, length);
+	cb_ret = output_data(enc, END, enc->end_code_buff_info.buff_top, length);
 
-	return (0);
+	return (cb_ret);
 }
 

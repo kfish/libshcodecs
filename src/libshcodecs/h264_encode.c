@@ -93,17 +93,18 @@ static const char*data_name[] =
 	{"SEI", "SPS", "PPS", "AUD", "I", "P", "FILL", "END"};
 #endif
 
-static void
+static int
 output_data(SHCodecs_Encoder *enc, int type, void *buf, long length)
 {
 #ifdef OUTPUT_STREAM_INFO
 	fprintf (stderr, "output %s (%d bytes)\n", data_name[type], (int)length);
 #endif
 	if (enc->output) {
-		enc->output(enc,
-			(unsigned char *)buf, length,
-			enc->output_user_data);
+		return enc->output(enc, (unsigned char *)buf, length,
+                                   enc->output_user_data);
 	}
+
+	return 0;
 }
 
 
@@ -216,6 +217,7 @@ h264_output_SEI_parameters(SHCodecs_Encoder *enc)
 	long length;
 	int num_sei_msgs;
 	int i;
+	int cb_ret;
 
 	/* H.264 Spec: The buffer period SEI message is the first SEI NAL unit */
 	char sei_msg[] = {
@@ -253,8 +255,10 @@ h264_output_SEI_parameters(SHCodecs_Encoder *enc)
 						&(enc->sei_buf_info));
 
 			if (length > 0) {
-				output_data(enc, SEI,
-					enc->sei_buf_info.buff_top, length);
+				cb_ret = output_data(enc, SEI,
+							enc->sei_buf_info.buff_top, length);
+				if (cb_ret != 0)
+					return cb_ret;
 			} else {
 				vpu_err(enc, __func__, __LINE__, length);
 				return_value |= (0x1 << i);
@@ -340,6 +344,7 @@ h264_encode_frame(SHCodecs_Encoder *enc, unsigned char *py, unsigned char *pc)
 	long tm;
 	int start_of_frame;
 	long nal_size;
+	int cb_ret = 0;
 
 	start_of_frame = 1;
 
@@ -409,8 +414,10 @@ h264_encode_frame(SHCodecs_Encoder *enc, unsigned char *py, unsigned char *pc)
 			if (start_of_frame) {
 				/* Output AU delimiter */
 				if (extra_stream_buff != NULL) {
-					output_data(enc, AUD, enc->aud_buf_info.buff_top,
-						slice_stat.avcbe_AU_unit_bytes);
+					cb_ret = output_data(enc, AUD, enc->aud_buf_info.buff_top,
+							slice_stat.avcbe_AU_unit_bytes);
+					if (cb_ret != 0)
+						return cb_ret;
 				}
 
 				/* If the type is IDR-picture, encode SPS and PPS data (after 1st frame) */
@@ -423,10 +430,14 @@ h264_encode_frame(SHCodecs_Encoder *enc, unsigned char *py, unsigned char *pc)
 				if ((enc->frame_counter == 0)
 				    || (pic_type == AVCBE_IDR_PIC)) {
 					/* output SPS data and PPS data */
-					output_data(enc, SPS, enc->sps_buf_info.buff_top,
+					cb_ret = output_data(enc, SPS, enc->sps_buf_info.buff_top,
 						slice_stat.avcbe_SPS_unit_bytes);
-					output_data(enc, PPS, enc->pps_buf_info.buff_top,
+					if (cb_ret != 0)
+						return cb_ret;
+					cb_ret = output_data(enc, PPS, enc->pps_buf_info.buff_top,
 						slice_stat.avcbe_PPS_unit_bytes);
+					if (cb_ret != 0)
+						return cb_ret;
 				}
 
 				/* output SEI parameter */
@@ -437,9 +448,11 @@ h264_encode_frame(SHCodecs_Encoder *enc, unsigned char *py, unsigned char *pc)
 				/* output Filler data (if CPB Buffer overflow) */
 				if ((enc->output_filler_enable == 1)
 				    && (enc->output_filler_data > 0)) {
-					output_data(enc, FILL,
+					cb_ret = output_data(enc, FILL,
 						enc->my_filler_data_buff_info.buff_top,
 						enc->output_filler_data);
+					if (cb_ret != 0)
+						return cb_ret;
 				}
 
 				start_of_frame = 0;
@@ -448,11 +461,15 @@ h264_encode_frame(SHCodecs_Encoder *enc, unsigned char *py, unsigned char *pc)
 			/* Output slice data */
 			if ((pic_type == AVCBE_IDR_PIC)
 			    || (pic_type == AVCBE_I_PIC)) {
-				output_data(enc, IDATA,
+				cb_ret = output_data(enc, IDATA,
 					enc->stream_buff_info.buff_top, nal_size);
+				if (cb_ret != 0)
+					return cb_ret;
 			} else {
-				output_data(enc, PDATA,
+				cb_ret = output_data(enc, PDATA,
 					enc->stream_buff_info.buff_top, nal_size);
+				if (cb_ret != 0)
+					return cb_ret;
 			}
 		}
 
@@ -486,6 +503,7 @@ static long
 h264_encode(SHCodecs_Encoder *enc)
 {
 	long rc;
+	int cb_ret;
 
 	/* Setup VUI parameters */
 	if (enc->other_options_h264.avcbe_out_vui_parameters == AVCBE_ON) {
@@ -512,11 +530,11 @@ h264_encode(SHCodecs_Encoder *enc)
 		if (enc->input) {
 			enc->addr_y = enc->input_frames[0].Y_fmemp;
 			enc->addr_c = enc->input_frames[0].C_fmemp;
-			rc = enc->input(enc, enc->input_user_data);
-			if (rc < 0) {
+			cb_ret = enc->input(enc, enc->input_user_data);
+			if (cb_ret != 0) {
 				fprintf (stderr, "%s: ERROR acquiring input image!\n", __func__);
-				enc->error_return_code = rc;
-				return rc;
+				enc->error_return_code = (long)cb_ret ;
+				return cb_ret ;
 			}
 		}
 
@@ -548,7 +566,9 @@ h264_encode_run (SHCodecs_Encoder *enc, long stream_type)
 	length = avcbe_put_end_code(enc->stream_info, &enc->end_code_buff_info, AVCBE_END_OF_STRM);
 	if (length <= 0)
 		return vpu_err(enc, __func__, __LINE__, length);
-	output_data(enc, END, enc->end_code_buff_info.buff_top, length);
+	rc = output_data(enc, END, enc->end_code_buff_info.buff_top, length);
+	if (rc != 0)
+		return rc;
 
 	if (enc->output_filler_enable == 1) {
 		rc = avcbe_put_filler_data(&enc->stream_buff_info,
