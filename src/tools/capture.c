@@ -441,7 +441,8 @@ init_userp(sh_ceu * ceu, unsigned int buffer_size)
 	}
 
 	for (ceu->n_buffers = 0; ceu->n_buffers < req.count; ++ceu->n_buffers) {
-		void *user, *phys;
+		void *user;
+		unsigned long phys;
 
 		/* Get user memory from UIO */
 		user = uiomux_malloc(ceu->uiomux, UIOMUX_SH_VEU,
@@ -450,7 +451,7 @@ init_userp(sh_ceu * ceu, unsigned int buffer_size)
 
 		ceu->buffers[ceu->n_buffers].length = buffer_size;
 		ceu->buffers[ceu->n_buffers].start = user;
-		ceu->buffers[ceu->n_buffers].phys_addr = phys;
+		ceu->buffers[ceu->n_buffers].phys_addr = (void *)phys;
 
 		if (!ceu->buffers[ceu->n_buffers].start) {
 			fprintf(stderr, "Out of memory\n");
