@@ -221,7 +221,7 @@ void *process_capture_thread(void *data)
 	while(1){
 		pthread_mutex_lock(&pvt->capture_done_mutex); 
 
-		shcodecs_encoder_get_input_physical_addr (pvt->encoder, &enc_y, &enc_c);
+		shcodecs_encoder_get_input_physical_addr (pvt->encoder, (unsigned int *)&enc_y, (unsigned int *)&enc_c);
 
 		if (!pvt->rotate_cap) {
 			src_w = pvt->ainfo.xpic;
@@ -276,7 +276,7 @@ static int write_output(SHCodecs_Encoder *encoder,
 {
 	struct private_data *pvt = (struct private_data*)user_data;
 
-	if (fwrite(data, 1, length, pvt->ainfo.output_file_fp) < 0)
+	if (fwrite(data, 1, length, pvt->ainfo.output_file_fp) < (size_t)length)
 		return -1;
 
 	return 0;
@@ -305,10 +305,10 @@ void cleanup (void)
 	sh_ceu_close(pvt->ainfo.ceu);
 	close_output_file(&pvt->ainfo);
 
-	pthread_cancel (&pvt->thread_blit);
+	pthread_cancel (pvt->thread_blit);
 	display_close(pvt);
 
-	pthread_cancel (&pvt->thread_capture);
+	pthread_cancel (pvt->thread_capture);
 	sh_veu_close();
 
 	pthread_mutex_destroy (&pvt->capture_done_mutex);

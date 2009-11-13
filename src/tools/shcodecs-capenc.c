@@ -85,7 +85,7 @@ static int write_output(SHCodecs_Encoder * encoder,
 {
 	APPLI_INFO *appli_info = (APPLI_INFO *) user_data;
 
-	if (fwrite(data, 1, length, appli_info->output_file_fp) < 0)
+	if (fwrite(data, 1, length, appli_info->output_file_fp) < (size_t)length)
 		return -1;
 
 	return 0;

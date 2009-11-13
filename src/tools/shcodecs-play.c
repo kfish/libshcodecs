@@ -231,16 +231,20 @@ static void display_close(struct private_data *pvt)
 static int update_input(struct private_data *pvt, int consumed)
 {
 	struct aiocb *aio = &pvt->read_aiocb;
+        const struct aiocb * cblist[1];
 	int read_len, ret;
 
 	/* Copy the unused stream data to the start of the buffer */
 	pvt->input_buf_len -= consumed;
 	memmove(pvt->input_buf, pvt->input_buf+consumed, pvt->input_buf_len);
 
+        /* Set up cblist */
+        cblist[0] = (const struct aiocb *)aio;
+
 	if (pvt->input_buf_len < MAX_NAL_SIZE)
 	{
 		/* Wait for pending read to complete */
-		aio_suspend(&aio, 1, NULL);
+		aio_suspend(cblist, 1, NULL);
 
 		read_len = aio_return(aio);
 		if (read_len > 0)

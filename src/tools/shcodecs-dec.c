@@ -131,7 +131,7 @@ int main(int argc, char **argv)
 	char input_filename[MAXPATHLEN], output_filename[MAXPATHLEN];
 	struct sched_param stSchePara;
         int bytes_decoded, frames_decoded;
-        size_t n;
+        ssize_t n;
 	char * ext;
 
         char * progname = argv[0];
