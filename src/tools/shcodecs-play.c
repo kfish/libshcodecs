@@ -131,11 +131,11 @@ usage (const char *progname)
         printf ("\nDimensions of encoded stream\n");
         printf ("  -w, --width        The image width in pixels of the file\n");
         printf ("  -h, --height       The image height in pixels of the file\n");
-        printf ("  -s, --input size   Set the input image size [qcif, cif, qvga, vga, 720p]\n");
+        printf ("  -s, --input size   Set the input image size [qcif, cif, qvga, vga, d1, 720p]\n");
         printf ("\nDimensions of video on the display\n");
         printf ("  -x,                The image width in pixels on the display\n");
         printf ("  -y,                The image height in pixels on the display\n");
-        printf ("  -S, --output-size  Set the image display size [qcif, cif, qvga, vga]\n");
+        printf ("  -S, --output-size  Set the image display size [qcif, cif, qvga, vga, d1, 720p]\n");
         printf ("\nPosition of video on the display\n");
         printf ("  -p,                The horizontal offset in pixels\n");
         printf ("  -q,                The vertical offset in pixels\n");
@@ -527,6 +527,9 @@ int main(int argc, char **argv)
 				} else if (!strncmp (optarg, "vga", 3)) {
 					pvt->src_w = 640;
 					pvt->src_h = 480;
+				} else if (!strncmp (optarg, "d1", 2)) {
+					pvt->src_w = 720;
+					pvt->src_h = 480;
 				} else if (!strncmp (optarg, "720p", 4)) {
 					pvt->src_w = 1280;
 					pvt->src_h = 720;
@@ -574,6 +577,9 @@ int main(int argc, char **argv)
 					pvt->dst_h = 240;
 				} else if (!strncmp (optarg, "vga", 3)) {
 					pvt->dst_w = 640;
+					pvt->dst_h = 480;
+				} else if (!strncmp (optarg, "d1", 2)) {
+					pvt->dst_w = 720;
 					pvt->dst_h = 480;
 				} else if (!strncmp (optarg, "720p", 4)) {
 					pvt->dst_w = 1280;
