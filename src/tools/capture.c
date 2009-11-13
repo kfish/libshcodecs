@@ -31,7 +31,7 @@
 #include "veu_colorspace.h"
 
 #define CLEAR(x) memset (&(x), 0, sizeof (x))
-
+#define PAGE_ALIGN(addr) (((addr) + getpagesize() - 1) & ~(getpagesize()-1))
 
 typedef enum {
 	IO_METHOD_READ,
@@ -157,6 +157,9 @@ read_frame(sh_ceu * ceu, sh_process_callback cb, void *user_data)
 		}
 
 		for (i = 0; i < ceu->n_buffers; ++i){
+			/* TODO Work around the kernel - it sets the buffer size incorrectly */
+			buf.length = ceu->buffers[i].length;
+
 			if (buf.m.userptr == (unsigned long) ceu->buffers[i].start
 			    && buf.length == ceu->buffers[i].length)
 				break;
@@ -553,6 +556,9 @@ static void init_device(sh_ceu * ceu)
 	min = fmt.fmt.pix.bytesperline * fmt.fmt.pix.height;
 	if (fmt.fmt.pix.sizeimage < min)
 		fmt.fmt.pix.sizeimage = min;
+
+	/* TODO Work around the kernel - it sets the buffer size incorrectly */
+	fmt.fmt.pix.sizeimage =  PAGE_ALIGN(fmt.fmt.pix.sizeimage);
 
 	switch (ceu->io) {
 	case IO_METHOD_READ:
