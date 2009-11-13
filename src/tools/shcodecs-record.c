@@ -332,9 +332,9 @@ int main(int argc, char *argv[])
 	int return_code, rc;
 	long stream_type;
 	unsigned int pixel_format;
-	char c, v4l2_filename[MAXPATHLEN];
+	char v4l2_filename[MAXPATHLEN];
 	const char *fbname;
-	int i;
+	int c, i;
 
 	pvt = &pvt_data;
 
