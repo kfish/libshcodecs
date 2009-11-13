@@ -1,0 +1,125 @@
+libshcodecs 0.9.8 Release
+=========================
+
+libshcodecs is a library for controlling SH-Mobile hardware codecs.
+
+The [SH-Mobile][0] processor series includes a hardware video processing
+unit that supports MPEG-4 and H.264 encoding and decoding.
+libshcodecs is available under the terms of the GNU LGPL.
+
+The source archive, and more information about the library are available from:
+
+        http://linux-sh.org/cgi-bin/moin.cgi/libshcodecs
+
+New in this release
+===================
+
+This release adds the shcodecs-record tool, which encodes a video stream
+from camera with a simultaneous preview to the framebuffer. shcodecs-record
+supports V4L2 streaming I/O (USERPTR) mode for zero-copy access to
+image data captured via the SH-Mobile CEU.
+
+API
+---
+
+      * Added public API functions:
+      shcodecs_encoder_get_h264_sps_frame_rate_info()
+      shcodecs_encoder_set_h264_sps_frame_rate_info()
+
+      This allows you to insert timing-related VUI parameters into the
+      SPS NAL of H.264 during encoding.
+
+      * Removed public API function:
+      shcodecs_encoder_set_frame_number_to_encode()
+
+      Previously, applications had to set the number of frames to encode
+      prior to calling shcodecs_encoder_run(). This was not very useful
+      for interactive or streaming applications.
+
+      To cancel encoding, return non-zero from an encode input or
+      output callback, which will stop the encode and return control to the
+      calling application.
+
+      * libtool shared version info updated to 7:0:0
+
+Changes
+-------
+
+Conrad Parker (20):
+      replace INSTALL symlink in repo with file
+      Version_script: export shcodecs_encoder_get_input_physical_addr
+      Clean up line endings on control files
+      capenc: Report num frames captured and framerate
+      use HAVE_GETOPT_LONG check in tools
+      shcodecs-play: specify filename without -i
+      shcodecs-play: guess format by file extension
+      shcodecs-dec: guess format by file extension
+      remove noisy warning about m4iph_sdr_free()
+      replace _get_input_buf with _get_input_physical_addr
+      remove reference to _get_frame_number_to_encode
+      clean up line endings on shcodecs-record, capture.[ch]
+      shcodecs-record: don't require -i option flag
+      shcodecs-record: add signal handling, FPS reporting
+      shcodecs-record: cancel threads on cleanup
+      shcodecs-record: use int return value from getopt
+      handle encode cancel from user callbacks.
+      shcodecs-{capenc,record}: cancel only on error
+      Fix compile warnings throughout
+      Release 0.9.8
+
+Johannes Lahti (1):
+      Removed public API function shcodecs_encoder_set_frame_number_to_encode
+
+Phil Edworthy (2):
+      Added shcodecs-record tool
+      Fixed problem with opening framebuffer with shcodecs-record.
+
+Takashi Namiki (1):
+      Add functions to set the frame rate in the SPS NAL
+
+ INSTALL                              |  237 +++++++++++++++-
+ config.h.in                          |    3 +
+ configure.ac                         |    4 +-
+ data/KMp4-v4l2-stream.ctl            |  190 ++++++------
+ data/KMp4-v4l2.ctl                   |  190 ++++++------
+ data/KMp4_000.ctl                    |  190 ++++++------
+ data/k264-v4l2-stream.ctl            |  192 ++++++------
+ data/k264-v4l2.ctl                   |  192 ++++++------
+ data/k264_000.ctl                    |  192 ++++++------
+ doc/Makefile.am                      |    2 +-
+ doc/shcodecs-dec.1                   |    7 +
+ doc/shcodecs-play.1                  |    9 +-
+ doc/shcodecs-record.1                |   32 ++
+ include/shcodecs/encode_general.h    |   18 --
+ include/shcodecs/encode_properties.h |   22 ++
+ include/shcodecs/shcodecs_encoder.h  |   14 +
+ release_notes/libshcodecs-0.9.8.txt  |  120 ++++++++
+ src/libshcodecs/Version_script.in    |    3 +
+ src/libshcodecs/encoder_private.h    |    1 -
+ src/libshcodecs/general_accessors.c  |   33 --
+ src/libshcodecs/h264_encode.c        |   58 +++--
+ src/libshcodecs/m4driverif.c         |    2 +-
+ src/libshcodecs/mpeg4_encode.c       |   42 ++--
+ src/libshcodecs/property_accessors.c |   53 ++++
+ src/libshcodecs/shcodecs_encoder.c   |    3 -
+ src/tools/ControlFileUtil.c          |    2 +-
+ src/tools/Makefile.am                |   24 ++-
+ src/tools/avcbeinputuser.c           |    5 +-
+ src/tools/avcbencsmp.h               |    2 +
+ src/tools/capture.c                  |  386 ++++++++++++++++++++-----
+ src/tools/capture.h                  |   15 +
+ src/tools/shcodecs-capenc.c          |   25 ++-
+ src/tools/shcodecs-dec.c             |   42 +++-
+ src/tools/shcodecs-play.c            |   97 +++++--
+ src/tools/shcodecs-record.c          |  536 ++++++++++++++++++++++++++++++++++
+ src/tools/veu_colorspace.c           |   37 ++-
+ src/tools/veu_colorspace.h           |   11 +
+ 37 files changed, 2203 insertions(+), 788 deletions(-)
+ mode change 120000 => 100644 INSTALL
+ create mode 100644 doc/shcodecs-record.1
+ mode change 100755 => 100644 include/shcodecs/shcodecs_encoder.h
+ create mode 100644 release_notes/libshcodecs-0.9.8.txt
+ create mode 100644 src/tools/shcodecs-record.c
+
+[0]: http://www.renesas.com/fmwk.jsp?cnt=sh_mobile_family_landing.jsp&fp=/products/mpumcu/sh_mobile/
+
