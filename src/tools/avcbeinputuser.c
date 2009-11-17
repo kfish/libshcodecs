@@ -32,7 +32,8 @@
 
 #include "capture.h"
 
-#include "veu_colorspace.h"
+#include <shveu/shveu.h>
+#include <shveu/veu_colorspace.h>
 
 #include <shcodecs/shcodecs_encoder.h>
 
@@ -165,7 +166,7 @@ capture_image_cb(sh_ceu * ceu, const unsigned char *frame_data, size_t length,
 		c = CbCr_ptr;
 
 #if 0
-		sh_veu_rgb565_to_nv12(d, y, c, 320, 240);
+		shveu_rgb565_to_nv12(d, y, c, 320, 240);
 #else
 		for (i = 0; i < ysiz; i++) {
 			if (odd) {

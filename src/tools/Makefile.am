@@ -12,20 +12,18 @@ noinst_HEADERS = \
 	avcbencsmp.h \
 	capture.h \
 	framerate.h \
-	ControlFileUtil.h \
-	veu_colorspace.h
+	ControlFileUtil.h
 
 shcodecs_dec_SOURCES = shcodecs-dec.c
 shcodecs_dec_LDADD = $(SHCODECS_LIBS)
 
-shcodecs_play_SOURCES = shcodecs-play.c framerate.c veu_colorspace.c
-shcodecs_play_LDADD = -lrt -lpthread $(SHCODECS_LIBS)
+shcodecs_play_SOURCES = shcodecs-play.c framerate.c
+shcodecs_play_LDADD = -lshveu -luiomux -lrt -lpthread $(SHCODECS_LIBS)
 
 shcodecs_record_SOURCES = \
 	shcodecs-record.c \
 	capture.c \
 	framerate.c \
-	veu_colorspace.c \
 	ControlFileUtil.c \
 	avcbeinputuser.c \
 	avcbencsmp_common.c
@@ -39,29 +37,29 @@ shcodecs_record_CFLAGS = -v -Wall -O2 -I $(srcdir) -fPIC -fno-common \
 	-DVPU_FILEOUT=1 -DTEL_TRACE_LEVEL2=1 -DSH_X=1 -DLINUX_VPU=1CFLAGS \
 	-DVPU3IP -DVPU4IP -DMPEG4SP -DVPU4S
 
-shcodecs_record_LDADD = -lstdc++ -lrt -lpthread $(SHCODECS_LIBS)
+shcodecs_record_LDADD = -lshveu -luiomux -lstdc++ -lrt -lpthread $(SHCODECS_LIBS)
 
 
 shcodecs_enc_SOURCES =  \
 	shcodecs-enc.c \
 	capture.c \
-	veu_colorspace.c \
 	ControlFileUtil.c \
 	avcbeinputuser.c \
 	avcbencsmp_common.c
 
-shcodecs_enc_LDADD = $(SHCODECS_LIBS)
+shcodecs_enc_LDADD = -lshveu -luiomux $(SHCODECS_LIBS)
+
 
 shcodecs_capenc_SOURCES =  \
 	shcodecs-capenc.c \
 	capture.c \
-	veu_colorspace.c \
 	ControlFileUtil.c \
 	avcbeinputuser.c \
 	avcbencsmp_common.c
 
-shcodecs_capenc_LDADD = $(SHCODECS_LIBS)
+shcodecs_capenc_LDADD = -lshveu -luiomux $(SHCODECS_LIBS)
 
 
-shcodecs_cap_SOURCES = capture.c shcodecs-cap.c veu_colorspace.c
+shcodecs_cap_SOURCES = capture.c shcodecs-cap.c
+shcodecs_cap_LDADD = -luiomux
 

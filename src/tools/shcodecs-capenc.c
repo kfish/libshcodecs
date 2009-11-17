@@ -37,7 +37,8 @@
 #include "avcbencsmp.h"		/* User Application Sample Header */
 
 #include "capture.h"
-#include "veu_colorspace.h"
+#include <shveu/shveu.h>
+#include <shveu/veu_colorspace.h>
 
 #include "ControlFileUtil.h"
 
@@ -109,7 +110,7 @@ void cleanup (void)
 	if (encoder != NULL)
 		shcodecs_encoder_close(encoder);
 
-	sh_veu_close();
+	shveu_close();
 
 	if (ainfo.ceu != NULL)
 		sh_ceu_close(ainfo.ceu);
@@ -171,7 +172,7 @@ int main(int argc, char *argv[])
 
 	ainfo.ceu = sh_ceu_open(ainfo.input_file_name_buf, ainfo.xpic, ainfo.ypic);
 
-	sh_veu_open();
+	shveu_open();
 
 	encoder =
 	    shcodecs_encoder_init(ainfo.xpic, ainfo.ypic,

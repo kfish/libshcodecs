@@ -28,7 +28,7 @@
 #include <asm/types.h>	  /* for videodev2.h */
 
 #include <linux/videodev2.h>
-#include "veu_colorspace.h"
+#include <uiomux/uiomux.h>
 
 #define CLEAR(x) memset (&(x), 0, sizeof (x))
 #define PAGE_ALIGN(addr) (((addr) + getpagesize() - 1) & ~(getpagesize()-1))
@@ -55,6 +55,7 @@ typedef struct _sh_ceu {
 	int height;
 	unsigned int pixel_format;
 	int use_physical;
+	UIOMux *uiomux;
 } sh_ceu;
 
 typedef void (*sh_process_callback) (sh_ceu * ceu, const void *frame_data,
@@ -442,8 +443,10 @@ init_userp(sh_ceu * ceu, unsigned int buffer_size)
 	for (ceu->n_buffers = 0; ceu->n_buffers < req.count; ++ceu->n_buffers) {
 		void *user, *phys;
 
-		/* Get UIO memory from the VEU */
-		sh_veu_get_mem(buffer_size, page_size, &phys, &user);
+		/* Get user memory from UIO */
+		user = uiomux_malloc(ceu->uiomux, UIOMUX_SH_VEU,
+               buffer_size, page_size);
+		phys = uiomux_virt_to_phys(ceu->uiomux, UIOMUX_SH_VEU, user);
 
 		ceu->buffers[ceu->n_buffers].length = buffer_size;
 		ceu->buffers[ceu->n_buffers].start = user;
@@ -537,15 +540,10 @@ static void init_device(sh_ceu * ceu)
 	fmt.fmt.pix.field       = V4L2_FIELD_ANY;
 
 	if (-1 == xioctl(ceu->fd, VIDIOC_S_FMT, &fmt)) {
-		fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
-		if (-1 == xioctl(ceu->fd, VIDIOC_S_FMT, &fmt)) {
-			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB565;
-			if (-1 == xioctl(ceu->fd, VIDIOC_S_FMT, &fmt)) {
-       			errno_exit("VIDIOC_S_FMT");
-			}
-		}
+		errno_exit("VIDIOC_S_FMT");
 	}
 	ceu->pixel_format = fmt.fmt.pix.pixelformat;
+
 	/* Note VIDIOC_S_FMT may change width and height. */
 	ceu->width = fmt.fmt.pix.width;
 	ceu->height = fmt.fmt.pix.height;
@@ -578,6 +576,8 @@ static void init_device(sh_ceu * ceu)
 
 static void close_device(sh_ceu * ceu)
 {
+	uiomux_close(ceu->uiomux);
+
 	if (-1 == close(ceu->fd))
 		errno_exit("close");
 
@@ -606,6 +606,14 @@ static void open_device(sh_ceu * ceu)
 	if (-1 == ceu->fd) {
 		fprintf(stderr, "Cannot open '%s': %d, %s\n",
 			ceu->dev_name, errno, strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+
+	/* User mapped memory */
+	ceu->uiomux = uiomux_open();
+	if (ceu->uiomux == 0) {
+		fprintf(stderr, "Cannot uiomux: %d, %s\n",
+			errno, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 }

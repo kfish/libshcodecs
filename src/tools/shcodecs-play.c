@@ -49,8 +49,8 @@
 #include <pthread.h>
 #include <errno.h>
 #include <shcodecs/shcodecs_decoder.h>
-#include "veu_colorspace.h"
 #include "framerate.h"
+#include <shveu/shveu.h>
 
 #define DEFAULT_WIDTH 320
 #define DEFAULT_HEIGHT 240
@@ -354,10 +354,10 @@ void *output_thread(void *data)
 
 		/* Use the VEU to scale & perform colour space conversion */
 		dst_offset = ((y_offset * pvt->lcd_w) + x_offset) * LCD_BPP;
-		sh_veu_operation(0, pvt->p_frame_y, pvt->p_frame_c,
-			      pvt->src_w, pvt->src_h, pvt->src_w, YCbCr420,
+		shveu_operation(0, pvt->p_frame_y, pvt->p_frame_c,
+			      pvt->src_w, pvt->src_h, pvt->src_w, SHVEU_YCbCr420,
 			      pvt->fb_screenMem + dst_offset, NULL,
-			      pvt->dst_w, pvt->dst_h, pvt->lcd_w, RGB565, 0);
+			      pvt->dst_w, pvt->dst_h, pvt->lcd_w, SHVEU_RGB565, 0);
 
 		display_flip(pvt);
 
@@ -650,7 +650,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Open the VEU UIO */
-	sh_veu_open ();
+	shveu_open ();
 
 	/* Open file descriptors to talk to the VPU driver */
 	if ((decoder = shcodecs_decoder_init(pvt->src_w, pvt->src_h, stream_type)) == NULL)
@@ -686,7 +686,7 @@ int main(int argc, char **argv)
 
 	shcodecs_decoder_close(decoder);
 	file_read_deinit(pvt);
-	sh_veu_close();
+	shveu_close();
 	display_close(pvt);
 
 	pthread_mutex_destroy(&pvt->mutex);

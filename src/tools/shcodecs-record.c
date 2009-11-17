@@ -43,10 +43,10 @@
 #include <pthread.h>
 #include <errno.h>
 
+#include <shveu/shveu.h>
 #include <shcodecs/shcodecs_encoder.h>
 #include "avcbencsmp.h"
 #include "capture.h"
-#include "veu_colorspace.h"
 #include "ControlFileUtil.h"
 #include "framerate.h"
 
@@ -255,19 +255,19 @@ void *process_capture_thread(void *data)
 
 		/* We are clipping, not scaling, as we need to perform a rotation,
 		   but the VEU cannot do a rotate & scale at the same time. */
-		sh_veu_operation(0,
+		shveu_operation(0,
 			pvt->cap_y, pvt->cap_c,
-			src_w, src_h, pvt->cap_w, YCbCr420,
+			src_w, src_h, pvt->cap_w, SHVEU_YCbCr420,
 			enc_y, enc_c,
-			pvt->enc_w, pvt->enc_h, pvt->enc_w, YCbCr420,
+			pvt->enc_w, pvt->enc_h, pvt->enc_w, SHVEU_YCbCr420,
 			pvt->rotate_cap);
 
 		/* Setup the VEU to scale the encoder input buffer (physical addr) to
 		   the LCD frame buffer (physical addr) */
-		sh_veu_operation(0, 
-			enc_y, enc_c, pvt->enc_w, pvt->enc_h, pvt->enc_w, YCbCr420,
+		shveu_operation(0, 
+			enc_y, enc_c, pvt->enc_w, pvt->enc_h, pvt->enc_w, SHVEU_YCbCr420,
 			pvt->fb_screenMem, NULL,
-			pvt->lcd_w, pvt->lcd_h, pvt->lcd_w, RGB565, NO_ROT);
+			pvt->lcd_w, pvt->lcd_h, pvt->lcd_w, SHVEU_RGB565, SHVEU_NO_ROT);
 
 		display_flip(pvt);
 
@@ -357,7 +357,7 @@ void cleanup (void)
 	display_close(pvt);
 
 	pthread_cancel (pvt->thread_capture);
-	sh_veu_close();
+	shveu_close();
 
 	pthread_mutex_destroy (&pvt->capture_done_mutex);
 	pthread_mutex_destroy (&pvt->encode_start_mutex);
@@ -493,7 +493,7 @@ int main(int argc, char *argv[])
 	signal (SIGPIPE, sig_handler);
 
 	/* VEU Scaler initialisation */
-	sh_veu_open();
+	shveu_open();
 
 	/* Camera capture initialisation */
 	pvt->ainfo.ceu = sh_ceu_open_userio(pvt->ainfo.input_file_name_buf, pvt->ainfo.xpic, pvt->ainfo.ypic);
@@ -507,7 +507,7 @@ int main(int argc, char *argv[])
 
 	pixel_format = sh_ceu_get_pixel_format (pvt->ainfo.ceu);
 	if (pixel_format == V4L2_PIX_FMT_NV12) {
-		pvt->cap_fmt = YCbCr420;
+		pvt->cap_fmt = SHVEU_YCbCr420;
 	} else {
 		fprintf(stderr, "Camera capture pixel format is not supported\n");
 		return -4;
