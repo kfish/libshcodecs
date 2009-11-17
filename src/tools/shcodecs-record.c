@@ -190,7 +190,7 @@ capture_image_cb(sh_ceu *ceu, const unsigned char *frame_data, size_t length,
 	struct private_data *pvt = (struct private_data*)user_data;
 
 	pvt->cap_y = (unsigned char *)frame_data;
-	pvt->cap_c = (unsigned char *)frame_data + length/2;
+	pvt->cap_c = pvt->cap_y + (pvt->enc_w * pvt->enc_h);
 
 	pvt->captured_frames++;
 
