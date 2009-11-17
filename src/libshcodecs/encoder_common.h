@@ -22,59 +22,6 @@
 
 #include <stdio.h>
 
-#define CAPTURE_720P
-
-//#define MAX_D1
-
-//#define CAPTURE_VGA 1
-
-#ifdef CAPTURE_720P
-
-/*----------------------------------------------------------*/
-/*       Other work-field area size                         */
-/*----------------------------------------------------------*/
-#define MY_WORK_AREA_SIZE	1024*512
-
-/*----------------------------------------------------------*/
-/*       Stream-output buffer size for 1 frame              */
-/*----------------------------------------------------------*/
-#define MY_STREAM_BUFF_SIZE	1024*256     /* byte unit */	/* this value must be multiple of 32 */
-
-#elif defined(MAX_D1)
-
-/*----------------------------------------------------------*/
-/*       Other work-field area size                         */
-/*----------------------------------------------------------*/
-#define MY_WORK_AREA_SIZE	1024*512
-
-/*----------------------------------------------------------*/
-/*       Stream-output buffer size for 1 frame              */
-/*----------------------------------------------------------*/
-#define MY_STREAM_BUFF_SIZE	1024*256     /* byte unit */	/* this value must be multiple of 32 */
-
-#elif defined(CAPTURE_VGA)
-/*----------------------------------------------------------*/
-/*       Other work-field area size                         */
-/*----------------------------------------------------------*/
-#define MY_WORK_AREA_SIZE	(101376*4) /*76800 One stream */	/* QVGA */
-
-/*----------------------------------------------------------*/
-/*       Stream-output buffer size for 1 frame              */
-/*----------------------------------------------------------*/
-#define MY_STREAM_BUFF_SIZE	(400000)     /* byte unit */	/* this value must be multiple of 32 */
-
-#else				/* Not D1, or CAPTURE_VGA */
-/*----------------------------------------------------------*/
-/*       Other work-field area size                         */
-/*----------------------------------------------------------*/
-#define MY_WORK_AREA_SIZE	101376 /*76800 One stream */	/* QVGA */
-
-/*----------------------------------------------------------*/
-/*       Stream-output buffer size for 1 frame              */
-/*----------------------------------------------------------*/
-#define MY_STREAM_BUFF_SIZE	160000     /* byte unit */	/* this value must be multiple of 32 */
-#endif
-
 /*----------------------------------------------------------*/
 /*       Output buffer size for EOS                         */
 /*----------------------------------------------------------*/

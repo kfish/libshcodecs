@@ -36,6 +36,34 @@
 int vpu4_clock_on(void);
 int vpu4_clock_off(void);
 
+static unsigned long
+work_area_size (SHCodecs_Encoder * encoder)
+{
+	long wh = encoder->width * encoder->height;
+
+	if (wh > 640 * 480) /* > VGA */ {
+		return 1024*512;
+	} else if (wh == 640 * 480) /* VGA */ {
+		return 101376*4;
+	} else /* < VGA */ {
+		return 101376;
+	}
+}
+
+static unsigned long
+stream_buff_size (SHCodecs_Encoder * encoder)
+{
+	long wh = encoder->width * encoder->height;
+
+	if (wh > 640 * 480) /* > VGA */ {
+		return 1024*256;
+	} else if (wh == 640 * 480) /* VGA */ {
+		return 400000;
+	} else /* < VGA */ {
+		return 160000;
+	}
+}
+
 static void
 set_dimensions (SHCodecs_Encoder * encoder, int width, int height)
 {
@@ -52,7 +80,7 @@ static void
 set_VPU4_param(SHCodecs_Encoder * encoder)
 {
 	M4IPH_VPU4_INIT_OPTION * vpu4_param = &(encoder->vpu4_param);
-	unsigned long tb;
+	unsigned long buf_size, tb;
 
 	/* VPU4 Base Address For SH-Mobile 3A */
 	vpu4_param->m4iph_vpu_base_address = 0xFE900000;
@@ -79,9 +107,10 @@ set_VPU4_param(SHCodecs_Encoder * encoder)
 	vpu4_param->m4iph_vpu_mask_address_disable = M4IPH_OFF;
 
 	/* Temporary Buffer */
-	tb = (unsigned long)m4iph_sdr_malloc(MY_STREAM_BUFF_SIZE, 32);
+	buf_size = stream_buff_size (encoder);
+	tb = (unsigned long)m4iph_sdr_malloc(buf_size, 32);
 	vpu4_param->m4iph_temporary_buff_address = tb;
-	vpu4_param->m4iph_temporary_buff_size = MY_STREAM_BUFF_SIZE;
+	vpu4_param->m4iph_temporary_buff_size = buf_size;
 }
 
 static int
@@ -119,6 +148,7 @@ init_other_API_enc_param(OTHER_API_ENC_PARAM * other_API_enc_param)
 void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
 {
 	long width_height, max_frame=2;
+	unsigned long buf_size;
 
 	if (encoder == NULL) return;
 
@@ -126,8 +156,8 @@ void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
 	width_height += (width_height / 2);
 	m4iph_sdr_free((unsigned char *)encoder->sdr_base, width_height * (max_frame + 3));
 
-	m4iph_sdr_free((unsigned char *)encoder->vpu4_param.m4iph_temporary_buff_address,
-		       MY_STREAM_BUFF_SIZE);
+	buf_size = stream_buff_size (encoder);
+	m4iph_sdr_free((unsigned char *)encoder->vpu4_param.m4iph_temporary_buff_address, buf_size);
 
 	m4iph_sdr_close();
 	m4iph_vpu_close();
@@ -158,6 +188,7 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	long return_code;
 	int i, j;
 	unsigned char *pFramesBase, *pY;
+	unsigned long buf_size;
 
 	encoder = calloc(1, sizeof(SHCodecs_Encoder));
 	if (encoder == NULL)
@@ -227,13 +258,15 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 		i++;
 	}
 
-	encoder->work_area.area_size = MY_WORK_AREA_SIZE;
-	encoder->work_area.area_top = memalign(MY_WORK_AREA_SIZE, 4);
+	buf_size = work_area_size(encoder);
+	encoder->work_area.area_size = buf_size;
+	encoder->work_area.area_top = memalign(buf_size, 4);
 	if (!encoder->work_area.area_top)
 		goto err;
 
-	encoder->stream_buff_info.buff_size = MY_STREAM_BUFF_SIZE;
-	encoder->stream_buff_info.buff_top = memalign(MY_STREAM_BUFF_SIZE, 32);
+	buf_size = stream_buff_size(encoder);
+	encoder->stream_buff_info.buff_size = buf_size;
+	encoder->stream_buff_info.buff_top = memalign(buf_size, 32);
 	if (!encoder->stream_buff_info.buff_top)
 		goto err;
 
