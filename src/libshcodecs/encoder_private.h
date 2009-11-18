@@ -28,6 +28,12 @@
 
 #include "encoder_common.h"
 
+#define MAX_NUM_REF_FRAMES 2
+#define NUM_INPUT_FRAMES 2
+#define NUM_LDEC_FRAMES (MAX_NUM_REF_FRAMES+1)
+
+#define ROUND_UP_16(x) ((((x)+15) / 16) * 16)
+
 /**
  * An opaque handle to the VPU4 for encoding.
  */
@@ -114,9 +120,8 @@ struct _SHCodecs_Encoder {
 	long set_intra;	/* Forced intra-mode flag */
 
 	/* Working values */
-	unsigned long sdr_base;
-	TAVCBE_FMEM local_frames[3];
-	TAVCBE_FMEM input_frames[3];
+	TAVCBE_FMEM local_frames[NUM_LDEC_FRAMES];
+	TAVCBE_FMEM input_frames[NUM_INPUT_FRAMES];
 	TAVCBE_WORKAREA work_area;
 
 	TAVCBE_STREAM_BUFF stream_buff_info;

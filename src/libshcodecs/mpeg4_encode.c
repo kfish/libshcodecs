@@ -182,8 +182,7 @@ static int
 mpeg4_encode_deferred_init(SHCodecs_Encoder *enc, long stream_type)
 {
 	long rc;
-	unsigned long nrefframe, nldecfmem;
-	long area_width, area_height;
+	unsigned long nrefframe = 1;
 
 	/* Initialize VPU parameters & local frame memory */
 	rc = avcbe_init_encode(&(enc->encoding_property),
@@ -203,23 +202,16 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder *enc, long stream_type)
 			return vpu_err(enc, __func__, __LINE__, rc);
 	}
 
-	nrefframe = 1;
-	nldecfmem = 2;
-
-	/* Make size multiples of 16 */
-	area_width = ((enc->width + 15) / 16) * 16;
-	area_height = ((enc->height + 15) / 16) * 16;
-
 #ifdef USE_BVOP
 	if (enc->other_options_mpeg4.avcbe_b_vop_num > 0)
-		nldecfmem = enc->other_options_mpeg4.avcbe_b_vop_num;
+		nrefframe = enc->other_options_mpeg4.avcbe_b_vop_num;
 //TODO	m4vse_output_local_image_of_b_vop = AVCBE_ON;
 #endif
 
 	rc = avcbe_init_memory(enc->stream_info,
 				nrefframe,
-				nldecfmem, enc->local_frames,
-				area_width, area_height);
+				(nrefframe+1), enc->local_frames,
+				ROUND_UP_16(enc->width), ROUND_UP_16(enc->height));
 	if (rc != 0)
 		return vpu_err(enc, __func__, __LINE__, rc);
 

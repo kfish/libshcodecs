@@ -31,8 +31,6 @@
 
 #include "encoder_private.h"
 
-#define NUM_LDEC_FRAMES 3
-
 int vpu4_clock_on(void);
 int vpu4_clock_off(void);
 
@@ -147,14 +145,25 @@ init_other_API_enc_param(OTHER_API_ENC_PARAM * other_API_enc_param)
  */
 void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
 {
-	long width_height, max_frame=2;
+	long i, width_height;
 	unsigned long buf_size;
 
 	if (encoder == NULL) return;
 
-	width_height = encoder->width * encoder->height;
+	width_height = ROUND_UP_16(encoder->width) * ROUND_UP_16(encoder->height);
 	width_height += (width_height / 2);
-	m4iph_sdr_free((unsigned char *)encoder->sdr_base, width_height * (max_frame + 3));
+
+	/* Input buffers */
+	for (i=0; i<NUM_INPUT_FRAMES; i++) {
+		if (encoder->input_frames[i].Y_fmemp)
+			m4iph_sdr_free(encoder->input_frames[i].Y_fmemp, width_height);
+	}
+
+	/* Local decode images */
+	for (i=0; i<NUM_LDEC_FRAMES; i++) {
+		if (encoder->local_frames[i].Y_fmemp)
+			m4iph_sdr_free(encoder->local_frames[i].Y_fmemp, width_height);
+	}
 
 	buf_size = stream_buff_size (encoder);
 	m4iph_sdr_free((unsigned char *)encoder->vpu4_param.m4iph_temporary_buff_address, buf_size);
@@ -184,10 +193,10 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 					SHCodecs_Format format)
 {
 	SHCodecs_Encoder *encoder;
-	long width_height, max_frame=2;
+	long width_height;
 	long return_code;
-	int i, j;
-	unsigned char *pFramesBase, *pY;
+	int i;
+	unsigned char *pY;
 	unsigned long buf_size;
 
 	encoder = calloc(1, sizeof(SHCodecs_Encoder));
@@ -235,27 +244,25 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	/* stream buffer 0 clear */
 	encode_time_init();
 	vpu4_clock_on();
-	width_height = width * height;
+
+	width_height = ROUND_UP_16(width) * ROUND_UP_16(height);
 	width_height += (width_height / 2);
-	max_frame = 2;
-	pFramesBase = m4iph_sdr_malloc(width_height * (max_frame + 3), 32);
-	encoder->sdr_base = (unsigned long)pFramesBase;
-	if (!pFramesBase)
-		goto err;
 
 	/* Input buffers */
-	for (i=0; i < max_frame; i++) {
-		pY = pFramesBase + width_height * i;
+	for (i=0; i<NUM_INPUT_FRAMES; i++) {
+		pY = m4iph_sdr_malloc(width_height, 32);
+		if (!pY) goto err;
 		encoder->input_frames[i].Y_fmemp = pY;
 		encoder->input_frames[i].C_fmemp = pY + encoder->y_bytes;
 	}
 
-	/* Local decode images */
-	for (j=0; j<NUM_LDEC_FRAMES; j++) {
-		pY = pFramesBase + width_height * i;
-		encoder->local_frames[j].Y_fmemp = pY;
-		encoder->local_frames[j].C_fmemp = pY + encoder->y_bytes;
-		i++;
+	/* Local decode images. This is the number of reference frames plus one
+	   for the locally decoded output */
+	for (i=0; i<NUM_LDEC_FRAMES; i++) {
+		pY = m4iph_sdr_malloc(width_height, 32);
+		if (!pY) goto err;
+		encoder->local_frames[i].Y_fmemp = pY;
+		encoder->local_frames[i].C_fmemp = pY + encoder->y_bytes;
 	}
 
 	buf_size = work_area_size(encoder);

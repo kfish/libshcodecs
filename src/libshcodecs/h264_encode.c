@@ -159,8 +159,6 @@ static int
 h264_encode_deferred_init(SHCodecs_Encoder *enc, long stream_type)
 {
 	long rc;
-	unsigned long nldecfmem;
-	long area_width, area_height;
 	avcbe_other_options_h264 *options;
 
 	/* Initialize VPU parameters & local frame memory */
@@ -181,16 +179,10 @@ h264_encode_deferred_init(SHCodecs_Encoder *enc, long stream_type)
 	if (rc < 0)
 		return vpu_err(enc, __func__, __LINE__, rc);
 
-	nldecfmem = 2;
-
-	/* Make size multiples of 16 */
-	area_width = ((enc->width + 15) / 16) * 16;
-	area_height = ((enc->height + 15) / 16) * 16;
-
 	rc = avcbe_init_memory(enc->stream_info,
 				enc->ref_frame_num,
-				nldecfmem, enc->local_frames,
-				area_width, area_height);
+				(enc->ref_frame_num+1), enc->local_frames,
+				ROUND_UP_16(enc->width), ROUND_UP_16(enc->height));
 	if (rc != 0)
 		return vpu_err(enc, __func__, __LINE__, rc);
 

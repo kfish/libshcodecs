@@ -55,6 +55,8 @@ shcodecs_encoder_set_ref_frame_num (SHCodecs_Encoder * encoder, int ref_frame_nu
 
   if (encoder == NULL) return -1;
 
+  if (ref_frame_num > MAX_NUM_REF_FRAMES) return -1;
+
   old_value = encoder->ref_frame_num;
   encoder->ref_frame_num = ref_frame_num;
 
