@@ -50,6 +50,11 @@ void sh_ceu_stop_capturing(sh_ceu * ceu);
 void sh_ceu_capture_frame(sh_ceu * ceu, sh_process_callback cb,
 			  void *user_data);
 
+/* Get the properties of the captured frames 
+ * The v4l device may not support the request size
+ */
+int sh_ceu_get_width(sh_ceu * ceu);
+int sh_ceu_get_height(sh_ceu * ceu);
 unsigned int sh_ceu_get_pixel_format(sh_ceu * ceu);
 
 #endif				/* __CAPTURE_H__ */

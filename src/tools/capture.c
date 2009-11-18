@@ -546,8 +546,9 @@ static void init_device(sh_ceu * ceu)
 		}
 	}
 	ceu->pixel_format = fmt.fmt.pix.pixelformat;
-
 	/* Note VIDIOC_S_FMT may change width and height. */
+	ceu->width = fmt.fmt.pix.width;
+	ceu->height = fmt.fmt.pix.height;
 
 	/* Buggy driver paranoia. */
 	min = fmt.fmt.pix.width * 2;
@@ -558,7 +559,7 @@ static void init_device(sh_ceu * ceu)
 		fmt.fmt.pix.sizeimage = min;
 
 	/* TODO Work around the kernel - it sets the buffer size incorrectly */
-	fmt.fmt.pix.sizeimage =  PAGE_ALIGN(fmt.fmt.pix.sizeimage);
+	fmt.fmt.pix.sizeimage = PAGE_ALIGN(fmt.fmt.pix.sizeimage);
 
 	switch (ceu->io) {
 	case IO_METHOD_READ:
@@ -633,7 +634,6 @@ static sh_ceu *sh_ceu_open_mode(const char *device_name, int width, int height, 
 	ceu->use_physical = 0;
 
 	open_device(ceu);
-
 	init_device(ceu);
 
 	return ceu;
@@ -647,6 +647,16 @@ sh_ceu *sh_ceu_open(const char *device_name, int width, int height)
 sh_ceu *sh_ceu_open_userio(const char *device_name, int width, int height)
 {
 	return sh_ceu_open_mode(device_name, width, height, IO_METHOD_USERPTR);
+}
+
+int sh_ceu_get_width(sh_ceu * ceu)
+{
+	return ceu->width;
+}
+
+int sh_ceu_get_height(sh_ceu * ceu)
+{
+	return ceu->height;
 }
 
 unsigned int sh_ceu_get_pixel_format(sh_ceu * ceu)

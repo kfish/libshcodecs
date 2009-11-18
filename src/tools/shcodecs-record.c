@@ -79,6 +79,9 @@ struct private_data {
 	unsigned char *cap_y;
 	unsigned char *cap_c;
 	int rotate_cap;
+	int cap_w;
+	int cap_h;
+	unsigned long cap_fmt;
 
 	int enc_w;
 	int enc_h;
@@ -190,7 +193,7 @@ capture_image_cb(sh_ceu *ceu, const unsigned char *frame_data, size_t length,
 	struct private_data *pvt = (struct private_data*)user_data;
 
 	pvt->cap_y = (unsigned char *)frame_data;
-	pvt->cap_c = pvt->cap_y + (pvt->enc_w * pvt->enc_h);
+	pvt->cap_c = pvt->cap_y + (pvt->cap_w * pvt->cap_h);
 
 	pvt->captured_frames++;
 
@@ -224,8 +227,8 @@ void *process_capture_thread(void *data)
 		shcodecs_encoder_get_input_physical_addr (pvt->encoder, (unsigned int *)&enc_y, (unsigned int *)&enc_c);
 
 		if (!pvt->rotate_cap) {
-			src_w = pvt->ainfo.xpic;
-			src_h = pvt->ainfo.ypic;
+			src_w = pvt->cap_w;
+			src_h = pvt->cap_h;
 		} else {
 			src_w = pvt->enc_h;
 			src_h = pvt->enc_w;
@@ -235,7 +238,7 @@ void *process_capture_thread(void *data)
 		   but the VEU cannot do a rotate & scale at the same time. */
 		sh_veu_operation(0,
 			pvt->cap_y, pvt->cap_c,
-			src_w, src_h, pvt->ainfo.xpic, YCbCr420,
+			src_w, src_h, pvt->cap_w, YCbCr420,
 			enc_y, enc_c,
 			pvt->enc_w, pvt->enc_h, pvt->enc_w, YCbCr420,
 			pvt->rotate_cap);
@@ -452,9 +455,13 @@ int main(int argc, char *argv[])
 		return -3;
 	}
 	sh_ceu_set_use_physical(pvt->ainfo.ceu, 1);
+	pvt->cap_w = sh_ceu_get_width(pvt->ainfo.ceu);
+	pvt->cap_h = sh_ceu_get_height(pvt->ainfo.ceu);
 
 	pixel_format = sh_ceu_get_pixel_format (pvt->ainfo.ceu);
-	if (pixel_format != V4L2_PIX_FMT_NV12) {
+	if (pixel_format == V4L2_PIX_FMT_NV12) {
+		pvt->cap_fmt = YCbCr420;
+	} else {
 		fprintf(stderr, "Camera capture pixel format is not supported\n");
 		return -4;
 	}
@@ -473,18 +480,18 @@ int main(int argc, char *argv[])
 	}
 
 	if (!pvt->rotate_cap) {
-		pvt->enc_w = pvt->ainfo.xpic;
-		pvt->enc_h = pvt->ainfo.ypic;
+		pvt->enc_w = pvt->cap_w;
+		pvt->enc_h = pvt->cap_h;
 	} else {
-		pvt->enc_w = pvt->ainfo.ypic;
-		pvt->enc_h = pvt->ainfo.ypic * pvt->ainfo.ypic / pvt->ainfo.xpic;
+		pvt->enc_w = pvt->cap_h;
+		pvt->enc_h = pvt->cap_h * pvt->cap_h / pvt->cap_w;
 		/* Round down to nearest multiple of 16 for VPU */
 		pvt->enc_w = pvt->enc_w - (pvt->enc_w % 16);
 		pvt->enc_h = pvt->enc_h - (pvt->enc_h % 16);
 		debug_printf("Rotating & croping camera image...\n");
 	}
 
-	debug_printf("Camera resolution:  %dx%d\n", pvt->ainfo.xpic, pvt->ainfo.ypic);
+	debug_printf("Camera resolution:  %dx%d\n", pvt->cap_w, pvt->cap_h);
 	debug_printf("Encode resolution:  %dx%d\n", pvt->enc_w, pvt->enc_h);
 	debug_printf("Display resolution: %dx%d\n", pvt->lcd_w, pvt->lcd_h);
 
