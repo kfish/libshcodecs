@@ -37,29 +37,32 @@ int vpu4_clock_off(void);
 static unsigned long
 work_area_size (SHCodecs_Encoder * encoder)
 {
-	long wh = encoder->width * encoder->height;
-
-	if (wh > 640 * 480) /* > VGA */ {
-		return 1024*512;
-	} else if (wh == 640 * 480) /* VGA */ {
-		return 101376*4;
-	} else /* < VGA */ {
-		return 101376;
-	}
+	/* All sizes fail at 64KB, but work at 65KB */
+	return 65*1024;
 }
 
 static unsigned long
 stream_buff_size (SHCodecs_Encoder * encoder)
 {
 	long wh = encoder->width * encoder->height;
+	long size = wh + wh/2;	/* Size of uncompressed YCbCr420 frame */
 
-	if (wh > 640 * 480) /* > VGA */ {
-		return 1024*256;
-	} else if (wh == 640 * 480) /* VGA */ {
-		return 400000;
-	} else /* < VGA */ {
-		return 160000;
+   	/* Apply minimum compression ratio */
+	if (wh >= 720 * 480) /* >= D1 */ {
+		size = size / 4;
+	} else {
+		size = size / 2;
 	}
+
+	/* Minimum size as this buffer is used for data other than encoded frames */
+	/* TODO min size has not been verified, just takem from sample code */
+	if (size < 160000)
+		size = 160000;
+
+	/* Make size a multiple of 32 */
+	size = (size + 31) & ~31;
+
+	return size;
 }
 
 static void
