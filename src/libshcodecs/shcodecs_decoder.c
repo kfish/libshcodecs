@@ -245,9 +245,36 @@ void *global_context;
  */
 static int stream_init(SHCodecs_Decoder * decoder)
 {
-	int i;
+	M4IPH_VPU4_INIT_OPTION vpu_init_option;
+	int i,j;
 	int iContext_ReqWorkSize;
+	void *pv_wk_buff;
 	size_t dp_size;
+	TAVCBD_FMEM *frame_list;
+	long stream_mode;
+
+	pv_wk_buff = m4iph_sdr_malloc(decoder->max_nal_size, 32);
+	CHECK_ALLOC(pv_wk_buff, decoder->max_nal_size, "work buffer (kernel)",
+		    err1);
+
+	vpu_init_option.m4iph_vpu_base_address = 0xfe900000;
+	vpu_init_option.m4iph_vpu_endian = 0x3ff;
+
+#ifdef DISABLE_INT
+	vpu_init_option.m4iph_vpu_interrupt_enable = M4IPH_OFF;
+#else
+	vpu_init_option.m4iph_vpu_interrupt_enable = M4IPH_ON;
+#endif
+
+	vpu_init_option.m4iph_vpu_clock_supply_control =
+	    M4IPH_CTL_FRAME_UNIT;
+	vpu_init_option.m4iph_vpu_mask_address_disable = M4IPH_OFF;
+	vpu_init_option.m4iph_temporary_buff_address =
+	    (unsigned long) ALIGN_NBYTES(pv_wk_buff, 32);
+	vpu_init_option.m4iph_temporary_buff_size = decoder->max_nal_size;
+	m4iph_vpu4_init(&vpu_init_option);
+
+	avcbd_start_decoding();
 
 	/* Get context size */
 	iContext_ReqWorkSize =
@@ -259,6 +286,7 @@ static int stream_init(SHCodecs_Decoder * decoder)
 		/* printf("Invalid parameters for avcbd_get_workarea_size()\n"); */
 		return -1;
 	}
+
 	/* Allocate context memory */
 	decoder->si_ctxt = calloc(iContext_ReqWorkSize, 1);
 	CHECK_ALLOC(decoder->si_ctxt, iContext_ReqWorkSize,
@@ -346,48 +374,6 @@ static int stream_init(SHCodecs_Decoder * decoder)
 
 	pthread_mutex_unlock(&vpu_mutex);
 
-	return 0;
-
-      err1:
-      err2:
-	return -1;
-}
-
-/*
- * decoder_init
- *
- */
-static int decoder_init(SHCodecs_Decoder * decoder)
-{
-	M4IPH_VPU4_INIT_OPTION vpu_init_option;
-	TAVCBD_FMEM *frame_list;
-	void *pv_wk_buff;
-	long stream_mode;
-	int j;
-
-	pv_wk_buff = m4iph_sdr_malloc(decoder->max_nal_size, 32);
-	/* printf("work buffer = %X\n",(int)pv_wk_buff); */
-	CHECK_ALLOC(pv_wk_buff, decoder->max_nal_size, "work buffer (kernel)",
-		    err1);
-
-	vpu_init_option.m4iph_vpu_base_address = 0xfe900000;
-	vpu_init_option.m4iph_vpu_endian = 0x3ff;
-
-#ifdef DISABLE_INT
-	vpu_init_option.m4iph_vpu_interrupt_enable = M4IPH_OFF;
-#else
-	vpu_init_option.m4iph_vpu_interrupt_enable = M4IPH_ON;
-#endif
-
-	vpu_init_option.m4iph_vpu_clock_supply_control =
-	    M4IPH_CTL_FRAME_UNIT;
-	vpu_init_option.m4iph_vpu_mask_address_disable = M4IPH_OFF;
-	vpu_init_option.m4iph_temporary_buff_address =
-	    (unsigned long) ALIGN_NBYTES(pv_wk_buff, 32);
-	vpu_init_option.m4iph_temporary_buff_size = decoder->max_nal_size;
-	m4iph_vpu4_init(&vpu_init_option);
-
-	avcbd_start_decoding();
 	stream_mode = (decoder->si_type == F_H264) ? AVCBD_TYPE_AVC : AVCBD_TYPE_MPEG4;
 
 	/* Temp frame */
@@ -408,6 +394,20 @@ static int decoder_init(SHCodecs_Decoder * decoder)
 			    &pv_wk_buff);
 
 	free(frame_list);
+
+	return 0;
+
+      err1:
+      err2:
+	return -1;
+}
+
+/*
+ * decoder_init
+ *
+ */
+static int decoder_init(SHCodecs_Decoder * decoder)
+{
 	if (decoder->si_type == F_H264) {
 		avcbd_init_memory_optional(decoder->si_ctxt, AVCBD_VUI,
 					   decoder->si_vui,
