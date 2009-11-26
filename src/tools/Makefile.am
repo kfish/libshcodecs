@@ -11,6 +11,7 @@ bin_PROGRAMS = shcodecs-dec shcodecs-enc shcodecs-capenc shcodecs-cap shcodecs-p
 noinst_HEADERS = \
 	avcbencsmp.h \
 	capture.h \
+	framerate.h \
 	ControlFileUtil.h \
 	veu_colorspace.h
 
