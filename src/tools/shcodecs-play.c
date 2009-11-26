@@ -50,6 +50,7 @@
 #include <errno.h>
 #include <shcodecs/shcodecs_decoder.h>
 #include "veu_colorspace.h"
+#include "framerate.h"
 
 #define DEFAULT_WIDTH 320
 #define DEFAULT_HEIGHT 240
@@ -96,8 +97,7 @@ struct private_data {
 	unsigned char *read_buf;
 	int input_buf_len;
 
-	struct timeval tlast;        /* Timestamp of last frame output */
-	struct timeval tframedelta;  /* Time between frames (1/fps) */
+	int timer_fd;       /* fd for posix timer */
 
 	int lcd_w;          /* LCD size */
 	int lcd_h;
@@ -332,18 +332,6 @@ static int time_diff(struct timeval *start, struct timeval *end, struct timeval 
 	return 1;
 }
 
-static void time_add(struct timeval *start, struct timeval *offset, struct timeval *newtime)
-{
-	newtime->tv_sec  = start->tv_sec  + offset->tv_sec;
-	newtime->tv_usec = start->tv_usec + offset->tv_usec;
-
-	if (newtime->tv_usec > U_SEC_PER_SEC) {
-		newtime->tv_sec++;
-		newtime->tv_usec -= U_SEC_PER_SEC;
-	}
-}
-
-
 /*****************************************************************************/
 
 void *output_thread(void *data)
@@ -415,16 +403,9 @@ local_vpu4_decoded (SHCodecs_Decoder *decoder,
 	struct private_data *pvt = (struct private_data*)user_data;
 
 	pvt->frames_output++;
-
-	time_add(&pvt->tlast, &pvt->tframedelta, &texpected);
-	gettimeofday(&tcurrent, 0);
-	if (time_diff(&tcurrent, &texpected, &tsleep) < 0)
-		pvt->frames_dropped++;
-	else
-		usleep ((useconds_t)tsleep.tv_usec);
+	pvt->frames_dropped += framerate_wait(pvt->timer_fd) - 1;
 
 	frame_ready(pvt, y_buf, c_buf);
-	gettimeofday(&pvt->tlast, 0);
 
 	return 0;
 }
@@ -681,12 +662,10 @@ int main(int argc, char **argv)
 	if (file_read_init(pvt, video_filename) < 0)
 		exit(-1);
 
-	/* Time for 1 frame = 1/fps */
-	pvt->tframedelta.tv_sec  = 0;
-	pvt->tframedelta.tv_usec = U_SEC_PER_SEC / pvt->fps;
+	/* Initialize framerate timer */
+	pvt->timer_fd = framerate_init (pvt->fps);
 
 	gettimeofday(&start, 0);
-	gettimeofday(&pvt->tlast, 0);
 
 	/* decode main loop */
 	do {

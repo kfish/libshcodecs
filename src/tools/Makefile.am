@@ -18,7 +18,7 @@ noinst_HEADERS = \
 shcodecs_dec_SOURCES = shcodecs-dec.c
 shcodecs_dec_LDADD = $(SHCODECS_LIBS)
 
-shcodecs_play_SOURCES = shcodecs-play.c veu_colorspace.c
+shcodecs_play_SOURCES = shcodecs-play.c framerate.c veu_colorspace.c
 shcodecs_play_LDADD = -lrt -lpthread $(SHCODECS_LIBS)
 
 shcodecs_record_SOURCES = \
