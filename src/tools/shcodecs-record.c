@@ -188,6 +188,8 @@ static void display_close(struct private_data *pvt)
 
 /*****************************************************************************/
 
+struct timeval start, finish, diff;
+
 /* Callback for frame capture */
 static void
 capture_image_cb(sh_ceu *ceu, const unsigned char *frame_data, size_t length,
@@ -213,6 +215,7 @@ void *capture_thread(void *data)
 
 		framerate_wait(pvt->timer_fd);
 		sh_ceu_capture_frame(pvt->ainfo.ceu, capture_image_cb, pvt);
+		gettimeofday(&finish, 0);
 	}
 }
 
@@ -290,14 +293,11 @@ static int write_output(SHCodecs_Encoder *encoder,
 }
 
 struct private_data pvt_data;
-struct timeval start, finish, diff;
 
 void cleanup (void)
 {
 	float time;
 	struct private_data *pvt = &pvt_data;
-
-	gettimeofday(&finish, 0);
 
 	timersub(&finish, &start, &diff);
 	time = diff.tv_sec + (float)diff.tv_usec/U_SEC_PER_SEC;
