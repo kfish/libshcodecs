@@ -37,8 +37,12 @@ int vpu4_clock_off(void);
 static unsigned long
 work_area_size (SHCodecs_Encoder * encoder)
 {
-	/* All sizes fail at 64KB, but work at 65KB */
-	return 65*1024;
+	if (encoder->format == SHCodecs_Format_H264) {
+	        return 256*1024;
+	} else {
+	        /* All sizes fail at 64KB, but work at 65KB */
+	        return 65*1024;
+	}
 }
 
 static unsigned long
