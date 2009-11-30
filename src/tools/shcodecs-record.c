@@ -48,6 +48,7 @@
 #include "capture.h"
 #include "veu_colorspace.h"
 #include "ControlFileUtil.h"
+#include "framerate.h"
 
 #define _DEBUG
 
@@ -85,6 +86,8 @@ struct private_data {
 
 	int enc_w;
 	int enc_h;
+
+	int timer_fd;       /* fd for posix timer */
 
 	int captured_frames;
 	int output_frames;
@@ -208,6 +211,7 @@ void *capture_thread(void *data)
 		/* This mutex is unlocked once the capture buffer is free */
 		pthread_mutex_lock(&pvt->capture_start_mutex);
 
+		framerate_wait(pvt->timer_fd);
 		sh_ceu_capture_frame(pvt->ainfo.ceu, capture_image_cb, pvt);
 	}
 }
@@ -341,6 +345,7 @@ int main(int argc, char *argv[])
 	char v4l2_filename[MAXPATHLEN];
 	const char *fbname;
 	int c, i;
+	long target_fps10;
 
 	pvt = &pvt_data;
 
@@ -521,6 +526,13 @@ int main(int argc, char *argv[])
 	   camera capture size */
 	shcodecs_encoder_set_xpic_size(pvt->encoder, pvt->enc_w);
 	shcodecs_encoder_set_ypic_size(pvt->encoder, pvt->enc_h);
+
+	/* Set up the frame rate timer to match the encode framerate */
+	target_fps10 = shcodecs_encoder_get_frame_rate(pvt->encoder);
+	fprintf (stderr, "Target framerate:   %.1f fps\n", target_fps10 / 10.0);
+
+	/* Initialize framerate timer */
+	pvt->timer_fd = framerate_init (target_fps10 / 10.0);
 
 	sh_ceu_start_capturing(pvt->ainfo.ceu);
 

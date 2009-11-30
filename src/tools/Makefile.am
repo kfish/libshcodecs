@@ -24,6 +24,7 @@ shcodecs_play_LDADD = -lrt -lpthread $(SHCODECS_LIBS)
 shcodecs_record_SOURCES = \
 	shcodecs-record.c \
 	capture.c \
+	framerate.c \
 	veu_colorspace.c \
 	ControlFileUtil.c \
 	avcbeinputuser.c \
@@ -38,7 +39,7 @@ shcodecs_record_CFLAGS = -v -Wall -O2 -I $(srcdir) -fPIC -fno-common \
 	-DVPU_FILEOUT=1 -DTEL_TRACE_LEVEL2=1 -DSH_X=1 -DLINUX_VPU=1CFLAGS \
 	-DVPU3IP -DVPU4IP -DMPEG4SP -DVPU4S
 
-shcodecs_record_LDADD = -lstdc++ -lpthread $(SHCODECS_LIBS)
+shcodecs_record_LDADD = -lstdc++ -lrt -lpthread $(SHCODECS_LIBS)
 
 
 shcodecs_enc_SOURCES =  \
