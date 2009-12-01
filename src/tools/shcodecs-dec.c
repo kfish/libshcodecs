@@ -80,12 +80,12 @@ static char * optstring = "f:o:i:w:h:s:";
 
 #ifdef HAVE_GETOPT_LONG
 static struct option long_options[] = {
-        { "format", 1, 0, 'f'},
-        { "output", 1, 0, 'o'},
-        { "input" , 1, 0, 'i'},
-        { "width" , 1, 0, 'w'},
-        { "height", 1, 0, 'h'},
-        { "size", 1, 0, 's'}
+        { "format", required_argument, NULL, 'f'},
+        { "output", required_argument, NULL, 'o'},
+        { "input" , required_argument, NULL, 'i'},
+        { "width" , required_argument, NULL, 'w'},
+        { "height", required_argument, NULL, 'h'},
+        { "size", required_argument, NULL, 's'}
 };
 #endif
 

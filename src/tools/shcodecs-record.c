@@ -103,8 +103,8 @@ static char * optstring = "i:r:";
 
 #ifdef HAVE_GETOPT_LONG
 static struct option long_options[] = {
-	{ "input" , 1, 0, 'i'},
-	{ "rotate", 1, 0, 'r'},
+	{ "input" , required_argument, NULL, 'i'},
+	{ "rotate", required_argument, NULL, 'r'},
 };
 #endif
 
