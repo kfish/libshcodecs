@@ -73,6 +73,7 @@ struct encode_data {
 };
 
 struct private_data {
+	int do_preview;
 	void *display;
 
 	pthread_t convert_thread;
@@ -103,12 +104,13 @@ struct private_data {
 };
 
 
-static char * optstring = "i:r:hv";
+static char * optstring = "i:r:Phv";
 
 #ifdef HAVE_GETOPT_LONG
 static struct option long_options[] = {
 	{ "input" , required_argument, NULL, 'i'},
 	{ "rotate", required_argument, NULL, 'r'},
+	{ "no-preview", no_argument, NULL, 'P'},
 	{ "help", no_argument, 0, 'h'},
 	{ "version", no_argument, 0, 'v'},
 };
@@ -123,6 +125,8 @@ usage (const char * progname)
   printf ("  -i, --input          Set the v4l2 configuration file\n");
   printf ("\nCapture options\n");
   printf ("  -r 90, --rotate 90   Rotate the camera capture buffer 90 degrees and crop\n");
+  printf ("\nDisplay options\n");
+  printf ("  -P, --no-preview     Disable framebuffer preview\n");
   printf ("\nMiscellaneous options\n");
   printf ("  -h, --help           Display this help and exit\n");
   printf ("  -v, --version        Output version information and exit\n");
@@ -205,11 +209,13 @@ void *convert_main(void *data)
 			pthread_mutex_unlock(&pvt->encdata[i].encode_start_mutex);
 		}
 
-		/* Use the VEU to scale the capture buffer to the frame buffer */
-		display_update(pvt->display,
-				cap_y, cap_c,
-				pvt->cap_w, pvt->cap_h, pvt->cap_w,
-				V4L2_PIX_FMT_NV12);
+		if (pvt->do_preview) {
+			/* Use the VEU to scale the capture buffer to the frame buffer */
+			display_update(pvt->display,
+					cap_y, cap_c,
+					pvt->cap_w, pvt->cap_h, pvt->cap_w,
+					V4L2_PIX_FMT_NV12);
+		}
 
 		capture_queue_buffer (pvt->ceu, cap_y);
 		pthread_mutex_unlock(&pvt->capture_start_mutex);
@@ -276,8 +282,10 @@ void cleanup (void)
 
 	debug_printf("Captured %d frames (%.2f fps)\n", pvt->captured_frames,
 		 	(double)pvt->captured_frames/time);
-	debug_printf("Displayed %d frames (%.2f fps)\n", pvt->output_frames,
-			(double)pvt->output_frames/time);
+	if (pvt->do_preview) {
+		debug_printf("Displayed %d frames (%.2f fps)\n", pvt->output_frames,
+				(double)pvt->output_frames/time);
+	}
 
 	framerate_destroy (pvt->cap_framerate);
 
@@ -301,7 +309,8 @@ void cleanup (void)
 	pthread_join (pvt->capture_thread, NULL);
 
 	capture_close(pvt->ceu);
-	display_close(pvt->display);
+	if (pvt->do_preview)
+		display_close(pvt->display);
 	shveu_close();
 
 	for (i=0; i < pvt->nr_encoders; i++) {
@@ -350,6 +359,8 @@ int main(int argc, char *argv[])
 
 	memset (pvt, 0, sizeof(struct private_data));
 
+	pvt->do_preview = 1;
+
 	pvt->captured_frames = 0;
 	pvt->output_frames = 0;
 	pvt->rotate_cap = SHVEU_NO_ROT;
@@ -385,6 +396,9 @@ int main(int argc, char *argv[])
 					pvt->rotate_cap = SHVEU_ROT_90;
 				}
 			}
+			break;
+		case 'P':
+			pvt->do_preview = 0;
 			break;
 		default:
 			usage(progname);
@@ -477,9 +491,11 @@ int main(int argc, char *argv[])
 
 	debug_printf("Camera resolution:  %dx%d\n", pvt->cap_w, pvt->cap_h);
 
-	pvt->display = display_open(0);
-	if (!pvt->display) {
-		return -5;
+	if (pvt->do_preview) {
+		pvt->display = display_open(0);
+		if (!pvt->display) {
+			return -5;
+		}
 	}
 
 	for (i=0; i < pvt->nr_encoders; i++) {
