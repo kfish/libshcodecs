@@ -151,8 +151,20 @@ static int display_flip(struct private_data *pvt)
 }
 
 
-static int display_open(struct private_data *pvt, const char *device)
+static int display_open(struct private_data *pvt)
 {
+	const char *device;
+
+	/* Initialize display */
+	device = getenv("FRAMEBUFFER");
+	if (!device) {
+		if (access("/dev/.devfsd", F_OK) == 0) {
+			device = "/dev/fb/0";
+		} else {
+			device = "/dev/fb0";
+		}
+	}
+
 	if ((pvt->fb_handle = open(device, O_RDWR)) < 0) {
 		fprintf(stderr, "Open %s: %s.\n", device, strerror(errno));
 		return 0;
@@ -176,6 +188,8 @@ static int display_open(struct private_data *pvt, const char *device)
 	pvt->fb_screenMem = pvt->fb_base = (unsigned char*)pvt->fb_fix.smem_start;
 	pvt->fb_index = 0;
 	display_flip(pvt);
+
+	debug_printf("Display resolution: %dx%d\n", pvt->lcd_w, pvt->lcd_h);
 
 	return 1;
 }
@@ -343,7 +357,6 @@ int main(int argc, char *argv[])
 	long stream_type;
 	unsigned int pixel_format;
 	char v4l2_filename[MAXPATHLEN];
-	const char *fbname;
 	int c, i;
 	long target_fps10;
 
@@ -471,19 +484,6 @@ int main(int argc, char *argv[])
 		return -4;
 	}
 
-	/* Initialize display */
-	fbname = getenv("FRAMEBUFFER");
-	if (!fbname) {
-		if (access("/dev/.devfsd", F_OK) == 0) {
-			fbname = "/dev/fb/0";
-		} else {
-			fbname = "/dev/fb0";
-		}
-	}
-	if (!display_open(pvt, fbname)) {
-		return -5;
-	}
-
 	if (!pvt->rotate_cap) {
 		pvt->enc_w = pvt->cap_w;
 		pvt->enc_h = pvt->cap_h;
@@ -498,7 +498,10 @@ int main(int argc, char *argv[])
 
 	debug_printf("Camera resolution:  %dx%d\n", pvt->cap_w, pvt->cap_h);
 	debug_printf("Encode resolution:  %dx%d\n", pvt->enc_w, pvt->enc_h);
-	debug_printf("Display resolution: %dx%d\n", pvt->lcd_w, pvt->lcd_h);
+
+	if (!display_open(pvt)) {
+		return -5;
+	}
 
 	/* VPU Encoder initialisation */
 	pvt->encoder = shcodecs_encoder_init(pvt->enc_w, pvt->enc_h, stream_type);
