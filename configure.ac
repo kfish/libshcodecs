@@ -122,6 +122,42 @@ VPU4_ENC_LIBS="$VPU4_BASE_LIBS -lavcbe -lm4vse"
 AC_SUBST(VPU4_DEC_LIBS)
 AC_SUBST(VPU4_ENC_LIBS)
 
+dnl
+dnl Check for libuiomux
+dnl
+
+HAVE_UIOMUX=no
+UIOMUX_SUPPORT=no
+
+ac_enable_uiomux=yes
+AC_ARG_ENABLE(uiomux,
+  AC_HELP_STRING([--disable-uiomux], [disable building of UIOMux support]),
+  [ ac_enable_uiomux=no ], [ ac_enable_uiomux=yes ])
+
+if test "x${ac_enable_uiomux}" = xyes ; then
+  if test "x$HAVE_PKG_CONFIG" = "xyes" ; then
+    PKG_CHECK_MODULES(UIOMUX, uiomux, HAVE_UIOMUX=yes, HAVE_UIOMUX=no)
+  fi
+
+  if test "x$HAVE_UIOMUX" = "xno" ; then
+    AC_CHECK_LIB(uiomux, uiomux_init, HAVE_UIOMUX="maybe", , [-l...])
+    if test "x$HAVE_UIOMUX" = xmaybe ; then
+      AC_CHECK_HEADER([uiomux/uiomux.h], HAVE_UIOMUX="yes", HAVE_UIOMUX="no")
+    fi
+    if test "x$HAVE_UIOMUX" = xyes ; then
+      UIOMUX_LIBS="-luiomux"
+    fi
+  fi
+
+  if test "x$HAVE_UIOMUX" = "xyes" ; then
+    AC_DEFINE(HAVE_UIOMUX, [1], [Define to 1 if you have libuiomux])
+    UIOMUX_SUPPORT="yes"
+  fi
+else
+  UIOMUX_SUPPORT="disabled"
+fi
+AM_CONDITIONAL(HAVE_UIOMUX, [test "x$HAVE_UIOMUX" = "xyes"])
+
 # check for getopt in a separate library
 HAVE_GETOPT=no
 AC_CHECK_LIB(getopt, getopt, HAVE_GETOPT="yes")
@@ -277,6 +313,7 @@ AC_MSG_RESULT([
   General configuration:
 
     Experimental code: ........... ${ac_enable_experimental}
+    UIOMux support: .............. ${UIOMUX_SUPPORT}
 
   Installation paths:
 
