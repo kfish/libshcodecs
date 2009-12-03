@@ -227,6 +227,7 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	encoder->frm = 0;
 	encoder->frame_no_increment = 1;
 	encoder->frame_skip_num = 0;
+	encoder->frame_num_delta = 0;
 
 	encoder->output_filler_enable = 0;
 	encoder->output_filler_data = 0;
@@ -417,6 +418,22 @@ shcodecs_encoder_get_c_bytes (SHCodecs_Encoder * encoder)
   if (encoder == NULL) return -1;
   
   return encoder->y_bytes/2;
+}
+
+/**
+ * Get the number of input frames elapsed since the last output callback.
+ * This is typically called by the client in the encoder output callback.
+ * \param encoder The SHCodecs_Encoder* handle
+ * \returns 0 when more data of the same frame has just been output.
+ * \returns >0 for the number of frames since previous output callback.
+ * \retval -1 \a encoder invalid
+ */
+int
+shcodecs_encoder_get_frame_num_delta(SHCodecs_Encoder *encoder)
+{
+	if (encoder == NULL) return -1;
+
+	return encoder->frame_num_delta;
 }
 
 /**

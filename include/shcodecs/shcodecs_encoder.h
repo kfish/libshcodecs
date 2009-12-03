@@ -155,6 +155,17 @@ int shcodecs_encoder_get_width (SHCodecs_Encoder * encoder);
 int shcodecs_encoder_get_height (SHCodecs_Encoder * encoder);
 
 /**
+ * Get the number of input frames elapsed since the last output callback.
+ * This is typically called by the client in the encoder output callback.
+ * \param encoder The SHCodecs_Encoder* handle
+ * \returns 0 when more data of the same frame has just been output.
+ * \returns >0 for the number of frames since previous output callback.
+ * \retval -1 \a encoder invalid
+ */
+int
+shcodecs_encoder_get_frame_num_delta(SHCodecs_Encoder *encoder);
+
+/**
  * Get the physical address of input data.
  * This function MUST be called from within an SHCodecs_Encoder_Input callback.
  * \param encoder The SHCodecs_Encoder* handle

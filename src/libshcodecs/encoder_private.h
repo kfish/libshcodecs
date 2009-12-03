@@ -118,6 +118,7 @@ struct _SHCodecs_Encoder {
 	long frame_skip_num; /* Number of frames skipped */
 	long frame_counter; /* The number of encoded frames */
 	long set_intra;	/* Forced intra-mode flag */
+	int frame_num_delta;
 
 	/* Working values */
 	TAVCBE_FMEM local_frames[NUM_LDEC_FRAMES];

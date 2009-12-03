@@ -316,6 +316,7 @@ mpeg4_encode_frame (SHCodecs_Encoder *enc, long stream_type,
 		return vpu_err(enc, __func__, __LINE__, rc);
 
 	if (rc == AVCBE_FRAME_SKIPPED) {
+		enc->frame_num_delta++;
 		enc->frame_skip_num++;
 	}
 
@@ -337,6 +338,8 @@ mpeg4_encode_frame (SHCodecs_Encoder *enc, long stream_type,
 		unit_size = (frame_stat.avcbe_frame_n_bits + 7) / 8;
 		pic_type = frame_stat.avcbe_frame_type;
 
+		enc->frame_num_delta++;
+
 		/* Output frame data */
 		if (pic_type == AVCBE_I_VOP) {
 			cb_ret = output_data(enc, IDATA,
@@ -348,6 +351,8 @@ mpeg4_encode_frame (SHCodecs_Encoder *enc, long stream_type,
 			cb_ret = output_data(enc, BDATA,
 					enc->stream_buff_info.buff_top, unit_size);
 		}
+
+		enc->frame_num_delta = 0;
 	}
 
 	enc->frm += enc->frame_no_increment;

@@ -393,8 +393,10 @@ h264_encode_frame(SHCodecs_Encoder *enc, unsigned char *py, unsigned char *pc)
 		vpu_info_msg(enc, __func__, __LINE__, enc->frm, enc_rc);
 
 		if (enc_rc == AVCBE_FRAME_SKIPPED) {
+			enc->frame_num_delta++;
 			enc->frame_skip_num++;
 		}
+
 		if ((enc_rc == AVCBE_SLICE_REMAIN)
 		    || (enc_rc == AVCBE_ENCODE_SUCCESS)) {
 
@@ -404,6 +406,7 @@ h264_encode_frame(SHCodecs_Encoder *enc, unsigned char *py, unsigned char *pc)
 			pic_type = slice_stat.avcbe_encoded_pic_type;
 
 			if (start_of_frame) {
+
 				/* Output AU delimiter */
 				if (extra_stream_buff != NULL) {
 					cb_ret = output_data(enc, AUD, enc->aud_buf_info.buff_top,
@@ -447,6 +450,7 @@ h264_encode_frame(SHCodecs_Encoder *enc, unsigned char *py, unsigned char *pc)
 						return cb_ret;
 				}
 
+				enc->frame_num_delta++;
 				start_of_frame = 0;
 			}
 
@@ -463,6 +467,8 @@ h264_encode_frame(SHCodecs_Encoder *enc, unsigned char *py, unsigned char *pc)
 				if (cb_ret != 0)
 					return cb_ret;
 			}
+
+			enc->frame_num_delta = 0;
 		}
 
 	
