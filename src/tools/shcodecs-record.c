@@ -45,6 +45,7 @@
 
 #include <shveu/shveu.h>
 #include <shcodecs/shcodecs_encoder.h>
+
 #include "avcbencsmp.h"
 #include "capture.h"
 #include "ControlFileUtil.h"

@@ -49,8 +49,9 @@
 #include <pthread.h>
 #include <errno.h>
 #include <shcodecs/shcodecs_decoder.h>
-#include "framerate.h"
 #include <shveu/shveu.h>
+
+#include "framerate.h"
 
 #define DEFAULT_WIDTH 320
 #define DEFAULT_HEIGHT 240
