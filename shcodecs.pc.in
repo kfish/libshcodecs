@@ -7,6 +7,5 @@ Name: shcodecs
 Description: A library for controlling SH-Mobile hardware codecs
 Requires:
 Version: @VERSION@
-Libs: -L${libdir} -lshcodecs
-Libs.private: @VPU4_DEC_LIBS@ @VPU4_ENC_LIBS@
+Libs: -L${libdir} -lshcodecs @VPU4_DEC_LIBS@ @VPU4_ENC_LIBS@
 Cflags: -I${includedir}
