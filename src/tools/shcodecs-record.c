@@ -77,15 +77,15 @@ struct private_data {
 	pthread_mutex_t encode_start_mutex;
 
 	/* Captured frame information */
-	unsigned char *cap_y;
-	unsigned char *cap_c;
+	unsigned long cap_y;
+	unsigned long cap_c;
 	int rotate_cap;
 	int cap_w;
 	int cap_h;
 	unsigned long cap_fmt;
 
-	int enc_w;
-	int enc_h;
+	unsigned long enc_w;
+	unsigned long enc_h;
 
 	struct framerate * cap_framerate;
 	struct framerate * enc_framerate;
@@ -210,7 +210,7 @@ capture_image_cb(sh_ceu *ceu, const unsigned char *frame_data, size_t length,
 {
 	struct private_data *pvt = (struct private_data*)user_data;
 
-	pvt->cap_y = (unsigned char *)frame_data;
+	pvt->cap_y = (unsigned long)frame_data;
 	pvt->cap_c = pvt->cap_y + (pvt->cap_w * pvt->cap_h);
 
 	pvt->captured_frames++;
@@ -237,8 +237,8 @@ void *process_capture_thread(void *data)
 	struct private_data *pvt = (struct private_data*)data;
 	int pitch, offset;
 	void *ptr;
-	unsigned char *enc_y, *enc_c;
-	unsigned int src_w, src_h;
+	unsigned long enc_y, enc_c;
+	unsigned long src_w, src_h;
 
 	while(1){
 		pthread_mutex_lock(&pvt->capture_done_mutex); 
@@ -266,7 +266,7 @@ void *process_capture_thread(void *data)
 		   the LCD frame buffer (physical addr) */
 		shveu_operation(0, 
 			enc_y, enc_c, pvt->enc_w, pvt->enc_h, pvt->enc_w, SHVEU_YCbCr420,
-			pvt->fb_screenMem, NULL,
+			(unsigned long)pvt->fb_screenMem, 0,
 			pvt->lcd_w, pvt->lcd_h, pvt->lcd_w, SHVEU_RGB565, SHVEU_NO_ROT);
 
 		display_flip(pvt);
