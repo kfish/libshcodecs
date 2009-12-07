@@ -97,6 +97,8 @@ struct private_data {
 	unsigned char *read_buf;
 	int input_buf_len;
 
+	int loop;
+
 	int timer_fd;       /* fd for posix timer */
 
 	int lcd_w;          /* LCD size */
@@ -124,8 +126,9 @@ usage (const char *progname)
         printf ("Usage: %s [options] filename\n", progname);
         printf ("Decode a MPEG-4 or H.264 elementry stream and show on the LCD.\n");
         printf ("\nFile options\n");
-        printf ("  -r                 Set the playback speed, frames per second\n");
         printf ("  -i, --input        Set the video input filename\n");
+	printf ("  -l, --loop         Loop playback\n");
+        printf ("  -r                 Set the playback speed, frames per second\n");
         printf ("\nEncoding format\n");
         printf ("  -f, --format       The file format [h264, mpeg4]\n");
         printf ("\nDimensions of encoded stream\n");
@@ -145,12 +148,13 @@ usage (const char *progname)
         printf ("\nPlease report bugs to <linux-sh@vger.kernel.org>\n");
 }
 
-static char * optstring = "f:i:w:h:r:x:y:a:s:S:p:q:";
+static char * optstring = "f:li:w:h:r:x:y:a:s:S:p:q:";
 
 #ifdef HAVE_GETOPT_LONG
 static struct option long_options[] = {
 	{ "format", required_argument, NULL, 'f'},
 	{ "input" , required_argument, NULL, 'i'},
+	{ "loop" , no_argument, NULL, 'l'},
 	{ "width" , required_argument, NULL, 'w'},
 	{ "height", required_argument, NULL, 'h'},
 	{ "input-size"  , required_argument, NULL, 's'},
@@ -239,14 +243,34 @@ static int update_input(struct private_data *pvt, int consumed)
         /* Set up cblist */
         cblist[0] = (const struct aiocb *)aio;
 
-	if (pvt->input_buf_len < pvt->max_nal_size)
-	{
+	if (pvt->input_buf_len < pvt->max_nal_size) {
 		/* Wait for pending read to complete */
 		aio_suspend(cblist, 1, NULL);
 
 		read_len = aio_return(aio);
-		if (read_len > 0)
-		{
+
+		if (pvt->loop && read_len == 0) {
+			/* Seek to the beginning of the file */
+			if (lseek (pvt->read_aiocb.aio_fildes, 0, SEEK_SET) == -1)
+				return 0;
+
+			aio->aio_nbytes = pvt->max_nal_size;
+			aio->aio_offset = 0;
+
+			/* Start a new read */
+			ret = aio_read(aio);
+			if (ret < 0) {
+				fprintf(stderr, "aio_read failed!\n");
+				return ret;
+			}
+
+			/* Wait for pending read to complete */
+			aio_suspend(cblist, 1, NULL);
+
+			read_len = aio_return(aio);
+		}
+
+		if (read_len > 0) {
 			/* Copy the new stream data after the unused data */
 			memcpy(pvt->input_buf + pvt->input_buf_len, pvt->read_buf, read_len);
 			pvt->input_buf_len += read_len;
@@ -450,6 +474,7 @@ int main(int argc, char **argv)
 	video_filename[MAXPATHLEN-1] = '\0';
 
 	/* Set defaults */
+	pvt->loop = 0;
 	pvt->src_w  = DEFAULT_WIDTH;
 	pvt->src_h = DEFAULT_HEIGHT;
 	pvt->dst_p = 0;
@@ -485,6 +510,9 @@ int main(int argc, char **argv)
 		case 'i':
 			if (optarg)
 				strncpy(video_filename, optarg, MAXPATHLEN-1);
+			break;
+		case 'l':
+			pvt->loop = 1;
 			break;
 		case 'w':
 			if (optarg)

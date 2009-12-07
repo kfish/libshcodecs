@@ -5,7 +5,7 @@ shcodecs-play \- Play a video file on the framebuffer, using the SH-Mobile VPU
 
 .SH SYNOPSIS
 
-.B \fBshcodecs-play\fR [\-w \fBwidth\fR | \-\-width \fBwidth\fR ] [\-h \fBheight\fR | \-\-height \fBheight\fR ] [\-s \fBsize\fR | \-\-input-size \fBsize\fR ] [\-x \fBpixels\fR ] [\-y \fBpixels\fR ] [\-S \fBsize\fR | \-\-output-size \fBsize\fR ] [\-f \fBformat\fR | \-\-format \fBformat\fR ] [\-r \fBfps\fR ] [\-i \fBfilename\fR | \-\-input \fBfilename\fR ] filename
+.B \fBshcodecs-play\fR [\-w \fBwidth\fR | \-\-width \fBwidth\fR ] [\-h \fBheight\fR | \-\-height \fBheight\fR ] [\-s \fBsize\fR | \-\-input-size \fBsize\fR ] [\-x \fBpixels\fR ] [\-y \fBpixels\fR ] [\-S \fBsize\fR | \-\-output-size \fBsize\fR ] [\-f \fBformat\fR | \-\-format \fBformat\fR ] [\-l | \-\-loop] [\-r \fBfps\fR ] [\-i \fBfilename\fR | \-\-input \fBfilename\fR ] filename
 
 .SH DESCRIPTION
 .B shcodecs-play
@@ -18,6 +18,9 @@ decodes an input file using the SH-Mobile VPU, and shows it on the LCD.
 .SS "File options"
 .IP "\-i \fBfilename\fR, \-\-input \fBfilename\fR" 10
 Set the input filename.
+
+.IP "\-l, \-\-loop" 10
+Loop playback.
 
 .SS "Encoding format"
 .IP "\-f \fBformat\fR, \-\-format \fBformat\fR" 10
