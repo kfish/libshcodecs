@@ -14,6 +14,19 @@ This source archive contains:
  * src/examples: various examples of simple uses of libshcodecs
  * src/tools: commandline tools
 
+tools
+-----
+
+The following tools are provided:
+
+ * shcodecs-dec: Decode a video file to YUV data
+ * shcodecs-enc: Encode a video file from YUV data
+ * shcodecs-play: Play a file on the framebuffer
+ * shcodecs-record: Record video from a V4L2 camera device
+
+For usage details see the corresponding man pages or run with the option
+--help.
+
 libshcodecs
 -----------
 
