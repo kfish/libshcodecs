@@ -13,14 +13,10 @@
 
 #define N_SEC_PER_SEC 1000000000
 
-struct framerate * framerate_new (double fps)
+struct framerate * framerate_marker_new (void)
 {
 	struct framerate * framerate;
-	struct itimerspec new_value;
 	struct timespec * now;
-        long interval;
-
-        interval = (long) (N_SEC_PER_SEC / fps);
 
 	framerate = calloc (1, sizeof(*framerate));
 	if (framerate == NULL)
@@ -33,6 +29,28 @@ struct framerate * framerate_new (double fps)
 
 	framerate->curr.tv_sec = now->tv_sec;
 	framerate->curr.tv_nsec = now->tv_nsec;
+
+	return framerate;
+
+err_out:
+	free (framerate);
+	return NULL;
+}
+
+struct framerate * framerate_new (double fps)
+{
+	struct framerate * framerate;
+	struct itimerspec new_value;
+	struct timespec * now;
+        long interval;
+
+        interval = (long) (N_SEC_PER_SEC / fps);
+
+	framerate = framerate_marker_new ();
+	if (framerate == NULL)
+		return NULL;
+
+	now = &framerate->start;
 
 	/* Create a CLOCK_REALTIME absolute timer with initial
 	 * expiration "now" and interval for the given framerate */
@@ -59,9 +77,11 @@ err_out:
 
 int framerate_destroy (struct framerate * framerate)
 {
-	int ret;
+	int ret=0;
 
-	ret = close (framerate->timer_fd);
+	if (framerate->timer_fd != 0)
+	    ret = close (framerate->timer_fd);
+
 	free (framerate);
 
 	return ret;
@@ -86,6 +106,13 @@ double framerate_calc_fps (struct framerate * framerate)
 	double elapsed = framerate_elapsed_time (framerate);
 
 	return (double)framerate->nr_handled/elapsed;
+}
+
+int framerate_mark (struct framerate * framerate)
+{
+	framerate->nr_handled++;
+
+	return clock_gettime(CLOCK_MONOTONIC, &framerate->curr);
 }
 
 uint64_t

@@ -13,9 +13,21 @@ struct framerate {
 	struct timespec curr;
 };
 
+/* Create a framerate object without timer */
+struct framerate * framerate_marker_new (void);
+
+/* Create a framerate object with timer */
 struct framerate * framerate_new (double fps);
+
+/* Destroy a framerate object */
 int framerate_destroy (struct framerate * framerate);
 
+/* Mark a frame as done, without waiting. Increments nr_handled */
+int framerate_mark (struct framerate * framerate);
+
+/* Wait for the next timeout. Increments nr_handled, and will
+ * increment nr_dropped by the number of events missed since the last
+ * call to framerate_wait() */
 uint64_t framerate_wait (struct framerate * framerate);
 
 double framerate_elapsed_time (struct framerate * framerate);
