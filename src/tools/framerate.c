@@ -22,7 +22,7 @@ struct framerate * framerate_new (double fps)
 
         interval = (long) (N_SEC_PER_SEC / fps);
 
-	framerate = malloc (sizeof(*framerate));
+	framerate = calloc (1, sizeof(*framerate));
 	if (framerate == NULL)
 		return NULL;
 
@@ -81,6 +81,13 @@ double framerate_elapsed_time (struct framerate * framerate)
 	return secs + (double)nsecs/N_SEC_PER_SEC;
 }
 
+double framerate_calc_fps (struct framerate * framerate)
+{
+	double elapsed = framerate_elapsed_time (framerate);
+
+	return (double)framerate->nr_handled/elapsed;
+}
+
 uint64_t
 framerate_wait (struct framerate * framerate)
 {
@@ -93,6 +100,9 @@ framerate_wait (struct framerate * framerate)
 
 	if (clock_gettime(CLOCK_MONOTONIC, &framerate->curr) == -1)
 		handle_error("clock_gettime");
+
+	framerate->nr_handled++;
+	framerate->nr_dropped += exp-1;
 
         return exp;
 }
