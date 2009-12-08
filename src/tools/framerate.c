@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <sys/timerfd.h>
 #include <time.h>
 #include <unistd.h>
@@ -10,6 +11,8 @@
 #define handle_error(msg) \
                do { perror(msg); exit(EXIT_FAILURE); } while (0)
 
+#define N_SEC_PER_SEC 1000000000
+
 struct framerate * framerate_new (double fps)
 {
 	struct framerate * framerate;
@@ -17,7 +20,7 @@ struct framerate * framerate_new (double fps)
 	struct timespec * now;
         long interval;
 
-        interval = (long) (1000000000 / fps);
+        interval = (long) (N_SEC_PER_SEC / fps);
 
 	framerate = malloc (sizeof(*framerate));
 	if (framerate == NULL)
@@ -25,7 +28,7 @@ struct framerate * framerate_new (double fps)
 
 	now = &framerate->start;
 
-	if (clock_gettime(CLOCK_REALTIME, now) == -1)
+	if (clock_gettime(CLOCK_MONOTONIC, now) == -1)
 		goto err_out;
 
 	/* Create a CLOCK_REALTIME absolute timer with initial
@@ -36,7 +39,7 @@ struct framerate * framerate_new (double fps)
 	new_value.it_interval.tv_sec = 0;
 	new_value.it_interval.tv_nsec = interval;
 
-	framerate->timer_fd = timerfd_create(CLOCK_REALTIME, 0);
+	framerate->timer_fd = timerfd_create(CLOCK_MONOTONIC, 0);
 	if (framerate->timer_fd == -1)
 		goto err_out;
 
@@ -61,21 +64,21 @@ int framerate_destroy (struct framerate * framerate)
 	return ret;
 }
 
-int framerate_elapsed (struct framerate * framerate, struct timespec * diff)
+double framerate_elapsed_time (struct framerate * framerate)
 {
-	struct timespec curr;
+	struct timespec curr, diff;
 
 	if (clock_gettime(CLOCK_MONOTONIC, &curr) == -1)
 		handle_error("clock_gettime");
 
-	diff->tv_sec = curr.tv_sec - framerate->start.tv_sec;
-	diff->tv_nsec = curr.tv_nsec - framerate->start.tv_nsec;
-	if (diff->tv_nsec < 0) {
-		diff->tv_sec--;
-		diff->tv_nsec += 1000000000;
+	diff.tv_sec = curr.tv_sec - framerate->start.tv_sec;
+	diff.tv_nsec = curr.tv_nsec - framerate->start.tv_nsec;
+	if (diff.tv_nsec < 0) {
+		diff.tv_sec--;
+		diff.tv_nsec += N_SEC_PER_SEC;
 	}
 
-	return 0;
+	return diff.tv_sec + (double)diff.tv_nsec/N_SEC_PER_SEC;
 }
 
 uint64_t

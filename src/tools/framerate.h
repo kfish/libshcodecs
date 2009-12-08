@@ -14,6 +14,6 @@ struct framerate * framerate_new (double fps);
 int framerate_destroy (struct framerate * framerate);
 
 uint64_t framerate_wait (struct framerate * framerate);
-int framerate_elapsed (struct framerate * framerate, struct timespec * diff);
+double framerate_elapsed_time (struct framerate * framerate);
 
 #endif /* __FRAMERATE_H__ */
