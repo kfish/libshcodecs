@@ -87,7 +87,7 @@ struct private_data {
 	int enc_w;
 	int enc_h;
 
-	int timer_fd;       /* fd for posix timer */
+	struct framerate * framerate;
 
 	int captured_frames;
 	int output_frames;
@@ -227,7 +227,7 @@ void *capture_thread(void *data)
 		/* This mutex is unlocked once the capture buffer is free */
 		pthread_mutex_lock(&pvt->capture_start_mutex);
 
-		framerate_wait(pvt->timer_fd);
+		framerate_wait(pvt->framerate);
 		sh_ceu_capture_frame(pvt->ainfo.ceu, capture_image_cb, pvt);
 		gettimeofday(&finish, 0);
 	}
@@ -320,6 +320,8 @@ void cleanup (void)
 		 	(float)pvt->captured_frames/time);
 	debug_printf("Displayed %d frames (%.2f fps)\n", pvt->output_frames,
 			(float)pvt->output_frames/time);
+
+	framerate_destroy (pvt->framerate);
 
 	sh_ceu_stop_capturing(pvt->ainfo.ceu);
 	shcodecs_encoder_close(pvt->encoder);
@@ -535,7 +537,7 @@ int main(int argc, char *argv[])
 	fprintf (stderr, "Target framerate:   %.1f fps\n", target_fps10 / 10.0);
 
 	/* Initialize framerate timer */
-	pvt->timer_fd = framerate_init (target_fps10 / 10.0);
+	pvt->framerate = framerate_new (target_fps10 / 10.0);
 
 	sh_ceu_start_capturing(pvt->ainfo.ceu);
 

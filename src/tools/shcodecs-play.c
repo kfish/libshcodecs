@@ -99,7 +99,7 @@ struct private_data {
 
 	int loop;
 
-	int timer_fd;       /* fd for posix timer */
+	struct framerate * framerate;
 
 	int lcd_w;          /* LCD size */
 	int lcd_h;
@@ -427,7 +427,7 @@ local_vpu4_decoded (SHCodecs_Decoder *decoder,
 	struct private_data *pvt = (struct private_data*)user_data;
 
 	pvt->frames_output++;
-	pvt->frames_dropped += framerate_wait(pvt->timer_fd) - 1;
+	pvt->frames_dropped += framerate_wait(pvt->framerate) - 1;
 
 	frame_ready(pvt, y_buf, c_buf);
 
@@ -691,7 +691,7 @@ int main(int argc, char **argv)
 		exit(-1);
 
 	/* Initialize framerate timer */
-	pvt->timer_fd = framerate_init (pvt->fps);
+	pvt->framerate = framerate_new (pvt->fps);
 
 	gettimeofday(&start, 0);
 

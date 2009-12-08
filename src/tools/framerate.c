@@ -5,46 +5,86 @@
 #include <stdio.h>
 #include <stdint.h>		/* Definition of uint64_t */
 
+#include "framerate.h"
+
 #define handle_error(msg) \
                do { perror(msg); exit(EXIT_FAILURE); } while (0)
 
-int framerate_init (double fps)
+struct framerate * framerate_new (double fps)
 {
+	struct framerate * framerate;
 	struct itimerspec new_value;
-	struct timespec now;
+	struct timespec * now;
         long interval;
-	int fd;
 
         interval = (long) (1000000000 / fps);
 
-	if (clock_gettime(CLOCK_REALTIME, &now) == -1)
-		handle_error("clock_gettime");
+	framerate = malloc (sizeof(*framerate));
+	if (framerate == NULL)
+		return NULL;
+
+	now = &framerate->start;
+
+	if (clock_gettime(CLOCK_REALTIME, now) == -1)
+		goto err_out;
 
 	/* Create a CLOCK_REALTIME absolute timer with initial
-	 * expiration and interval as specified in command line */
+	 * expiration "now" and interval for the given framerate */
 
-	new_value.it_value.tv_sec = now.tv_sec;
-	new_value.it_value.tv_nsec = now.tv_nsec;
+	new_value.it_value.tv_sec = now->tv_sec;
+	new_value.it_value.tv_nsec = now->tv_nsec;
 	new_value.it_interval.tv_sec = 0;
 	new_value.it_interval.tv_nsec = interval;
 
-	fd = timerfd_create(CLOCK_REALTIME, 0);
-	if (fd == -1)
-		handle_error("timerfd_create");
+	framerate->timer_fd = timerfd_create(CLOCK_REALTIME, 0);
+	if (framerate->timer_fd == -1)
+		goto err_out;
 
-	if (timerfd_settime(fd, TFD_TIMER_ABSTIME, &new_value, NULL) == -1)
-		handle_error("timerfd_settime");
+	if (timerfd_settime(framerate->timer_fd, TFD_TIMER_ABSTIME,
+				&new_value, NULL) == -1)
+		goto err_out;
 
-        return fd;
+        return framerate;
+
+err_out:
+	free (framerate);
+	return NULL;
+}
+
+int framerate_destroy (struct framerate * framerate)
+{
+	int ret;
+
+	ret = close (framerate->timer_fd);
+	free (framerate);
+
+	return ret;
+}
+
+int framerate_elapsed (struct framerate * framerate, struct timespec * diff)
+{
+	struct timespec curr;
+
+	if (clock_gettime(CLOCK_MONOTONIC, &curr) == -1)
+		handle_error("clock_gettime");
+
+	diff->tv_sec = curr.tv_sec - framerate->start.tv_sec;
+	diff->tv_nsec = curr.tv_nsec - framerate->start.tv_nsec;
+	if (diff->tv_nsec < 0) {
+		diff->tv_sec--;
+		diff->tv_nsec += 1000000000;
+	}
+
+	return 0;
 }
 
 uint64_t
-framerate_wait (int fd)
+framerate_wait (struct framerate * framerate)
 {
 	ssize_t s;
         uint64_t exp;
 
-	s = read(fd, &exp, sizeof(uint64_t));
+	s = read(framerate->timer_fd, &exp, sizeof(uint64_t));
 	if (s != sizeof(uint64_t))
 		handle_error("read");
 
