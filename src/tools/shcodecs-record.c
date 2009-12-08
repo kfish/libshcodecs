@@ -202,8 +202,6 @@ static void display_close(struct private_data *pvt)
 
 /*****************************************************************************/
 
-struct timeval start, finish, diff;
-
 /* Callback for frame capture */
 static void
 capture_image_cb(sh_ceu *ceu, const unsigned char *frame_data, size_t length,
@@ -229,7 +227,6 @@ void *capture_thread(void *data)
 
 		framerate_wait(pvt->framerate);
 		sh_ceu_capture_frame(pvt->ainfo.ceu, capture_image_cb, pvt);
-		gettimeofday(&finish, 0);
 	}
 }
 
@@ -310,16 +307,17 @@ struct private_data pvt_data;
 
 void cleanup (void)
 {
-	float time;
+	double time;
 	struct private_data *pvt = &pvt_data;
 
-	timersub(&finish, &start, &diff);
-	time = diff.tv_sec + (float)diff.tv_usec/U_SEC_PER_SEC;
+	time = framerate_elapsed_time (pvt->framerate);
+
+	debug_printf("Elapsed time: %0.3g s\n", time);
 
 	debug_printf("Captured %d frames (%.2f fps)\n", pvt->captured_frames,
-		 	(float)pvt->captured_frames/time);
+		 	(double)pvt->captured_frames/time);
 	debug_printf("Displayed %d frames (%.2f fps)\n", pvt->output_frames,
-			(float)pvt->output_frames/time);
+			(double)pvt->output_frames/time);
 
 	framerate_destroy (pvt->framerate);
 
@@ -541,8 +539,6 @@ int main(int argc, char *argv[])
 
 	sh_ceu_start_capturing(pvt->ainfo.ceu);
 
-	gettimeofday(&start, 0);
-	
 	rc = shcodecs_encoder_run(pvt->encoder);
 	if (rc != 0) {
 		fprintf(stderr, "Error encoding, error code=%d\n", rc);
