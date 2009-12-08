@@ -87,7 +87,8 @@ struct private_data {
 	int enc_w;
 	int enc_h;
 
-	struct framerate * framerate;
+	struct framerate * cap_framerate;
+	struct framerate * enc_framerate;
 
 	int captured_frames;
 	int output_frames;
@@ -225,7 +226,7 @@ void *capture_thread(void *data)
 		/* This mutex is unlocked once the capture buffer is free */
 		pthread_mutex_lock(&pvt->capture_start_mutex);
 
-		framerate_wait(pvt->framerate);
+		framerate_wait(pvt->cap_framerate);
 		sh_ceu_capture_frame(pvt->ainfo.ceu, capture_image_cb, pvt);
 	}
 }
@@ -287,6 +288,10 @@ static int get_input(SHCodecs_Encoder *encoder, void *user_data)
 	   encoder input buffer */
 	pthread_mutex_lock(&pvt->encode_start_mutex);
 
+	if (pvt->enc_framerate == NULL) {
+		pvt->enc_framerate = framerate_marker_new ();
+	}
+
 	pthread_mutex_unlock(&pvt->capture_start_mutex);
 	return 0;
 }
@@ -296,6 +301,11 @@ static int write_output(SHCodecs_Encoder *encoder,
 			unsigned char *data, int length, void *user_data)
 {
 	struct private_data *pvt = (struct private_data*)user_data;
+
+	if (shcodecs_encoder_get_frame_num_delta(encoder) > 0 &&
+			pvt->enc_framerate != NULL) {
+		framerate_mark (pvt->enc_framerate);
+	}
 
 	if (fwrite(data, 1, length, pvt->ainfo.output_file_fp) < (size_t)length)
 		return -1;
@@ -310,16 +320,23 @@ void cleanup (void)
 	double time;
 	struct private_data *pvt = &pvt_data;
 
-	time = framerate_elapsed_time (pvt->framerate);
+	time = framerate_elapsed_time (pvt->cap_framerate);
 
-	debug_printf("Elapsed time: %0.3g s\n", time);
+	debug_printf("Elapsed time (capture): %0.3g s\n", time);
 
 	debug_printf("Captured %d frames (%.2f fps)\n", pvt->captured_frames,
 		 	(double)pvt->captured_frames/time);
 	debug_printf("Displayed %d frames (%.2f fps)\n", pvt->output_frames,
 			(double)pvt->output_frames/time);
 
-	framerate_destroy (pvt->framerate);
+	framerate_destroy (pvt->cap_framerate);
+
+	time = framerate_elapsed_time (pvt->enc_framerate);
+	debug_printf("Elapsed time (encode): %0.3g s\n", time);
+	debug_printf("Encoded %d frames (%.2f fps)\n",
+			pvt->enc_framerate->nr_handled,
+		 	framerate_calc_fps (pvt->enc_framerate));
+	framerate_destroy (pvt->enc_framerate);
 
 	sh_ceu_stop_capturing(pvt->ainfo.ceu);
 	shcodecs_encoder_close(pvt->encoder);
@@ -372,6 +389,8 @@ int main(int argc, char *argv[])
 	pvt->captured_frames = 0;
 	pvt->output_frames = 0;
 	pvt->rotate_cap = 0;
+
+	pvt->enc_framerate = NULL;
 
 	while (1) {
 #ifdef HAVE_GETOPT_LONG
@@ -535,7 +554,7 @@ int main(int argc, char *argv[])
 	fprintf (stderr, "Target framerate:   %.1f fps\n", target_fps10 / 10.0);
 
 	/* Initialize framerate timer */
-	pvt->framerate = framerate_new (target_fps10 / 10.0);
+	pvt->cap_framerate = framerate_new (target_fps10 / 10.0);
 
 	sh_ceu_start_capturing(pvt->ainfo.ceu);
 
