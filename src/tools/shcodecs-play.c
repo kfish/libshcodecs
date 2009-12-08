@@ -56,7 +56,7 @@
 #define DEFAULT_HEIGHT 240
 #define DEFAULT_FPS	25
 
-/* #define _DEBUG */
+#define _DEBUG
 #ifdef _DEBUG
         #define debug_printf printf
 #else
@@ -336,26 +336,6 @@ static void file_read_deinit(struct private_data *pvt)
 	free(pvt->read_buf);
 }
 
-
-/*****************************************************************************/
-
-static int time_diff(struct timeval *start, struct timeval *end, struct timeval *diff)
-{
-	if ((end->tv_usec - start->tv_usec) < 0) {
-		diff->tv_sec  = end->tv_sec - start->tv_sec - 1;
-		diff->tv_usec = U_SEC_PER_SEC + end->tv_usec - start->tv_usec;
-	} else {
-		diff->tv_sec  = end->tv_sec  - start->tv_sec;
-		diff->tv_usec = end->tv_usec - start->tv_usec;
-	}
-
-	if (diff->tv_sec < 0)
-		return -1;
-	if ((diff->tv_sec == 0) && (diff->tv_usec < 0))
-		return -1;
-	return 1;
-}
-
 /*****************************************************************************/
 
 void *output_thread(void *data)
@@ -444,7 +424,7 @@ int main(int argc, char **argv)
 	int c, i, rc, bytes_decoded;
 	char video_filename[MAXPATHLEN];
 	const char *fbname;
-	struct timeval start, end, duration;
+	double time;
 	struct private_data pvt_data;
 	struct private_data *pvt;
 	pthread_t thread_output;
@@ -653,13 +633,12 @@ int main(int argc, char **argv)
 			stream_type = SHCodecs_Format_MPEG4;
 	}
 
-	debug_printf("Format: %s\n", stream_type == SHCodecs_Format_H264 ? "H.264" : "MPEG4");
+	debug_printf("Input video file:   %s\n", video_filename);
+	debug_printf("Format:             %s\n", stream_type == SHCodecs_Format_H264 ? "H.264" : "MPEG4");
 	debug_printf("File resolution:    %dx%d\n", pvt->src_w, pvt->src_h);
 	debug_printf("Display resolution: %dx%d\n", pvt->lcd_w, pvt->lcd_h);
 	debug_printf("Output resolution:  %dx%d\n", pvt->dst_w, pvt->dst_h);
 	debug_printf("Output position:    %dx%d\n", pvt->dst_p, pvt->dst_q);
-	debug_printf("Input video file: %s\n", video_filename);
-
 
 	/* Output thread initialisation */
 	pthread_mutex_init (&pvt->mutex, NULL);
@@ -693,8 +672,6 @@ int main(int argc, char **argv)
 	/* Initialize framerate timer */
 	pvt->framerate = framerate_new (pvt->fps);
 
-	gettimeofday(&start, 0);
-
 	/* decode main loop */
 	do {
 		bytes_decoded = shcodecs_decode(decoder, pvt->input_buf, pvt->input_buf_len);
@@ -704,7 +681,7 @@ int main(int argc, char **argv)
 	/* Finalize the decode output, in case a final MPEG4 frame is available */
 	shcodecs_decoder_finalize (decoder);
 
-	gettimeofday(&end, 0);
+	time = framerate_elapsed_time (pvt->framerate);
 
 	/* Wait for output thread to finish */
 	pthread_mutex_lock (&pvt->mutex);
@@ -721,11 +698,10 @@ int main(int argc, char **argv)
 	pthread_cond_destroy(&pvt->avail);
 	pthread_cond_destroy(&pvt->ready);
 
-	time_diff(&start, &end, &duration);
-	debug_printf("Frames output = %d\n", pvt->frames_output);
-	debug_printf("Playback time = %d seconds\n", duration.tv_sec); 
-	debug_printf("FPS = %10f\n", (double)pvt->frames_output/duration.tv_sec);
-	debug_printf("Late frames = %d\n", pvt->frames_dropped);
+	debug_printf("Elapsed time:       %0.3g s\n", time);
+	debug_printf("Late frames:        %d\n", pvt->frames_dropped);
+	debug_printf("Displayed %d frames (%.2f fps)\n", pvt->frames_output,
+			(double)pvt->frames_output/time);
 
 exit_ok:
 	exit (0);
