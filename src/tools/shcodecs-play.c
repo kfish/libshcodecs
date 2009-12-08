@@ -114,10 +114,6 @@ struct private_data {
 	int src_h;
 
 	int max_nal_size;
-
-	int fps;            /* Playback speed; frames per second */
-	int frames_output;  /* Number of times the frame decoded callback is called */
-	int frames_dropped; /* Number of times the frame arrives late */
 };
 
 static void
@@ -406,8 +402,7 @@ local_vpu4_decoded (SHCodecs_Decoder *decoder,
 	struct timeval tcurrent, tsleep, texpected;
 	struct private_data *pvt = (struct private_data*)user_data;
 
-	pvt->frames_output++;
-	pvt->frames_dropped += framerate_wait(pvt->framerate) - 1;
+	framerate_wait(pvt->framerate);
 
 	frame_ready(pvt, y_buf, c_buf);
 
@@ -424,7 +419,7 @@ int main(int argc, char **argv)
 	int c, i, rc, bytes_decoded;
 	char video_filename[MAXPATHLEN];
 	const char *fbname;
-	double time;
+	double fps, time;
 	struct private_data pvt_data;
 	struct private_data *pvt;
 	pthread_t thread_output;
@@ -461,7 +456,8 @@ int main(int argc, char **argv)
 	pvt->dst_q = 0;
 	pvt->dst_w = pvt->lcd_w;
 	pvt->dst_h = pvt->lcd_h;
-	pvt->fps = DEFAULT_FPS;
+
+	fps = DEFAULT_FPS;
 
 	while (1) {
 #ifdef HAVE_GETOPT_LONG
@@ -527,7 +523,7 @@ int main(int argc, char **argv)
 			break;
 		case 'r':
 			if (optarg)
-				pvt->fps = strtoul(optarg, NULL, 10);
+				fps = strtod(optarg, NULL);
 			break;
 		case 'x':
 			if (optarg)
@@ -660,8 +656,6 @@ int main(int argc, char **argv)
 		exit (-9);
 
 	/* setup callback for frame decoded  & make the decode use physical addresses */
-	pvt->frames_output = 0;
-	pvt->frames_dropped = 0;
 	shcodecs_decoder_set_decoded_callback (decoder, local_vpu4_decoded, pvt);
 	shcodecs_decoder_set_use_physical (decoder, 1);
 
@@ -670,7 +664,7 @@ int main(int argc, char **argv)
 		exit(-1);
 
 	/* Initialize framerate timer */
-	pvt->framerate = framerate_new (pvt->fps);
+	pvt->framerate = framerate_new (fps);
 
 	/* decode main loop */
 	do {
@@ -699,9 +693,12 @@ int main(int argc, char **argv)
 	pthread_cond_destroy(&pvt->ready);
 
 	debug_printf("Elapsed time:       %0.3g s\n", time);
-	debug_printf("Late frames:        %d\n", pvt->frames_dropped);
-	debug_printf("Displayed %d frames (%.2f fps)\n", pvt->frames_output,
-			(double)pvt->frames_output/time);
+	debug_printf("Late frames:        %d\n", pvt->framerate->nr_dropped);
+	debug_printf("Displayed %d frames (%.2f fps)\n",
+			pvt->framerate->nr_handled,
+			framerate_calc_fps (pvt->framerate));
+
+	framerate_destroy (pvt->framerate);
 
 exit_ok:
 	exit (0);
