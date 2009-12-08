@@ -8,6 +8,7 @@ struct framerate {
 	double fps;
 	int timer_fd;
 	struct timespec start;
+	struct timespec curr;
 };
 
 struct framerate * framerate_new (double fps);

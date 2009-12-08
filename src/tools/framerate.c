@@ -31,6 +31,9 @@ struct framerate * framerate_new (double fps)
 	if (clock_gettime(CLOCK_MONOTONIC, now) == -1)
 		goto err_out;
 
+	framerate->curr.tv_sec = now->tv_sec;
+	framerate->curr.tv_nsec = now->tv_nsec;
+
 	/* Create a CLOCK_REALTIME absolute timer with initial
 	 * expiration "now" and interval for the given framerate */
 
@@ -66,19 +69,16 @@ int framerate_destroy (struct framerate * framerate)
 
 double framerate_elapsed_time (struct framerate * framerate)
 {
-	struct timespec curr, diff;
+	long secs, nsecs;
 
-	if (clock_gettime(CLOCK_MONOTONIC, &curr) == -1)
-		handle_error("clock_gettime");
-
-	diff.tv_sec = curr.tv_sec - framerate->start.tv_sec;
-	diff.tv_nsec = curr.tv_nsec - framerate->start.tv_nsec;
-	if (diff.tv_nsec < 0) {
-		diff.tv_sec--;
-		diff.tv_nsec += N_SEC_PER_SEC;
+	secs = framerate->curr.tv_sec - framerate->start.tv_sec;
+	nsecs = framerate->curr.tv_nsec - framerate->start.tv_nsec;
+	if (nsecs < 0) {
+		secs--;
+		nsecs += N_SEC_PER_SEC;
 	}
 
-	return diff.tv_sec + (double)diff.tv_nsec/N_SEC_PER_SEC;
+	return secs + (double)nsecs/N_SEC_PER_SEC;
 }
 
 uint64_t
@@ -90,6 +90,9 @@ framerate_wait (struct framerate * framerate)
 	s = read(framerate->timer_fd, &exp, sizeof(uint64_t));
 	if (s != sizeof(uint64_t))
 		handle_error("read");
+
+	if (clock_gettime(CLOCK_MONOTONIC, &framerate->curr) == -1)
+		handle_error("clock_gettime");
 
         return exp;
 }
