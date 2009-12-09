@@ -11,6 +11,7 @@ struct framerate {
 	int nr_dropped;
 	struct timespec start;
 	struct timespec curr;
+	double curr_elapsed;
 };
 
 /* Create a framerate object without timer */

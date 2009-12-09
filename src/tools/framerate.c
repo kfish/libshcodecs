@@ -96,7 +96,25 @@ int framerate_destroy (struct framerate * framerate)
 
 double framerate_elapsed_time (struct framerate * framerate)
 {
+	return framerate->curr_elapsed;
+}
+
+double framerate_calc_fps (struct framerate * framerate)
+{
+	double elapsed = framerate_elapsed_time (framerate);
+
+	return (double)framerate->nr_handled/framerate->curr_elapsed;
+}
+
+int framerate_mark (struct framerate * framerate)
+{
 	long secs, nsecs;
+	int ret;
+
+	framerate->nr_handled++;
+
+	ret = clock_gettime(CLOCK_MONOTONIC, &framerate->curr);
+	if (ret == -1) return ret;
 
 	secs = framerate->curr.tv_sec - framerate->start.tv_sec;
 	nsecs = framerate->curr.tv_nsec - framerate->start.tv_nsec;
@@ -105,21 +123,9 @@ double framerate_elapsed_time (struct framerate * framerate)
 		nsecs += N_SEC_PER_SEC;
 	}
 
-	return secs + (double)nsecs/N_SEC_PER_SEC;
-}
+	framerate->curr_elapsed = secs + (double)nsecs/N_SEC_PER_SEC;
 
-double framerate_calc_fps (struct framerate * framerate)
-{
-	double elapsed = framerate_elapsed_time (framerate);
-
-	return (double)framerate->nr_handled/elapsed;
-}
-
-int framerate_mark (struct framerate * framerate)
-{
-	framerate->nr_handled++;
-
-	return clock_gettime(CLOCK_MONOTONIC, &framerate->curr);
+	return ret;
 }
 
 uint64_t
@@ -132,10 +138,8 @@ framerate_wait (struct framerate * framerate)
 	if (s != sizeof(uint64_t))
 		handle_error("read");
 
-	if (clock_gettime(CLOCK_MONOTONIC, &framerate->curr) == -1)
-		handle_error("clock_gettime");
+	framerate_mark (framerate);
 
-	framerate->nr_handled++;
 	framerate->nr_dropped += exp-1;
 
         return exp;
