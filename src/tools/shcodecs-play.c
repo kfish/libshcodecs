@@ -696,7 +696,7 @@ int main(int argc, char **argv)
 	debug_printf("Late frames:        %d\n", pvt->framerate->nr_dropped);
 	debug_printf("Displayed %d frames (%.2f fps)\n",
 			pvt->framerate->nr_handled,
-			framerate_calc_fps (pvt->framerate));
+			framerate_mean_fps (pvt->framerate));
 
 	framerate_destroy (pvt->framerate);
 

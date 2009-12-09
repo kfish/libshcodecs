@@ -335,7 +335,7 @@ void cleanup (void)
 	debug_printf("Elapsed time (encode): %0.3g s\n", time);
 	debug_printf("Encoded %d frames (%.2f fps)\n",
 			pvt->enc_framerate->nr_handled,
-		 	framerate_calc_fps (pvt->enc_framerate));
+		 	framerate_mean_fps (pvt->enc_framerate));
 	framerate_destroy (pvt->enc_framerate);
 
 	sh_ceu_stop_capturing(pvt->ainfo.ceu);

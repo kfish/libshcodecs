@@ -31,7 +31,10 @@ int framerate_mark (struct framerate * framerate);
  * call to framerate_wait() */
 uint64_t framerate_wait (struct framerate * framerate);
 
+/* Time in seconds since calling framerate_new_*() */
 double framerate_elapsed_time (struct framerate * framerate);
-double framerate_calc_fps (struct framerate * framerate);
+
+/* Mean average FPS over the entire elapsed time */
+double framerate_mean_fps (struct framerate * framerate);
 
 #endif /* __FRAMERATE_H__ */
