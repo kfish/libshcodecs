@@ -289,7 +289,7 @@ static int get_input(SHCodecs_Encoder *encoder, void *user_data)
 	pthread_mutex_lock(&pvt->encode_start_mutex);
 
 	if (pvt->enc_framerate == NULL) {
-		pvt->enc_framerate = framerate_marker_new ();
+		pvt->enc_framerate = framerate_new_measurer ();
 	}
 
 	pthread_mutex_unlock(&pvt->capture_start_mutex);
@@ -554,7 +554,7 @@ int main(int argc, char *argv[])
 	fprintf (stderr, "Target framerate:   %.1f fps\n", target_fps10 / 10.0);
 
 	/* Initialize framerate timer */
-	pvt->cap_framerate = framerate_new (target_fps10 / 10.0);
+	pvt->cap_framerate = framerate_new_timer (target_fps10 / 10.0);
 
 	sh_ceu_start_capturing(pvt->ainfo.ceu);
 

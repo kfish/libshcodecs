@@ -14,10 +14,10 @@ struct framerate {
 };
 
 /* Create a framerate object without timer */
-struct framerate * framerate_marker_new (void);
+struct framerate * framerate_new_measurer (void);
 
 /* Create a framerate object with timer */
-struct framerate * framerate_new (double fps);
+struct framerate * framerate_new_timer (double fps);
 
 /* Destroy a framerate object */
 int framerate_destroy (struct framerate * framerate);

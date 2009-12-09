@@ -664,7 +664,7 @@ int main(int argc, char **argv)
 		exit(-1);
 
 	/* Initialize framerate timer */
-	pvt->framerate = framerate_new (fps);
+	pvt->framerate = framerate_new_timer (fps);
 
 	/* decode main loop */
 	do {

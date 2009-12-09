@@ -13,7 +13,7 @@
 
 #define N_SEC_PER_SEC 1000000000
 
-struct framerate * framerate_marker_new (void)
+struct framerate * framerate_new_measurer (void)
 {
 	struct framerate * framerate;
 	struct timespec * now;
@@ -37,18 +37,25 @@ err_out:
 	return NULL;
 }
 
-struct framerate * framerate_new (double fps)
+struct framerate * framerate_new_timer (double fps)
 {
 	struct framerate * framerate;
 	struct itimerspec new_value;
 	struct timespec * now;
         long interval;
 
-        interval = (long) (N_SEC_PER_SEC / fps);
+	if (fps < 0.0)
+		return NULL;
 
-	framerate = framerate_marker_new ();
+	framerate = framerate_new_measurer ();
 	if (framerate == NULL)
 		return NULL;
+
+	/* Treat fps == 0.0 as a measurer, and avoid divide-by-zero */
+	if (fps == 0.0)
+		return framerate;
+
+        interval = (long) (N_SEC_PER_SEC / fps);
 
 	now = &framerate->start;
 
