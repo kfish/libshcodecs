@@ -305,6 +305,8 @@ static int write_output(SHCodecs_Encoder *encoder,
 	if (shcodecs_encoder_get_frame_num_delta(encoder) > 0 &&
 			pvt->enc_framerate != NULL) {
 		framerate_mark (pvt->enc_framerate);
+		fprintf (stderr, "  Recording @ %g fps\r",
+				framerate_instantaneous_fps (pvt->enc_framerate));
 	}
 
 	if (fwrite(data, 1, length, pvt->ainfo.output_file_fp) < (size_t)length)

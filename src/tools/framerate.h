@@ -11,7 +11,9 @@ struct framerate {
 	int nr_dropped;
 	struct timespec start;
 	struct timespec curr;
+	double total_elapsed;
 	double curr_elapsed;
+	double prev_fps;
 };
 
 /* Create a framerate object without timer */
@@ -36,5 +38,8 @@ double framerate_elapsed_time (struct framerate * framerate);
 
 /* Mean average FPS over the entire elapsed time */
 double framerate_mean_fps (struct framerate * framerate);
+
+/* Instantaneous FPS ... */
+double framerate_instantaneous_fps (struct framerate * framerate);
 
 #endif /* __FRAMERATE_H__ */

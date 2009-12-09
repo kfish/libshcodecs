@@ -96,19 +96,36 @@ int framerate_destroy (struct framerate * framerate)
 
 double framerate_elapsed_time (struct framerate * framerate)
 {
-	return framerate->curr_elapsed;
+	return framerate->total_elapsed;
 }
 
 double framerate_mean_fps (struct framerate * framerate)
 {
 	double elapsed = framerate_elapsed_time (framerate);
 
-	return (double)framerate->nr_handled/framerate->curr_elapsed;
+	return (double)framerate->nr_handled/framerate->total_elapsed;
+}
+
+double framerate_instantaneous_fps (struct framerate * framerate)
+{
+	double curr_fps;
+
+	if (framerate->curr_elapsed == 0.0)
+		return 0.0;
+
+	curr_fps = 1.0/framerate->curr_elapsed;
+	curr_fps += 127.0 * framerate->prev_fps;
+	curr_fps /= 128.0;
+
+	framerate->prev_fps = curr_fps;
+
+	return curr_fps;
 }
 
 int framerate_mark (struct framerate * framerate)
 {
 	long secs, nsecs;
+	double prev_elapsed;
 	int ret;
 
 	framerate->nr_handled++;
@@ -123,7 +140,10 @@ int framerate_mark (struct framerate * framerate)
 		nsecs += N_SEC_PER_SEC;
 	}
 
-	framerate->curr_elapsed = secs + (double)nsecs/N_SEC_PER_SEC;
+	prev_elapsed = framerate->total_elapsed;
+
+	framerate->total_elapsed = secs + (double)nsecs/N_SEC_PER_SEC;
+	framerate->curr_elapsed = framerate->total_elapsed - prev_elapsed;
 
 	return ret;
 }
