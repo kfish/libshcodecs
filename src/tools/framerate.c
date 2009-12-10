@@ -113,9 +113,11 @@ double framerate_instantaneous_fps (struct framerate * framerate)
 	if (framerate->curr_elapsed == 0.0)
 		return 0.0;
 
-	curr_fps = 1.0/framerate->curr_elapsed;
-	curr_fps += 127.0 * framerate->prev_fps;
-	curr_fps /= 128.0;
+	if (framerate->curr_elapsed > 0.001) {
+		curr_fps = 1.0/framerate->curr_elapsed;
+	} else {
+		curr_fps = framerate->prev_fps;
+	}
 
 	framerate->prev_fps = curr_fps;
 
