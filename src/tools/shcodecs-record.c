@@ -301,12 +301,16 @@ static int write_output(SHCodecs_Encoder *encoder,
 			unsigned char *data, int length, void *user_data)
 {
 	struct private_data *pvt = (struct private_data*)user_data;
+	double ifps, mfps;
 
 	if (shcodecs_encoder_get_frame_num_delta(encoder) > 0 &&
 			pvt->enc_framerate != NULL) {
 		framerate_mark (pvt->enc_framerate);
-		fprintf (stderr, "  Recording @ %g fps\r",
-				framerate_instantaneous_fps (pvt->enc_framerate));
+		ifps = framerate_instantaneous_fps (pvt->enc_framerate);
+		mfps = framerate_mean_fps (pvt->enc_framerate);
+		if (pvt->enc_framerate->nr_handled % 10 == 0) {
+			fprintf (stderr, "  Encoding @ %4.2f fps \t(avg %4.2f fps)\r", ifps, mfps);
+		}
 	}
 
 	if (fwrite(data, 1, length, pvt->ainfo.output_file_fp) < (size_t)length)
@@ -324,6 +328,7 @@ void cleanup (void)
 
 	time = framerate_elapsed_time (pvt->cap_framerate);
 
+	debug_printf ("\n");
 	debug_printf("Elapsed time (capture): %0.3g s\n", time);
 
 	debug_printf("Captured %d frames (%.2f fps)\n", pvt->captured_frames,
