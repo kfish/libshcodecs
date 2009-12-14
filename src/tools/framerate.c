@@ -9,7 +9,7 @@
 #include "framerate.h"
 
 #define handle_error(msg) \
-               do { perror(msg); exit(EXIT_FAILURE); } while (0)
+	       do { perror(msg); exit(EXIT_FAILURE); } while (0)
 
 #define N_SEC_PER_SEC 1000000000
 
@@ -42,7 +42,7 @@ struct framerate * framerate_new_timer (double fps)
 	struct framerate * framerate;
 	struct itimerspec new_value;
 	struct timespec * now;
-        long interval;
+	long interval;
 
 	if (fps < 0.0)
 		return NULL;
@@ -55,7 +55,7 @@ struct framerate * framerate_new_timer (double fps)
 	if (fps == 0.0)
 		return framerate;
 
-        interval = (long) (N_SEC_PER_SEC / fps);
+	interval = (long) (N_SEC_PER_SEC / fps);
 
 	now = &framerate->start;
 
@@ -75,7 +75,7 @@ struct framerate * framerate_new_timer (double fps)
 				&new_value, NULL) == -1)
 		goto err_out;
 
-        return framerate;
+	return framerate;
 
 err_out:
 	free (framerate);
@@ -154,7 +154,7 @@ uint64_t
 framerate_wait (struct framerate * framerate)
 {
 	ssize_t s;
-        uint64_t exp;
+	uint64_t exp;
 
 	s = read(framerate->timer_fd, &exp, sizeof(uint64_t));
 	if (s != sizeof(uint64_t))
@@ -164,5 +164,5 @@ framerate_wait (struct framerate * framerate)
 
 	framerate->nr_dropped += exp-1;
 
-        return exp;
+	return exp;
 }

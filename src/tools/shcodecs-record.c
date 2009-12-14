@@ -366,10 +366,10 @@ void sig_handler(int sig)
 	cleanup ();
 
 #ifdef DEBUG
-        fprintf (stderr, "Got signal %d\n", sig);
+	fprintf (stderr, "Got signal %d\n", sig);
 #endif
 
-        /* Send ourselves the signal: see http://www.cons.org/cracauer/sigint.html */
+	/* Send ourselves the signal: see http://www.cons.org/cracauer/sigint.html */
 	signal(sig, SIG_DFL);
 	kill(getpid(), sig);
 }
@@ -407,10 +407,10 @@ int main(int argc, char *argv[])
 #endif
 		if (c == -1)
 			break;
-                if (c == ':') {
-                        usage (argv[0]);
-                        goto exit_err;
-                }
+		if (c == ':') {
+			usage (argv[0]);
+			goto exit_err;
+		}
 
 		switch (c) {
 		case 'i':
@@ -427,10 +427,10 @@ int main(int argc, char *argv[])
 		}
 	}
 
-        if (optind >= argc) {
+	if (optind >= argc) {
 	      usage (argv[0]);
-              goto exit_err;
-        }
+	      goto exit_err;
+	}
 
 	if (optind == (argc-1) && v4l2_filename[0] == '\0') {
 		strncpy(v4l2_filename, argv[optind++], MAXPATHLEN-1);
@@ -486,8 +486,8 @@ int main(int argc, char *argv[])
 		return -7;
 	}
 
-        signal (SIGINT, sig_handler);
-        signal (SIGPIPE, sig_handler);
+	signal (SIGINT, sig_handler);
+	signal (SIGPIPE, sig_handler);
 
 	/* VEU Scaler initialisation */
 	sh_veu_open();
