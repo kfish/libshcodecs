@@ -65,9 +65,9 @@ struct timeval start, finish, diff;
 static void
 usage (const char * progname)
 {
-        printf ("Usage: %s <control file>\n", progname);
-        printf ("Encode V4L2 video input using the SH-Mobile VPU\n");
-        printf ("\nPlease report bugs to <linux-sh@vger.kernel.org>\n");
+	printf ("Usage: %s <control file>\n", progname);
+	printf ("Encode V4L2 video input using the SH-Mobile VPU\n");
+	printf ("\nPlease report bugs to <linux-sh@vger.kernel.org>\n");
 }
 
 /* SHCodecs_Encoder_Input callback for acquiring an image from the CEU */
@@ -101,18 +101,18 @@ void cleanup (void)
 	time = diff.tv_sec + (float)diff.tv_usec/U_SEC_PER_SEC;
 
 	if (time > 0)
-	        fprintf(stderr, "%d frames captured at %.2f fps\n", num_frames, (float)num_frames/time);
+		fprintf(stderr, "%d frames captured at %.2f fps\n", num_frames, (float)num_frames/time);
 
 	if (ainfo.ceu != NULL)
-                sh_ceu_stop_capturing(ainfo.ceu);
+		sh_ceu_stop_capturing(ainfo.ceu);
 
-        if (encoder != NULL)
-	        shcodecs_encoder_close(encoder);
+	if (encoder != NULL)
+		shcodecs_encoder_close(encoder);
 
 	sh_veu_close();
 
-        if (ainfo.ceu != NULL)
-	        sh_ceu_close(ainfo.ceu);
+	if (ainfo.ceu != NULL)
+		sh_ceu_close(ainfo.ceu);
 }
 
 void sig_handler(int sig)
@@ -120,10 +120,10 @@ void sig_handler(int sig)
 	cleanup ();
 
 #ifdef DEBUG
-        fprintf (stderr, "Got signal %d\n", sig);
+	fprintf (stderr, "Got signal %d\n", sig);
 #endif
 
-        /* Send ourselves the signal: see http://www.cons.org/cracauer/sigint.html */
+	/* Send ourselves the signal: see http://www.cons.org/cracauer/sigint.html */
 	signal(sig, SIG_DFL);
 	kill(getpid(), sig);
 }
@@ -153,21 +153,21 @@ int main(int argc, char *argv[])
 		 ainfo.buf_input_yuv_file);
 
 	/* 出力ディレクトリ */
-        if (!strcmp (ainfo.buf_output_stream_file, "-")) {
-                snprintf (ainfo.output_file_name_buf, 256, "-");
-        } else {
-	        snprintf(ainfo.output_file_name_buf, 256, "%s/%s",
-	        	 ainfo.buf_output_directry,
-	        	 ainfo.buf_output_stream_file);
-        }
+	if (!strcmp (ainfo.buf_output_stream_file, "-")) {
+		snprintf (ainfo.output_file_name_buf, 256, "-");
+	} else {
+		snprintf(ainfo.output_file_name_buf, 256, "%s/%s",
+			 ainfo.buf_output_directry,
+			 ainfo.buf_output_stream_file);
+	}
 
 	fprintf(stderr, "Input device: %s\n", ainfo.input_file_name_buf);
 	fprintf(stderr, "Output file: %s\n", ainfo.output_file_name_buf);
 
-        encoder = NULL;
-        ainfo.ceu = NULL;
-        signal (SIGINT, sig_handler);
-        signal (SIGPIPE, sig_handler);
+	encoder = NULL;
+	ainfo.ceu = NULL;
+	signal (SIGINT, sig_handler);
+	signal (SIGPIPE, sig_handler);
 
 	ainfo.ceu = sh_ceu_open(ainfo.input_file_name_buf, ainfo.xpic, ainfo.ypic);
 
@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
 
 	encoder =
 	    shcodecs_encoder_init(ainfo.xpic, ainfo.ypic,
-                                  stream_type);
+				  stream_type);
 
 	shcodecs_encoder_set_input_callback(encoder, get_input, &ainfo);
 	shcodecs_encoder_set_output_callback(encoder, write_output,
@@ -207,7 +207,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "Encode Success\n");
 	}
 
-        cleanup ();
+	cleanup ();
 
 #if 0
 	printf("Total encode time = %d(msec)\n", encode_time_get());

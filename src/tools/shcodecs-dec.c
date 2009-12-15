@@ -59,33 +59,33 @@ static int local_close (void);
 static void
 usage (const char * progname)
 {
-        printf ("Usage: %s [options] ...\n", progname);
-        printf ("Encode a YCbCr 4:2:0 file using the SH-Mobile VPU\n");
-        printf ("\nFile options\n");
-        printf ("  -i, --input            Set the input filename\n");
-        printf ("  -o, --output           Set the output filename\n");
-        printf ("\nEncoding format\n");
-        printf ("  -f, --format           Set the encoding format [h264, mpeg4]\n");
-        printf ("\nDimensions\n");
-        printf ("  -w, --width            Set the input image width in pixels\n");
-        printf ("  -h, --height           Set the input image height in pixels\n");
-        printf ("  -s, --size             Set the input image size [qcif, cif, qvga, vga, 720p]\n");
-        printf ("\nFile extensions are interpreted as follows unless otherwise specified:\n");
-        printf ("  .m4v    MPEG4\n");
-        printf ("  .264    H.264\n");
-        printf ("\nPlease report bugs to <linux-sh@vger.kernel.org>\n");
+	printf ("Usage: %s [options] ...\n", progname);
+	printf ("Encode a YCbCr 4:2:0 file using the SH-Mobile VPU\n");
+	printf ("\nFile options\n");
+	printf ("  -i, --input            Set the input filename\n");
+	printf ("  -o, --output           Set the output filename\n");
+	printf ("\nEncoding format\n");
+	printf ("  -f, --format           Set the encoding format [h264, mpeg4]\n");
+	printf ("\nDimensions\n");
+	printf ("  -w, --width            Set the input image width in pixels\n");
+	printf ("  -h, --height           Set the input image height in pixels\n");
+	printf ("  -s, --size             Set the input image size [qcif, cif, qvga, vga, 720p]\n");
+	printf ("\nFile extensions are interpreted as follows unless otherwise specified:\n");
+	printf ("  .m4v    MPEG4\n");
+	printf ("  .264    H.264\n");
+	printf ("\nPlease report bugs to <linux-sh@vger.kernel.org>\n");
 }
 
 static char * optstring = "f:o:i:w:h:s:";
 
 #ifdef HAVE_GETOPT_LONG
 static struct option long_options[] = {
-        { "format", required_argument, NULL, 'f'},
-        { "output", required_argument, NULL, 'o'},
-        { "input" , required_argument, NULL, 'i'},
-        { "width" , required_argument, NULL, 'w'},
-        { "height", required_argument, NULL, 'h'},
-        { "size", required_argument, NULL, 's'}
+	{ "format", required_argument, NULL, 'f'},
+	{ "output", required_argument, NULL, 'o'},
+	{ "input" , required_argument, NULL, 'i'},
+	{ "width" , required_argument, NULL, 'w'},
+	{ "height", required_argument, NULL, 'h'},
+	{ "size", required_argument, NULL, 's'}
 };
 #endif
 
@@ -105,9 +105,9 @@ long total_output_bytes = 0;
 /* local output callback */
 static int
 local_vpu4_decoded (SHCodecs_Decoder * decoder,
-                    unsigned char * y_buf, int y_size,
-                    unsigned char * c_buf, int c_size,
-                    void * user_data)
+		    unsigned char * y_buf, int y_size,
+		    unsigned char * c_buf, int c_size,
+		    void * user_data)
 {
 	ssize_t len;
 
@@ -116,24 +116,24 @@ local_vpu4_decoded (SHCodecs_Decoder * decoder,
 		write(output_fd, c_buf, c_size);
 	}
 
-        total_output_bytes += y_size+c_size;
+	total_output_bytes += y_size+c_size;
 
-        return 0;
+	return 0;
 }
 
 /***********************************************************/
 
 int main(int argc, char **argv)
 {
-        SHCodecs_Decoder * decoder;
+	SHCodecs_Decoder * decoder;
 	int ret=0, stream_type = -1, i, w, h, c;
 	char input_filename[MAXPATHLEN], output_filename[MAXPATHLEN];
 	struct sched_param stSchePara;
-        int bytes_decoded, frames_decoded;
-        ssize_t n;
+	int bytes_decoded, frames_decoded;
+	ssize_t n;
 	char * ext;
 
-        char * progname = argv[0];
+	char * progname = argv[0];
 
 	if (argc == 1) {
 		usage(progname);
@@ -156,10 +156,10 @@ int main(int argc, char **argv)
 #endif
 		if (c == -1)
 			break;
-                if (c == ':') {
-                        usage (progname);
-                        goto exit_err;
-                }
+		if (c == ':') {
+			usage (progname);
+			goto exit_err;
+		}
 
 		switch (c) {
 		case 'f':
@@ -256,43 +256,43 @@ int main(int argc, char **argv)
 		exit(-8);
 	}
 
-        /* H.264 spec: Max NAL size is the size of an uncomrpessed immage divided
-           by the "Minimum Compression Ratio", MinCR. This is 2 for most levels
-           but is 4 for levels 3.1 to 4. Since we don't know the level, we just
-           use MinCR=2. */
-        max_nal_size = (w * h * 3) / 2; /* YCbCr420 */
-        max_nal_size /= 2;              /* Apply MinCR */
+	/* H.264 spec: Max NAL size is the size of an uncomrpessed immage divided
+	   by the "Minimum Compression Ratio", MinCR. This is 2 for most levels
+	   but is 4 for levels 3.1 to 4. Since we don't know the level, we just
+	   use MinCR=2. */
+	max_nal_size = (w * h * 3) / 2; /* YCbCr420 */
+	max_nal_size /= 2;              /* Apply MinCR */
 
 	/* Open file descriptors to talk to the VPU and SDR drivers */
 
-        if ((decoder = shcodecs_decoder_init(w, h, stream_type)) == NULL) {
-                exit (-9);
-        }
+	if ((decoder = shcodecs_decoder_init(w, h, stream_type)) == NULL) {
+		exit (-9);
+	}
 
-        local_init(input_filename, output_filename);
+	local_init(input_filename, output_filename);
 
 	shcodecs_decoder_set_decoded_callback (decoder, local_vpu4_decoded, NULL);
 
-        /* decode main loop */
-        do {
-                int rem;
+	/* decode main loop */
+	do {
+		int rem;
 
 		bytes_decoded = shcodecs_decode (decoder, input_buffer, si_isize);
 		frames_decoded = shcodecs_decoder_get_frame_count (decoder);
-                if (bytes_decoded > 0) total_input_consumed += bytes_decoded;
-                
-                rem = si_isize - bytes_decoded;
-	        memmove(input_buffer, input_buffer + bytes_decoded, rem);
-                n = read (input_fd, input_buffer + rem, max_nal_size - rem);
-                if (n < 0) break;
+		if (bytes_decoded > 0) total_input_consumed += bytes_decoded;
+		
+		rem = si_isize - bytes_decoded;
+		memmove(input_buffer, input_buffer + bytes_decoded, rem);
+		n = read (input_fd, input_buffer + rem, max_nal_size - rem);
+		if (n < 0) break;
 
-                si_isize = rem + n;
-        } while (!(n == 0 && bytes_decoded == 0));
+		si_isize = rem + n;
+	} while (!(n == 0 && bytes_decoded == 0));
 
 	bytes_decoded = shcodecs_decode (decoder, input_buffer, si_isize);
-        if (bytes_decoded > 0) total_input_consumed += bytes_decoded;
+	if (bytes_decoded > 0) total_input_consumed += bytes_decoded;
 
-        debug_printf ("\nshcodecs-dec: Finalizing ...\n");
+	debug_printf ("\nshcodecs-dec: Finalizing ...\n");
 
 	/* Finalize the decode output, in case a final frame is available */
 	shcodecs_decoder_finalize (decoder);
@@ -300,14 +300,14 @@ int main(int argc, char **argv)
 	frames_decoded = shcodecs_decoder_get_frame_count (decoder);
 	fprintf (stderr, "Total frames decoded: %d\n", frames_decoded);
 
-        local_close ();
+	local_close ();
 
-        shcodecs_decoder_close(decoder);
+	shcodecs_decoder_close(decoder);
 
 	debug_printf("Total sleep  time = %d(msec)\n",(int)m4iph_sleep_time_get());
 
-        fprintf (stderr, "Total bytes consumed: %ld\n", total_input_consumed);
-        fprintf (stderr, "Total bytes output: %ld\n", total_output_bytes);
+	fprintf (stderr, "Total bytes consumed: %ld\n", total_input_consumed);
+	fprintf (stderr, "Total bytes output: %ld\n", total_output_bytes);
 
 exit_ok:
 	exit (0);

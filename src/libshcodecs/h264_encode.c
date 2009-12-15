@@ -101,7 +101,7 @@ output_data(SHCodecs_Encoder *enc, int type, void *buf, long length)
 #endif
 	if (enc->output) {
 		return enc->output(enc, (unsigned char *)buf, length,
-                                   enc->output_user_data);
+				   enc->output_user_data);
 	}
 
 	return 0;

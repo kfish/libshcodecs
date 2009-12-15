@@ -58,9 +58,9 @@
 
 #define _DEBUG
 #ifdef _DEBUG
-        #define debug_printf printf
+	#define debug_printf printf
 #else
-        void debug_printf(const char *format, ...) {}
+	void debug_printf(const char *format, ...) {}
 #endif
 
 
@@ -101,16 +101,16 @@ struct private_data {
 
 	struct framerate * framerate;
 
-	int lcd_w;          /* LCD size */
+	int lcd_w;	  /* LCD size */
 	int lcd_h;
 
-	int dst_w;          /* Size of video output */
+	int dst_w;	  /* Size of video output */
 	int dst_h;
 
-	int dst_p;          /* Position of video output */
+	int dst_p;	  /* Position of video output */
 	int dst_q;
 
-	int src_w;          /* Size of video input */
+	int src_w;	  /* Size of video input */
 	int src_h;
 
 	int max_nal_size;
@@ -119,29 +119,29 @@ struct private_data {
 static void
 usage (const char *progname)
 {
-        printf ("Usage: %s [options] filename\n", progname);
-        printf ("Decode a MPEG-4 or H.264 elementry stream and show on the LCD.\n");
-        printf ("\nFile options\n");
-        printf ("  -i, --input        Set the video input filename\n");
+	printf ("Usage: %s [options] filename\n", progname);
+	printf ("Decode a MPEG-4 or H.264 elementry stream and show on the LCD.\n");
+	printf ("\nFile options\n");
+	printf ("  -i, --input        Set the video input filename\n");
 	printf ("  -l, --loop         Loop playback\n");
-        printf ("  -r                 Set the playback speed, frames per second\n");
-        printf ("\nEncoding format\n");
-        printf ("  -f, --format       The file format [h264, mpeg4]\n");
-        printf ("\nDimensions of encoded stream\n");
-        printf ("  -w, --width        The image width in pixels of the file\n");
-        printf ("  -h, --height       The image height in pixels of the file\n");
-        printf ("  -s, --input size   Set the input image size [qcif, cif, qvga, vga, d1, 720p]\n");
-        printf ("\nDimensions of video on the display\n");
-        printf ("  -x,                The image width in pixels on the display\n");
-        printf ("  -y,                The image height in pixels on the display\n");
-        printf ("  -S, --output-size  Set the image display size [qcif, cif, qvga, vga, d1, 720p]\n");
-        printf ("\nPosition of video on the display\n");
-        printf ("  -p,                The horizontal offset in pixels\n");
-        printf ("  -q,                The vertical offset in pixels\n");
-        printf ("\nFile extensions are interpreted as follows unless otherwise specified:\n");
-        printf ("  .m4v    MPEG4\n");
-        printf ("  .264    H.264\n");
-        printf ("\nPlease report bugs to <linux-sh@vger.kernel.org>\n");
+	printf ("  -r                 Set the playback speed, frames per second\n");
+	printf ("\nEncoding format\n");
+	printf ("  -f, --format       The file format [h264, mpeg4]\n");
+	printf ("\nDimensions of encoded stream\n");
+	printf ("  -w, --width        The image width in pixels of the file\n");
+	printf ("  -h, --height       The image height in pixels of the file\n");
+	printf ("  -s, --input size   Set the input image size [qcif, cif, qvga, vga, d1, 720p]\n");
+	printf ("\nDimensions of video on the display\n");
+	printf ("  -x,                The image width in pixels on the display\n");
+	printf ("  -y,                The image height in pixels on the display\n");
+	printf ("  -S, --output-size  Set the image display size [qcif, cif, qvga, vga, d1, 720p]\n");
+	printf ("\nPosition of video on the display\n");
+	printf ("  -p,                The horizontal offset in pixels\n");
+	printf ("  -q,                The vertical offset in pixels\n");
+	printf ("\nFile extensions are interpreted as follows unless otherwise specified:\n");
+	printf ("  .m4v    MPEG4\n");
+	printf ("  .264    H.264\n");
+	printf ("\nPlease report bugs to <linux-sh@vger.kernel.org>\n");
 }
 
 static char * optstring = "f:li:w:h:r:x:y:a:s:S:p:q:";
@@ -229,15 +229,15 @@ static void display_close(struct private_data *pvt)
 static int update_input(struct private_data *pvt, int consumed)
 {
 	struct aiocb *aio = &pvt->read_aiocb;
-        const struct aiocb * cblist[1];
+	const struct aiocb * cblist[1];
 	int read_len, ret;
 
 	/* Copy the unused stream data to the start of the buffer */
 	pvt->input_buf_len -= consumed;
 	memmove(pvt->input_buf, pvt->input_buf+consumed, pvt->input_buf_len);
 
-        /* Set up cblist */
-        cblist[0] = (const struct aiocb *)aio;
+	/* Set up cblist */
+	cblist[0] = (const struct aiocb *)aio;
 
 	if (pvt->input_buf_len < pvt->max_nal_size) {
 		/* Wait for pending read to complete */
@@ -376,7 +376,7 @@ frame_ready(struct private_data *pvt, unsigned char *y_in, unsigned char *c_in)
 	pthread_mutex_lock (&pvt->mutex);
 
 	/* Ensure the output thread is ready, we don't want the decoder running
-        faster than the output */
+	faster than the output */
 	while (pvt->busy) {
 		pthread_cond_wait (&pvt->ready, &pvt->mutex);
 	}
@@ -467,10 +467,10 @@ int main(int argc, char **argv)
 #endif
 		if (c == -1)
 			break;
-                if (c == ':') {
-                        usage (argv[0]);
-                        goto exit_err;
-                }
+		if (c == ':') {
+			usage (argv[0]);
+			goto exit_err;
+		}
 
 		switch (c) {
 		case 'f':
@@ -578,10 +578,10 @@ int main(int argc, char **argv)
 		}
 	}
 
-        if (optind > argc) {
+	if (optind > argc) {
 	      usage (argv[0]);
-              goto exit_err;
-        }
+	      goto exit_err;
+	}
 
 	if (optind == (argc-1) && video_filename[0] == '\0') {
 		strncpy(video_filename, argv[optind++], MAXPATHLEN-1);
@@ -601,12 +601,12 @@ int main(int argc, char **argv)
 		exit(-6);
 	}
 
-        /* H.264 spec: Max NAL size is the size of an uncomrpessed immage divided
-           by the "Minimum Compression Ratio", MinCR. This is 2 for most levels
-           but is 4 for levels 3.1 to 4. Since we don't know the level, we just
-           use MinCR=2. */
-        pvt->max_nal_size = (pvt->src_w * pvt->src_h * 3) / 2; /* YCbCr420 */
-        pvt->max_nal_size /= 2; /* Apply MinCR */
+	/* H.264 spec: Max NAL size is the size of an uncomrpessed immage divided
+	   by the "Minimum Compression Ratio", MinCR. This is 2 for most levels
+	   but is 4 for levels 3.1 to 4. Since we don't know the level, we just
+	   use MinCR=2. */
+	pvt->max_nal_size = (pvt->src_w * pvt->src_h * 3) / 2; /* YCbCr420 */
+	pvt->max_nal_size /= 2; /* Apply MinCR */
 
 	/* Ensure the output is no bigger than the LCD */
 	pvt->dst_p = min(pvt->dst_p, pvt->lcd_w);

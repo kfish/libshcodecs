@@ -52,9 +52,9 @@ APPLI_INFO ainfo; /* Application Data */
 static void
 usage (const char * progname)
 {
-        printf ("Usage: %s <control file>\n", progname);
-        printf ("Encode a video file using the SH-Mobile VPU\n");
-        printf ("\nPlease report bugs to <linux-sh@vger.kernel.org>\n");
+	printf ("Usage: %s <control file>\n", progname);
+	printf ("Encode a video file using the SH-Mobile VPU\n");
+	printf ("\nPlease report bugs to <linux-sh@vger.kernel.org>\n");
 }
 
 /* SHCodecs_Encoder_Input callback for acquiring an image from the input file */
@@ -74,8 +74,8 @@ static int write_output(SHCodecs_Encoder * encoder,
 
 void cleanup (void)
 {
-        if (encoder != NULL)
-	        shcodecs_encoder_close(encoder);
+	if (encoder != NULL)
+		shcodecs_encoder_close(encoder);
 }
 
 void sig_handler(int sig)
@@ -83,10 +83,10 @@ void sig_handler(int sig)
 	cleanup ();
 
 #ifdef DEBUG
-        fprintf (stderr, "Got signal %d\n", sig);
+	fprintf (stderr, "Got signal %d\n", sig);
 #endif
 
-        /* Send ourselves the signal: see http://www.cons.org/cracauer/sigint.html */
+	/* Send ourselves the signal: see http://www.cons.org/cracauer/sigint.html */
 	signal(sig, SIG_DFL);
 	kill(getpid(), sig);
 }
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
 	if (argc != 2 || !strncmp (argv[1], "-h", 2) || !strncmp (argv[1], "--help", 6)) {
 		usage (argv[0]);
 		return -1;
-        }
+	}
 
 	strcpy(ainfo.ctrl_file_name_buf, argv[1]);
 	return_code = GetFromCtrlFTop((const char *)
@@ -119,19 +119,19 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "Input file: %s\n", ainfo.input_file_name_buf);
 
 	/* Output path */
-        if (!strcmp (ainfo.buf_output_stream_file, "-")) {
-                snprintf (ainfo.output_file_name_buf, 256, "-");
-        } else {
-	        snprintf(ainfo.output_file_name_buf, 256, "%s/%s",
-	        	 ainfo.buf_output_directry,
-	        	 ainfo.buf_output_stream_file);
-        }
+	if (!strcmp (ainfo.buf_output_stream_file, "-")) {
+		snprintf (ainfo.output_file_name_buf, 256, "-");
+	} else {
+		snprintf(ainfo.output_file_name_buf, 256, "%s/%s",
+			 ainfo.buf_output_directry,
+			 ainfo.buf_output_stream_file);
+	}
 	fprintf(stderr, "Output file: %s\n", ainfo.output_file_name_buf);
 
-        encoder = NULL;
-        ainfo.ceu = NULL;
-        signal (SIGINT, sig_handler);
-        signal (SIGPIPE, sig_handler);
+	encoder = NULL;
+	ainfo.ceu = NULL;
+	signal (SIGINT, sig_handler);
+	signal (SIGPIPE, sig_handler);
 
 	encoder = shcodecs_encoder_init(ainfo.xpic, ainfo.ypic, stream_type);
 

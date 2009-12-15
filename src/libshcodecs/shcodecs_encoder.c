@@ -38,10 +38,10 @@ static unsigned long
 work_area_size (SHCodecs_Encoder * encoder)
 {
 	if (encoder->format == SHCodecs_Format_H264) {
-	        return 256*1024;
+		return 256*1024;
 	} else {
-	        /* All sizes fail at 64KB, but work at 65KB */
-	        return 65*1024;
+		/* All sizes fail at 64KB, but work at 65KB */
+		return 65*1024;
 	}
 }
 
@@ -444,7 +444,7 @@ shcodecs_encoder_get_frame_num_delta(SHCodecs_Encoder *encoder)
  */
 int
 shcodecs_encoder_get_input_physical_addr (SHCodecs_Encoder * encoder, 
-                     unsigned int *addr_y, unsigned int *addr_C)
+		     unsigned int *addr_y, unsigned int *addr_C)
 {
   if (encoder == NULL) return -1;
   *addr_y = (unsigned int)encoder->addr_y;
