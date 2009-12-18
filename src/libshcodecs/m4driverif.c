@@ -292,7 +292,7 @@ int m4iph_sync_sdr_mem(void *address, int size)
 	return 0;
 }
 
-unsigned long m4iph_sdr_read(unsigned char *address, unsigned char *buffer,
+unsigned long m4iph_sdr_read(unsigned char *src_phys, unsigned char *dest_virt,
 			     unsigned long count)
 {
 	unsigned char *buf;
@@ -300,33 +300,33 @@ unsigned long m4iph_sdr_read(unsigned char *address, unsigned char *buffer,
 	int roundoff;
 	int pagesize = getpagesize();
 
-	if ((unsigned long) address + count >= sdr_end
-	    || (unsigned long) address < sdr_start) {
+	if ((unsigned long) src_phys + count >= sdr_end
+	    || (unsigned long) src_phys < sdr_start) {
 		fprintf(stderr, "%s: Invalid read from SDR memory. ",
 			__FUNCTION__);
-		fprintf(stderr, "address = %p, count = %ld\n", address,
+		fprintf(stderr, "src_phys = %p, count = %ld\n", src_phys,
 			count);
 		return 0;
 	}
-	addr = (unsigned long) address & ~(pagesize - 1);
-	roundoff = (unsigned long) address - addr;
+	addr = (unsigned long) src_phys & ~(pagesize - 1);
+	roundoff = (unsigned long) src_phys - addr;
 	buf =
 	    (unsigned char *) m4iph_map_sdr_mem((void *) addr,
 						count + roundoff);
 	if (buf == NULL) {
 		fprintf(stderr, "%s: Aborting since mmap() failed.\n",
 		       __FUNCTION__);
-		fprintf(stderr, "%s: address = %p, buffer = %p, count = %ld\n",
-		       __FUNCTION__, address, buffer, count);
+		fprintf(stderr, "%s: src_phys = %p, dest_virt = %p, count = %ld\n",
+		       __FUNCTION__, src_phys, dest_virt, count);
 		abort();
 	}
-	memcpy(buffer, buf + roundoff, count);
+	memcpy(dest_virt, buf + roundoff, count);
 	m4iph_unmap_sdr_mem(buf, count + roundoff);
 	return count;
 }
 
 /* Same arg order as memcpy; does alignment on dest */
-void m4iph_sdr_write(unsigned char *address, unsigned char *buffer,
+void m4iph_sdr_write(unsigned char *dest_phys, unsigned char *src_virt,
 		     unsigned long count)
 {
 	unsigned char *buf;
@@ -334,27 +334,27 @@ void m4iph_sdr_write(unsigned char *address, unsigned char *buffer,
 	int roundoff;
 	int pagesize = getpagesize();
 
-	if ((unsigned long) address + count >= sdr_end
-	    || (unsigned long) address < sdr_start) {
+	if ((unsigned long) dest_phys + count >= sdr_end
+	    || (unsigned long) dest_phys < sdr_start) {
 		fprintf(stderr, "%s: Invalid write to SDR memory. ",
 			__FUNCTION__);
-		fprintf(stderr, "address = %p, count = %ld\n", address,
+		fprintf(stderr, "dest_phys = %p, count = %ld\n", dest_phys,
 			count);
 		return;
 	}
-	addr = (unsigned long) address & ~(pagesize - 1);
-	roundoff = (unsigned long) address - addr;
+	addr = (unsigned long) dest_phys & ~(pagesize - 1);
+	roundoff = (unsigned long) dest_phys - addr;
 	buf =
 	    (unsigned char *) m4iph_map_sdr_mem((void *) addr,
 						count + roundoff);
 	if (buf == NULL) {
 		fprintf(stderr, "%s: Aborting since mmap() failed.\n",
 		       __FUNCTION__);
-		fprintf(stderr, "%s: address = %p, buffer = %p, count = %ld\n",
-		       __FUNCTION__, address, buffer, count);
+		fprintf(stderr, "%s: dest_phys = %p, src_virt = %p, count = %ld\n",
+		       __FUNCTION__, dest_phys, src_virt, count);
 		abort();
 	}
-	memcpy(buf + roundoff, buffer, count);
+	memcpy(buf + roundoff, src_virt, count);
 	m4iph_unmap_sdr_mem(buf, count + roundoff);
 }
 
