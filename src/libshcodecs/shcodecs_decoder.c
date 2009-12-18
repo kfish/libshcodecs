@@ -471,14 +471,14 @@ static int decoder_start(SHCodecs_Decoder * decoder)
 
 			decoded = 0;
 			if (decoder->si_type == F_H264)
-				dpb_mode = 2;
+				dpb_mode = 0;
 			else {
                                 dpb_mode = 1;
                                 //m4iph_vpu4_reset();
                         }
                 } else {
 			decoded = 1;
-			dpb_mode = 1;
+			dpb_mode = 0;
 		}
 
 		while (cb_ret == 0) {
