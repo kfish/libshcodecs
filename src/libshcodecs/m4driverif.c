@@ -295,7 +295,7 @@ int m4iph_sync_sdr_mem(void *address, int size)
 unsigned long m4iph_sdr_read(unsigned char *src_phys, unsigned char *dest_virt,
 			     unsigned long count)
 {
-	unsigned char *buf;
+	unsigned char *buf, *src_virt;
 	unsigned long addr;
 	int roundoff;
 	int pagesize = getpagesize();
@@ -320,7 +320,9 @@ unsigned long m4iph_sdr_read(unsigned char *src_phys, unsigned char *dest_virt,
 		       __FUNCTION__, src_phys, dest_virt, count);
 		abort();
 	}
-	memcpy(dest_virt, buf + roundoff, count);
+	src_virt = buf + roundoff;
+
+	memcpy(dest_virt, src_virt, count);
 	m4iph_unmap_sdr_mem(buf, count + roundoff);
 	return count;
 }
@@ -329,7 +331,7 @@ unsigned long m4iph_sdr_read(unsigned char *src_phys, unsigned char *dest_virt,
 void m4iph_sdr_write(unsigned char *dest_phys, unsigned char *src_virt,
 		     unsigned long count)
 {
-	unsigned char *buf;
+	unsigned char *buf, *dest_virt;
 	unsigned long addr;
 	int roundoff;
 	int pagesize = getpagesize();
@@ -354,7 +356,9 @@ void m4iph_sdr_write(unsigned char *dest_phys, unsigned char *src_virt,
 		       __FUNCTION__, dest_phys, src_virt, count);
 		abort();
 	}
-	memcpy(buf + roundoff, src_virt, count);
+	dest_virt = buf + roundoff;
+
+	memcpy(dest_virt, src_virt, count);
 	m4iph_unmap_sdr_mem(buf, count + roundoff);
 }
 
