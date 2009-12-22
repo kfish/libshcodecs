@@ -358,30 +358,6 @@ void m4iph_sdr_write(unsigned char *address, unsigned char *buffer,
 	m4iph_unmap_sdr_mem(buf, count + roundoff);
 }
 
-void m4iph_sdr_memset(unsigned long *address, unsigned long data,
-		      unsigned long count)
-{
-	unsigned char *buf;
-	unsigned long addr;
-	int roundoff;
-	int pagesize = getpagesize();
-
-	addr = (unsigned long) address & ~(pagesize - 1);
-	roundoff = (unsigned long) address - addr;
-	buf =
-	    (unsigned char *) m4iph_map_sdr_mem((void *) addr,
-						count + roundoff);
-	if (buf == NULL) {
-		fprintf(stderr, "%s: Aborting since mmap() failed.\n",
-		       __FUNCTION__);
-		fprintf(stderr, "%s: address = %p, data = %08lx, count = %ld\n",
-		       __FUNCTION__, address, data, count);
-		abort();
-	}
-	memset(buf, data, count);
-	m4iph_unmap_sdr_mem(buf, count + roundoff);
-}
-
 /* Allocate sdr memory */
 void *m4iph_sdr_malloc(unsigned long count, int align)
 {

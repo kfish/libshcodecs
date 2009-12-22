@@ -39,8 +39,6 @@
 
 extern pthread_mutex_t vpu_mutex;
 
-void m4iph_sdr_memset(unsigned long *address, unsigned long data,
-		      unsigned long count);
 void *m4iph_sdr_malloc(unsigned long count, int align);
 void m4iph_sdr_free(void *address, unsigned long count);
 int m4iph_sdr_open(void);
