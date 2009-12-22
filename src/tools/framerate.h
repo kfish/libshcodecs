@@ -1,19 +1,45 @@
+/*
+ * libshcodecs: A library for controlling SH-Mobile hardware codecs
+ * Copyright (C) 2009 Renesas Technology Corp.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston MA  02110-1301 USA
+ */
 #ifndef __FRAMERATE_H__
 #define __FRAMERATE_H__
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdint.h> /* Definition of uint64_t */
 #include <time.h>
 
 struct framerate {
-	double fps;
-	int timer_fd;
 	int nr_handled;
 	int nr_dropped;
 	struct timespec start;
-	struct timespec curr;
-	double total_elapsed;
-	double curr_elapsed;
+	long total_elapsed_us;
+	long curr_elapsed_us;
+	double fps;
 	double prev_fps;
+
+#ifdef HAVE_TIMERFD
+	int timer_fd;
+#else
+	long frame_us;
+#endif
 };
 
 /* Create a framerate object without timer */
@@ -33,8 +59,8 @@ int framerate_mark (struct framerate * framerate);
  * call to framerate_wait() */
 uint64_t framerate_wait (struct framerate * framerate);
 
-/* Time in seconds since calling framerate_new_*() */
-double framerate_elapsed_time (struct framerate * framerate);
+/* Time in microseconds since calling framerate_new_*() */
+long framerate_elapsed_time (struct framerate * framerate);
 
 /* Mean average FPS over the entire elapsed time */
 double framerate_mean_fps (struct framerate * framerate);

@@ -158,6 +158,12 @@ fi
 
 # Checks for header files.
 
+# Check for <sys/timerfd.h> (timerfd_create() etc.)
+AC_CHECK_FUNC(timerfd_create, HAVE_TIMERFD="yes", HAVE_TIMERFD="no")
+if test "x$HAVE_TIMERFD" = xyes ; then
+  AC_DEFINE(HAVE_TIMERFD, [], [Define to 1 if you have timerfd support])
+fi
+
 # Checks for typedefs, structures, and compiler characteristics.
 
 dnl Add some useful warnings if we have gcc.
