@@ -395,6 +395,10 @@ static int stream_init(SHCodecs_Decoder * decoder)
 
 	free(frame_list);
 
+	if (decoder->si_type == F_H264) {
+		avcbd_set_resume_err (decoder->si_ctxt, 0, AVCBD_CNCL_REF_TYPE1);
+	}
+
 	return 0;
 
       err1:
