@@ -419,7 +419,8 @@ int main(int argc, char **argv)
 	int c, i, rc, bytes_decoded;
 	char video_filename[MAXPATHLEN];
 	const char *fbname;
-	double fps, time;
+	double fps;
+       	long time;
 	struct private_data pvt_data;
 	struct private_data *pvt;
 	pthread_t thread_output;
@@ -692,7 +693,7 @@ int main(int argc, char **argv)
 	pthread_cond_destroy(&pvt->avail);
 	pthread_cond_destroy(&pvt->ready);
 
-	debug_printf("Elapsed time:       %0.3g s\n", time);
+	debug_printf("Elapsed time:       %0.3g s\n", time/1000000);
 	debug_printf("Late frames:        %d\n", pvt->framerate->nr_dropped);
 	debug_printf("Displayed %d frames (%.2f fps)\n",
 			pvt->framerate->nr_handled,
