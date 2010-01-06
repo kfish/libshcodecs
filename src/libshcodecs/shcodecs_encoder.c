@@ -256,6 +256,7 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	width_height = ROUND_UP_16(width) * ROUND_UP_16(height);
 	width_height += (width_height / 2);
 
+#if 0
 	/* Input buffers */
 	for (i=0; i<NUM_INPUT_FRAMES; i++) {
 		pY = m4iph_sdr_malloc(width_height, 32);
@@ -263,6 +264,7 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 		encoder->input_frames[i].Y_fmemp = pY;
 		encoder->input_frames[i].C_fmemp = pY + encoder->y_bytes;
 	}
+#endif
 
 	/* Local decode images. This is the number of reference frames plus one
 	   for the locally decoded output */
@@ -452,4 +454,20 @@ shcodecs_encoder_get_input_physical_addr (SHCodecs_Encoder * encoder,
   return 0;
 }
 
+/**
+ * Set the physical address of input data.
+ * \param encoder The SHCodecs_Encoder* handle
+ * \returns size in bytes of CbCr plane.
+ * \retval -1 \a encoder invalid
+ */
+int
+shcodecs_encoder_set_input_physical_addr (SHCodecs_Encoder * encoder, 
+		     unsigned int *addr_y, unsigned int *addr_c)
+{
+  if (encoder == NULL) return -1;
 
+  encoder->addr_y = (unsigned char *)addr_y;
+  encoder->addr_c = (unsigned char *)addr_c;
+
+  return 0;
+}
