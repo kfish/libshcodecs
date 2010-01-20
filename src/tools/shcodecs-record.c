@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stropts.h>
+#include <stdarg.h>
 #include <fcntl.h>
 #include <getopt.h>
 #include <unistd.h>
@@ -50,7 +51,7 @@
 #include "ControlFileUtil.h"
 #include "framerate.h"
 
-#define _DEBUG
+#define DEBUG
 
 #define LCD_BPP 2
 #define U_SEC_PER_SEC 1000000
@@ -119,10 +120,13 @@ usage (const char * progname)
   printf ("  -r, --rotate     Rotate the camera capture buffer 90 degrees and crop\n");
 }
 
-void debug_printf(__const char *__restrict __format, ...)
+void debug_printf(const char *fmt, ...)
 {
-#ifdef _DEBUG
-	printf(__format);
+#ifdef DEBUG
+	va_list ap;
+	va_start(ap, fmt);
+	vfprintf(stderr, fmt, ap);
+	va_end(ap);
 #endif
 }
 
