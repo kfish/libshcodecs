@@ -343,7 +343,7 @@ void cleanup (void)
 
 	framerate_destroy (pvt->cap_framerate);
 
-	time = (double)framerate_elapsed_time (pvt->cap_framerate);
+	time = (double)framerate_elapsed_time (pvt->enc_framerate);
 	time /= 1000000;
 
 	debug_printf("Elapsed time (encode): %0.3g s\n", time);
