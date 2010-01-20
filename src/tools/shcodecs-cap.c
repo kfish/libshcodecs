@@ -37,6 +37,7 @@
 #include <errno.h>
 
 #include "capture.h"
+#include "framerate.h"
 
 #define CLEAR(x) memset (&(x), 0, sizeof (x))
 
@@ -61,15 +62,19 @@ static const struct option long_options[] = {
 static void
 process_image(sh_ceu * ceu, const unsigned char *frame_data, size_t length, void *user_data)
 {
+	struct framerate *cap_framerate = (struct framerate *)user_data;
 	fputc('.', stdout);
 	fflush(stdout);
+	framerate_wait(cap_framerate);
 }
 
 int main(int argc, char **argv)
 {
 	sh_ceu *ceu;
 	char *dev_name = "/dev/video0";
-	unsigned int count;
+	unsigned int count, x;
+	double time;
+	struct framerate * cap_framerate;
 
 	for (;;) {
 		int index;
@@ -100,17 +105,23 @@ int main(int argc, char **argv)
 	}
 
 	ceu = sh_ceu_open(dev_name, 640, 480);
+	cap_framerate = framerate_new_timer (30.0);
 
 	sh_ceu_start_capturing(ceu);
 
 	count = 100;
 
-	while (count-- > 0)
-		sh_ceu_capture_frame(ceu, process_image, NULL);
+	for (x=0; x<count; x++)
+		sh_ceu_capture_frame(ceu, process_image, cap_framerate);
 
 	sh_ceu_stop_capturing(ceu);
-
 	sh_ceu_close(ceu);
+
+	time = (double)framerate_elapsed_time (cap_framerate);
+	time /= 1000000;
+	printf("\nCaptured %d frames (%.2f fps)\n", count, (double)count/time);
+
+	framerate_destroy (cap_framerate);
 
 	exit(EXIT_SUCCESS);
 

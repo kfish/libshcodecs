@@ -66,10 +66,11 @@ shcodecs_capenc_LDADD = $(SHCODECS_LIBS)
 shcodecs_cap_SOURCES =  \
 	shcodecs-cap.c \
 	capture.c \
+	framerate.c \
 	veu_colorspace.c \
 	ControlFileUtil.c \
 	avcbeinputuser.c \
 	avcbencsmp_common.c
 
-shcodecs_cap_LDADD =  $(SHCODECS_LIBS)
+shcodecs_cap_LDADD = -lrt $(SHCODECS_LIBS)
 
