@@ -20,13 +20,12 @@
 #ifndef	CONTROL_FILE_UTIL_H
 #define	CONTROL_FILE_UTIL_H
 
+#include <shcodecs/shcodecs_encoder.h>
 #include "avcbencsmp.h"
 
-#include <shcodecs/shcodecs_encoder.h>
-
-int GetFromCtrlFTop(const char *control_filepath,
+int ctrlfile_get_params(const char *ctrl_file,
 		    APPLI_INFO * appli_info, long *stream_type);
 
-int GetFromCtrlFtoEncParam(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info);
+int ctrlfile_set_enc_param(SHCodecs_Encoder * encoder, const char *ctrl_file);
 
 #endif				/* CONTROL_FILE_UTIL_H */

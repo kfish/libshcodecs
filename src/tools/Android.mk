@@ -18,8 +18,7 @@ LOCAL_SRC_FILES := \
         capture.c \
         veu_colorspace.c \
         ControlFileUtil.c \
-        avcbeinputuser.c \
-        avcbencsmp_common.c
+        avcbeinputuser.c
 LOCAL_SHARED_LIBRARIES := libshcodecs
 LOCAL_MODULE := shcodecs-enc
 include $(BUILD_EXECUTABLE)
@@ -34,8 +33,7 @@ LOCAL_SRC_FILES := \
         framerate.c \
         veu_colorspace.c \
         ControlFileUtil.c \
-        avcbeinputuser.c \
-        avcbencsmp_common.c
+        avcbeinputuser.c
 LOCAL_SHARED_LIBRARIES := libshcodecs
 LOCAL_MODULE := shcodecs-record
 include $(BUILD_EXECUTABLE)

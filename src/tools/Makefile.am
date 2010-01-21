@@ -27,8 +27,7 @@ shcodecs_record_SOURCES = \
 	framerate.c \
 	veu_colorspace.c \
 	ControlFileUtil.c \
-	avcbeinputuser.c \
-	avcbencsmp_common.c
+	avcbeinputuser.c
 
 shcodecs_record_CFLAGS = -v -Wall -O2 -I $(srcdir) -fPIC -fno-common \
 	-DNDEBUG -D_LIT -DSH=1 -DVPU4=1 \
@@ -47,8 +46,7 @@ shcodecs_enc_SOURCES =  \
 	capture.c \
 	veu_colorspace.c \
 	ControlFileUtil.c \
-	avcbeinputuser.c \
-	avcbencsmp_common.c
+	avcbeinputuser.c
 
 shcodecs_enc_LDADD = $(SHCODECS_LIBS)
 
@@ -59,8 +57,7 @@ shcodecs_cap_SOURCES =  \
 	framerate.c \
 	veu_colorspace.c \
 	ControlFileUtil.c \
-	avcbeinputuser.c \
-	avcbencsmp_common.c
+	avcbeinputuser.c
 
 shcodecs_cap_LDADD = -lrt $(SHCODECS_LIBS)
 

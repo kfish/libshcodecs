@@ -34,6 +34,7 @@
 
 #include <shcodecs/shcodecs_decoder.h>
 
+/* #define DEBUG */
 #ifdef DEBUG
 #define debug_printf	printf
 #else
@@ -42,8 +43,6 @@
 
 #define DEFAULT_WIDTH 320
 #define DEFAULT_HEIGHT 240
-
-/* #define _DEBUG */
 
 /* XXX: extern declarations, why are these not in a public header for those libs? */
 extern unsigned long m4iph_sleep_time_get(void);

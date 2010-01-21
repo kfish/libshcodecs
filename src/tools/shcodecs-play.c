@@ -56,8 +56,8 @@
 #define DEFAULT_HEIGHT 240
 #define DEFAULT_FPS	25
 
-#define _DEBUG
-#ifdef _DEBUG
+/* #define DEBUG */
+#ifdef DEBUG
 	#define debug_printf printf
 #else
 	void debug_printf(const char *format, ...) {}
