@@ -236,10 +236,13 @@ void *capture_thread(void *data)
 void *process_capture_thread(void *data)
 {
 	struct private_data *pvt = (struct private_data*)data;
-	int pitch, offset;
 	void *ptr;
 	unsigned char *enc_y, *enc_c;
 	unsigned int src_w, src_h;
+	int xoffset=0, yoffset=0;
+	int xdelta=1,ydelta=1;
+	int xspeed=4, yspeed=8;
+	int counter=0;
 
 	while(1){
 		pthread_mutex_lock(&pvt->capture_done_mutex); 
@@ -257,8 +260,10 @@ void *process_capture_thread(void *data)
 		/* We are clipping, not scaling, as we need to perform a rotation,
 		   but the VEU cannot do a rotate & scale at the same time. */
 		sh_veu_operation(0,
-			pvt->cap_y, pvt->cap_c,
-			src_w, src_h, pvt->cap_w, YCbCr420,
+			pvt->cap_y + (xoffset*4) + (yoffset*pvt->cap_w),
+			pvt->cap_c + (xoffset*4) + (yoffset*pvt->cap_w),
+			//src_w, src_h, pvt->cap_w, YCbCr420,
+			pvt->enc_w, pvt->enc_h, pvt->cap_w, YCbCr420,
 			enc_y, enc_c,
 			pvt->enc_w, pvt->enc_h, pvt->enc_w, YCbCr420,
 			pvt->rotate_cap);
@@ -276,6 +281,38 @@ void *process_capture_thread(void *data)
 
 		/* Let the encoder get_input function return */
 		pthread_mutex_unlock(&pvt->encode_start_mutex);
+
+		if (counter % xspeed == 0) {
+			xoffset += xdelta;
+			if (xoffset < 0) {
+				xoffset = 0;
+				xdelta = 1;
+			} else if (xoffset > (pvt->cap_w-pvt->enc_w)/4) {
+				xoffset = (pvt->cap_w-pvt->enc_w)/4;
+				xdelta = -1;
+			}
+		}
+		if (counter % (xspeed*100) == 0) {
+			xspeed += random() % 6 - 3;
+		}
+		if (xspeed <= 0) xspeed = 2;
+
+		if (counter % yspeed == 0) {
+			yoffset += ydelta;
+			if (yoffset < 0) {
+				yoffset = 0;
+				ydelta = 1;
+			} else if (yoffset > (pvt->cap_h-pvt->enc_h)/4) {
+				yoffset = (pvt->cap_h-pvt->enc_h)/4;
+				ydelta = -1;
+			}
+		}
+		if (counter % (yspeed*100) == 0) {
+			yspeed += random() % 4 - 2;
+		}
+		if (yspeed <= 0) yspeed = 4;
+
+		counter++;
 	}
 }
 
@@ -481,8 +518,8 @@ int main(int argc, char *argv[])
 	/* VEU Scaler initialisation */
 	sh_veu_open();
 
-	/* Camera capture initialisation */
-	pvt->ceu = capture_open_userio(pvt->ainfo.input_file_name_buf, pvt->ainfo.xpic, pvt->ainfo.ypic);
+	/* Camera capture initialisation: hardcode to capture 720p */
+	pvt->ceu = capture_open_userio(pvt->ainfo.input_file_name_buf, 1280, 720);
 	if (pvt->ceu == NULL) {
 		fprintf(stderr, "capture_open failed, exiting\n");
 		return -3;
@@ -497,17 +534,9 @@ int main(int argc, char *argv[])
 		return -4;
 	}
 
-	if (!pvt->rotate_cap) {
-		pvt->enc_w = pvt->cap_w;
-		pvt->enc_h = pvt->cap_h;
-	} else {
-		pvt->enc_w = pvt->cap_h;
-		pvt->enc_h = pvt->cap_h * pvt->cap_h / pvt->cap_w;
-		/* Round down to nearest multiple of 16 for VPU */
-		pvt->enc_w = pvt->enc_w - (pvt->enc_w % 16);
-		pvt->enc_h = pvt->enc_h - (pvt->enc_h % 16);
-		debug_printf("Rotating & croping camera image...\n");
-	}
+	/* Hardcode encode size to vga */
+	pvt->enc_w = 640;
+	pvt->enc_h = 480;
 
 	debug_printf("Camera resolution:  %dx%d\n", pvt->cap_w, pvt->cap_h);
 	debug_printf("Encode resolution:  %dx%d\n", pvt->enc_w, pvt->enc_h);
