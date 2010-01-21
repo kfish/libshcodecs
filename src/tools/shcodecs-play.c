@@ -57,12 +57,6 @@
 #define DEFAULT_FPS	25
 
 /* #define DEBUG */
-#ifdef DEBUG
-	#define debug_printf printf
-#else
-	void debug_printf(const char *format, ...) {}
-#endif
-
 
 /* limitation of VEU2H on SH7723 */
 //#define VEU2H_MAX_WIDTH 640
@@ -157,6 +151,16 @@ static struct option long_options[] = {
 	{ "output-size"  , required_argument, NULL, 'S'},
 };
 #endif
+
+void debug_printf(const char *fmt, ...)
+{
+#ifdef DEBUG
+	va_list ap;
+	va_start(ap, fmt);
+	vfprintf(stderr, fmt, ap);
+	va_end(ap);
+#endif
+}
 
 /*****************************************************************************/
 
@@ -480,7 +484,7 @@ int main(int argc, char **argv)
 			else if (strncmp(optarg, "h264", 4) == 0)
 				stream_type = SHCodecs_Format_H264;
 			else{
-				debug_printf("argument: Unknown video format: %s.\n",optarg);
+				fprintf(stderr, "argument: Unknown video format: %s.\n",optarg);
 				exit(-1);
 			}
 			break;
