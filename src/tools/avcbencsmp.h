@@ -61,7 +61,7 @@ typedef struct {
 
 	FILE *output_file_fp;	/* for output stream-2 */
 
-	sh_ceu *ceu;
+	capture *ceu;
 
 } APPLI_INFO;
 

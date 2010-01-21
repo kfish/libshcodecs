@@ -84,7 +84,7 @@ struct capture {
 };
 
 static void
-capture_image_cb(sh_ceu * ceu, const unsigned char *frame_data, size_t length,
+capture_image_cb(capture * ceu, const unsigned char *frame_data, size_t length,
 		 void *user_data)
 {
 	struct capture *cap = (struct capture *) user_data;
@@ -120,7 +120,7 @@ capture_image_cb(sh_ceu * ceu, const unsigned char *frame_data, size_t length,
 	memset(w_addr_yuv, 0, hsiz * ysiz);
 	memset(CbCr_ptr, 0, hsiz * ysiz / 2);
 
-	pixel_format = sh_ceu_get_pixel_format(ceu);
+	pixel_format = capture_get_pixel_format(ceu);
 
 	if (pixel_format == V4L2_PIX_FMT_NV12) {
 		memcpy(w_addr_yuv, frame_data, hsiz * ysiz);
@@ -315,7 +315,7 @@ int capture_image(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info)
 	cap.encoder = encoder;
 	cap.appli_info = appli_info;
 
-	sh_ceu_capture_frame(appli_info->ceu, capture_image_cb, &cap);
+	capture_get_frame(appli_info->ceu, capture_image_cb, &cap);
 
 	return 0;
 }

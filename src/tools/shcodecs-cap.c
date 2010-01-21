@@ -60,7 +60,7 @@ static const struct option long_options[] = {
 };
 
 static void
-process_image(sh_ceu * ceu, const unsigned char *frame_data, size_t length, void *user_data)
+process_image(capture * ceu, const unsigned char *frame_data, size_t length, void *user_data)
 {
 	struct framerate *cap_framerate = (struct framerate *)user_data;
 	fputc('.', stdout);
@@ -70,7 +70,7 @@ process_image(sh_ceu * ceu, const unsigned char *frame_data, size_t length, void
 
 int main(int argc, char **argv)
 {
-	sh_ceu *ceu;
+	capture *ceu;
 	char *dev_name = "/dev/video0";
 	unsigned int count, x;
 	double time;
@@ -104,18 +104,18 @@ int main(int argc, char **argv)
 		}
 	}
 
-	ceu = sh_ceu_open(dev_name, 640, 480);
+	ceu = capture_open(dev_name, 640, 480);
 	cap_framerate = framerate_new_timer (30.0);
 
-	sh_ceu_start_capturing(ceu);
+	capture_start_capturing(ceu);
 
 	count = 100;
 
 	for (x=0; x<count; x++)
-		sh_ceu_capture_frame(ceu, process_image, cap_framerate);
+		capture_get_frame(ceu, process_image, cap_framerate);
 
-	sh_ceu_stop_capturing(ceu);
-	sh_ceu_close(ceu);
+	capture_stop_capturing(ceu);
+	capture_close(ceu);
 
 	time = (double)framerate_elapsed_time (cap_framerate);
 	time /= 1000000;

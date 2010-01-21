@@ -209,7 +209,7 @@ static void display_close(struct private_data *pvt)
 
 /* Callback for frame capture */
 static void
-capture_image_cb(sh_ceu *ceu, const unsigned char *frame_data, size_t length,
+capture_image_cb(capture *ceu, const unsigned char *frame_data, size_t length,
 		 void *user_data)
 {
 	struct private_data *pvt = (struct private_data*)user_data;
@@ -231,7 +231,7 @@ void *capture_thread(void *data)
 		pthread_mutex_lock(&pvt->capture_start_mutex);
 
 		framerate_wait(pvt->cap_framerate);
-		sh_ceu_capture_frame(pvt->ainfo.ceu, capture_image_cb, pvt);
+		capture_get_frame(pvt->ainfo.ceu, capture_image_cb, pvt);
 	}
 }
 
@@ -352,9 +352,9 @@ void cleanup (void)
 		 	framerate_mean_fps (pvt->enc_framerate));
 	framerate_destroy (pvt->enc_framerate);
 
-	sh_ceu_stop_capturing(pvt->ainfo.ceu);
+	capture_stop_capturing(pvt->ainfo.ceu);
 	shcodecs_encoder_close(pvt->encoder);
-	sh_ceu_close(pvt->ainfo.ceu);
+	capture_close(pvt->ainfo.ceu);
 	close_output_file(&pvt->ainfo);
 
 	pthread_cancel (pvt->thread_blit);
@@ -500,16 +500,16 @@ int main(int argc, char *argv[])
 	sh_veu_open();
 
 	/* Camera capture initialisation */
-	pvt->ainfo.ceu = sh_ceu_open_userio(pvt->ainfo.input_file_name_buf, pvt->ainfo.xpic, pvt->ainfo.ypic);
+	pvt->ainfo.ceu = capture_open_userio(pvt->ainfo.input_file_name_buf, pvt->ainfo.xpic, pvt->ainfo.ypic);
 	if (pvt->ainfo.ceu == NULL) {
-		fprintf(stderr, "sh_ceu_open failed, exiting\n");
+		fprintf(stderr, "capture_open failed, exiting\n");
 		return -3;
 	}
-	sh_ceu_set_use_physical(pvt->ainfo.ceu, 1);
-	pvt->cap_w = sh_ceu_get_width(pvt->ainfo.ceu);
-	pvt->cap_h = sh_ceu_get_height(pvt->ainfo.ceu);
+	capture_set_use_physical(pvt->ainfo.ceu, 1);
+	pvt->cap_w = capture_get_width(pvt->ainfo.ceu);
+	pvt->cap_h = capture_get_height(pvt->ainfo.ceu);
 
-	pixel_format = sh_ceu_get_pixel_format (pvt->ainfo.ceu);
+	pixel_format = capture_get_pixel_format (pvt->ainfo.ceu);
 	if (pixel_format == V4L2_PIX_FMT_NV12) {
 		pvt->cap_fmt = YCbCr420;
 	} else {
@@ -570,7 +570,7 @@ int main(int argc, char *argv[])
 	/* Initialize framerate timer */
 	pvt->cap_framerate = framerate_new_timer (target_fps10 / 10.0);
 
-	sh_ceu_start_capturing(pvt->ainfo.ceu);
+	capture_start_capturing(pvt->ainfo.ceu);
 
 	rc = shcodecs_encoder_run(pvt->encoder);
 	if (rc != 0) {

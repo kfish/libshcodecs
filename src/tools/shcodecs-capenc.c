@@ -104,7 +104,7 @@ void cleanup (void)
 		fprintf(stderr, "%d frames captured at %.2f fps\n", num_frames, (float)num_frames/time);
 
 	if (ainfo.ceu != NULL)
-		sh_ceu_stop_capturing(ainfo.ceu);
+		capture_stop_capturing(ainfo.ceu);
 
 	if (encoder != NULL)
 		shcodecs_encoder_close(encoder);
@@ -112,7 +112,7 @@ void cleanup (void)
 	sh_veu_close();
 
 	if (ainfo.ceu != NULL)
-		sh_ceu_close(ainfo.ceu);
+		capture_close(ainfo.ceu);
 }
 
 void sig_handler(int sig)
@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
 	signal (SIGINT, sig_handler);
 	signal (SIGPIPE, sig_handler);
 
-	ainfo.ceu = sh_ceu_open(ainfo.input_file_name_buf, ainfo.xpic, ainfo.ypic);
+	ainfo.ceu = capture_open(ainfo.input_file_name_buf, ainfo.xpic, ainfo.ypic);
 
 	sh_veu_open();
 
@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
 		return (-3);
 	}
 
-	sh_ceu_start_capturing(ainfo.ceu);
+	capture_start_capturing(ainfo.ceu);
 
 	gettimeofday(&start, 0);
 	encode_return_code = shcodecs_encoder_run(encoder);
