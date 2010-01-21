@@ -130,7 +130,7 @@ usage (const char *progname)
 	printf ("\nDimensions of encoded stream\n");
 	printf ("  -w, --width        The image width in pixels of the file\n");
 	printf ("  -h, --height       The image height in pixels of the file\n");
-	printf ("  -s, --input size   Set the input image size [qcif, cif, qvga, vga, d1, 720p]\n");
+	printf ("  -s, --input-size   Set the input image size [qcif, cif, qvga, vga, d1, 720p]\n");
 	printf ("\nDimensions of video on the display\n");
 	printf ("  -x,                The image width in pixels on the display\n");
 	printf ("  -y,                The image height in pixels on the display\n");
