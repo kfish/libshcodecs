@@ -6,7 +6,7 @@ INCLUDES = -I$(top_builddir) \
 SHCODECSDIR = ../libshcodecs
 SHCODECS_LIBS = $(SHCODECSDIR)/libshcodecs.la -lm
 
-bin_PROGRAMS = shcodecs-dec shcodecs-enc shcodecs-capenc shcodecs-cap shcodecs-play shcodecs-record
+bin_PROGRAMS = shcodecs-dec shcodecs-enc shcodecs-cap shcodecs-play shcodecs-record
 
 noinst_HEADERS = \
 	avcbencsmp.h \
@@ -51,16 +51,6 @@ shcodecs_enc_SOURCES =  \
 	avcbencsmp_common.c
 
 shcodecs_enc_LDADD = $(SHCODECS_LIBS)
-
-shcodecs_capenc_SOURCES =  \
-	shcodecs-capenc.c \
-	capture.c \
-	veu_colorspace.c \
-	ControlFileUtil.c \
-	avcbeinputuser.c \
-	avcbencsmp_common.c
-
-shcodecs_capenc_LDADD = $(SHCODECS_LIBS)
 
 
 shcodecs_cap_SOURCES =  \
