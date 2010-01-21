@@ -13,22 +13,17 @@
 #include <string.h>
 #include <assert.h>
 
-#include <getopt.h>	     /* getopt_long() */
-
 #include <fcntl.h>	      /* low-level i/o */
 #include <unistd.h>
 #include <errno.h>
 #include <malloc.h>
 #include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/time.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
 
-#include <asm/types.h>	  /* for videodev2.h */
-
 #include <linux/videodev2.h>
 #include "veu_colorspace.h"
+#include "capture.h"
 
 #define CLEAR(x) memset (&(x), 0, sizeof (x))
 #define PAGE_ALIGN(addr) (((addr) + getpagesize() - 1) & ~(getpagesize()-1))
@@ -45,7 +40,7 @@ struct buffer {
 	size_t length;
 };
 
-typedef struct _sh_ceu {
+struct sh_ceu_ {
 	const char *dev_name;
 	int fd;
 	io_method io;
@@ -55,10 +50,7 @@ typedef struct _sh_ceu {
 	int height;
 	unsigned int pixel_format;
 	int use_physical;
-} sh_ceu;
-
-typedef void (*sh_process_callback) (sh_ceu * ceu, const void *frame_data,
-					size_t length, void *user_data);
+};
 
 
 static void errno_exit(const char *s)

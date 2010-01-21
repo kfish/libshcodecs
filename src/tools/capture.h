@@ -20,7 +20,9 @@
 #ifndef __CAPTURE_H__
 #define __CAPTURE_H__
 
-typedef void *sh_ceu;
+struct sh_ceu_;
+typedef struct sh_ceu_ sh_ceu;
+
 typedef void (*sh_process_callback) (sh_ceu * ceu, const unsigned char *frame_data,
 				     size_t length, void *user_data);
 
