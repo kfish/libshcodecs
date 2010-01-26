@@ -293,20 +293,31 @@ void *process_capture_thread(void *data)
 		if (xoffset < 0) {
 			xoffset = 0;
 			xdelta = 1;
+
+			/* y pan */
+			yoffset += ydelta;
+			if (yoffset < 0) {
+				yoffset = 0;
+				ydelta = 1;
+			} else if (yoffset > (pvt->cap_h-pvt->enc_h)/4) {
+				yoffset = (pvt->cap_h-pvt->enc_h)/4;
+				ydelta = -1;
+			}
 		} else if (xoffset > (pvt->cap_w-pvt->enc_w)/4) {
 			xoffset = (pvt->cap_w-pvt->enc_w)/4;
 			xdelta = -1;
+
+			/* y pan */
+			yoffset += ydelta;
+			if (yoffset < 0) {
+				yoffset = 0;
+				ydelta = 1;
+			} else if (yoffset > (pvt->cap_h-pvt->enc_h)/4) {
+				yoffset = (pvt->cap_h-pvt->enc_h)/4;
+				ydelta = -1;
+			}
 		}
 
-		/* y pan */
-		yoffset += ydelta;
-		if (yoffset < 0) {
-			yoffset = 0;
-			ydelta = 1;
-		} else if (yoffset > (pvt->cap_h-pvt->enc_h)/4) {
-			yoffset = (pvt->cap_h-pvt->enc_h)/4;
-			ydelta = -1;
-		}
 
 #if 0
 		/* w zoom */
