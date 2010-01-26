@@ -266,7 +266,7 @@ void *process_capture_thread(void *data)
 		/* We are clipping, not scaling, as we need to perform a rotation,
 		   but the VEU cannot do a rotate & scale at the same time. */
 		sh_veu_operation(0,
-			pvt->cap_y + (xoffset*4) + (yoffset*pvt->cap_w),
+			pvt->cap_y + (xoffset*4) + (yoffset*2*pvt->cap_w),
 			pvt->cap_c + (xoffset*4) + (yoffset*pvt->cap_w),
 			//src_w, src_h, pvt->cap_w, YCbCr420,
 			pvt->enc_w, pvt->enc_h, pvt->cap_w, YCbCr420,
