@@ -244,7 +244,6 @@ void *process_capture_thread(void *data)
 	int inw_speed=4, inh_speed=4;
 	int xoffset=0, yoffset=0;
 	int xdelta=1,ydelta=1;
-	int xspeed=4, yspeed=8;
 	int counter=0;
 
 	input_w = pvt->enc_w/32;
@@ -290,36 +289,24 @@ void *process_capture_thread(void *data)
 		pthread_mutex_unlock(&pvt->encode_start_mutex);
 
 		/* x pan */
-		if (counter % xspeed == 0) {
-			xoffset += xdelta;
-			if (xoffset < 0) {
-				xoffset = 0;
-				xdelta = 1;
-			} else if (xoffset > (pvt->cap_w-pvt->enc_w)/4) {
-				xoffset = (pvt->cap_w-pvt->enc_w)/4;
-				xdelta = -1;
-			}
+		xoffset += xdelta;
+		if (xoffset < 0) {
+			xoffset = 0;
+			xdelta = 1;
+		} else if (xoffset > (pvt->cap_w-pvt->enc_w)/4) {
+			xoffset = (pvt->cap_w-pvt->enc_w)/4;
+			xdelta = -1;
 		}
-		if (counter % (xspeed*100) == 0) {
-			xspeed += random() % 6 - 3;
-		}
-		if (xspeed <= 0) xspeed = 2;
 
 		/* y pan */
-		if (counter % yspeed == 0) {
-			yoffset += ydelta;
-			if (yoffset < 0) {
-				yoffset = 0;
-				ydelta = 1;
-			} else if (yoffset > (pvt->cap_h-pvt->enc_h)/4) {
-				yoffset = (pvt->cap_h-pvt->enc_h)/4;
-				ydelta = -1;
-			}
+		yoffset += ydelta;
+		if (yoffset < 0) {
+			yoffset = 0;
+			ydelta = 1;
+		} else if (yoffset > (pvt->cap_h-pvt->enc_h)/4) {
+			yoffset = (pvt->cap_h-pvt->enc_h)/4;
+			ydelta = -1;
 		}
-		if (counter % (yspeed*100) == 0) {
-			yspeed += random() % 4 - 2;
-		}
-		if (yspeed <= 0) yspeed = 4;
 
 #if 0
 		/* w zoom */
