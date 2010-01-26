@@ -239,10 +239,16 @@ void *process_capture_thread(void *data)
 	void *ptr;
 	unsigned char *enc_y, *enc_c;
 	unsigned int src_w, src_h;
+	int input_w, input_h;
+	int inw_delta=0, inh_delta=0;
+	int inw_speed=4, inh_speed=4;
 	int xoffset=0, yoffset=0;
 	int xdelta=1,ydelta=1;
 	int xspeed=4, yspeed=8;
 	int counter=0;
+
+	input_w = pvt->enc_w/32;
+	input_h = pvt->enc_h/32;
 
 	while(1){
 		pthread_mutex_lock(&pvt->capture_done_mutex); 
@@ -264,6 +270,7 @@ void *process_capture_thread(void *data)
 			pvt->cap_c + (xoffset*4) + (yoffset*pvt->cap_w),
 			//src_w, src_h, pvt->cap_w, YCbCr420,
 			pvt->enc_w, pvt->enc_h, pvt->cap_w, YCbCr420,
+			//input_w*32, input_h*32, pvt->cap_w, YCbCr420,
 			enc_y, enc_c,
 			pvt->enc_w, pvt->enc_h, pvt->enc_w, YCbCr420,
 			pvt->rotate_cap);
@@ -282,6 +289,7 @@ void *process_capture_thread(void *data)
 		/* Let the encoder get_input function return */
 		pthread_mutex_unlock(&pvt->encode_start_mutex);
 
+		/* x pan */
 		if (counter % xspeed == 0) {
 			xoffset += xdelta;
 			if (xoffset < 0) {
@@ -297,6 +305,7 @@ void *process_capture_thread(void *data)
 		}
 		if (xspeed <= 0) xspeed = 2;
 
+		/* y pan */
 		if (counter % yspeed == 0) {
 			yoffset += ydelta;
 			if (yoffset < 0) {
@@ -311,6 +320,40 @@ void *process_capture_thread(void *data)
 			yspeed += random() % 4 - 2;
 		}
 		if (yspeed <= 0) yspeed = 4;
+
+#if 0
+		/* w zoom */
+		if (counter % inw_speed == 0) {
+			input_w += inw_delta;
+			if (input_w < 0) {
+				input_w = 0;
+				inw_delta = 1;
+			} else if (input_w > pvt->cap_w/32) {
+				input_w = pvt->cap_w/32;
+				inw_delta = -1;
+			}
+		}
+		if (counter % (inw_speed*100) == 0) {
+			inw_speed += random() % 4 - 2;
+		}
+		if (inw_speed <= 0) inw_speed = 4;
+
+		/* y zoom */
+		if (counter % inh_speed == 0) {
+			input_h += inh_delta;
+			if (input_h < 0) {
+				input_h = 0;
+				inh_delta = 1;
+			} else if (input_h > pvt->cap_h/32) {
+				input_h = pvt->cap_h/32;
+				inh_delta = -1;
+			}
+		}
+		if (counter % (inh_speed*100) == 0) {
+			inh_speed += random() % 4 - 2;
+		}
+		if (inh_speed <= 0) inh_speed = 4;
+#endif
 
 		counter++;
 	}
