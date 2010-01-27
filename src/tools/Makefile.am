@@ -35,11 +35,12 @@ shcodecs_record_LDADD = -lrt -lpthread $(SHCODECS_LIBS)
 shcodecs_enc_SOURCES =  \
 	shcodecs-enc.c \
 	capture.c \
+	framerate.c \
 	veu_colorspace.c \
 	ControlFileUtil.c \
 	avcbeinputuser.c
 
-shcodecs_enc_LDADD = $(SHCODECS_LIBS)
+shcodecs_enc_LDADD = -lrt $(SHCODECS_LIBS)
 
 
 shcodecs_cap_SOURCES =  \

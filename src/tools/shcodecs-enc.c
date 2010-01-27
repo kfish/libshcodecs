@@ -36,11 +36,13 @@
 
 #include "ControlFileUtil.h"
 #include "avcbencsmp.h"
+#include "framerate.h"
 
 
 SHCodecs_Encoder *encoder; /* Encoder */
 APPLI_INFO ainfo;	/* Control file data */
 FILE *output_fp;
+struct framerate * enc_framerate = NULL;
 
 static void
 usage (const char * progname)
@@ -54,6 +56,11 @@ usage (const char * progname)
 static int get_input(SHCodecs_Encoder * encoder, void *user_data)
 {
 	APPLI_INFO *appli_info = (APPLI_INFO *) user_data;
+
+	if (enc_framerate == NULL) {
+		enc_framerate = framerate_new_measurer ();
+	}
+
 	return load_1frame_from_image_file(encoder, appli_info);
 }
 
@@ -62,6 +69,17 @@ static int write_output(SHCodecs_Encoder * encoder,
 			unsigned char *data, int length, void *user_data)
 {
 	APPLI_INFO *appli_info = (APPLI_INFO *) user_data;
+	double ifps, mfps;
+
+	if (shcodecs_encoder_get_frame_num_delta(encoder) > 0 &&
+			enc_framerate != NULL) {
+		framerate_mark (enc_framerate);
+		ifps = framerate_instantaneous_fps (enc_framerate);
+		mfps = framerate_mean_fps (enc_framerate);
+		if (enc_framerate->nr_handled % 10 == 0) {
+			fprintf (stderr, "  Encoding @ %4.2f fps \t(avg %4.2f fps)\r", ifps, mfps);
+		}
+	}
 
 	if (fwrite(data, 1, length, output_fp) == (size_t)length) {
 		return 0;
@@ -72,6 +90,17 @@ static int write_output(SHCodecs_Encoder * encoder,
 
 void cleanup (void)
 {
+	double time;
+
+	time = (double)framerate_elapsed_time (enc_framerate);
+	time /= 1000000;
+
+	fprintf (stderr, "Elapsed time (encode): %0.3g s\n", time);
+	fprintf (stderr, "Encoded %d frames (%.2f fps)\n",
+			enc_framerate->nr_handled,
+		 	framerate_mean_fps (enc_framerate));
+	framerate_destroy (enc_framerate);
+
 	if (encoder != NULL)
 		shcodecs_encoder_close(encoder);
 
