@@ -530,7 +530,9 @@ h264_encode(SHCodecs_Encoder *enc)
 			enc->addr_c = enc->input_frames[0].C_fmemp;
 			cb_ret = enc->input(enc, enc->input_user_data);
 			if (cb_ret != 0) {
+#ifdef OUTPUT_STREAM_INFO
 				fprintf (stderr, "%s: ERROR acquiring input image!\n", __func__);
+#endif
 				enc->error_return_code = (long)cb_ret ;
 				return cb_ret ;
 			}
