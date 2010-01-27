@@ -38,6 +38,8 @@
 #include "avcbencsmp.h"
 #include "framerate.h"
 
+/* BENCHMARK build simply leaves input buffers empty, and discards output. */
+//#define BENCHMARK
 
 SHCodecs_Encoder *encoder; /* Encoder */
 APPLI_INFO ainfo;	/* Control file data */
@@ -61,7 +63,11 @@ static int get_input(SHCodecs_Encoder * encoder, void *user_data)
 		enc_framerate = framerate_new_measurer ();
 	}
 
+#ifdef BENCHMARK
+	return 0;
+#else
 	return load_1frame_from_image_file(encoder, appli_info);
+#endif
 }
 
 /* SHCodecs_Encoder_Output callback for writing encoded data to the output file */
@@ -81,11 +87,15 @@ static int write_output(SHCodecs_Encoder * encoder,
 		}
 	}
 
+#ifdef BENCHMARK
+	return 0;
+#else
 	if (fwrite(data, 1, length, output_fp) == (size_t)length) {
 		return 0;
 	} else {
 		return -1;
 	}
+#endif
 }
 
 void cleanup (void)
@@ -138,8 +148,12 @@ int main(int argc, char *argv[])
 		return (-1);
 	}
 
+#ifdef BENCHMARK
+	fprintf(stderr, "Benchmarking ...\n");
+#else
 	fprintf(stderr, "Input file: %s\n", ainfo.input_file_name_buf);
 	fprintf(stderr, "Output file: %s\n", ainfo.output_file_name_buf);
+#endif
 
 	encoder = NULL;
 	signal (SIGINT, sig_handler);
@@ -157,6 +171,7 @@ int main(int argc, char *argv[])
 		return (-3);
 	}
 
+#ifndef BENCHMARK
 	/* open input YUV data file */
 	return_code = open_input_image_file(&ainfo);
 	if (return_code != 0) {
@@ -170,6 +185,7 @@ int main(int argc, char *argv[])
 		perror("Error opening output file");
 		return (-6);
 	}
+#endif
 
 	return_code = shcodecs_encoder_run(encoder);
 
