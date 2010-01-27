@@ -61,7 +61,13 @@ static int get_input(SHCodecs_Encoder * encoder, void *user_data)
 static int write_output(SHCodecs_Encoder * encoder,
 			unsigned char *data, int length, void *user_data)
 {
-	return fwrite(data, 1, length, output_fp);
+	APPLI_INFO *appli_info = (APPLI_INFO *) user_data;
+
+	if (fwrite(data, 1, length, output_fp) == (size_t)length) {
+		return 0;
+	} else {
+		return -1;
+	}
 }
 
 void cleanup (void)
