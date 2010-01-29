@@ -38,12 +38,8 @@
 #include "avcbencsmp.h"
 #include "framerate.h"
 
-/* BENCHMARK build simply leaves input buffers empty, and discards output. */
-#define BENCHMARK
-
 SHCodecs_Encoder *encoder; /* Encoder */
 APPLI_INFO ainfo;	/* Control file data */
-FILE *output_fp;
 struct framerate * enc_framerate = NULL;
 
 static void
@@ -54,9 +50,7 @@ usage (const char * progname)
 	printf ("\nPlease report bugs to <linux-sh@vger.kernel.org>\n");
 }
 
-#ifdef BENCHMARK
 long frame_counter=0;
-#endif
 
 /* SHCodecs_Encoder_Input callback for acquiring an image from the input file */
 static int get_input(SHCodecs_Encoder * encoder, void *user_data)
@@ -67,16 +61,12 @@ static int get_input(SHCodecs_Encoder * encoder, void *user_data)
 		enc_framerate = framerate_new_measurer ();
 	}
 
-#ifdef BENCHMARK
 	if (frame_counter >= appli_info->frames_to_encode)
 		return 1;
 
 	frame_counter++;
 
 	return 0;
-#else
-	return load_1frame_from_image_file(encoder, appli_info);
-#endif
 }
 
 /* SHCodecs_Encoder_Output callback for writing encoded data to the output file */
@@ -91,22 +81,9 @@ static int write_output(SHCodecs_Encoder * encoder,
 		framerate_mark (enc_framerate);
 		ifps = framerate_instantaneous_fps (enc_framerate);
 		mfps = framerate_mean_fps (enc_framerate);
-#ifndef BENCHMARK
-		if (enc_framerate->nr_handled % 10 == 0) {
-			fprintf (stderr, "  Encoding @ %4.2f fps \t(avg %4.2f fps)\r", ifps, mfps);
-		}
-#endif
 	}
 
-#ifdef BENCHMARK
 	return 0;
-#else
-	if (fwrite(data, 1, length, output_fp) == (size_t)length) {
-		return 0;
-	} else {
-		return -1;
-	}
-#endif
 }
 
 void cleanup (void)
@@ -116,23 +93,14 @@ void cleanup (void)
 	time = (double)framerate_elapsed_time (enc_framerate);
 	time /= 1000000;
 
-#ifdef BENCHMARK
 	// Width Height Bitrate FPS 
 	printf ("%ld\t%ld\t%ld\t%.2f\n", ainfo.xpic, ainfo.ypic,
 		       shcodecs_encoder_get_bitrate(encoder),
 		       framerate_mean_fps(enc_framerate));
-#else
-	fprintf (stderr, "Elapsed time (encode): %0.3g s\n", time);
-	fprintf (stderr, "Encoded %d frames (%.2f fps)\n",
-			enc_framerate->nr_handled,
-		 	framerate_mean_fps (enc_framerate));
-#endif
 	framerate_destroy (enc_framerate);
 
 	if (encoder != NULL)
 		shcodecs_encoder_close(encoder);
-
-	close_output_file(output_fp);
 }
 
 void sig_handler(int sig)
@@ -166,11 +134,6 @@ int main(int argc, char *argv[])
 		return (-1);
 	}
 
-#ifndef BENCHMARK
-	fprintf(stderr, "Input file: %s\n", ainfo.input_file_name_buf);
-	fprintf(stderr, "Output file: %s\n", ainfo.output_file_name_buf);
-#endif
-
 	encoder = NULL;
 	signal (SIGINT, sig_handler);
 	signal (SIGPIPE, sig_handler);
@@ -187,30 +150,10 @@ int main(int argc, char *argv[])
 		return (-3);
 	}
 
-#ifndef BENCHMARK
-	/* open input YUV data file */
-	return_code = open_input_image_file(&ainfo);
-	if (return_code != 0) {
-		perror("Error opening input file");
-		return (-6);
-	}
-
-	/* open output file */
-	output_fp = open_output_file(ainfo.output_file_name_buf);
-	if (output_fp == NULL) {
-		perror("Error opening output file");
-		return (-6);
-	}
-#endif
-
 	return_code = shcodecs_encoder_run(encoder);
 
 	if (return_code < 0) {
 		fprintf(stderr, "Error encoding, error code=%d\n", return_code);
-	} else {
-#ifndef BENCHMARK
-		fprintf(stderr, "Encode Success\n");
-#endif
 	}
 
 	cleanup ();
