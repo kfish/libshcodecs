@@ -52,7 +52,7 @@ static void usage(FILE * fp, int argc, char **argv)
 	fprintf(fp,
 		"Usage: %s [options]\n\n"
 		"Options:\n"
-		"-d | --device name   Video device name [/dev/video0]\n"
+		"-d | --device        Video device name [/dev/video0]\n"
 		"-w | --width         Capture width [320]\n"
 		"-h | --height        Capture height [240]\n"
 		"-s | --size          Capture size [qcif, cif, qvga, vga, d1, 720p]\n"
