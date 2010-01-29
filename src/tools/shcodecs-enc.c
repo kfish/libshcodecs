@@ -54,6 +54,10 @@ usage (const char * progname)
 	printf ("\nPlease report bugs to <linux-sh@vger.kernel.org>\n");
 }
 
+#ifdef BENCHMARK
+long frame_counter=0;
+#endif
+
 /* SHCodecs_Encoder_Input callback for acquiring an image from the input file */
 static int get_input(SHCodecs_Encoder * encoder, void *user_data)
 {
@@ -64,6 +68,11 @@ static int get_input(SHCodecs_Encoder * encoder, void *user_data)
 	}
 
 #ifdef BENCHMARK
+	if (frame_counter >= appli_info->frames_to_encode)
+		return 1;
+
+	frame_counter++;
+
 	return 0;
 #else
 	return load_1frame_from_image_file(encoder, appli_info);
@@ -82,9 +91,11 @@ static int write_output(SHCodecs_Encoder * encoder,
 		framerate_mark (enc_framerate);
 		ifps = framerate_instantaneous_fps (enc_framerate);
 		mfps = framerate_mean_fps (enc_framerate);
+#ifndef BENCHMARK
 		if (enc_framerate->nr_handled % 10 == 0) {
 			fprintf (stderr, "  Encoding @ %4.2f fps \t(avg %4.2f fps)\r", ifps, mfps);
 		}
+#endif
 	}
 
 #ifdef BENCHMARK
@@ -105,10 +116,17 @@ void cleanup (void)
 	time = (double)framerate_elapsed_time (enc_framerate);
 	time /= 1000000;
 
+#ifdef BENCHMARK
+	// Width Height Bitrate FPS 
+	printf ("%ld\t%ld\t%ld\t%.2f\n", ainfo.xpic, ainfo.ypic,
+		       shcodecs_encoder_get_bitrate(encoder),
+		       framerate_mean_fps(enc_framerate));
+#else
 	fprintf (stderr, "Elapsed time (encode): %0.3g s\n", time);
 	fprintf (stderr, "Encoded %d frames (%.2f fps)\n",
 			enc_framerate->nr_handled,
 		 	framerate_mean_fps (enc_framerate));
+#endif
 	framerate_destroy (enc_framerate);
 
 	if (encoder != NULL)
@@ -148,9 +166,7 @@ int main(int argc, char *argv[])
 		return (-1);
 	}
 
-#ifdef BENCHMARK
-	fprintf(stderr, "Benchmarking ...\n");
-#else
+#ifndef BENCHMARK
 	fprintf(stderr, "Input file: %s\n", ainfo.input_file_name_buf);
 	fprintf(stderr, "Output file: %s\n", ainfo.output_file_name_buf);
 #endif
@@ -192,7 +208,9 @@ int main(int argc, char *argv[])
 	if (return_code < 0) {
 		fprintf(stderr, "Error encoding, error code=%d\n", return_code);
 	} else {
+#ifndef BENCHMARK
 		fprintf(stderr, "Encode Success\n");
+#endif
 	}
 
 	cleanup ();
