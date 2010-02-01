@@ -439,7 +439,7 @@ shcodecs_encoder_get_frame_num_delta(SHCodecs_Encoder *encoder)
 /**
  * Get the physical address of input data.
  * \param encoder The SHCodecs_Encoder* handle
- * \returns size in bytes of CbCr plane.
+ * \retval 0 Success
  * \retval -1 \a encoder invalid
  */
 int

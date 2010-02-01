@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stropts.h>
+#include <stdarg.h>
 #include <fcntl.h>
 #include <getopt.h>
 #include <unistd.h>
@@ -51,7 +52,7 @@
 #include "ControlFileUtil.h"
 #include "framerate.h"
 
-#define _DEBUG
+#define DEBUG
 
 #define LCD_BPP 2
 #define U_SEC_PER_SEC 1000000
@@ -70,6 +71,8 @@ struct private_data {
 	pthread_t thread_blit;
 	pthread_t thread_capture;
 
+	FILE *output_fp;
+
 	APPLI_INFO ainfo;	/* Capture params */
 	SHCodecs_Encoder *encoder;
 
@@ -78,12 +81,12 @@ struct private_data {
 	pthread_mutex_t encode_start_mutex;
 
 	/* Captured frame information */
-	unsigned long cap_y;
-	unsigned long cap_c;
+	capture *ceu;
+	unsigned char *cap_y;
+	unsigned char *cap_c;
 	int rotate_cap;
 	int cap_w;
 	int cap_h;
-	unsigned long cap_fmt;
 
 	unsigned long enc_w;
 	unsigned long enc_h;
@@ -95,11 +98,6 @@ struct private_data {
 	int output_frames;
 };
 
-
-int open_output_file(APPLI_INFO *);
-void close_output_file(APPLI_INFO * appli_info);
-int select_inputfile_set_param(SHCodecs_Encoder *encoder,
-			       APPLI_INFO *appli_info);
 
 static char * optstring = "i:r:";
 
@@ -120,10 +118,13 @@ usage (const char * progname)
   printf ("  -r, --rotate     Rotate the camera capture buffer 90 degrees and crop\n");
 }
 
-void debug_printf(__const char *__restrict __format, ...)
+void debug_printf(const char *fmt, ...)
 {
-#ifdef _DEBUG
-	printf(__format);
+#ifdef DEBUG
+	va_list ap;
+	va_start(ap, fmt);
+	vfprintf(stderr, fmt, ap);
+	va_end(ap);
 #endif
 }
 
@@ -206,7 +207,7 @@ static void display_close(struct private_data *pvt)
 
 /* Callback for frame capture */
 static void
-capture_image_cb(sh_ceu *ceu, const unsigned char *frame_data, size_t length,
+capture_image_cb(capture *ceu, const unsigned char *frame_data, size_t length,
 		 void *user_data)
 {
 	struct private_data *pvt = (struct private_data*)user_data;
@@ -228,7 +229,7 @@ void *capture_thread(void *data)
 		pthread_mutex_lock(&pvt->capture_start_mutex);
 
 		framerate_wait(pvt->cap_framerate);
-		sh_ceu_capture_frame(pvt->ainfo.ceu, capture_image_cb, pvt);
+		capture_get_frame(pvt->ceu, capture_image_cb, pvt);
 	}
 }
 
@@ -314,7 +315,7 @@ static int write_output(SHCodecs_Encoder *encoder,
 		}
 	}
 
-	if (fwrite(data, 1, length, pvt->ainfo.output_file_fp) < (size_t)length)
+	if (fwrite(data, 1, length, pvt->output_fp) < (size_t)length)
 		return -1;
 
 	return 0;
@@ -340,7 +341,7 @@ void cleanup (void)
 
 	framerate_destroy (pvt->cap_framerate);
 
-	time = (double)framerate_elapsed_time (pvt->cap_framerate);
+	time = (double)framerate_elapsed_time (pvt->enc_framerate);
 	time /= 1000000;
 
 	debug_printf("Elapsed time (encode): %0.3g s\n", time);
@@ -349,10 +350,10 @@ void cleanup (void)
 		 	framerate_mean_fps (pvt->enc_framerate));
 	framerate_destroy (pvt->enc_framerate);
 
-	sh_ceu_stop_capturing(pvt->ainfo.ceu);
+	capture_stop_capturing(pvt->ceu);
 	shcodecs_encoder_close(pvt->encoder);
-	sh_ceu_close(pvt->ainfo.ceu);
-	close_output_file(&pvt->ainfo);
+	capture_close(pvt->ceu);
+	close_output_file(pvt->output_fp);
 
 	pthread_cancel (pvt->thread_blit);
 	display_close(pvt);
@@ -384,7 +385,7 @@ int main(int argc, char *argv[])
 	int return_code, rc;
 	long stream_type;
 	unsigned int pixel_format;
-	char v4l2_filename[MAXPATHLEN];
+	char ctrl_filename[MAXPATHLEN];
 	int c, i;
 	long target_fps10;
 
@@ -394,8 +395,7 @@ int main(int argc, char *argv[])
 		usage(argv[0]);
 		return 0;
 	}
-	v4l2_filename[0] = '\0';
-	v4l2_filename[MAXPATHLEN-1] = '\0';
+	ctrl_filename[0] = '\0';
 
 	pvt->captured_frames = 0;
 	pvt->output_frames = 0;
@@ -419,7 +419,7 @@ int main(int argc, char *argv[])
 		switch (c) {
 		case 'i':
 			if (optarg)
-				strncpy(v4l2_filename, optarg, MAXPATHLEN-1);
+				strncpy(ctrl_filename, optarg, MAXPATHLEN-1);
 			break;
 		case 'r':
 			if (optarg)
@@ -436,34 +436,20 @@ int main(int argc, char *argv[])
 	      goto exit_err;
 	}
 
-	if (optind == (argc-1) && v4l2_filename[0] == '\0') {
-		strncpy(v4l2_filename, argv[optind++], MAXPATHLEN-1);
+	if (optind == (argc-1) && ctrl_filename[0] == '\0') {
+		strncpy(ctrl_filename, argv[optind++], MAXPATHLEN-1);
 	}
-	if ( (strcmp(v4l2_filename, "-") == 0) || (v4l2_filename[0] == '\0') ){
+	if ( (strcmp(ctrl_filename, "-") == 0) || (ctrl_filename[0] == '\0') ){
 		fprintf(stderr, "Invalid v4l2 configuration file.\n");
 		return -1;
 	}
 
-	strcpy(pvt->ainfo.ctrl_file_name_buf, v4l2_filename);
-	return_code = GetFromCtrlFTop(pvt->ainfo.ctrl_file_name_buf,
-				      &pvt->ainfo, &stream_type);
+	return_code = ctrlfile_get_params(ctrl_filename, &pvt->ainfo, &stream_type);
 	if (return_code < 0) {
 		fprintf(stderr, "Error opening control file.\n");
 		return -2;
 	}
 
-
-	snprintf(pvt->ainfo.input_file_name_buf, 256, "%s/%s",
-		 pvt->ainfo.buf_input_yuv_file_with_path,
-		 pvt->ainfo.buf_input_yuv_file);
-
-	if (!strcmp (pvt->ainfo.buf_output_stream_file, "-")) {
-			snprintf (pvt->ainfo.output_file_name_buf, 256, "-");
-	} else {
-		snprintf(pvt->ainfo.output_file_name_buf, 256, "%s/%s",
-				pvt->ainfo.buf_output_directry,
-				pvt->ainfo.buf_output_stream_file);
-	}
 
 	debug_printf("Input file: %s\n", pvt->ainfo.input_file_name_buf);
 	debug_printf("Output file: %s\n", pvt->ainfo.output_file_name_buf);
@@ -497,19 +483,17 @@ int main(int argc, char *argv[])
 	shveu_open();
 
 	/* Camera capture initialisation */
-	pvt->ainfo.ceu = sh_ceu_open_userio(pvt->ainfo.input_file_name_buf, pvt->ainfo.xpic, pvt->ainfo.ypic);
-	if (pvt->ainfo.ceu == NULL) {
-		fprintf(stderr, "sh_ceu_open failed, exiting\n");
+	pvt->ceu = capture_open_userio(pvt->ainfo.input_file_name_buf, pvt->ainfo.xpic, pvt->ainfo.ypic);
+	if (pvt->ceu == NULL) {
+		fprintf(stderr, "capture_open failed, exiting\n");
 		return -3;
 	}
-	sh_ceu_set_use_physical(pvt->ainfo.ceu, 1);
-	pvt->cap_w = sh_ceu_get_width(pvt->ainfo.ceu);
-	pvt->cap_h = sh_ceu_get_height(pvt->ainfo.ceu);
+	capture_set_use_physical(pvt->ceu, 1);
+	pvt->cap_w = capture_get_width(pvt->ceu);
+	pvt->cap_h = capture_get_height(pvt->ceu);
 
-	pixel_format = sh_ceu_get_pixel_format (pvt->ainfo.ceu);
-	if (pixel_format == V4L2_PIX_FMT_NV12) {
-		pvt->cap_fmt = SHVEU_YCbCr420;
-	} else {
+	pixel_format = capture_get_pixel_format (pvt->ceu);
+	if (pixel_format != V4L2_PIX_FMT_NV12) {
 		fprintf(stderr, "Camera capture pixel format is not supported\n");
 		return -4;
 	}
@@ -533,6 +517,13 @@ int main(int argc, char *argv[])
 		return -5;
 	}
 
+	/* open output file */
+	pvt->output_fp = open_output_file(pvt->ainfo.output_file_name_buf);
+	if (pvt->output_fp == NULL) {
+		fprintf(stderr, "Error opening output file\n");
+		return -8;
+	}
+
 	/* VPU Encoder initialisation */
 	pvt->encoder = shcodecs_encoder_init(pvt->enc_w, pvt->enc_h, stream_type);
 	if (pvt->encoder == NULL) {
@@ -542,17 +533,9 @@ int main(int argc, char *argv[])
 	shcodecs_encoder_set_input_callback(pvt->encoder, get_input, pvt);
 	shcodecs_encoder_set_output_callback(pvt->encoder, write_output, pvt);
 
-	/* open output file */
-	return_code = open_output_file(&pvt->ainfo);
-	if (return_code != 0) {
-		fprintf(stderr, "Error opening output file\n");
-		return -8;
-	}
-
-	/* set parameters for use in encoding */
-	return_code = select_inputfile_set_param(pvt->encoder, &pvt->ainfo);
-	if (return_code == -1) {
-		fprintf (stderr, "select_inputfile_set_param ERROR! \n");
+	return_code = ctrlfile_set_enc_param(pvt->encoder, ctrl_filename);
+	if (return_code < 0) {
+		fprintf (stderr, "Problem with encoder params in control file!\n");
 		return -9;
 	}
 	/* Override the encoding frame size as it may not be the same size as the
@@ -567,7 +550,7 @@ int main(int argc, char *argv[])
 	/* Initialize framerate timer */
 	pvt->cap_framerate = framerate_new_timer (target_fps10 / 10.0);
 
-	sh_ceu_start_capturing(pvt->ainfo.ceu);
+	capture_start_capturing(pvt->ceu);
 
 	rc = shcodecs_encoder_run(pvt->encoder);
 	if (rc != 0) {

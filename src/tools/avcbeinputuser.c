@@ -26,7 +26,6 @@
 #include <limits.h>
 #include <ctype.h>
 #include <string.h>
-#include <setjmp.h>
 
 #include "avcbencsmp.h"
 
@@ -34,14 +33,7 @@
 
 #include <shveu/shveu.h>
 #include <shveu/veu_colorspace.h>
-
 #include <shcodecs/shcodecs_encoder.h>
-
-#include <time.h>		/* for timestamp struct
-				   used in linux/videodev2.h*/
-#include <linux/videodev2.h>	/* For pixel formats */
-
-extern unsigned long my_yuv_data[];	/* array for input YUV data */
 
 long frame_counter_of_input;	/* the number of input frames for stream-1 */
 
@@ -59,266 +51,6 @@ int open_input_image_file(APPLI_INFO * appli_info)
 	}
 
 	return (0);
-}
-
-int open_output_file(APPLI_INFO * appli_info)
-{
-	appli_info->output_file_fp = NULL;
-
-        if (!strcmp (appli_info->output_file_name_buf, "-")) {
-	        appli_info->output_file_fp = stdout;
-        } else {
-	        appli_info->output_file_fp =
-	            fopen(appli_info->output_file_name_buf, "wb");
-        }
-
-	if (appli_info->output_file_fp == NULL) {
-		return (-1);
-	}
-
-	return (0);
-}
-
-struct capture {
-	SHCodecs_Encoder *encoder;
-	APPLI_INFO *appli_info;
-};
-
-static void
-capture_image_cb(sh_ceu * ceu, const unsigned char *frame_data, size_t length,
-		 void *user_data)
-{
-	struct capture *cap = (struct capture *) user_data;
-	unsigned int pixel_format;
-	int odd = 0;
-	long hsiz, ysiz, i, j;
-	const unsigned char *d;
-	const unsigned short *ds;
-	short rgb;
-	unsigned char *y, *c;
-	unsigned char *w_addr_yuv;
-	unsigned long wnum;
-	unsigned char *CbCr_ptr, *Cb_buf_ptr, *Cr_buf_ptr, *ptr;
-	int r, g, b;
-	unsigned int oy;
-	int ou, ov;
-
-	hsiz = shcodecs_encoder_get_width(cap->encoder);
-	ysiz = shcodecs_encoder_get_height(cap->encoder);
-
-	/* write memory data size offset make to multiples of 16 */
-	wnum = (((hsiz + 15) / 16) * 16) * (((ysiz + 15) / 16) * 16);
-
-	/* Input data to user memory */
-	CbCr_ptr = malloc(hsiz * ysiz / 2);
-
-	/* Input file data to user memory */
-	w_addr_yuv = malloc(hsiz * ysiz * 2);
-	if (w_addr_yuv == NULL) {
-		fprintf(stderr, "capture_image_cb: malloc error.\n");
-		exit(-1);
-	}
-	memset(w_addr_yuv, 0, hsiz * ysiz);
-	memset(CbCr_ptr, 0, hsiz * ysiz / 2);
-
-	pixel_format = sh_ceu_get_pixel_format(ceu);
-
-	if (pixel_format == V4L2_PIX_FMT_NV12) {
-		memcpy(w_addr_yuv, frame_data, hsiz * ysiz);
-		memcpy(CbCr_ptr, &frame_data[hsiz * ysiz],
-		       hsiz * ysiz / 2);
-	} else if (pixel_format == V4L2_PIX_FMT_UYVY) {
-		/* Convert from captured UYVY to NV12 */
-		d = frame_data;
-		y = (unsigned char *) w_addr_yuv;
-		c = CbCr_ptr;
-
-		for (i = 0; i < ysiz; i++) {
-			if (odd) {
-				for (j = 0; j < hsiz / 2; j++) {
-					//*c += *d++;   /* Cb */
-					//*c++ >>= 1;
-					d++;
-					*y++ = *d++;	/* Y */
-					//*c += *d++;   /* Cr */
-					//*c++ >>= 1;
-					d++;
-					*y++ = *d++;	/* Y */
-				}
-			} else {
-				for (j = 0; j < hsiz / 2; j++) {
-					*c++ = *d++;	/* Cb */
-					*y++ = *d++;	/* Y */
-					*c++ = *d++;	/* Cr */
-					*y++ = *d++;	/* Y */
-				}
-				//c -= hsiz;
-			}
-
-			/* toggle odd line flag */
-			odd = 1 - odd;
-		}
-	} else if (pixel_format == V4L2_PIX_FMT_RGB565) {
-		/* Convert from captured RGB565 to NV12 */
-		d = frame_data;
-		ds = (unsigned short *) frame_data;
-		y = (unsigned char *) w_addr_yuv;
-		c = CbCr_ptr;
-
-#if 0
-		shveu_rgb565_to_nv12(d, y, c, 320, 240);
-#else
-		for (i = 0; i < ysiz; i++) {
-			if (odd) {
-				for (j = 0; j < hsiz; j++) {
-					rgb = *ds++;
-					r = (rgb & 0x1f) << 3;
-					g = ((rgb & 0x7e0) >> 5) << 2;
-					b = ((rgb & 0xf800) >> 11) << 3;;
-
-					if (r < 0)
-						r = 0;
-					if (r > 255)
-						r = 255;
-					if (g < 0)
-						g = 0;
-					if (g > 255)
-						g = 255;
-					if (b < 0)
-						b = 0;
-					if (b > 255)
-						b = 255;
-
-					//      printf ("Got (r,g,b) values (%d, %d, %d)\n", r, g, b);
-
-					//oy = (((66 * r) + (129 * g) + (25 * b))>>8) + 16;
-					oy = ((77 * r) + (150 * g) +
-					      (29 * b)) >> 8;
-					if (oy < 16)
-						oy = 16;
-					if (oy > 235)
-						oy = 235;
-
-					*y++ = (unsigned char) oy;
-
-					//printf ("Got odd  oy value %d, y value %d\n", oy, *y);
-				}
-			} else {
-				for (j = 0; j < hsiz; j++) {
-					//r = (d[0] & 0x1f)<<3;
-					//g = (((d[0] & 0xe0)>>5) | ((d[1] & 0x07)<<3))<<2;
-					//b = (d[1] & 0xf8);
-					//d += 2;
-					rgb = *ds++;
-					r = (rgb & 0x1f) << 3;
-					g = ((rgb & 0x7e0) >> 5) << 2;
-					b = ((rgb & 0xf800) >> 11) << 3;;
-
-					if (r < 0)
-						r = 0;
-					if (r > 255)
-						r = 255;
-					if (g < 0)
-						g = 0;
-					if (g > 255)
-						g = 255;
-					if (b < 0)
-						b = 0;
-					if (b > 255)
-						b = 255;
-
-					//      printf ("Got (r,g,b) values (%d, %d, %d)\n", r, g, b);
-
-					//      Y  =      (0.257 * R) + (0.504 * G) + (0.098 * B) + 16
-					//      Cr = V =  (0.439 * R) - (0.368 * G) - (0.071 * B) + 128
-					//      Cb = U = -(0.148 * R) - (0.291 * G) + (0.439 * B) + 128
-
-					//oy = (((66 * r) + (129 * g) + (25 * b))>>8) + 16;
-
-					//oy = 0.299 * r + 0.587 * g + 0.114 * b;
-					//ou = (b-oy)*0.565;
-					//ov = (r-oy)*0.713;
-					//oy = ((77 * r) + (150 * g) + (29 * b))>>9;
-					oy = ((77 * r) + (150 * g) +
-					      (29 * b)) >> 8;
-					if (oy < 16)
-						oy = 16;
-					if (oy > 235)
-						oy = 235;
-
-					*y++ = (unsigned char) oy;
-
-					//printf ("Got even oy value %d, y value %d\n", oy, *y);
-
-					if ((j % 2) == 1) {
-						//ov = ((112 * r) - (94 * g) - (18 * b))>>9 + 128;
-						//ou = ((-38 * r) - (74 * g) + (112 * b))>>9 + 128;
-
-						//ou = (((b-oy)*145)/300) + 128;
-						//ov = (((r-oy)*183)/300) + 128;
-						//ou = (((b-oy)*145)/512);
-						//ov = (((r-oy)*183)/512);
-
-						//Ey = 0.299R+0.587G+0.114B
-						//Ecr = 0.713(R - Ey) = 0.500R-0.419G-0.081B
-						//Ecb = 0.564(B - Ey) = -0.169R-0.331G+0.500B
-
-						ou = (((r * 128) -
-						       (g * 107) -
-						       (b * 21)) >> 8) +
-						    128;
-						ov = (((r * (-43)) -
-						       (g * 85) +
-						       (b * 128)) >> 8) +
-						    128;
-
-						//ou = 128;
-						//ov = 128;
-
-						if (ou < 16)
-							ou = 16;
-						if (ou > 239)
-							ou = 239;
-						if (ov < 16)
-							ov = 16;
-						if (ov > 239)
-							ov = 239;
-
-						*c++ = (unsigned char) ou;
-						*c++ = (unsigned char) ov;
-					}
-				}
-			}
-
-			/* toggle odd line flag */
-			odd = 1 - odd;
-		}
-#endif
-	}
-
-	/* Write image data to kernel memory for VPU */
-        shcodecs_encoder_input_provide (cap->encoder, w_addr_yuv, CbCr_ptr);
-#if 0
-	m4iph_sdr_write((unsigned char *) cap->addr_y,
-			(unsigned char *) w_addr_yuv, wnum);
-	m4iph_sdr_write((unsigned char *) cap->addr_c,
-			(unsigned char *) CbCr_ptr, wnum / 2);
-#endif
-	free(w_addr_yuv);
-	free(CbCr_ptr);
-}
-
-/* capture yuv data to the image-capture-field area each frame */
-int capture_image(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info)
-{
-	struct capture cap;
-
-	cap.encoder = encoder;
-	cap.appli_info = appli_info;
-
-	sh_ceu_capture_frame(appli_info->ceu, capture_image_cb, &cap);
-
-	return 0;
 }
 
 /* copy yuv data to the image-capture-field area each frame */
@@ -431,13 +163,26 @@ void close_input_image_file(APPLI_INFO * appli_info)
 	}
 }
 
-/* close output file */
-void close_output_file(APPLI_INFO * appli_info)
+
+FILE *
+open_output_file(const char *fname)
 {
-	if (appli_info->output_file_fp != NULL) {
-		fflush(appli_info->output_file_fp);
-		fclose(appli_info->output_file_fp);
-		appli_info->output_file_fp = NULL;
+	FILE *fp = NULL;
+
+	if (!strcmp (fname, "-"))
+		fp = stdout;
+	else
+		fp = fopen(fname, "wb");
+
+	return fp;
+}
+
+/* close output file */
+void close_output_file(FILE *fp)
+{
+	if (fp != NULL) {
+		fflush(fp);
+		fclose(fp);
 	}
 }
 

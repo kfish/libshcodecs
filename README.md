@@ -70,7 +70,7 @@ use the output callback you have provided whenever encoded video data is
 available.
 
 For examples of encoding from file and camera, see src/tools/shcodecs-enc.c
-and src/tools/shcodecs-capenc.c.
+and src/tools/shcodecs-record.c.
 
 SH-Mobile
 ---------

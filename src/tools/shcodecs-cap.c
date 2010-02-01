@@ -31,45 +31,73 @@
 #include <assert.h>
 
 #include <getopt.h>		/* getopt_long() */
-
-#include <fcntl.h>		/* low-level i/o */
 #include <unistd.h>
 #include <errno.h>
 
 #include "capture.h"
+#include "framerate.h"
+#include "veu_colorspace.h"
 
-#define CLEAR(x) memset (&(x), 0, sizeof (x))
+struct private_data {
+	capture *ceu;
+	char *dev_name;
+ 	unsigned int width;
+ 	unsigned int height;
+	int mode;
+	struct framerate * cap_framerate;
+};
 
 static void usage(FILE * fp, int argc, char **argv)
 {
 	fprintf(fp,
 		"Usage: %s [options]\n\n"
 		"Options:\n"
-		"-d | --device name   Video device name [/dev/video]\n"
-		"-h | --help  Print this message\n" "", argv[0]);
+		"-d | --device        Video device name [/dev/video0]\n"
+		"-w | --width         Capture width [320]\n"
+		"-h | --height        Capture height [240]\n"
+		"-s | --size          Capture size [qcif, cif, qvga, vga, d1, 720p]\n"
+		"-m | --mode          Capture mode [mmap, user]\n"
+		"", argv[0]);
 	fprintf (fp, "\nPlease report bugs to <linux-sh@vger.kernel.org>\n");
 }
 
-static const char short_options[] = "d:hmru";
+static const char short_options[] = "d:w:h:s:m:";
 
 static const struct option long_options[] = {
 	{"device", required_argument, NULL, 'd'},
-	{"help", no_argument, NULL, 'h'},
+	{"width",  required_argument, NULL, 'w'},
+	{"height", required_argument, NULL, 'h'},
+	{"size",   required_argument, NULL, 's'},
+	{"mode",   required_argument, NULL, 'm'},
 	{0, 0, 0, 0}
 };
 
 static void
-process_image(sh_ceu * ceu, const unsigned char *frame_data, size_t length, void *user_data)
+process_image(capture * ceu, const unsigned char *frame_data, size_t length, void *user_data)
 {
-	fputc('.', stdout);
-	fflush(stdout);
+	struct private_data *pvt = (struct private_data *)user_data;
+	size_t size = (pvt->width * pvt->height * 3) / 2;
+
+	fputc('.', stderr);
+	fflush(stderr);
+
+	if (fwrite(frame_data, 1, size, stdout) != size)
+		exit(EXIT_FAILURE);
+
+	framerate_wait(pvt->cap_framerate);
 }
+
 
 int main(int argc, char **argv)
 {
-	sh_ceu *ceu;
-	char *dev_name = "/dev/video0";
-	unsigned int count;
+	struct private_data pvt;
+	unsigned int count, x;
+	double time;
+
+	pvt.width = 320;
+	pvt.height = 240;
+	pvt.dev_name = "/dev/video0";
+	pvt.mode = 0;
 
 	for (;;) {
 		int index;
@@ -86,12 +114,49 @@ int main(int argc, char **argv)
 			break;
 
 		case 'd':
-			dev_name = optarg;
+			pvt.dev_name = optarg;
 			break;
 
+		case 'w':
+			if (optarg)
+				pvt.width = strtoul(optarg, NULL, 10);
+			break;
 		case 'h':
-			usage(stdout, argc, argv);
-			exit(EXIT_SUCCESS);
+			if (optarg)
+				pvt.height = strtoul(optarg, NULL, 10);
+			break;
+		case 's':
+			if (optarg) {
+				if (!strncasecmp (optarg, "qcif", 4)) {
+					pvt.width = 176;
+					pvt.height = 144;
+				} else if (!strncmp (optarg, "cif", 3)) {
+					pvt.width = 352;
+					pvt.height = 288;
+				} else if (!strncmp (optarg, "qvga", 4)) {
+					pvt.width = 320;
+					pvt.height = 240;
+				} else if (!strncmp (optarg, "vga", 3)) {
+					pvt.width = 640;
+					pvt.height = 480;
+				} else if (!strncmp (optarg, "d1", 2)) {
+					pvt.width = 720;
+					pvt.height = 480;
+				} else if (!strncmp (optarg, "720p", 4)) {
+					pvt.width = 1280;
+					pvt.height = 720;
+				}
+			}
+			break;
+		case 'm':
+			if (optarg) {
+				if (!strncasecmp (optarg, "mmap", 4)) {
+					pvt.mode = 0;
+				} else if (!strncmp (optarg, "user", 4)) {
+					pvt.mode = 1;
+				}
+			}
+			break;
 
 		default:
 			usage(stderr, argc, argv);
@@ -99,18 +164,36 @@ int main(int argc, char **argv)
 		}
 	}
 
-	ceu = sh_ceu_open(dev_name, 640, 480);
+	if (pvt.mode == 0) {
+		fprintf(stderr, "Capture at %dx%d using mmap\n", pvt.width, pvt.height);
+		pvt.ceu = capture_open(pvt.dev_name, pvt.width, pvt.height);
+	} else {
+		fprintf(stderr, "Capture at %dx%d using user\n", pvt.width, pvt.height);
+		sh_veu_open();
+		pvt.ceu = capture_open_userio(pvt.dev_name, pvt.width, pvt.height);
+	}
+	pvt.cap_framerate = framerate_new_timer (30.0);
 
-	sh_ceu_start_capturing(ceu);
+	capture_start_capturing(pvt.ceu);
 
-	count = 100;
+	count = 5;
 
-	while (count-- > 0)
-		sh_ceu_capture_frame(ceu, process_image, NULL);
+	for (x=0; x<count; x++)
+		capture_get_frame(pvt.ceu, process_image, &pvt);
 
-	sh_ceu_stop_capturing(ceu);
+	capture_stop_capturing(pvt.ceu);
+	capture_close(pvt.ceu);
 
-	sh_ceu_close(ceu);
+	time = (double)framerate_elapsed_time (pvt.cap_framerate);
+	time /= 1000000;
+	fprintf(stderr, "\nCaptured %d frames at %dx%d (%.2f fps)\n",
+		count, pvt.width, pvt.height, (double)count/time);
+
+	framerate_destroy (pvt.cap_framerate);
+	fflush(stdout);
+	if (pvt.mode == 1) {
+		sh_veu_close();
+	}
 
 	exit(EXIT_SUCCESS);
 

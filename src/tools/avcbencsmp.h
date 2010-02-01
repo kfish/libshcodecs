@@ -20,20 +20,11 @@
 #ifndef	AVCBENCSMP_H
 #define	AVCBENCSMP_H
 
-#include <stdio.h>
-
-#include "capture.h"
-
+#include <shcodecs/shcodecs_encoder.h>
 
 /*----- structures -----*/
 
 typedef struct {
-
-	/* Table to store an encoding result (MPEG-4 bitstream) */
-
-	/* Size of encoding result (byte unit) */
-
-	/* Input imformation in encoding */
 
 	/* Input YUV file name and it's file pointer */
 	char input_file_name_buf[256];	/* for stream-1 */
@@ -42,30 +33,29 @@ typedef struct {
 				   のCb,Crデータの並び順（1:Cb全部Cr全部、2:Cb0,Cr0,Cb1,Cr1,...、
 				   3:Cbの1ライン分,Crの1ライン分,...） */
 
+	FILE *output_file_fp;	/* for output stream-2 */
 	char output_file_name_buf[256];	/* 出力m4vファイル名 */
-	char ctrl_file_name_buf[256];	/* 入力YUVファイル名 */
 
-	char buf_input_yuv_file_with_path[256 + 8];	/* 入力YUVファイル名（パス付き） *//* 041201 */
-	char buf_input_yuv_file[64 + 8];	/* 入力YUVファイル名（パスなし） */
-
-	char buf_output_directry[256 + 8];	/* 出力先のディレクトリ *//* 041201 */
-	char buf_output_stream_file[64 + 8];	/* 出力ストリームファイル名（パスなし） */
 	long xpic;
 	long ypic;
 
     long frames_to_encode;
 
-	/* Output imformation in encoding */
-
-	long return_code;	/* return_value of current frame or NAL *//* 041123 */
-
-	FILE *output_file_fp;	/* for output stream-2 */
-
-	sh_ceu *ceu;
-
 } APPLI_INFO;
 
 
-#define ALIGN(a, w) (void *)(((unsigned long)(a) + (w) - 1) & ~((w) - 1))
+//#define ALIGN(a, w) (void *)(((unsigned long)(a) + (w) - 1) & ~((w) - 1))
+
+
+int open_input_image_file(APPLI_INFO * appli_info);
+int load_1frame_from_image_file(SHCodecs_Encoder * encoder, APPLI_INFO * appli_info);
+void close_input_image_file(APPLI_INFO * appli_info);
+
+
+FILE *
+open_output_file(const char *fname);
+
+void close_output_file(FILE *fp);
+
 
 #endif				/* AVCBENCSMP */

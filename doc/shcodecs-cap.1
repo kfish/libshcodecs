@@ -1,0 +1,41 @@
+.TH "shcodecs-cap" 1 "Jan 2010" "SH Codecs" "Linux-SH Multimedia"
+
+.SH NAME
+shcodecs-cap \- Capture V4L2 video input using the SH-Mobile CEU
+
+.SH SYNOPSIS
+
+.B \fBshcodecs-cap\fR [\-d \fBdevice-name\fR | \-\-device \fBdevice-name\fR ] [\-w \fBwidth\fR | \-\-width \fBwidth\fR ] [\-h \fBheight\fR | \-\-height \fBheight\fR ] [\-s \fBsize\fR | \-\-size \fBsize\fR ] [\-m \fBmode\fR | \-\-mode \fBmode\fR ]
+
+.SH OPTIONS
+.PP
+\fBshcodecs-cap\fR accepts the following options:
+
+.SS "Input device"
+.IP "\-d \fBdevice-name\fR, \-\-device \fBdevice-name\fR" 10
+Set the v4l2 input device, default is /dev/video0.
+
+.SS "Dimensions of captured stream"
+.IP "\-w \fBwidth\fR, \-\-width \fBwidth\fR" 10
+Set the captured image width in pixels, default is 320.
+
+.IP "\-h \fBheight\fR, \-\-height \fBheight\fR" 10
+Set the captured image height in pixels, default is 240.
+
+.IP "\-s \fBsize\fR, \-\-size \fBsize\fR" 10
+Set the captured image size [qcif, cif, qvga, vga, d1, 720p].
+
+.SS "Capture mode"
+.IP "\-m \fBmode\fR, \-\-mode \fBmode\fR" 10
+Set the v4l2 capture mode [mmap, user], default is mmap.
+
+
+.SH DESCRIPTION
+.B shcodecs-cap
+Captures V4L2 video input using the SH-Mobile CEU and the output is sent to stdout.
+
+.SH AUTHORS
+
+shcodecs-cap was written by Conrad Parker & modified by Phil Edworthy.
+
+Please report bugs to <linux-sh@vger.kernel.org>

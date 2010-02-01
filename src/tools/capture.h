@@ -20,41 +20,43 @@
 #ifndef __CAPTURE_H__
 #define __CAPTURE_H__
 
-typedef void *sh_ceu;
-typedef void (*sh_process_callback) (sh_ceu * ceu, const unsigned char *frame_data,
+struct capture_;
+typedef struct capture_ capture;
+
+typedef void (*capture_callback) (capture * cap, const unsigned char *frame_data,
 				     size_t length, void *user_data);
 
-sh_ceu *sh_ceu_open(const char *device_name, int width, int height);
+capture *capture_open(const char *device_name, int width, int height);
 
-sh_ceu *sh_ceu_open_userio(const char *device_name, int width, int height);
+capture *capture_open_userio(const char *device_name, int width, int height);
 
-void sh_ceu_close(sh_ceu * ceu);
+void capture_close(capture * cap);
 
 /**
  * Set the data output mode to use physical addresses.
  * If the calling application is interfacing to other IP blocks such as
  * the VEU, then set this function. Otherwise, captured frame output will
  * be mapped to userspace addresses, usable by normal applications.
- * \param ceu The ceu handle
+ * \param cap The capture handle
  * \param use_physical Flag: Physical addresses will be reported for
  * output frame data if set to a non-zero value.
  * \retval 0 Success
  */
 int
-sh_ceu_set_use_physical(sh_ceu * ceu, int use_physical);
+capture_set_use_physical(capture * cap, int use_physical);
 
-void sh_ceu_start_capturing(sh_ceu * ceu);
+void capture_start_capturing(capture * cap);
 
-void sh_ceu_stop_capturing(sh_ceu * ceu);
+void capture_stop_capturing(capture * cap);
 
-void sh_ceu_capture_frame(sh_ceu * ceu, sh_process_callback cb,
+void capture_get_frame(capture * cap, capture_callback cb,
 			  void *user_data);
 
 /* Get the properties of the captured frames 
  * The v4l device may not support the request size
  */
-int sh_ceu_get_width(sh_ceu * ceu);
-int sh_ceu_get_height(sh_ceu * ceu);
-unsigned int sh_ceu_get_pixel_format(sh_ceu * ceu);
+int capture_get_width(capture * cap);
+int capture_get_height(capture * cap);
+unsigned int capture_get_pixel_format(capture * cap);
 
 #endif				/* __CAPTURE_H__ */

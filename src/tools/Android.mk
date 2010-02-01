@@ -18,25 +18,24 @@ LOCAL_SRC_FILES := \
         capture.c \
         veu_colorspace.c \
         ControlFileUtil.c \
-        avcbeinputuser.c \
-        avcbencsmp_common.c
+        avcbeinputuser.c
 LOCAL_SHARED_LIBRARIES := libshcodecs
 LOCAL_MODULE := shcodecs-enc
 include $(BUILD_EXECUTABLE)
 
-# shcodecs-capenc 
+# shcodecs-record 
 include $(CLEAR_VARS)
 LOCAL_C_INCLUDES := external/libshcodecs/include
 LOCAL_CFLAGS := -DSH -D_LIT -DVPU4=1 -DVPU3IP -DVPU4IP -DANNEX_B 
 LOCAL_SRC_FILES := \
-        shcodecs-capenc.c \
+        shcodecs-record.c \
         capture.c \
+        framerate.c \
         veu_colorspace.c \
         ControlFileUtil.c \
-        avcbeinputuser.c \
-        avcbencsmp_common.c
+        avcbeinputuser.c
 LOCAL_SHARED_LIBRARIES := libshcodecs
-LOCAL_MODULE := shcodecs-capenc
+LOCAL_MODULE := shcodecs-record
 include $(BUILD_EXECUTABLE)
 
 # shcodecs-cap 

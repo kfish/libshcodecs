@@ -2452,39 +2452,43 @@ static int GetFromCtrlFtoVPU4_ENC(FILE * fp_in, M4IPH_VPU4_ENC * vpu4_enc,
 #endif
 
 /*****************************************************************************
- * Function Name	: GetFromCtrlFTop
+ * Function Name	: ctrlfile_get_params
  * Description		: コントロールファイルから、入力ファイル、出力先、ストリームタイプを得る
  * Parameters		: 省略
  * Called functions	: 		  
  * Global Data		: 
  * Return Value		: 1: 正常終了、-1: エラー
  *****************************************************************************/
-int GetFromCtrlFTop(const char *control_filepath,
+int ctrlfile_get_params(const char *ctrl_file,
 		    APPLI_INFO * appli_info, long *stream_type)
 {
 	FILE *fp_in;
 	int status_flag;
 	long return_value;
+	char path_buf[256 + 8];	/* ÆþÎÏYUV¥Õ¥¡¥€¥ëÌŸ¡Ê¥Ñ¥¹ÉÕ€­¡Ë *//* 041201 */
+	char file_buf[64 + 8];	/* ÆþÎÏYUV¥Õ¥¡¥€¥ëÌŸ¡Ê¥Ñ¥¹€Ê€·¡Ë */
 
-	if ((control_filepath == NULL) ||
+	if ((ctrl_file == NULL) ||
 	    (appli_info == NULL) || (stream_type == NULL)) {
 		return (-1);
 	}
 
-	fp_in = fopen(control_filepath, "rt");
+	fp_in = fopen(ctrl_file, "rt");
 	if (fp_in == NULL) {
 		return (-1);
 	}
 
-	GetStringFromCtrlFile(fp_in, "input_yuv_path", appli_info->buf_input_yuv_file_with_path, &status_flag);
-	GetStringFromCtrlFile(fp_in, "input_yuv_file",
-			      appli_info->buf_input_yuv_file,
-			      &status_flag);
+	GetStringFromCtrlFile(fp_in, "input_yuv_path", path_buf, &status_flag);
+	GetStringFromCtrlFile(fp_in, "input_yuv_file", file_buf, &status_flag);
+	snprintf(appli_info->input_file_name_buf, 256, "%s/%s", path_buf, file_buf);
 
-	GetStringFromCtrlFile(fp_in, "output_directry", appli_info->buf_output_directry, &status_flag);
-	GetStringFromCtrlFile(fp_in, "output_stream_file",
-			      appli_info->buf_output_stream_file,
-			      &status_flag);
+	GetStringFromCtrlFile(fp_in, "output_directry", path_buf, &status_flag);
+	GetStringFromCtrlFile(fp_in, "output_stream_file", file_buf, &status_flag);
+	if (!strcmp (file_buf, "-")) {
+		snprintf (appli_info->output_file_name_buf, 256, "-");
+	} else {
+		snprintf(appli_info->output_file_name_buf, 256, "%s/%s", path_buf, file_buf);
+	}
 
 	return_value =
 	    GetValueFromCtrlFile(fp_in, "stream_type", &status_flag);
@@ -2502,6 +2506,20 @@ int GetFromCtrlFTop(const char *control_filepath,
 	if (status_flag == 1) {
 		appli_info->ypic = return_value;
 	}
+
+	/*** ENC_EXEC_INFO ***/
+	appli_info->yuv_CbCr_format = 2;	/* 指定されなかったときのデフォルト値(2:Cb0,Cr0,Cb1,Cr1,...) *//* 050520 */
+	return_value = GetValueFromCtrlFile(fp_in, "yuv_CbCr_format", &status_flag);	/* 050520 */
+	if (status_flag == 1) {
+		appli_info->yuv_CbCr_format = (char) return_value;
+	}
+
+	return_value =
+	    GetValueFromCtrlFile(fp_in, "frame_number_to_encode", &status_flag);
+	if (status_flag == 1) {
+		appli_info->frames_to_encode = return_value;
+	}
+
 	fclose(fp_in);
 
 	return (1);		/* 正常終了 */
@@ -2509,73 +2527,54 @@ int GetFromCtrlFTop(const char *control_filepath,
 }
 
 /*****************************************************************************
- * Function Name	: GetFromCtrlFtoEncParam
+ * Function Name	: ctrlfile_set_enc_param
  * Description		: コントロールファイルから、構造体avcbe_encoding_property、avcbe_other_options_h264、
  *　　　　　　　　　 avcbe_other_options_mpeg4等のメンバ値を読み込み、設定して返す
  * Parameters		: 省略
  * Called functions	: 		  
  * Global Data		: 
- * Return Value		: 1: 正常終了、-1: エラー
+ * Return Value		: 0: 正常終了、-1: エラー
  *****************************************************************************/
-int GetFromCtrlFtoEncParam(SHCodecs_Encoder * encoder,
-                           APPLI_INFO * appli_info)
+int ctrlfile_set_enc_param(SHCodecs_Encoder * encoder, const char *ctrl_file)
 {
 	FILE *fp_in;
 	int status_flag;
 	long return_value;
 	long stream_type;
 
-	if ((encoder == NULL) ||
-            (appli_info == NULL) ||
-	    (appli_info->ctrl_file_name_buf == NULL)) {
-		return (-1);
-	}
-
-	fp_in = fopen(appli_info->ctrl_file_name_buf, "rt");
+	fp_in = fopen(ctrl_file, "rt");
 	if (fp_in == NULL) {
-		return (-1);
-	}
-
-	/*** ENC_EXEC_INFO ***/
-	appli_info->yuv_CbCr_format = 2;	/* 指定されなかったときのデフォルト値(2:Cb0,Cr0,Cb1,Cr1,...) *//* 050520 */
-	return_value = GetValueFromCtrlFile(fp_in, "yuv_CbCr_format", &status_flag);	/* 050520 */
-	if (status_flag == 1) {
-#ifdef DEBUG
-		fprintf(stderr, "yuv_CbCr_format=%ld\n", return_value);
-#endif
-		appli_info->yuv_CbCr_format = (char) return_value;
-	}
-
-	return_value =
-	    GetValueFromCtrlFile(fp_in, "frame_number_to_encode",
-				 &status_flag);
-	if (status_flag == 1) {
-		appli_info->frames_to_encode = return_value;
+		return -1;
 	}
 
 	/*** avcbe_encoding_property ***/
 	GetFromCtrlFtoEncoding_property(fp_in, encoder);
 
-        stream_type = shcodecs_encoder_get_stream_type (encoder);
+	stream_type = shcodecs_encoder_get_stream_type (encoder);
 
 	if (stream_type == SHCodecs_Format_H264) {
 		/*** avcbe_other_options_h264 ***/
 		GetFromCtrlFtoOther_options_H264(fp_in, encoder);
-	        return_value = GetValueFromCtrlFile(fp_in, "ref_frame_num", &status_flag);
-	        if (status_flag == 1) {
-		        shcodecs_encoder_set_ref_frame_num (encoder, return_value);
-	        }
-	        return_value = GetValueFromCtrlFile(fp_in, "filler_output_on", &status_flag);
-	        if (status_flag == 1) {
-	        	shcodecs_encoder_set_output_filler_enable (encoder, return_value);
-	        }
+		return_value = GetValueFromCtrlFile(fp_in, "ref_frame_num", &status_flag);
+		if (status_flag == 1) {
+			shcodecs_encoder_set_ref_frame_num (encoder, return_value);
+		}
+		return_value = GetValueFromCtrlFile(fp_in, "filler_output_on", &status_flag);
+		if (status_flag == 1) {
+			shcodecs_encoder_set_output_filler_enable (encoder, return_value);
+		}
 	} else {
 		/*** avcbe_other_options_mpeg4 ***/
 		GetFromCtrlFtoOther_options_MPEG4(fp_in, encoder);
 	}
 
+	shcodecs_encoder_set_frame_no_increment(encoder, 1);
+	shcodecs_encoder_set_frame_no_increment(encoder,
+	    shcodecs_encoder_get_frame_num_resolution(encoder) /
+	    (shcodecs_encoder_get_frame_rate(encoder) / 10));
+
 	fclose(fp_in);
 
-	return (1);		/* 正常終了 */
+	return 0;
 }
 

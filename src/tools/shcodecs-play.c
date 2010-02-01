@@ -57,13 +57,7 @@
 #define DEFAULT_HEIGHT 240
 #define DEFAULT_FPS	25
 
-#define _DEBUG
-#ifdef _DEBUG
-	#define debug_printf printf
-#else
-	void debug_printf(const char *format, ...) {}
-#endif
-
+/* #define DEBUG */
 
 /* limitation of VEU2H on SH7723 */
 //#define VEU2H_MAX_WIDTH 640
@@ -131,7 +125,7 @@ usage (const char *progname)
 	printf ("\nDimensions of encoded stream\n");
 	printf ("  -w, --width        The image width in pixels of the file\n");
 	printf ("  -h, --height       The image height in pixels of the file\n");
-	printf ("  -s, --input size   Set the input image size [qcif, cif, qvga, vga, d1, 720p]\n");
+	printf ("  -s, --input-size   Set the input image size [qcif, cif, qvga, vga, d1, 720p]\n");
 	printf ("\nDimensions of video on the display\n");
 	printf ("  -x,                The image width in pixels on the display\n");
 	printf ("  -y,                The image height in pixels on the display\n");
@@ -158,6 +152,16 @@ static struct option long_options[] = {
 	{ "output-size"  , required_argument, NULL, 'S'},
 };
 #endif
+
+void debug_printf(const char *fmt, ...)
+{
+#ifdef DEBUG
+	va_list ap;
+	va_start(ap, fmt);
+	vfprintf(stderr, fmt, ap);
+	va_end(ap);
+#endif
+}
 
 /*****************************************************************************/
 
@@ -481,7 +485,7 @@ int main(int argc, char **argv)
 			else if (strncmp(optarg, "h264", 4) == 0)
 				stream_type = SHCodecs_Format_H264;
 			else{
-				debug_printf("argument: Unknown video format: %s.\n",optarg);
+				fprintf(stderr, "argument: Unknown video format: %s.\n",optarg);
 				exit(-1);
 			}
 			break;

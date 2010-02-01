@@ -171,6 +171,7 @@ shcodecs_encoder_get_frame_num_delta(SHCodecs_Encoder *encoder);
  * \param encoder The SHCodecs_Encoder* handle
  * \param y_input Pointer to the Y plane of input data
  * \param c_input Pointer to the CbCr plane of input data
+ * \retval 0 Success
  * \retval -1 \a encoder invalid
  */
 int
