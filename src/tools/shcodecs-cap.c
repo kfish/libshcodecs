@@ -34,9 +34,10 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include <shveu/shveu.h>
+
 #include "capture.h"
 #include "framerate.h"
-#include "veu_colorspace.h"
 
 struct private_data {
 	capture *ceu;
@@ -169,7 +170,7 @@ int main(int argc, char **argv)
 		pvt.ceu = capture_open(pvt.dev_name, pvt.width, pvt.height);
 	} else {
 		fprintf(stderr, "Capture at %dx%d using user\n", pvt.width, pvt.height);
-		sh_veu_open();
+		shveu_open();
 		pvt.ceu = capture_open_userio(pvt.dev_name, pvt.width, pvt.height);
 	}
 	pvt.cap_framerate = framerate_new_timer (30.0);
@@ -192,7 +193,7 @@ int main(int argc, char **argv)
 	framerate_destroy (pvt.cap_framerate);
 	fflush(stdout);
 	if (pvt.mode == 1) {
-		sh_veu_close();
+		shveu_close();
 	}
 
 	exit(EXIT_SUCCESS);
