@@ -39,7 +39,6 @@
 #include <sys/time.h>
 #include <signal.h>
 #include <linux/videodev2.h>	/* For pixel formats */
-#include <linux/fb.h>
 #include <linux/ioctl.h>
 #include <pthread.h>
 #include <errno.h>
@@ -51,22 +50,12 @@
 #include "capture.h"
 #include "ControlFileUtil.h"
 #include "framerate.h"
+#include "display.h"
 
 #define DEBUG
 
-#define LCD_BPP 2
-#define U_SEC_PER_SEC 1000000
-
 struct private_data {
-	/* Display data */
-	int fb_handle;
-	int fb_index;
-	struct fb_fix_screeninfo fb_fix;
-	struct fb_var_screeninfo fb_var;
-	unsigned char *fb_base;
-	unsigned char *fb_screenMem;
-	int lcd_w;
-	int lcd_h;
+	void *display;
 
 	pthread_t thread_blit;
 	pthread_t thread_capture;
@@ -131,89 +120,6 @@ void debug_printf(const char *fmt, ...)
 
 /*****************************************************************************/
 
-#ifndef FBIO_WAITFORVSYNC
-#define FBIO_WAITFORVSYNC _IOW('F', 0x20, __u32)
-#endif
-
-static int display_flip(struct private_data *pvt)
-{
-	struct fb_var_screeninfo fb_screen = pvt->fb_var;
-	unsigned long crt = 0;
-
-	fsync(pvt->fb_handle);
-
-	fb_screen.xoffset = 0;
-	fb_screen.yoffset = 0;
-	if (pvt->fb_index==0)
-		fb_screen.yoffset = pvt->fb_var.yres;
-	if (-1 == ioctl(pvt->fb_handle, FBIOPAN_DISPLAY, &fb_screen))
-		return 0;
-
-	/* Point to the back buffer */
-	pvt->fb_screenMem = pvt->fb_base;
-	if (pvt->fb_index!=0)
-		pvt->fb_screenMem += pvt->fb_var.yres * pvt->fb_var.xres * LCD_BPP;
-
-	pvt->fb_index = (pvt->fb_index+1) & 1;
-
-	/* wait for vsync interrupt */
-	ioctl(pvt->fb_handle, FBIO_WAITFORVSYNC, &crt);
-
-	return 1;
-}
-
-
-static int display_open(struct private_data *pvt)
-{
-	const char *device;
-
-	/* Initialize display */
-	device = getenv("FRAMEBUFFER");
-	if (!device) {
-		if (access("/dev/.devfsd", F_OK) == 0) {
-			device = "/dev/fb/0";
-		} else {
-			device = "/dev/fb0";
-		}
-	}
-
-	if ((pvt->fb_handle = open(device, O_RDWR)) < 0) {
-		fprintf(stderr, "Open %s: %s.\n", device, strerror(errno));
-		return 0;
-	}
-	if (ioctl(pvt->fb_handle, FBIOGET_FSCREENINFO, &pvt->fb_fix) < 0) {
-		fprintf(stderr, "Ioctl FBIOGET_FSCREENINFO error.\n");
-		return 0;
-	}
-	if (ioctl(pvt->fb_handle, FBIOGET_VSCREENINFO, &pvt->fb_var) < 0) {
-		fprintf(stderr, "Ioctl FBIOGET_VSCREENINFO error.\n");
-		return 0;
-	}
-	if (pvt->fb_fix.type != FB_TYPE_PACKED_PIXELS) {
-		fprintf(stderr, "Frame buffer isn't packed pixel.\n");
-		return 0;
-	}
-
-	pvt->lcd_w = pvt->fb_var.xres;
-	pvt->lcd_h = pvt->fb_var.yres;
-
-	pvt->fb_screenMem = pvt->fb_base = (unsigned char*)pvt->fb_fix.smem_start;
-	pvt->fb_index = 0;
-	display_flip(pvt);
-
-	debug_printf("Display resolution: %dx%d\n", pvt->lcd_w, pvt->lcd_h);
-
-	return 1;
-}
-
-static void display_close(struct private_data *pvt)
-{
-	close(pvt->fb_handle);
-}
-
-
-/*****************************************************************************/
-
 /* Callback for frame capture */
 static void
 capture_image_cb(capture *ceu, const unsigned char *frame_data, size_t length,
@@ -221,7 +127,7 @@ capture_image_cb(capture *ceu, const unsigned char *frame_data, size_t length,
 {
 	struct private_data *pvt = (struct private_data*)user_data;
 
-	pvt->cap_y = (unsigned long)frame_data;
+	pvt->cap_y = (unsigned char *)frame_data;
 	pvt->cap_c = pvt->cap_y + (pvt->cap_w * pvt->cap_h);
 
 	pvt->captured_frames++;
@@ -267,20 +173,20 @@ void *process_capture_thread(void *data)
 		/* We are clipping, not scaling, as we need to perform a rotation,
 		   but the VEU cannot do a rotate & scale at the same time. */
 		shveu_operation(0,
-			pvt->cap_y, pvt->cap_c,
-			src_w, src_h, pvt->cap_w, SHVEU_YCbCr420,
+			(unsigned long)pvt->cap_y, (unsigned long)pvt->cap_c,
+			(unsigned long)src_w, (unsigned long)src_h, pvt->cap_w, SHVEU_YCbCr420,
 			enc_y, enc_c,
 			pvt->enc_w, pvt->enc_h, pvt->enc_w, SHVEU_YCbCr420,
 			pvt->rotate_cap);
 
-		/* Setup the VEU to scale the encoder input buffer (physical addr) to
-		   the LCD frame buffer (physical addr) */
-		shveu_operation(0, 
-			enc_y, enc_c, pvt->enc_w, pvt->enc_h, pvt->enc_w, SHVEU_YCbCr420,
-			(unsigned long)pvt->fb_screenMem, 0,
-			pvt->lcd_w, pvt->lcd_h, pvt->lcd_w, SHVEU_RGB565, SHVEU_NO_ROT);
-
-		display_flip(pvt);
+		/* Use the VEU to scale the encoder input buffer to the frame buffer */
+		display_update(pvt->display,
+				enc_y,
+				enc_c,
+				pvt->enc_w,
+				pvt->enc_h,
+				pvt->enc_w,
+				V4L2_PIX_FMT_NV12);
 
 		pvt->output_frames++;
 
@@ -365,7 +271,7 @@ void cleanup (void)
 	close_output_file(pvt->output_fp);
 
 	pthread_cancel (pvt->thread_blit);
-	display_close(pvt);
+	display_close(pvt->display);
 
 	pthread_cancel (pvt->thread_capture);
 	shveu_close();
@@ -522,7 +428,8 @@ int main(int argc, char *argv[])
 	debug_printf("Camera resolution:  %dx%d\n", pvt->cap_w, pvt->cap_h);
 	debug_printf("Encode resolution:  %dx%d\n", pvt->enc_w, pvt->enc_h);
 
-	if (!display_open(pvt)) {
+	pvt->display = display_open(0);
+	if (!pvt->display) {
 		return -5;
 	}
 

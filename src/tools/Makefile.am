@@ -17,13 +17,14 @@ noinst_HEADERS = \
 shcodecs_dec_SOURCES = shcodecs-dec.c
 shcodecs_dec_LDADD = $(SHCODECS_LIBS)
 
-shcodecs_play_SOURCES = shcodecs-play.c framerate.c
+shcodecs_play_SOURCES = shcodecs-play.c framerate.c display.c
 shcodecs_play_CFLAGS = $(SHVEU_CFLAGS) $(UIOMUX_CFLAGS)
 shcodecs_play_LDADD = $(SHVEU_LIBS) $(UIOMUX_LIBS) -lrt -lpthread $(SHCODECS_LIBS)
 
 shcodecs_record_SOURCES = \
 	shcodecs-record.c \
 	capture.c \
+	display.c \
 	framerate.c \
 	ControlFileUtil.c \
 	avcbeinputuser.c
