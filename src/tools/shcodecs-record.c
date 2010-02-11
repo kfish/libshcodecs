@@ -131,9 +131,14 @@ void debug_printf(const char *fmt, ...)
 
 /*****************************************************************************/
 
+#ifndef FBIO_WAITFORVSYNC
+#define FBIO_WAITFORVSYNC _IOW('F', 0x20, __u32)
+#endif
+
 static int display_flip(struct private_data *pvt)
 {
 	struct fb_var_screeninfo fb_screen = pvt->fb_var;
+	unsigned long crt = 0;
 
 	fsync(pvt->fb_handle);
 
@@ -150,6 +155,10 @@ static int display_flip(struct private_data *pvt)
 		pvt->fb_screenMem += pvt->fb_var.yres * pvt->fb_var.xres * LCD_BPP;
 
 	pvt->fb_index = (pvt->fb_index+1) & 1;
+
+	/* wait for vsync interrupt */
+	ioctl(pvt->fb_handle, FBIO_WAITFORVSYNC, &crt);
+
 	return 1;
 }
 
