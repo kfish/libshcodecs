@@ -48,6 +48,9 @@ usage (const char * progname)
 {
 	printf ("Usage: %s <control file>\n", progname);
 	printf ("Encode a video file using the SH-Mobile VPU\n");
+	printf ("\nMiscellaneous options\n");
+	printf ("  -h, --help             Display this help and exit\n");
+	printf ("  -v, --version          Output version information and exit\n");
 	printf ("\nPlease report bugs to <linux-sh@vger.kernel.org>\n");
 }
 
@@ -128,6 +131,11 @@ int main(int argc, char *argv[])
 
 	if (argc != 2 || !strncmp (argv[1], "-h", 2) || !strncmp (argv[1], "--help", 6)) {
 		usage (argv[0]);
+		return -1;
+	}
+
+	if (!strncmp (argv[1], "-v", 2) || !strncmp (argv[1], "--version", 9)) {
+		printf ("%s version " VERSION "\n", argv[0]);
 		return -1;
 	}
 
