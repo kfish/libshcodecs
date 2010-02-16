@@ -69,13 +69,16 @@ usage (const char * progname)
 	printf ("  -w, --width            Set the input image width in pixels\n");
 	printf ("  -h, --height           Set the input image height in pixels\n");
 	printf ("  -s, --size             Set the input image size [qcif, cif, qvga, vga, 720p]\n");
+	printf ("\nMiscellaneous options\n");
+	printf ("  --help                 Display this help and exit\n");
+	printf ("  -v, --version          Output version information and exit\n");
 	printf ("\nFile extensions are interpreted as follows unless otherwise specified:\n");
 	printf ("  .m4v    MPEG4\n");
 	printf ("  .264    H.264\n");
 	printf ("\nPlease report bugs to <linux-sh@vger.kernel.org>\n");
 }
 
-static char * optstring = "f:o:i:w:h:s:";
+static char * optstring = "f:o:i:w:h:s:Hv";
 
 #ifdef HAVE_GETOPT_LONG
 static struct option long_options[] = {
@@ -84,7 +87,9 @@ static struct option long_options[] = {
 	{ "input" , required_argument, NULL, 'i'},
 	{ "width" , required_argument, NULL, 'w'},
 	{ "height", required_argument, NULL, 'h'},
-	{ "size", required_argument, NULL, 's'}
+	{ "size", required_argument, NULL, 's'},
+	{ "help", no_argument, 0, 'H'},
+	{ "version", no_argument, 0, 'v'},
 };
 #endif
 
@@ -131,13 +136,15 @@ int main(int argc, char **argv)
 	int bytes_decoded, frames_decoded;
 	ssize_t n;
 	char * ext;
-
 	char * progname = argv[0];
+	int show_version = 0;
+	int show_help = 0;
 
 	if (argc == 1) {
 		usage(progname);
 		exit(0);
 	}
+
 	setvbuf(stdout, NULL, _IONBF, 0);
 	output_filename[0] = input_filename[0] = '\0';
 	memset(input_filename, 0, sizeof(input_filename));
@@ -161,15 +168,19 @@ int main(int argc, char **argv)
 		}
 
 		switch (c) {
+		case 'H': /* --help */
+			show_help = 1;
+			break;
+		case 'v': /* --version */
+			show_version = 1;
+			break;
 		case 'f':
 			if (strncmp(optarg, "mpeg4", 5) == 0)
 				stream_type = SHCodecs_Format_MPEG4;
 			else if (strncmp(optarg, "h264", 4) == 0)
 				stream_type = SHCodecs_Format_H264;
-			else{
-				/*int ilen = strlen(optarg);*/
-				/*printf("optarg len = %d \n", optarg);*/
-				debug_printf("argument: Unknown video format: %s.\n",optarg);
+			else {
+				debug_printf("Unknown video format: %s.\n", optarg);
 				exit(-1);
 			}
 			break;
@@ -214,6 +225,19 @@ int main(int argc, char **argv)
 			exit(-2);
 		}
 	}
+
+	if (show_version) {
+		printf ("%s version " VERSION "\n", progname);
+	}
+
+	if (show_help) {
+		usage (progname);
+	}
+
+	if (show_version || show_help) {
+		return 0;
+	}
+
 	if (w == -1 || h == -1){
 		debug_printf("Invalid width and/or height specified.\n");
 		exit(-3);
@@ -249,6 +273,7 @@ int main(int argc, char **argv)
 	debug_printf("Resolution: %dx%d\n", w, h);
 	debug_printf("Input  file: %s\n", input_filename);
 	debug_printf("Output file: %s\n", output_filename);
+
  	stSchePara.sched_priority = sched_get_priority_max(SCHED_FIFO);
 	if (sched_setscheduler(0, SCHED_RR, &stSchePara) != 0) {
 		perror("sched_setscheduler");
