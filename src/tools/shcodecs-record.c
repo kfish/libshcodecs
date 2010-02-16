@@ -98,12 +98,14 @@ struct private_data {
 };
 
 
-static char * optstring = "i:r:";
+static char * optstring = "i:r:hv";
 
 #ifdef HAVE_GETOPT_LONG
 static struct option long_options[] = {
 	{ "input" , required_argument, NULL, 'i'},
 	{ "rotate", required_argument, NULL, 'r'},
+	{ "help", no_argument, 0, 'h'},
+	{ "version", no_argument, 0, 'v'},
 };
 #endif
 
@@ -111,10 +113,15 @@ static void
 usage (const char * progname)
 {
   printf ("Usage: %s [options] <control file>\n", progname);
-  printf ("Encode V4L2 video input using the SH-Mobile VPU with preview\n");
-  printf ("\nOptions\n");
+  printf ("Encode video from a V4L2 device using the SH-Mobile VPU, with preview\n");
+  printf ("\nFile options\n");
   printf ("  -i, --input      Set the v4l2 configuration file\n");
+  printf ("\nCapture options\n");
   printf ("  -r, --rotate     Rotate the camera capture buffer 90 degrees and crop\n");
+  printf ("\nMiscellaneous options\n");
+  printf ("  -h, --help       Display this help and exit\n");
+  printf ("  -v, --version    Output version information and exit\n");
+  printf ("\nPlease report bugs to <linux-sh@vger.kernel.org>\n");
 }
 
 void debug_printf(const char *fmt, ...)
@@ -388,10 +395,16 @@ int main(int argc, char *argv[])
 	int c, i;
 	long target_fps10;
 
+	char * progname;
+	int show_version = 0;
+	int show_help = 0;
+
 	pvt = &pvt_data;
 
+	progname = argv[0];
+
 	if (argc == 1) {
-		usage(argv[0]);
+		usage(progname);
 		return 0;
 	}
 	ctrl_filename[0] = '\0';
@@ -411,11 +424,17 @@ int main(int argc, char *argv[])
 		if (c == -1)
 			break;
 		if (c == ':') {
-			usage (argv[0]);
+			usage (progname);
 			goto exit_err;
 		}
 
 		switch (c) {
+		case 'h': /* help */
+			show_help = 1;
+			break;
+		case 'v': /* version */
+			show_version = 1;
+			break;
 		case 'i':
 			if (optarg)
 				strncpy(ctrl_filename, optarg, MAXPATHLEN-1);
@@ -425,13 +444,25 @@ int main(int argc, char *argv[])
 				pvt->rotate_cap = strtoul(optarg, NULL, 10);
 			break;
 		default:
-			usage(argv[0]);
-			return -2;
+			usage(progname);
+			goto exit_err;
 		}
 	}
 
+	if (show_version) {
+		printf ("%s version " VERSION "\n", progname);
+	}
+
+	if (show_help) {
+		usage (progname);
+	}
+
+	if (show_version || show_help) {
+		return 0;
+	}
+
 	if (optind >= argc) {
-	      usage (argv[0]);
+	      usage (progname);
 	      goto exit_err;
 	}
 

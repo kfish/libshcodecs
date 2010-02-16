@@ -4,10 +4,12 @@
 shcodecs-record \- Encode V4L2 video input using the SH-Mobile VPU
 
 .SH SYNOPSIS
-
+.PP
 .B \fBshcodecs-record\fR \fIcontrol-file\fR
-
+.PP
 .B \fBshcodecs-record\fR [\-r \fBrotate on,off\fR | \-\-rotate \fBrotate on,off\fR ] [\-i \fBcontrol-file\fR | \-\-input \fBcontrol-file\fR ]
+.PP
+\fBshcodecs-record\fR [\-h  | \-\-help ]  [\-v  | \-\-version ]
 
 .SH OPTIONS
 .PP
@@ -17,9 +19,15 @@ shcodecs-record \- Encode V4L2 video input using the SH-Mobile VPU
 .IP "\-i \fBcontrol-file\fR, \-\-input \fBcontrol-file\fR" 10
 Set the control file.
 
-.SS "Camera rotate"
+.SS "Capture options"
 .IP "\-r \fBrotate on,off\fR, \-\-rotate \fBrotate on,off\fR" 10
 If non-zero the camera image is rotated and cropped before encoding.
+
+.SS "Miscellaneous options"
+.IP "\-h, \-\-help" 10
+Display usage information and exit.
+.IP "\-v, \-\-version" 10
+Output version information and exit.
 
 .SH DESCRIPTION
 .B shcodecs-record
