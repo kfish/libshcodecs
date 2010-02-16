@@ -6,6 +6,8 @@ shcodecs-play \- Play a video file on the framebuffer, using the SH-Mobile VPU
 .SH SYNOPSIS
 
 .B \fBshcodecs-play\fR [\-w \fBwidth\fR | \-\-width \fBwidth\fR ] [\-h \fBheight\fR | \-\-height \fBheight\fR ] [\-s \fBsize\fR | \-\-input-size \fBsize\fR ] [\-x \fBpixels\fR ] [\-y \fBpixels\fR ] [\-S \fBsize\fR | \-\-output-size \fBsize\fR ] [\-f \fBformat\fR | \-\-format \fBformat\fR ] [\-l | \-\-loop] [\-r \fBfps\fR ] [\-i \fBfilename\fR | \-\-input \fBfilename\fR ] filename
+.PP
+\fBshcodecs-play\fR [\-\-help ]  [\-v  | \-\-version ]
 
 .SH DESCRIPTION
 .B shcodecs-play
@@ -52,6 +54,12 @@ Set the horizontal offset in pixels.
 
 .IP "\-q \fBoffset\fR" 10
 Set the vertical offset in pixels.
+
+.SS "Miscellaneous options"
+.IP "\-\-help" 10
+Display usage information and exit.
+.IP "\-v, \-\-version" 10
+Output version information and exit.
 
 .SH "File extensions"
 File extensions are interpreted as follows unless otherwise specified:

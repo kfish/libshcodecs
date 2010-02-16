@@ -132,13 +132,16 @@ usage (const char *progname)
 	printf ("\nPosition of video on the display\n");
 	printf ("  -p,                The horizontal offset in pixels\n");
 	printf ("  -q,                The vertical offset in pixels\n");
+	printf ("\nMiscellaneous options\n");
+	printf ("  --help                 Display this help and exit\n");
+	printf ("  -v, --version          Output version information and exit\n");
 	printf ("\nFile extensions are interpreted as follows unless otherwise specified:\n");
 	printf ("  .m4v    MPEG4\n");
 	printf ("  .264    H.264\n");
 	printf ("\nPlease report bugs to <linux-sh@vger.kernel.org>\n");
 }
 
-static char * optstring = "f:li:w:h:r:x:y:a:s:S:p:q:";
+static char * optstring = "f:li:w:h:r:x:y:a:s:S:p:q:Hv";
 
 #ifdef HAVE_GETOPT_LONG
 static struct option long_options[] = {
@@ -149,6 +152,8 @@ static struct option long_options[] = {
 	{ "height", required_argument, NULL, 'h'},
 	{ "input-size"  , required_argument, NULL, 's'},
 	{ "output-size"  , required_argument, NULL, 'S'},
+	{ "help", no_argument, 0, 'H'},
+	{ "version", no_argument, 0, 'v'},
 };
 #endif
 
@@ -429,9 +434,12 @@ int main(int argc, char **argv)
 	struct private_data *pvt;
 	pthread_t thread_output;
 	char * ext;
+	char * progname = argv[0];
+	int show_version = 0;
+	int show_help = 0;
 
 	if (argc == 1) {
-		usage(argv[0]);
+		usage(progname);
 		exit(0);
 	}
 
@@ -478,13 +486,19 @@ int main(int argc, char **argv)
 		}
 
 		switch (c) {
+		case 'H': /* --help */
+			show_help = 1;
+			break;
+		case 'v': /* --version */
+			show_version = 1;
+			break;
 		case 'f':
 			if (strncmp(optarg, "mpeg4", 5) == 0)
 				stream_type = SHCodecs_Format_MPEG4;
 			else if (strncmp(optarg, "h264", 4) == 0)
 				stream_type = SHCodecs_Format_H264;
-			else{
-				fprintf(stderr, "argument: Unknown video format: %s.\n",optarg);
+			else {
+				fprintf(stderr, "Unknown video format: %s.\n", optarg);
 				exit(-1);
 			}
 			break;
@@ -583,8 +597,20 @@ int main(int argc, char **argv)
 		}
 	}
 
+	if (show_version) {
+		printf ("%s version " VERSION "\n", progname);
+	}
+
+	if (show_help) {
+		usage (progname);
+	}
+
+	if (show_version || show_help) {
+		return 0;
+	}
+
 	if (optind > argc) {
-	      usage (argv[0]);
+	      usage (progname);
 	      goto exit_err;
 	}
 
