@@ -394,7 +394,7 @@ int main(int argc, char *argv[])
 	char ctrl_filename[MAXPATHLEN];
 	int c, i;
 	long target_fps10;
-	unsigned long rotate_input;
+	unsigned long rotate_input=0;
 
 	char * progname;
 	int show_version = 0;
@@ -532,7 +532,7 @@ int main(int argc, char *argv[])
 		return -4;
 	}
 
-	if (!pvt->rotate_cap) {
+	if (pvt->rotate_cap == ROT_90) {
 		pvt->enc_w = pvt->cap_w;
 		pvt->enc_h = pvt->cap_h;
 	} else {
