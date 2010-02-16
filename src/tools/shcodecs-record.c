@@ -115,12 +115,12 @@ usage (const char * progname)
   printf ("Usage: %s [options] <control file>\n", progname);
   printf ("Encode video from a V4L2 device using the SH-Mobile VPU, with preview\n");
   printf ("\nFile options\n");
-  printf ("  -i, --input      Set the v4l2 configuration file\n");
+  printf ("  -i, --input          Set the v4l2 configuration file\n");
   printf ("\nCapture options\n");
-  printf ("  -r, --rotate     Rotate the camera capture buffer 90 degrees and crop\n");
+  printf ("  -r 90, --rotate 90   Rotate the camera capture buffer 90 degrees and crop\n");
   printf ("\nMiscellaneous options\n");
-  printf ("  -h, --help       Display this help and exit\n");
-  printf ("  -v, --version    Output version information and exit\n");
+  printf ("  -h, --help           Display this help and exit\n");
+  printf ("  -v, --version        Output version information and exit\n");
   printf ("\nPlease report bugs to <linux-sh@vger.kernel.org>\n");
 }
 
@@ -253,7 +253,7 @@ void *process_capture_thread(void *data)
 
 		shcodecs_encoder_get_input_physical_addr (pvt->encoder, (unsigned int *)&enc_y, (unsigned int *)&enc_c);
 
-		if (!pvt->rotate_cap) {
+		if (pvt->rotate_cap == ROT_90) {
 			src_w = pvt->cap_w;
 			src_h = pvt->cap_h;
 		} else {
@@ -394,6 +394,7 @@ int main(int argc, char *argv[])
 	char ctrl_filename[MAXPATHLEN];
 	int c, i;
 	long target_fps10;
+	unsigned long rotate_input;
 
 	char * progname;
 	int show_version = 0;
@@ -411,7 +412,7 @@ int main(int argc, char *argv[])
 
 	pvt->captured_frames = 0;
 	pvt->output_frames = 0;
-	pvt->rotate_cap = 0;
+	pvt->rotate_cap = NO_ROT;
 
 	pvt->enc_framerate = NULL;
 
@@ -441,7 +442,10 @@ int main(int argc, char *argv[])
 			break;
 		case 'r':
 			if (optarg)
-				pvt->rotate_cap = strtoul(optarg, NULL, 10);
+				rotate_input = strtoul(optarg, NULL, 10);
+				if (rotate_input == 1 || rotate_input == 90) {
+					pvt->rotate_cap = ROT_90;
+				}
 			break;
 		default:
 			usage(progname);
