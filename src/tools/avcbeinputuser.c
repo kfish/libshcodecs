@@ -29,6 +29,10 @@
 
 #include "avcbencsmp.h"
 
+#include "capture.h"
+
+#include <shveu/shveu.h>
+#include <shveu/veu_colorspace.h>
 #include <shcodecs/shcodecs_encoder.h>
 
 long frame_counter_of_input;	/* the number of input frames for stream-1 */

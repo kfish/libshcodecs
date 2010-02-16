@@ -122,6 +122,78 @@ VPU4_ENC_LIBS="$VPU4_BASE_LIBS -lavcbe -lm4vse"
 AC_SUBST(VPU4_DEC_LIBS)
 AC_SUBST(VPU4_ENC_LIBS)
 
+dnl
+dnl Check for libuiomux
+dnl
+
+HAVE_UIOMUX=no
+UIOMUX_SUPPORT=no
+
+ac_enable_uiomux=yes
+AC_ARG_ENABLE(uiomux,
+  AC_HELP_STRING([--disable-uiomux], [disable building of UIOMux support]),
+  [ ac_enable_uiomux=no ], [ ac_enable_uiomux=yes ])
+
+if test "x${ac_enable_uiomux}" = xyes ; then
+  if test "x$HAVE_PKG_CONFIG" = "xyes" ; then
+    PKG_CHECK_MODULES(UIOMUX, uiomux, HAVE_UIOMUX=yes, HAVE_UIOMUX=no)
+  fi
+
+  if test "x$HAVE_UIOMUX" = "xno" ; then
+    AC_CHECK_LIB(uiomux, uiomux_init, HAVE_UIOMUX="maybe", , [-l...])
+    if test "x$HAVE_UIOMUX" = xmaybe ; then
+      AC_CHECK_HEADER([uiomux/uiomux.h], HAVE_UIOMUX="yes", HAVE_UIOMUX="no")
+    fi
+    if test "x$HAVE_UIOMUX" = xyes ; then
+      UIOMUX_LIBS="-luiomux"
+    fi
+  fi
+
+  if test "x$HAVE_UIOMUX" = "xyes" ; then
+    AC_DEFINE(HAVE_UIOMUX, [1], [Define to 1 if you have libuiomux])
+    UIOMUX_SUPPORT="yes"
+  fi
+else
+  UIOMUX_SUPPORT="disabled"
+fi
+AM_CONDITIONAL(HAVE_UIOMUX, [test "x$HAVE_UIOMUX" = "xyes"])
+
+dnl Check for libshveu
+dnl
+
+HAVE_SHVEU=no
+SHVEU_SUPPORT=no
+
+ac_enable_shveu=yes
+AC_ARG_ENABLE(shveu,
+  AC_HELP_STRING([--disable-shveu], [disable building of libshveu support]),
+  [ ac_enable_shveu=no ], [ ac_enable_shveu=yes ])
+
+if test "x${ac_enable_shveu}" = xyes ; then
+  if test "x$HAVE_PKG_CONFIG" = "xyes" ; then
+    PKG_CHECK_MODULES(SHVEU, shveu, HAVE_SHVEU=yes, HAVE_SHVEU=no)
+  fi
+
+  if test "x$HAVE_SHVEU" = "xno" ; then
+    AC_CHECK_LIB(shveu, shveu_open, HAVE_SHVEU="maybe", , [-l...])
+    if test "x$HAVE_SHVEU" = xmaybe ; then
+      AC_CHECK_HEADER([shveu/shveu.h], HAVE_SHVEU="yes", HAVE_SHVEU="no")
+    fi
+    if test "x$HAVE_SHVEU" = xyes ; then
+      SHVEU_LIBS="-lshveu"
+    fi
+  fi
+
+  if test "x$HAVE_SHVEU" = "xyes" ; then
+    AC_DEFINE(HAVE_SHVEU, [1], [Define to 1 if you have libshveu])
+    SHVEU_SUPPORT="yes"
+    shcodecs_pkgdeps="$shcodecs_pkgdeps shveu"
+  fi
+else
+  SHVEU_SUPPORT="disabled"
+fi
+AM_CONDITIONAL(HAVE_SHVEU, [test "x$HAVE_SHVEU" = "xyes"])
+
 # check for getopt in a separate library
 HAVE_GETOPT=no
 AC_CHECK_LIB(getopt, getopt, HAVE_GETOPT="yes")
@@ -277,6 +349,8 @@ AC_MSG_RESULT([
   General configuration:
 
     Experimental code: ........... ${ac_enable_experimental}
+    UIOMux support: .............. ${UIOMUX_SUPPORT}
+    libshveu support: ............ ${SHVEU_SUPPORT}
 
   Installation paths:
 

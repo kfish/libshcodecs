@@ -19,6 +19,9 @@
    and to 0 otherwise. */
 #undef HAVE_REALLOC
 
+/* Define to 1 if you have libshveu */
+#undef HAVE_SHVEU
+
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
 
@@ -39,6 +42,9 @@
 
 /* Define to 1 if you have timerfd support */
 #undef HAVE_TIMERFD
+
+/* Define to 1 if you have libuiomux */
+#undef HAVE_UIOMUX
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H

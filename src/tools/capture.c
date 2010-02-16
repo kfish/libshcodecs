@@ -22,7 +22,7 @@
 #include <sys/ioctl.h>
 
 #include <linux/videodev2.h>
-#include "veu_colorspace.h"
+#include <uiomux/uiomux.h>
 #include "capture.h"
 
 #define CLEAR(x) memset (&(x), 0, sizeof (x))
@@ -50,7 +50,8 @@ struct capture_ {
 	int height;
 	unsigned int pixel_format;
 	int use_physical;
-};
+	UIOMux *uiomux;
+} sh_ceu;
 
 
 static void errno_exit(const char *s)
@@ -432,14 +433,17 @@ init_userp(capture * cap, unsigned int buffer_size)
 	}
 
 	for (cap->n_buffers = 0; cap->n_buffers < req.count; ++cap->n_buffers) {
-		void *user, *phys;
+		void *user;
+		unsigned long phys;
 
-		/* Get UIO memory from the VEU */
-		sh_veu_get_mem(buffer_size, page_size, &phys, &user);
+		/* Get user memory from UIO */
+		user = uiomux_malloc(cap->uiomux, UIOMUX_SH_VEU,
+               buffer_size, page_size);
+		phys = uiomux_virt_to_phys(cap->uiomux, UIOMUX_SH_VEU, user);
 
 		cap->buffers[cap->n_buffers].length = buffer_size;
 		cap->buffers[cap->n_buffers].start = user;
-		cap->buffers[cap->n_buffers].phys_addr = phys;
+		cap->buffers[cap->n_buffers].phys_addr = (void *)phys;
 
 		if (!cap->buffers[cap->n_buffers].start) {
 			fprintf(stderr, "Out of memory\n");
@@ -529,15 +533,10 @@ static void init_device(capture * cap)
 	fmt.fmt.pix.field       = V4L2_FIELD_ANY;
 
 	if (-1 == xioctl(cap->fd, VIDIOC_S_FMT, &fmt)) {
-		fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
-		if (-1 == xioctl(cap->fd, VIDIOC_S_FMT, &fmt)) {
-			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB565;
-			if (-1 == xioctl(cap->fd, VIDIOC_S_FMT, &fmt)) {
-       			errno_exit("VIDIOC_S_FMT");
-			}
-		}
+		errno_exit("VIDIOC_S_FMT");
 	}
 	cap->pixel_format = fmt.fmt.pix.pixelformat;
+
 	/* Note VIDIOC_S_FMT may change width and height. */
 	cap->width = fmt.fmt.pix.width;
 	cap->height = fmt.fmt.pix.height;
@@ -570,6 +569,8 @@ static void init_device(capture * cap)
 
 static void close_device(capture * cap)
 {
+	uiomux_close(cap->uiomux);
+
 	if (-1 == close(cap->fd))
 		errno_exit("close");
 
@@ -598,6 +599,14 @@ static void open_device(capture * cap)
 	if (-1 == cap->fd) {
 		fprintf(stderr, "Cannot open '%s': %d, %s\n",
 			cap->dev_name, errno, strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+
+	/* User mapped memory */
+	cap->uiomux = uiomux_open();
+	if (cap->uiomux == 0) {
+		fprintf(stderr, "Cannot uiomux: %d, %s\n",
+			errno, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 }
