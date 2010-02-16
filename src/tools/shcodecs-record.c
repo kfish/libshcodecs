@@ -254,7 +254,7 @@ void *process_capture_thread(void *data)
 
 		shcodecs_encoder_get_input_physical_addr (pvt->encoder, (unsigned int *)&enc_y, (unsigned int *)&enc_c);
 
-		if (pvt->rotate_cap == NO_ROT) {
+		if (pvt->rotate_cap == SHVEU_NO_ROT) {
 			src_w = pvt->cap_w;
 			src_h = pvt->cap_h;
 		} else {
@@ -413,7 +413,7 @@ int main(int argc, char *argv[])
 
 	pvt->captured_frames = 0;
 	pvt->output_frames = 0;
-	pvt->rotate_cap = NO_ROT;
+	pvt->rotate_cap = SHVEU_NO_ROT;
 
 	pvt->enc_framerate = NULL;
 
@@ -445,7 +445,7 @@ int main(int argc, char *argv[])
 			if (optarg) {
 				rotate_input = strtoul(optarg, NULL, 10);
 				if (rotate_input == 1 || rotate_input == 90) {
-					pvt->rotate_cap = ROT_90;
+					pvt->rotate_cap = SHVEU_ROT_90;
 				}
 			}
 			break;
@@ -536,7 +536,7 @@ int main(int argc, char *argv[])
 		return -4;
 	}
 
-	if (pvt->rotate_cap == NO_ROT) {
+	if (pvt->rotate_cap == SHVEU_NO_ROT) {
 		pvt->enc_w = pvt->cap_w;
 		pvt->enc_h = pvt->cap_h;
 	} else {
