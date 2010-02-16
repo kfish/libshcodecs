@@ -83,7 +83,10 @@ SHCodecs_Decoder *shcodecs_decoder_init(int width, int height, int format)
                 decoder->max_nal_size /= 2; /* Apply MinCR */
 
 	/* Initialize m4iph */
-	m4iph_vpu_open();
+	if (m4iph_vpu_open() < 0) {
+		free (decoder);
+		return NULL;
+	}
 	m4iph_sdr_open();
 
 	/* Stream initialize */

@@ -210,7 +210,10 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	if (encoder == NULL)
 		return NULL;
 
-	m4iph_vpu_open();
+	if (m4iph_vpu_open() < 0) {
+		free (encoder);
+		return NULL;
+	}
 	m4iph_sdr_open();
 
 	set_dimensions (encoder, width, height);
