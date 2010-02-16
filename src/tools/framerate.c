@@ -174,7 +174,6 @@ framerate_elapsed_us (struct framerate * framerate)
 int framerate_mark (struct framerate * framerate)
 {
 	long prev_elapsed_us;
-	int ret;
 
 	framerate->nr_handled++;
 
@@ -183,7 +182,7 @@ int framerate_mark (struct framerate * framerate)
 	framerate->total_elapsed_us = framerate_elapsed_us (framerate);
 	framerate->curr_elapsed_us = framerate->total_elapsed_us - prev_elapsed_us;
 
-	return ret;
+	return 0;
 }
 
 uint64_t
