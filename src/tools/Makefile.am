@@ -6,7 +6,9 @@ INCLUDES = -I$(top_builddir) \
 SHCODECSDIR = ../libshcodecs
 SHCODECS_LIBS = $(SHCODECSDIR)/libshcodecs.la -lm
 
-bin_PROGRAMS = shcodecs-dec shcodecs-enc shcodecs-enc-benchmark shcodecs-cap shcodecs-play shcodecs-record
+bin_PROGRAMS = shcodecs-dec shcodecs-enc shcodecs-cap shcodecs-play shcodecs-record
+
+noinst_PROGRAMS = shcodecs-enc-benchmark
 
 noinst_HEADERS = \
 	avcbencsmp.h \
