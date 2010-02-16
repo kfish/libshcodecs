@@ -680,7 +680,10 @@ int main(int argc, char **argv)
 	}
 
 	/* Open the VEU UIO */
-	sh_veu_open ();
+	if (sh_veu_open () < 0) {
+		fprintf (stderr, "Could not open VEU, exiting\n");
+		exit (EXIT_FAILURE);
+	}
 
 	/* Open file descriptors to talk to the VPU driver */
 	if ((decoder = shcodecs_decoder_init(pvt->src_w, pvt->src_h, stream_type)) == NULL)

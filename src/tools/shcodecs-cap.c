@@ -169,7 +169,10 @@ int main(int argc, char **argv)
 		pvt.ceu = capture_open(pvt.dev_name, pvt.width, pvt.height);
 	} else {
 		fprintf(stderr, "Capture at %dx%d using user\n", pvt.width, pvt.height);
-		sh_veu_open();
+		if (sh_veu_open() < 0) {
+			fprintf (stderr, "Could not open VEU, exiting\n");
+			exit (EXIT_FAILURE);
+		}
 		pvt.ceu = capture_open_userio(pvt.dev_name, pvt.width, pvt.height);
 	}
 	pvt.cap_framerate = framerate_new_timer (30.0);

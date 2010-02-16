@@ -514,7 +514,9 @@ int main(int argc, char *argv[])
 	signal (SIGPIPE, sig_handler);
 
 	/* VEU Scaler initialisation */
-	sh_veu_open();
+	if (sh_veu_open() < 0) {
+		fprintf (stderr, "Could not open VEU, exiting\n");
+	}
 
 	/* Camera capture initialisation */
 	pvt->ceu = capture_open_userio(pvt->ainfo.input_file_name_buf, pvt->ainfo.xpic, pvt->ainfo.ypic);
@@ -548,6 +550,7 @@ int main(int argc, char *argv[])
 	debug_printf("Encode resolution:  %dx%d\n", pvt->enc_w, pvt->enc_h);
 
 	if (!display_open(pvt)) {
+		fprintf (stderr, "Error opening display\n");
 		return -5;
 	}
 
