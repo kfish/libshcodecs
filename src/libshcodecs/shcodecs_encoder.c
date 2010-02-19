@@ -200,11 +200,7 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 					SHCodecs_Format format)
 {
 	SHCodecs_Encoder *encoder;
-	long width_height;
 	long return_code;
-	int i;
-	unsigned char *pY;
-	unsigned long buf_size;
 
 	encoder = calloc(1, sizeof(SHCodecs_Encoder));
 	if (encoder == NULL)
@@ -256,7 +252,31 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	encode_time_init();
 	vpu4_clock_on();
 
-	width_height = ROUND_UP_16(width) * ROUND_UP_16(height);
+
+	if (encoder->format == SHCodecs_Format_H264) {
+		return_code = h264_encode_init (encoder, AVCBE_H264);
+	} else {
+		return_code = mpeg4_encode_init (encoder, AVCBE_MPEG4);
+	}
+	if (return_code < 0)
+		goto err;
+
+	return encoder;
+
+err:
+	shcodecs_encoder_close(encoder);
+	return NULL;
+}
+
+static int
+shcodecs_encoder_deferred_init (SHCodecs_Encoder * encoder)
+{
+	long width_height;
+	unsigned long buf_size;
+	unsigned char *pY;
+	int i;
+
+	width_height = ROUND_UP_16(encoder->width) * ROUND_UP_16(encoder->height);
 	width_height += (width_height / 2);
 
 	/* Input buffers */
@@ -293,25 +313,13 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	if (!encoder->end_code_buff_info.buff_top)
 		goto err;
 
-	if (encoder->format == SHCodecs_Format_H264) {
-		return_code = h264_encode_init (encoder, AVCBE_H264);
-	} else {
-		return_code = mpeg4_encode_init (encoder, AVCBE_MPEG4);
-	}
-	if (return_code < 0)
-		goto err;
+	encoder->initialized = 1;
 
-	return encoder;
+	return 0;
 
 err:
 	shcodecs_encoder_close(encoder);
-	return NULL;
-}
-
-static int
-shcodecs_encoder_deferred_init (SHCodecs_Encoder * encoder)
-{
-	encoder->initialized = 1;
+	return -1;
 }
 
 /**
@@ -356,7 +364,9 @@ shcodecs_encoder_set_output_callback(SHCodecs_Encoder * encoder,
 int shcodecs_encoder_run(SHCodecs_Encoder * encoder)
 {
 	if (encoder->initialized < 1) {
-		shcodecs_encoder_deferred_init (encoder);
+		if (shcodecs_encoder_deferred_init (encoder) == -1) {
+			return -1;
+		}
 	}
 
 	if (encoder->format == SHCodecs_Format_H264) {
