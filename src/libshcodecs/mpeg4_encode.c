@@ -215,7 +215,7 @@ mpeg4_encode_deferred_init(SHCodecs_Encoder *enc, long stream_type)
 	if (rc != 0)
 		return vpu_err(enc, __func__, __LINE__, rc);
 
-	enc->initialized = 1;
+	enc->initialized = 2;
 
 	return 0;
 }
@@ -440,7 +440,7 @@ mpeg4_encode_run (SHCodecs_Encoder *enc, long stream_type)
 	long rc, length;
 	int cb_ret=0;
 
-	if (!enc->initialized)
+	if (enc->initialized < 2)
 		mpeg4_encode_deferred_init (enc, stream_type);
 
 	enc->error_return_code = 0;
