@@ -69,15 +69,6 @@ stream_buff_size (SHCodecs_Encoder * encoder)
 	return size;
 }
 
-static void
-set_dimensions (SHCodecs_Encoder * encoder, int width, int height)
-{
-	encoder->width = width;
-	encoder->height = height;
-
-	encoder->y_bytes = (((width + 15) / 16) * 16) * (((height + 15) / 16) * 16);
-}
-
 /*----------------------------------------------------------------------------------------------*/
 /* set the parameters of VPU4 */
 /*----------------------------------------------------------------------------------------------*/
@@ -212,7 +203,9 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	}
 	m4iph_sdr_open();
 
-	set_dimensions (encoder, width, height);
+	encoder->width = width;
+	encoder->height = height;
+
 	encoder->format = format;
 
 	encoder->input = NULL;
@@ -278,6 +271,8 @@ shcodecs_encoder_deferred_init (SHCodecs_Encoder * encoder)
 
 	width_height = ROUND_UP_16(encoder->width) * ROUND_UP_16(encoder->height);
 	width_height += (width_height / 2);
+
+	encoder->y_bytes = (((encoder->width + 15) / 16) * 16) * (((encoder->height + 15) / 16) * 16);
 
 	/* Input buffers */
 	for (i=0; i<NUM_INPUT_FRAMES; i++) {
