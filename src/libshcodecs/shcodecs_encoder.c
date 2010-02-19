@@ -308,6 +308,12 @@ err:
 	return NULL;
 }
 
+static int
+shcodecs_encoder_deferred_init (SHCodecs_Encoder * encoder)
+{
+	encoder->initialized = 1;
+}
+
 /**
  * Set the callback for libshcodecs to call when raw YUV data is required.
  * \param encoder The SHCodecs_Encoder* handle
@@ -349,6 +355,10 @@ shcodecs_encoder_set_output_callback(SHCodecs_Encoder * encoder,
  */
 int shcodecs_encoder_run(SHCodecs_Encoder * encoder)
 {
+	if (encoder->initialized < 1) {
+		shcodecs_encoder_deferred_init (encoder);
+	}
+
 	if (encoder->format == SHCodecs_Format_H264) {
 		return h264_encode_run (encoder, AVCBE_H264);
 	} else {

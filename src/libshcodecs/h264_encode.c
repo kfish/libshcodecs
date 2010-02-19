@@ -186,7 +186,7 @@ h264_encode_deferred_init(SHCodecs_Encoder *enc, long stream_type)
 	if (rc != 0)
 		return vpu_err(enc, __func__, __LINE__, rc);
 
-	enc->initialized = 1;
+	enc->initialized = 2;
 
 	return 0;
 }
@@ -552,7 +552,7 @@ h264_encode_run (SHCodecs_Encoder *enc, long stream_type)
 {
 	long rc, length;
 
-	if (!enc->initialized) {
+	if (enc->initialized < 2) {
 		rc = h264_encode_deferred_init(enc, stream_type);
 		if (rc != 0)
 			return rc;
