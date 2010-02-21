@@ -28,6 +28,20 @@ typedef void SHCodecs_Encoder;
 typedef int (*SHCodecs_Encoder_Input) (SHCodecs_Encoder * encoder, void * user_data);
 
 /**
+ * Signature of a callback for libshcodecs to call when it no longer requires
+ * access to a previously input YUV buffer.
+ * To pause encoding, return 1 from this callback.
+ * \param encoder The SHCodecs_Encoder* handle
+ * \param user_data Arbitrary data supplied by user
+ * \retval 0 Continue encoding
+ * \retval 1 Pause encoding, return from shcodecs_encode()
+ */
+typedef int (*SHCodecs_Encoder_Input_Release) (SHCodecs_Encoder * encoder,
+                                               unsigned char * y_input,
+                                               unsigned char * c_input,
+                                               void * user_data);
+
+/**
  * Signature of a callback for libshcodecs to call when it has encoded data.
  * To pause encoding, return 1 from this callback.
  * \param encoder The SHCodecs_Encoder* handle
@@ -80,6 +94,18 @@ int
 shcodecs_encoder_set_input_callback (SHCodecs_Encoder * encoder,
                                      SHCodecs_Encoder_Input input_cb,
                                      void * user_data);
+
+/**
+ * Set the callback for libshcodecs to call when it no longer requires
+ * access to a previously input YUV buffer.
+ * \param encoder The SHCodecs_Encoder* handle
+ * \param release_cb The callback function
+ * \param user_data Additional data to pass to the callback function
+ */
+int
+shcodecs_encoder_set_input_release_callback (SHCodecs_Encoder * encoder,
+                                             SHCodecs_Encoder_Input_Release release_cb,
+                                             void * user_data);
 
 /**
  * Provide input data to the encoder.
