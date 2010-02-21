@@ -104,13 +104,13 @@ shcodecs_encoder_input_provide (SHCodecs_Encoder * encoder,
  * and can be retrieved with shcodecs_encoder_get_y_bytes() and
  * shcodecs_encoder_get_c_bytes().
  * \param encoder The SHCodecs_Encoder* handle
- * \param pp_y_input Address of the pointer to luma
- * \param pp_c_input Address of the pointer to chroma
+ * \param y_input Location to store address of luma
+ * \param c_input Location to store address of chroma
  * \retval 0 Success
  */
 int
 shcodecs_encoder_get_input_buf (SHCodecs_Encoder *encoder, 
-                                unsigned char **pp_y_input, unsigned char **pp_c_input);
+                                unsigned char **y_input, unsigned char **c_input);
 
 /**
  * Get the size in bytes of a Y plane of input data.
