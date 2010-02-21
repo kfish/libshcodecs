@@ -353,6 +353,24 @@ shcodecs_encoder_set_input_callback(SHCodecs_Encoder * encoder,
 }
 
 /**
+ * Set the callback for libshcodecs to call when it no longer requires
+ * access to a previously input YUV buffer.
+ * \param encoder The SHCodecs_Encoder* handle
+ * \param release_cb The callback function
+ * \param user_data Additional data to pass to the callback function
+ */
+int
+shcodecs_encoder_set_input_release_callback (SHCodecs_Encoder * encoder,
+                                             SHCodecs_Encoder_Input_Release release_cb,
+                                             void * user_data)
+{
+	encoder->release = release_cb;
+	encoder->release_user_data = user_data;
+
+	return 0;
+}
+
+/**
  * Set the callback for libshcodecs to call when encoded data is available.
  * \param encoder The SHCodecs_Encoder* handle
  * \param encodec_cb The callback function
