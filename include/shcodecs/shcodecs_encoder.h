@@ -73,7 +73,7 @@ shcodecs_encoder_set_output_callback (SHCodecs_Encoder * encoder,
 /**
  * Set the callback for libshcodecs to call when raw YUV data is required.
  * \param encoder The SHCodecs_Encoder* handle
- * \param get_input_cb The callback function
+ * \param input_cb The callback function
  * \param user_data Additional data to pass to the callback function
  */
 int
@@ -193,8 +193,8 @@ shcodecs_encoder_get_frame_num_delta(SHCodecs_Encoder *encoder);
  * Get the physical address of input data.
  * This function MUST be called from within an SHCodecs_Encoder_Input callback.
  * \param encoder The SHCodecs_Encoder* handle
- * \param y_input Pointer to the Y plane of input data
- * \param c_input Pointer to the CbCr plane of input data
+ * \param y_input Location to store physical address of the Y plane
+ * \param c_input Location to store physical address of the CbCr plane
  * \retval 0 Success
  * \retval -1 \a encoder invalid
  */
