@@ -403,11 +403,22 @@ mpeg4_encode_picture (SHCodecs_Encoder *enc,
 
 			for (i=0; i < (enc->other_options_mpeg4.avcbe_b_vop_num + 1); i++) {
 				if (frame_check_array[i].avcbe_status == AVCBE_UNLOCK) {
+					if (enc->release) {
+						enc->release (enc,
+                                                              addr_y_tbl[i],
+                                                              addr_c_tbl[i],
+                                                              enc->release_user_data);
+					}
 					input_frame.Y_fmemp = addr_y_tbl[i];
 					input_frame.C_fmemp = addr_c_tbl[i];
 					break;
 				}
 			}
+		}
+#else
+		if (enc->release) {
+			enc->release (enc, input_frame.Y_fmemp, input_frame.C_fmemp,
+                                      enc_release_user_data);
 		}
 #endif
 

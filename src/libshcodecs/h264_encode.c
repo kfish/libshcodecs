@@ -543,6 +543,11 @@ h264_encode_multiple(SHCodecs_Encoder *encs[], int nr_encoders)
 
 			/* Encode the frame */
 			rc = h264_encode_frame(enc, enc->addr_y, enc->addr_c);
+
+			if (enc->release) {
+				enc->release(enc, enc->addr_y, enc->addr_c, enc->release_user_data);
+			}
+
 			if (rc != 0)
 				return rc;
 		}
