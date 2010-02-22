@@ -228,6 +228,17 @@ int
 shcodecs_encoder_get_input_physical_addr (SHCodecs_Encoder * encoder, 
                                           unsigned int *addr_y, unsigned int *addr_C);
 
+/**
+ * Set the physical address of input data.
+ * This function must ONLY be called from within an SHCodecs_Encoder_Input callback.
+ * \param encoder The SHCodecs_Encoder* handle
+ * \param y_input Pointer to the Y plane of input data
+ * \param c_input Pointer to the CbCr plane of input data
+ * \retval -1 \a encoder invalid
+ */
+int
+shcodecs_encoder_set_input_physical_addr (SHCodecs_Encoder * encoder, 
+                                          unsigned int *addr_y, unsigned int *addr_C);
 
 #include <shcodecs/encode_general.h>
 #include <shcodecs/encode_properties.h>
