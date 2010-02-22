@@ -426,8 +426,10 @@ mpeg4_encode_picture (SHCodecs_Encoder *enc,
 
 		/* Get the encoder input frame */
 		if (enc->input) {
-			enc->addr_y = input_frame.Y_fmemp;
-			enc->addr_c = input_frame.C_fmemp;
+			if (enc->allocate) {
+				enc->addr_y = input_frame.Y_fmemp;
+				enc->addr_c = input_frame.C_fmemp;
+			}
 			cb_ret = enc->input(enc, enc->input_user_data);
 			if (cb_ret != 0) {
 				fprintf (stderr, "%s: ERROR acquiring input image!\n", __func__);

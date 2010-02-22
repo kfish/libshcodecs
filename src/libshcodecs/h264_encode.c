@@ -526,8 +526,10 @@ h264_encode(SHCodecs_Encoder *enc)
 
 		/* Get the encoder input frame */
 		if (enc->input) {
-			enc->addr_y = enc->input_frames[0].Y_fmemp;
-			enc->addr_c = enc->input_frames[0].C_fmemp;
+			if (enc->allocate) {
+				enc->addr_y = enc->input_frames[0].Y_fmemp;
+				enc->addr_c = enc->input_frames[0].C_fmemp;
+			}
 			cb_ret = enc->input(enc, enc->input_user_data);
 			if (cb_ret != 0) {
 #ifdef OUTPUT_STREAM_INFO

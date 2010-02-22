@@ -122,6 +122,7 @@ struct _SHCodecs_Encoder {
 	long error_return_code;	/* return_value of the API function when error ocuured */
 
 	/* Internal */
+	int allocate; /* Whether or not shcodecs should allocate/free input buffers */
 	int initialized; /* Is avcbe_encode_init() done? */
 	int y_bytes; /* Bytes used by Y input plane; CbCr plane uses y_bytes/2 */
 	unsigned char * addr_y; /* VPU address to write next Y plane; updated by encoder backends */

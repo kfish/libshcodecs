@@ -145,9 +145,11 @@ void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
 	width_height += (width_height / 2);
 
 	/* Input buffers */
-	for (i=0; i<NUM_INPUT_FRAMES; i++) {
-		if (encoder->input_frames[i].Y_fmemp)
-			m4iph_sdr_free(encoder->input_frames[i].Y_fmemp, width_height);
+	if (encoder->allocate) {
+		for (i=0; i<NUM_INPUT_FRAMES; i++) {
+			if (encoder->input_frames[i].Y_fmemp)
+				m4iph_sdr_free(encoder->input_frames[i].Y_fmemp, width_height);
+		}
 	}
 
 	/* Local decode images */
@@ -200,6 +202,8 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	encoder->height = height;
 
 	encoder->format = format;
+
+	encoder->allocate = 1;
 
 	encoder->input = NULL;
 	encoder->output = NULL;
@@ -268,11 +272,13 @@ shcodecs_encoder_deferred_init (SHCodecs_Encoder * encoder)
 	encoder->y_bytes = (((encoder->width + 15) / 16) * 16) * (((encoder->height + 15) / 16) * 16);
 
 	/* Input buffers */
-	for (i=0; i<NUM_INPUT_FRAMES; i++) {
-		pY = m4iph_sdr_malloc(width_height, 32);
-		if (!pY) goto err;
-		encoder->input_frames[i].Y_fmemp = pY;
-		encoder->input_frames[i].C_fmemp = pY + encoder->y_bytes;
+	if (encoder->allocate) {
+		for (i=0; i<NUM_INPUT_FRAMES; i++) {
+			pY = m4iph_sdr_malloc(width_height, 32);
+			if (!pY) goto err;
+			encoder->input_frames[i].Y_fmemp = pY;
+			encoder->input_frames[i].C_fmemp = pY + encoder->y_bytes;
+		}
 	}
 
 	/* Local decode images. This is the number of reference frames plus one
@@ -397,6 +403,16 @@ shcodecs_encoder_input_provide (SHCodecs_Encoder * encoder,
 	m4iph_sdr_write(encoder->addr_c, c_input, encoder->y_bytes / 2);
 
 	return 0;
+}
+
+int shcodecs_encoder_set_allocate_input_buffers (SHCodecs_Encoder * encoder, int allocate)
+{
+  if (encoder == NULL) return -1;
+  if (encoder->initialized != 0) return -2;
+
+  encoder->allocate = allocate;
+
+  return 0;
 }
 
 /*
