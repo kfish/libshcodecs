@@ -49,3 +49,8 @@ shcodecs-record
 	and only capture 1 frame. It seems to block on the first VEU op.
 	Perhaps some issue with VEU no-op?
 
+shcodecs-play
+
+	* print error if cannot init decoder (eg. no size given)
+
+	* handle float framerate values (eg. shcodecs-play -r 29.97)
