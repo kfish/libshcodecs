@@ -82,11 +82,11 @@ struct private_data {
 
 	/* Captured frame information */
 	capture *ceu;
-	unsigned char *cap_y;
-	unsigned char *cap_c;
+	unsigned long cap_y;
+	unsigned long cap_c;
+	unsigned long cap_w;
+	unsigned long cap_h;
 	int rotate_cap;
-	int cap_w;
-	int cap_h;
 
 	unsigned long enc_w;
 	unsigned long enc_h;
