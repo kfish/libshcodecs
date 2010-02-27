@@ -43,8 +43,6 @@
 #include <sys/param.h>
 #include <sys/types.h>
 #include <sys/time.h>
-#include <linux/fb.h>
-#include <linux/ioctl.h>
 #include <aio.h>
 #include <pthread.h>
 #include <errno.h>
@@ -52,6 +50,7 @@
 #include <shveu/shveu.h>
 
 #include "framerate.h"
+#include "display.h"
 
 #define DEFAULT_WIDTH 320
 #define DEFAULT_HEIGHT 240
@@ -59,24 +58,8 @@
 
 /* #define DEBUG */
 
-/* limitation of VEU2H on SH7723 */
-//#define VEU2H_MAX_WIDTH 640
-#define VEU2H_MAX_WIDTH 1280
-
-#define LCD_BPP 2
-#define U_SEC_PER_SEC 1000000
-
-#define min(a, b) ((a) < (b) ? (a) : (b))
-#define max(a, b) ((a) > (b) ? (a) : (b))
-
 struct private_data {
-	/* Display data */
-	int fb_handle;
-	int fb_index;
-	struct fb_fix_screeninfo fb_fix;
-	struct fb_var_screeninfo fb_var;
-	unsigned char *fb_base;
-	unsigned char *fb_screenMem;
+	void *display;
 
 	/* Output thread related data */
 	pthread_mutex_t	 	mutex;			/* Protect data */
@@ -95,9 +78,6 @@ struct private_data {
 	int loop;
 
 	struct framerate * framerate;
-
-	int lcd_w;	  /* LCD size */
-	int lcd_h;
 
 	int dst_w;	  /* Size of video output */
 	int dst_h;
@@ -166,65 +146,6 @@ void debug_printf(const char *fmt, ...)
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
 #endif
-}
-
-/*****************************************************************************/
-
-static int display_flip(struct private_data *pvt)
-{
-	struct fb_var_screeninfo fb_screen = pvt->fb_var;
-
-	fsync(pvt->fb_handle);
-
-	fb_screen.xoffset = 0;
-	fb_screen.yoffset = 0;
-	if (pvt->fb_index==0)
-		fb_screen.yoffset = pvt->fb_var.yres;
-	if (-1 == ioctl(pvt->fb_handle, FBIOPAN_DISPLAY, &fb_screen))
-		return 0;
-
-	/* Point to the back buffer */
-	pvt->fb_screenMem = pvt->fb_base;
-	if (pvt->fb_index!=0)
-		pvt->fb_screenMem += pvt->fb_var.yres * pvt->fb_var.xres * LCD_BPP;
-
-	pvt->fb_index = (pvt->fb_index+1) & 1;
-	return 1;
-}
-
-
-static int display_open(struct private_data *pvt, const char *device)
-{
-	if ((pvt->fb_handle = open(device, O_RDWR)) < 0) {
-		fprintf(stderr, "Open %s: %s.\n", device, strerror(errno));
-		return 0;
-	}
-	if (ioctl(pvt->fb_handle, FBIOGET_FSCREENINFO, &pvt->fb_fix) < 0) {
-		fprintf(stderr, "Ioctl FBIOGET_FSCREENINFO error.\n");
-		return 0;
-	}
-	if (ioctl(pvt->fb_handle, FBIOGET_VSCREENINFO, &pvt->fb_var) < 0) {
-		fprintf(stderr, "Ioctl FBIOGET_VSCREENINFO error.\n");
-		return 0;
-	}
-	if (pvt->fb_fix.type != FB_TYPE_PACKED_PIXELS) {
-		fprintf(stderr, "This program can only handle packed pixel frame buffers.\n");
-		return 0;
-	}
-
-	pvt->lcd_w = pvt->fb_var.xres;
-	pvt->lcd_h = pvt->fb_var.yres;
-
-	pvt->fb_screenMem = pvt->fb_base = (unsigned char*)pvt->fb_fix.smem_start;
-	pvt->fb_index = 0;
-	display_flip(pvt);
-
-	return 1;
-}
-
-static void display_close(struct private_data *pvt)
-{
-	close(pvt->fb_handle);
 }
 
 /*****************************************************************************/
@@ -346,12 +267,7 @@ static void file_read_deinit(struct private_data *pvt)
 
 void *output_thread(void *data)
 {
-	int dst_offset;
 	struct private_data *pvt = (struct private_data*)data;
-
-	/* Position */
-	int x_offset = pvt->dst_p;
-	int y_offset = pvt->dst_q;
 
 	pthread_mutex_lock (&pvt->mutex);
 
@@ -362,14 +278,14 @@ void *output_thread(void *data)
 			pthread_cond_wait (&pvt->avail, &pvt->mutex);
 		}
 
-		/* Use the VEU to scale & perform colour space conversion */
-		dst_offset = ((y_offset * pvt->lcd_w) + x_offset) * LCD_BPP;
-		shveu_operation(0, pvt->p_frame_y, pvt->p_frame_c,
-			      pvt->src_w, pvt->src_h, pvt->src_w, SHVEU_YCbCr420,
-			      pvt->fb_screenMem + dst_offset, NULL,
-			      pvt->dst_w, pvt->dst_h, pvt->lcd_w, SHVEU_RGB565, 0);
-
-		display_flip(pvt);
+		/* Use the VEU to scale the buffer to the frame buffer */
+		display_update(pvt->display,
+				(unsigned long)pvt->p_frame_y,
+				(unsigned long)pvt->p_frame_c,
+				pvt->src_w,
+				pvt->src_h,
+				pvt->src_w,
+				V4L2_PIX_FMT_NV12);
 
 		/* Signal that we are ready for the next frame */
 		pvt->busy = 0;
@@ -377,28 +293,6 @@ void *output_thread(void *data)
 	}
 
 	pthread_exit(NULL);
-}
-
-
-static void
-frame_ready(struct private_data *pvt, unsigned char *y_in, unsigned char *c_in)
-{
-	pthread_mutex_lock (&pvt->mutex);
-
-	/* Ensure the output thread is ready, we don't want the decoder running
-	faster than the output */
-	while (pvt->busy) {
-		pthread_cond_wait (&pvt->ready, &pvt->mutex);
-	}
-
-	/* Variables shared between the threads */
-	pvt->p_frame_y = y_in;
-	pvt->p_frame_c = c_in;
-	pvt->busy = 1;
-
-	/* Signal the output thread that a frame is available */
-	pthread_cond_signal (&pvt->avail);
-	pthread_mutex_unlock (&pvt->mutex);
 }
 
 
@@ -414,7 +308,22 @@ local_vpu4_decoded (SHCodecs_Decoder *decoder,
 
 	framerate_wait(pvt->framerate);
 
-	frame_ready(pvt, y_buf, c_buf);
+	pthread_mutex_lock (&pvt->mutex);
+
+	/* Ensure the output thread is ready, we don't want the decoder running
+	faster than the output */
+	while (pvt->busy) {
+		pthread_cond_wait (&pvt->ready, &pvt->mutex);
+	}
+
+	/* Variables shared between the threads */
+	pvt->p_frame_y = y_buf;
+	pvt->p_frame_c = c_buf;
+	pvt->busy = 1;
+
+	/* Signal the output thread that a frame is available */
+	pthread_cond_signal (&pvt->avail);
+	pthread_mutex_unlock (&pvt->mutex);
 
 	return 0;
 }
@@ -428,9 +337,8 @@ int main(int argc, char **argv)
 	int stream_type = -1;
 	int c, i, rc, bytes_decoded;
 	char video_filename[MAXPATHLEN];
-	const char *fbname;
 	double fps;
-       	long time;
+	long time;
 	struct private_data pvt_data;
 	struct private_data *pvt;
 	pthread_t thread_output;
@@ -447,15 +355,9 @@ int main(int argc, char **argv)
 	pvt = &pvt_data;
 
 	/* Initialize display */
-	fbname = getenv("FRAMEBUFFER");
-	if (!fbname) {
-		if (access("/dev/.devfsd", F_OK) == 0) {
-			fbname = "/dev/fb/0";
-		} else {
-			fbname = "/dev/fb0";
-		}
-	}
-	if (!display_open(pvt, fbname)) {
+	pvt->display = display_open(0);
+	if (!pvt->display) {
+		fprintf(stderr, "Unable to open display\n");
 		exit(-3);
 	}
 
@@ -464,12 +366,12 @@ int main(int argc, char **argv)
 
 	/* Set defaults */
 	pvt->loop = 0;
-	pvt->src_w  = DEFAULT_WIDTH;
+	pvt->src_w = DEFAULT_WIDTH;
 	pvt->src_h = DEFAULT_HEIGHT;
-	pvt->dst_p = 0;
-	pvt->dst_q = 0;
-	pvt->dst_w = pvt->lcd_w;
-	pvt->dst_h = pvt->lcd_h;
+	pvt->dst_p = -1;
+	pvt->dst_q = -1;
+	pvt->dst_w = -1;
+	pvt->dst_h = -1;
 
 	fps = DEFAULT_FPS;
 
@@ -548,18 +450,10 @@ int main(int argc, char **argv)
 		case 'x':
 			if (optarg)
 				pvt->dst_w = strtoul(optarg, NULL, 10);
-				if (pvt->dst_w > pvt->lcd_w) {
-					pvt->dst_w = pvt->lcd_w;
-					debug_printf("Limiting output width to LCD width (%d)\n", pvt->dst_w);
-				}
 			break;
 		case 'y':
 			if (optarg)
 				pvt->dst_h = strtoul(optarg, NULL, 10);
-				if (pvt->dst_h > pvt->lcd_h) {
-					pvt->dst_h = pvt->lcd_h;
-					debug_printf("Limiting output height to LCD height (%d)\n", pvt->dst_h);
-				}
 			break;
 		case 'p':
 			if (optarg)
@@ -640,18 +534,9 @@ int main(int argc, char **argv)
 	pvt->max_nal_size = (pvt->src_w * pvt->src_h * 3) / 2; /* YCbCr420 */
 	pvt->max_nal_size /= 2; /* Apply MinCR */
 
-	/* Ensure the output is no bigger than the LCD */
-	pvt->dst_p = min(pvt->dst_p, pvt->lcd_w);
-	pvt->dst_q = min(pvt->dst_q, pvt->lcd_h);
-	pvt->dst_w = min(pvt->dst_w, pvt->lcd_w - pvt->dst_p);
-	pvt->dst_h = min(pvt->dst_h, pvt->lcd_h - pvt->dst_q);
+	display_set_position(pvt->display,
+		pvt->dst_w, pvt->dst_h, pvt->dst_p, pvt->dst_q);
 
-
-	/* If scaling down and destination is larger than VGA width, limit to VGA */
-	if (pvt->src_w > pvt->dst_w)
-		pvt->dst_w = min(pvt->dst_w, VEU2H_MAX_WIDTH);
-	if (pvt->src_h > pvt->dst_h)
-		pvt->dst_h = min(pvt->dst_h, VEU2H_MAX_WIDTH);
 
 	if (stream_type == -1) {
 		ext = strrchr (video_filename, '.');
@@ -664,9 +549,6 @@ int main(int argc, char **argv)
 	debug_printf("Input video file:   %s\n", video_filename);
 	debug_printf("Format:             %s\n", stream_type == SHCodecs_Format_H264 ? "H.264" : "MPEG4");
 	debug_printf("File resolution:    %dx%d\n", pvt->src_w, pvt->src_h);
-	debug_printf("Display resolution: %dx%d\n", pvt->lcd_w, pvt->lcd_h);
-	debug_printf("Output resolution:  %dx%d\n", pvt->dst_w, pvt->dst_h);
-	debug_printf("Output position:    %dx%d\n", pvt->dst_p, pvt->dst_q);
 
 	/* Output thread initialisation */
 	pthread_mutex_init (&pvt->mutex, NULL);
@@ -687,16 +569,20 @@ int main(int argc, char **argv)
 	}
 
 	/* Open file descriptors to talk to the VPU driver */
-	if ((decoder = shcodecs_decoder_init(pvt->src_w, pvt->src_h, stream_type)) == NULL)
+	if ((decoder = shcodecs_decoder_init(pvt->src_w, pvt->src_h, stream_type)) == NULL) {
+		fprintf(stderr, "Unable to init decoder\n");
 		exit (-9);
+	}
 
 	/* setup callback for frame decoded  & make the decode use physical addresses */
 	shcodecs_decoder_set_decoded_callback (decoder, local_vpu4_decoded, pvt);
 	shcodecs_decoder_set_use_physical (decoder, 1);
 
 	/* File read initialisation */
-	if (file_read_init(pvt, video_filename) < 0)
+	if (file_read_init(pvt, video_filename) < 0) {
+		fprintf(stderr, "Unable to read file\n");
 		exit(-1);
+	}
 
 	/* Initialize framerate timer */
 	pvt->framerate = framerate_new_timer (fps);
@@ -720,8 +606,8 @@ int main(int argc, char **argv)
 
 	shcodecs_decoder_close(decoder);
 	file_read_deinit(pvt);
+	display_close(pvt->display);
 	shveu_close();
-	display_close(pvt);
 
 	pthread_mutex_destroy(&pvt->mutex);
 	pthread_cond_destroy(&pvt->avail);
