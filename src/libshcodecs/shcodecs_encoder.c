@@ -76,6 +76,7 @@ static void
 set_VPU4_param(SHCodecs_Encoder * encoder)
 {
 	M4IPH_VPU4_INIT_OPTION * vpu4_param = &(encoder->vpu4_param);
+	unsigned long buf_size, tb;
 
 	/* VPU4 Base Address For SH-Mobile 3A */
 	vpu4_param->m4iph_vpu_base_address = 0xFE900000;
@@ -100,6 +101,12 @@ set_VPU4_param(SHCodecs_Encoder * encoder)
 
 	/* Address Mask chage */
 	vpu4_param->m4iph_vpu_mask_address_disable = M4IPH_OFF;
+
+	/* Temporary Buffer */
+	buf_size = stream_buff_size (encoder);
+	tb = (unsigned long)m4iph_sdr_malloc(buf_size, 32);
+	vpu4_param->m4iph_temporary_buff_address = tb;
+	vpu4_param->m4iph_temporary_buff_size = buf_size;
 }
 
 static int
@@ -238,6 +245,7 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	encode_time_init();
 	vpu4_clock_on();
 
+
 	if (encoder->format == SHCodecs_Format_H264) {
 		return_code = h264_encode_init (encoder, AVCBE_H264);
 	} else {
@@ -256,9 +264,8 @@ err:
 static int
 shcodecs_encoder_deferred_init (SHCodecs_Encoder * encoder)
 {
-	M4IPH_VPU4_INIT_OPTION * vpu4_param;
 	long width_height;
-	unsigned long buf_size, tb;
+	unsigned long buf_size;
 	unsigned char *pY;
 	int i;
 
@@ -284,22 +291,16 @@ shcodecs_encoder_deferred_init (SHCodecs_Encoder * encoder)
 		encoder->local_frames[i].C_fmemp = pY + encoder->y_bytes;
 	}
 
-	/* Temporary Buffer */
-	vpu4_param = &(encoder->vpu4_param);
-	buf_size = stream_buff_size (encoder);
-	tb = (unsigned long)m4iph_sdr_malloc(buf_size, 32);
-	vpu4_param->m4iph_temporary_buff_address = tb;
-	vpu4_param->m4iph_temporary_buff_size = buf_size;
-
-	encoder->stream_buff_info.buff_size = buf_size;
-	encoder->stream_buff_info.buff_top = memalign(buf_size, 32);
-	if (!encoder->stream_buff_info.buff_top)
-		goto err;
-
 	buf_size = work_area_size(encoder);
 	encoder->work_area.area_size = buf_size;
 	encoder->work_area.area_top = memalign(buf_size, 4);
 	if (!encoder->work_area.area_top)
+		goto err;
+
+	buf_size = stream_buff_size(encoder);
+	encoder->stream_buff_info.buff_size = buf_size;
+	encoder->stream_buff_info.buff_top = memalign(buf_size, 32);
+	if (!encoder->stream_buff_info.buff_top)
 		goto err;
 
 	encoder->end_code_buff_info.buff_size = MY_END_CODE_BUFF_SIZE;
