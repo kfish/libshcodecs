@@ -20,6 +20,10 @@ AnnexB handling
 m4driverif.c
 	* s/perror("open")/perror(buf)/
 
+Input release
+	* review input_release() callsites for virt or phys addresses, fix
+	docs for that function
+
 Dual encode
 	* (uiomux-dual-encode branch) make shcodecs-enc take multiple control
 	file inputs
