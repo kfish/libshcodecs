@@ -139,8 +139,6 @@ h264_encode_init (SHCodecs_Encoder *enc, long stream_type)
 	if (!enc->sei_buf_info.buff_top)
 		goto err;
 
-	avcbe_start_encoding();
-
 	/* Set default values for the parameters */
 	rc = avcbe_set_default_param(stream_type, AVCBE_RATE_NORMAL,
 				    &(enc->encoding_property),

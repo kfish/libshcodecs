@@ -197,12 +197,6 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	if (encoder == NULL)
 		return NULL;
 
-	if (m4iph_vpu_open() < 0) {
-		free (encoder);
-		return NULL;
-	}
-	m4iph_sdr_open();
-
 	encoder->width = width;
 	encoder->height = height;
 
@@ -223,6 +217,12 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 
 	encoder->output_filler_enable = 0;
 	encoder->output_filler_data = 0;
+
+	if (m4iph_vpu_open() < 0) {
+		free (encoder);
+		return NULL;
+	}
+	m4iph_sdr_open();
 
 	m4iph_sleep_time_init();
 
@@ -245,6 +245,7 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	encode_time_init();
 	vpu4_clock_on();
 
+	avcbe_start_encoding();
 
 	if (encoder->format == SHCodecs_Format_H264) {
 		return_code = h264_encode_init (encoder, AVCBE_H264);

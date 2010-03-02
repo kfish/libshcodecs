@@ -166,8 +166,6 @@ mpeg4_encode_init (SHCodecs_Encoder *enc, long stream_type)
 
 	mpeg4_encode_init_other_options(enc);
 
-	avcbe_start_encoding();
-
 	/* Set default values for the parameters */
 	rc = avcbe_set_default_param(stream_type, AVCBE_RATE_NORMAL,
 				    &(enc->encoding_property),
