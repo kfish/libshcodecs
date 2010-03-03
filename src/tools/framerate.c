@@ -111,6 +111,8 @@ int framerate_destroy (struct framerate * framerate)
 {
 	int ret=0;
 
+	if (framerate == NULL) return -1;
+
 #ifdef HAVE_TIMERFD
 	if (framerate->timer_fd != 0)
 	    ret = close (framerate->timer_fd);
@@ -123,11 +125,15 @@ int framerate_destroy (struct framerate * framerate)
 
 long framerate_elapsed_time (struct framerate * framerate)
 {
+	if (framerate == NULL) return -1;
+
 	return framerate->total_elapsed_us;
 }
 
 double framerate_mean_fps (struct framerate * framerate)
 {
+	if (framerate == NULL) return -1.0;
+
 	return (double)framerate->nr_handled * U_SEC_PER_SEC /
 					framerate->total_elapsed_us;
 }
@@ -135,6 +141,8 @@ double framerate_mean_fps (struct framerate * framerate)
 double framerate_instantaneous_fps (struct framerate * framerate)
 {
 	double curr_fps;
+
+	if (framerate == NULL) return -1.0;
 
 	if (framerate->curr_elapsed_us == 0)
 		return 0.0;
@@ -175,6 +183,8 @@ int framerate_mark (struct framerate * framerate)
 {
 	long prev_elapsed_us;
 
+	if (framerate == NULL) return -1;
+
 	framerate->nr_handled++;
 
 	prev_elapsed_us = framerate->total_elapsed_us;
@@ -192,12 +202,16 @@ framerate_wait (struct framerate * framerate)
 #ifdef HAVE_TIMERFD
 	ssize_t s;
 
+	if (framerate == NULL) return 0;
+
 	s = read(framerate->timer_fd, &exp, sizeof(uint64_t));
 	if (s != sizeof(uint64_t))
 		handle_error("read");
 
 #else
 	long expected, delta;
+
+	if (framerate == NULL) return 0;
 
 	expected = framerate->total_elapsed_us + framerate->frame_us;
 	delta = expected - framerate_elapsed_us (framerate);
