@@ -159,6 +159,7 @@ struct _SHCodecs_Encoder {
 int h264_encode_init  (SHCodecs_Encoder * encoder, long stream_type);
 void h264_encode_close(SHCodecs_Encoder *encoder);
 int h264_encode_run (SHCodecs_Encoder * encoder, long stream_type);
+int h264_encode_run_multiple (SHCodecs_Encoder *encs[], int nr_encoders, long stream_type);
 
 int mpeg4_encode_init (SHCodecs_Encoder * encoder, long stream_type);
 int mpeg4_encode_run (SHCodecs_Encoder * encoder, long stream_type);
