@@ -46,9 +46,9 @@ work_area_size (SHCodecs_Encoder * encoder)
 }
 
 static unsigned long
-stream_buff_size (SHCodecs_Encoder * encoder)
+dimension_stream_buff_size (int width, int height)
 {
-	long wh = encoder->width * encoder->height;
+	long wh = width * height;
 	long size = wh + wh/2;	/* Size of uncompressed YCbCr420 frame */
 
    	/* Apply minimum compression ratio */
@@ -67,6 +67,12 @@ stream_buff_size (SHCodecs_Encoder * encoder)
 	size = (size + 31) & ~31;
 
 	return size;
+}
+
+static unsigned long
+encoder_stream_buff_size (SHCodecs_Encoder * encoder)
+{
+	return dimension_stream_buff_size (encoder->width, encoder->height);
 }
 
 /*----------------------------------------------------------------------------------------------*/
@@ -103,7 +109,7 @@ set_VPU4_param(SHCodecs_Encoder * encoder)
 	vpu4_param->m4iph_vpu_mask_address_disable = M4IPH_OFF;
 
 	/* Temporary Buffer */
-	buf_size = stream_buff_size (encoder);
+	buf_size = encoder_stream_buff_size (encoder);
 	tb = (unsigned long)m4iph_sdr_malloc(buf_size, 32);
 	vpu4_param->m4iph_temporary_buff_address = tb;
 	vpu4_param->m4iph_temporary_buff_size = buf_size;
@@ -163,7 +169,7 @@ void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
 			m4iph_sdr_free(encoder->local_frames[i].Y_fmemp, width_height);
 	}
 
-	buf_size = stream_buff_size (encoder);
+	buf_size = encoder_stream_buff_size (encoder);
 	m4iph_sdr_free((unsigned char *)encoder->vpu4_param.m4iph_temporary_buff_address, buf_size);
 
 	m4iph_sdr_close();
@@ -298,7 +304,7 @@ shcodecs_encoder_deferred_init (SHCodecs_Encoder * encoder)
 	if (!encoder->work_area.area_top)
 		goto err;
 
-	buf_size = stream_buff_size(encoder);
+	buf_size = encoder_stream_buff_size(encoder);
 	encoder->stream_buff_info.buff_size = buf_size;
 	encoder->stream_buff_info.buff_top = memalign(buf_size, 32);
 	if (!encoder->stream_buff_info.buff_top)
