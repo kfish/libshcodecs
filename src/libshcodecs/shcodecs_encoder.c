@@ -78,11 +78,15 @@ encoder_stream_buff_size (SHCodecs_Encoder * encoder)
 /*----------------------------------------------------------------------------------------------*/
 /* set the parameters of VPU4 */
 /*----------------------------------------------------------------------------------------------*/
+
+static M4IPH_VPU4_INIT_OPTION global_vpu4_param;
+unsigned long global_temp_buf_size;
+
 static void
-set_VPU4_param(SHCodecs_Encoder * encoder)
+set_VPU4_param(int maxwidth, int maxheight)
 {
-	M4IPH_VPU4_INIT_OPTION * vpu4_param = &(encoder->vpu4_param);
-	unsigned long buf_size, tb;
+	M4IPH_VPU4_INIT_OPTION * vpu4_param = &global_vpu4_param;
+	unsigned long tb;
 
 	/* VPU4 Base Address For SH-Mobile 3A */
 	vpu4_param->m4iph_vpu_base_address = 0xFE900000;
@@ -109,10 +113,10 @@ set_VPU4_param(SHCodecs_Encoder * encoder)
 	vpu4_param->m4iph_vpu_mask_address_disable = M4IPH_OFF;
 
 	/* Temporary Buffer */
-	buf_size = encoder_stream_buff_size (encoder);
-	tb = (unsigned long)m4iph_sdr_malloc(buf_size, 32);
+	global_temp_buf_size = dimension_stream_buff_size (maxwidth, maxheight);
+	tb = (unsigned long)m4iph_sdr_malloc(global_temp_buf_size, 32);
 	vpu4_param->m4iph_temporary_buff_address = tb;
-	vpu4_param->m4iph_temporary_buff_size = buf_size;
+	vpu4_param->m4iph_temporary_buff_size = global_temp_buf_size;
 }
 
 static int
@@ -169,8 +173,8 @@ void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
 			m4iph_sdr_free(encoder->local_frames[i].Y_fmemp, width_height);
 	}
 
-	buf_size = encoder_stream_buff_size (encoder);
-	m4iph_sdr_free((unsigned char *)encoder->vpu4_param.m4iph_temporary_buff_address, buf_size);
+	/* XXX: Do this for last encoder_close only */
+	m4iph_sdr_free((unsigned char *)global_vpu4_param.m4iph_temporary_buff_address, global_temp_buf_size);
 
 	m4iph_sdr_close();
 	m4iph_vpu_close();
@@ -233,10 +237,10 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	m4iph_sleep_time_init();
 
 	/* Set the VPU parameters */
-	set_VPU4_param(encoder);
+	set_VPU4_param(encoder->width, encoder->height);
 
 	/* Initialize VPU */
-	return_code = m4iph_vpu4_init(&(encoder->vpu4_param));
+	return_code = m4iph_vpu4_init(&global_vpu4_param);
 	if (return_code < 0) {
 		if (return_code == -1) {
 			fprintf(stderr,

@@ -134,7 +134,6 @@ struct _SHCodecs_Encoder {
 	/* encoding parameters */
 	avcbe_encoding_property encoding_property;
 	avcbe_encoding_property paramR;	/* for stream-1 */
-	M4IPH_VPU4_INIT_OPTION vpu4_param;	/* parameters of VPU4 */
 	OTHER_API_ENC_PARAM other_API_enc_param;
 
 	/* MPEG-4 specific internals */
