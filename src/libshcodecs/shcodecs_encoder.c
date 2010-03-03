@@ -190,6 +190,39 @@ void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
 	free(encoder);
 }
 
+static int shcodecs_encoder_global_init (int maxwidth, int maxheight)
+{
+	long return_code;
+
+	if (m4iph_vpu_open() < 0) {
+		return -1;
+	}
+	m4iph_sdr_open();
+
+	m4iph_sleep_time_init();
+
+	/* Set the VPU parameters */
+	set_VPU4_param(maxwidth, maxheight);
+
+	/* Initialize VPU */
+	return_code = m4iph_vpu4_init(&global_vpu4_param);
+	if (return_code < 0) {
+		if (return_code == -1) {
+			fprintf(stderr,
+				"%s: m4iph_vpu4_init PARAMETER ERROR!\n", __func__);
+		}
+		return -1;
+	}
+
+	/* stream buffer 0 clear */
+	encode_time_init();
+	vpu4_clock_on();
+
+	avcbe_start_encoding();
+
+	return 0;
+}
+
 /**
  * Initialize the VPU4 for encoding a given video format.
  * \param width The video image width
@@ -228,34 +261,12 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	encoder->output_filler_enable = 0;
 	encoder->output_filler_data = 0;
 
-	if (m4iph_vpu_open() < 0) {
+	if (shcodecs_encoder_global_init (encoder->width, encoder->height) < 0) {
 		free (encoder);
 		return NULL;
 	}
-	m4iph_sdr_open();
-
-	m4iph_sleep_time_init();
-
-	/* Set the VPU parameters */
-	set_VPU4_param(encoder->width, encoder->height);
-
-	/* Initialize VPU */
-	return_code = m4iph_vpu4_init(&global_vpu4_param);
-	if (return_code < 0) {
-		if (return_code == -1) {
-			fprintf(stderr,
-				"%s: m4iph_vpu4_init PARAMETER ERROR!\n", __func__);
-		}
-		goto err;
-	}
 
 	init_other_API_enc_param(&encoder->other_API_enc_param);
-
-	/* stream buffer 0 clear */
-	encode_time_init();
-	vpu4_clock_on();
-
-	avcbe_start_encoding();
 
 	if (encoder->format == SHCodecs_Format_H264) {
 		return_code = h264_encode_init (encoder, AVCBE_H264);
