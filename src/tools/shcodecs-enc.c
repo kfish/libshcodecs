@@ -22,6 +22,7 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <limits.h>
 #include <ctype.h>
 #include <string.h>
@@ -38,11 +39,6 @@
 #include "avcbencsmp.h"
 #include "framerate.h"
 
-SHCodecs_Encoder *encoder; /* Encoder */
-APPLI_INFO ainfo;	/* Control file data */
-FILE *output_fp;
-struct framerate * enc_framerate = NULL;
-
 static void
 usage (const char * progname)
 {
@@ -54,67 +50,91 @@ usage (const char * progname)
 	printf ("\nPlease report bugs to <linux-sh@vger.kernel.org>\n");
 }
 
+struct shenc {
+        APPLI_INFO ainfo; /* Application Data */
+        SHCodecs_Encoder *encoder; /* Encoder */
+	FILE * output_fp;
+	struct framerate * enc_framerate;
+	long stream_type;
+};
+
+struct shenc *
+shenc_new (void)
+{
+        struct shenc * shenc;
+
+        shenc = malloc (sizeof(*shenc));
+        if (shenc == NULL) return NULL;
+
+        memset (shenc, 0, sizeof(*shenc));
+
+        return shenc;
+}
+
+
 /* SHCodecs_Encoder_Input callback for acquiring an image from the input file */
 static int get_input(SHCodecs_Encoder * encoder, void *user_data)
 {
-	APPLI_INFO *appli_info = (APPLI_INFO *) user_data;
+	struct shenc * shenc = (struct shenc *)user_data;
 
-	if (enc_framerate == NULL) {
-		enc_framerate = framerate_new_measurer ();
+	if (shenc->enc_framerate == NULL) {
+		shenc->enc_framerate = framerate_new_measurer ();
 	}
 
-	return load_1frame_from_image_file(encoder, appli_info);
+	return load_1frame_from_image_file(shenc->encoder, &shenc->ainfo);
 }
 
 /* SHCodecs_Encoder_Output callback for writing encoded data to the output file */
 static int write_output(SHCodecs_Encoder * encoder,
 			unsigned char *data, int length, void *user_data)
 {
-	APPLI_INFO *appli_info = (APPLI_INFO *) user_data;
+	struct shenc * shenc = (struct shenc *)user_data;
 	double ifps, mfps;
 
 	if (shcodecs_encoder_get_frame_num_delta(encoder) > 0 &&
-			enc_framerate != NULL) {
-		framerate_mark (enc_framerate);
-		ifps = framerate_instantaneous_fps (enc_framerate);
-		mfps = framerate_mean_fps (enc_framerate);
-		if (enc_framerate->nr_handled % 10 == 0) {
+			shenc->enc_framerate != NULL) {
+		framerate_mark (shenc->enc_framerate);
+		ifps = framerate_instantaneous_fps (shenc->enc_framerate);
+		mfps = framerate_mean_fps (shenc->enc_framerate);
+		if (shenc->enc_framerate->nr_handled % 10 == 0) {
 			fprintf (stderr, "  Encoding @ %4.2f fps \t(avg %4.2f fps)\r", ifps, mfps);
 		}
 	}
 
-	if (fwrite(data, 1, length, output_fp) == (size_t)length) {
+	if (fwrite(data, 1, length, shenc->output_fp) == (size_t)length) {
 		return 0;
 	} else {
 		return -1;
 	}
 }
 
-void cleanup (void)
+void cleanup (struct shenc * shenc)
 {
 	double time;
 
-	if (enc_framerate) {
-		time = (double)framerate_elapsed_time (enc_framerate);
+	if (shenc->enc_framerate) {
+		time = (double)framerate_elapsed_time (shenc->enc_framerate);
 		time /= 1000000;
 
 		fprintf (stderr, "Elapsed time (encode): %0.3g s\n", time);
 		fprintf (stderr, "Encoded %d frames (%.2f fps)\n",
-				enc_framerate->nr_handled,
-			 	framerate_mean_fps (enc_framerate));
+				shenc->enc_framerate->nr_handled,
+			 	framerate_mean_fps (shenc->enc_framerate));
 
-		framerate_destroy (enc_framerate);
+		framerate_destroy (shenc->enc_framerate);
 	}
 
-	if (encoder != NULL)
-		shcodecs_encoder_close(encoder);
+	if (shenc->encoder != NULL)
+		shcodecs_encoder_close(shenc->encoder);
 
-	close_output_file(output_fp);
+	close_output_file(shenc->output_fp);
+
+	free (shenc);
 }
 
 void sig_handler(int sig)
 {
-	cleanup ();
+	//cleanup ();
 
 #ifdef DEBUG
 	fprintf (stderr, "Got signal %d\n", sig);
@@ -128,8 +148,8 @@ void sig_handler(int sig)
 int main(int argc, char *argv[])
 {
 	int return_code;
-	long stream_type;
 	const char *ctrl_filename;
+	struct shenc * shenc;
 
 	if (argc != 2 || !strncmp (argv[1], "-h", 2) || !strncmp (argv[1], "--help", 6)) {
 		usage (argv[0]);
@@ -141,47 +161,48 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
+	shenc = shenc_new();
 	ctrl_filename = argv[1];
-	return_code = ctrlfile_get_params(ctrl_filename, &ainfo, &stream_type);
+	return_code = ctrlfile_get_params(ctrl_filename, &shenc->ainfo, &shenc->stream_type);
 	if (return_code < 0) {
 		perror("Error opening control file");
 		return (-1);
 	}
 
-	fprintf(stderr, "Input file: %s\n", ainfo.input_file_name_buf);
-	fprintf(stderr, "Output file: %s\n", ainfo.output_file_name_buf);
+	fprintf(stderr, "Input file: %s\n", shenc->ainfo.input_file_name_buf);
+	fprintf(stderr, "Output file: %s\n", shenc->ainfo.output_file_name_buf);
 
-	encoder = NULL;
+	shenc->encoder = NULL;
 	signal (SIGINT, sig_handler);
 	signal (SIGPIPE, sig_handler);
 
 	/* Setup encoder */
-	encoder = shcodecs_encoder_init(ainfo.xpic, ainfo.ypic, stream_type);
+	shenc->encoder = shcodecs_encoder_init(shenc->ainfo.xpic, shenc->ainfo.ypic, shenc->stream_type);
 
-	shcodecs_encoder_set_input_callback(encoder, get_input, &ainfo);
-	shcodecs_encoder_set_output_callback(encoder, write_output, &ainfo);
+	shcodecs_encoder_set_input_callback(shenc->encoder, get_input, shenc);
+	shcodecs_encoder_set_output_callback(shenc->encoder, write_output, shenc);
 
-	return_code = ctrlfile_set_enc_param(encoder, ctrl_filename);
+	return_code = ctrlfile_set_enc_param(shenc->encoder, ctrl_filename);
 	if (return_code < 0) {
 		perror("Problem with encoder params in control file!\n");
 		return (-3);
 	}
 
 	/* open input YUV data file */
-	return_code = open_input_image_file(&ainfo);
+	return_code = open_input_image_file(&shenc->ainfo);
 	if (return_code != 0) {
 		perror("Error opening input file");
 		return (-6);
 	}
 
 	/* open output file */
-	output_fp = open_output_file(ainfo.output_file_name_buf);
-	if (output_fp == NULL) {
+	shenc->output_fp = open_output_file(shenc->ainfo.output_file_name_buf);
+	if (shenc->output_fp == NULL) {
 		perror("Error opening output file");
 		return (-6);
 	}
 
-	return_code = shcodecs_encoder_run(encoder);
+	return_code = shcodecs_encoder_run(shenc->encoder);
 
 	if (return_code < 0) {
 		fprintf(stderr, "Error encoding, error code=%d\n", return_code);
@@ -189,7 +210,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "Encode Success\n");
 	}
 
-	cleanup ();
+	cleanup (shenc);
 
 	return 0;
 }
