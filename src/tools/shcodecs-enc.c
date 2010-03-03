@@ -94,15 +94,17 @@ void cleanup (void)
 {
 	double time;
 
-	time = (double)framerate_elapsed_time (enc_framerate);
-	time /= 1000000;
+	if (enc_framerate) {
+		time = (double)framerate_elapsed_time (enc_framerate);
+		time /= 1000000;
 
-	fprintf (stderr, "Elapsed time (encode): %0.3g s\n", time);
-	fprintf (stderr, "Encoded %d frames (%.2f fps)\n",
-			enc_framerate->nr_handled,
-		 	framerate_mean_fps (enc_framerate));
+		fprintf (stderr, "Elapsed time (encode): %0.3g s\n", time);
+		fprintf (stderr, "Encoded %d frames (%.2f fps)\n",
+				enc_framerate->nr_handled,
+			 	framerate_mean_fps (enc_framerate));
 
-	framerate_destroy (enc_framerate);
+		framerate_destroy (enc_framerate);
+	}
 
 	if (encoder != NULL)
 		shcodecs_encoder_close(encoder);
