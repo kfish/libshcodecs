@@ -145,25 +145,14 @@ void sig_handler(int sig)
 	kill(getpid(), sig);
 }
 
-int main(int argc, char *argv[])
+static int encode_file (char * filename)
 {
-	int return_code;
-	const char *ctrl_filename;
 	struct shenc * shenc;
-
-	if (argc != 2 || !strncmp (argv[1], "-h", 2) || !strncmp (argv[1], "--help", 6)) {
-		usage (argv[0]);
-		return -1;
-	}
-
-	if (!strncmp (argv[1], "-v", 2) || !strncmp (argv[1], "--version", 9)) {
-		printf ("%s version " VERSION "\n", argv[0]);
-		return -1;
-	}
+	int return_code;
 
 	shenc = shenc_new();
-	ctrl_filename = argv[1];
-	return_code = ctrlfile_get_params(ctrl_filename, &shenc->ainfo, &shenc->stream_type);
+
+	return_code = ctrlfile_get_params(filename, &shenc->ainfo, &shenc->stream_type);
 	if (return_code < 0) {
 		perror("Error opening control file");
 		return (-1);
@@ -182,7 +171,8 @@ int main(int argc, char *argv[])
 	shcodecs_encoder_set_input_callback(shenc->encoder, get_input, shenc);
 	shcodecs_encoder_set_output_callback(shenc->encoder, write_output, shenc);
 
-	return_code = ctrlfile_set_enc_param(shenc->encoder, ctrl_filename);
+	/* set parameters for use in encoding */
+	return_code = ctrlfile_set_enc_param(shenc->encoder, filename);
 	if (return_code < 0) {
 		perror("Problem with encoder params in control file!\n");
 		return (-3);
@@ -213,4 +203,22 @@ int main(int argc, char *argv[])
 	cleanup (shenc);
 
 	return 0;
+}
+
+int main(int argc, char *argv[])
+{
+	if (argc != 2 || !strncmp (argv[1], "-h", 2) || !strncmp (argv[1], "--help", 6)) {
+		usage (argv[0]);
+		return -1;
+        }
+
+	if (!strncmp (argv[1], "-v", 2) || !strncmp (argv[1], "--version", 9)) {
+		printf ("%s version " VERSION "\n", argv[0]);
+		return -1;
+	}
+
+        signal (SIGINT, sig_handler);
+        signal (SIGPIPE, sig_handler);
+
+        return encode_file (argv[1]);
 }
