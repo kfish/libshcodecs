@@ -234,7 +234,6 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 					SHCodecs_Format format)
 {
 	SHCodecs_Encoder *encoder;
-	long return_code;
 
 	encoder = calloc(1, sizeof(SHCodecs_Encoder));
 	if (encoder == NULL)
@@ -261,10 +260,20 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	encoder->output_filler_enable = 0;
 	encoder->output_filler_data = 0;
 
-	if (shcodecs_encoder_global_init (encoder->width, encoder->height) < 0) {
-		free (encoder);
-		return NULL;
-	}
+	return encoder;
+}
+
+static int
+shcodecs_encoder_deferred_init (SHCodecs_Encoder * encoder)
+{
+	long return_code;
+	long width_height;
+	unsigned long buf_size;
+	unsigned char *pY;
+	int i;
+
+	width_height = ROUND_UP_16(encoder->width) * ROUND_UP_16(encoder->height);
+	width_height += (width_height / 2);
 
 	init_other_API_enc_param(&encoder->other_API_enc_param);
 
@@ -275,24 +284,6 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	}
 	if (return_code < 0)
 		goto err;
-
-	return encoder;
-
-err:
-	shcodecs_encoder_close(encoder);
-	return NULL;
-}
-
-static int
-shcodecs_encoder_deferred_init (SHCodecs_Encoder * encoder)
-{
-	long width_height;
-	unsigned long buf_size;
-	unsigned char *pY;
-	int i;
-
-	width_height = ROUND_UP_16(encoder->width) * ROUND_UP_16(encoder->height);
-	width_height += (width_height / 2);
 
 	encoder->y_bytes = (((encoder->width + 15) / 16) * 16) * (((encoder->height + 15) / 16) * 16);
 
@@ -384,6 +375,11 @@ int shcodecs_encoder_run(SHCodecs_Encoder * encoder)
 			return -1;
 
 	if (encoder->initialized < 1) {
+		if (shcodecs_encoder_global_init (encoder->width, encoder->height) < 0) {
+			free (encoder);
+			return -1;
+		}
+
 		if (shcodecs_encoder_deferred_init (encoder) == -1) {
 			return -1;
 		}
