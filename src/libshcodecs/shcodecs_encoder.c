@@ -358,6 +358,9 @@ shcodecs_encoder_set_output_callback(SHCodecs_Encoder * encoder,
  */
 int shcodecs_encoder_run(SHCodecs_Encoder * encoder)
 {
+	if (encoder == NULL)
+			return -1;
+
 	if (encoder->initialized < 1) {
 		if (shcodecs_encoder_deferred_init (encoder) == -1) {
 			return -1;
