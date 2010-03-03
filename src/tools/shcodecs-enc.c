@@ -145,7 +145,7 @@ void sig_handler(int sig)
 	kill(getpid(), sig);
 }
 
-static int encode_file (char * filename)
+static struct shenc * setup_file (char * filename)
 {
 	struct shenc * shenc;
 	int return_code;
@@ -155,7 +155,7 @@ static int encode_file (char * filename)
 	return_code = ctrlfile_get_params(filename, &shenc->ainfo, &shenc->stream_type);
 	if (return_code < 0) {
 		perror("Error opening control file");
-		return (-1);
+		exit (-1);
 	}
 
 	fprintf(stderr, "Input file: %s\n", shenc->ainfo.input_file_name_buf);
@@ -175,22 +175,29 @@ static int encode_file (char * filename)
 	return_code = ctrlfile_set_enc_param(shenc->encoder, filename);
 	if (return_code < 0) {
 		perror("Problem with encoder params in control file!\n");
-		return (-3);
+		exit (-3);
 	}
 
 	/* open input YUV data file */
 	return_code = open_input_image_file(&shenc->ainfo);
 	if (return_code != 0) {
 		perror("Error opening input file");
-		return (-6);
+		exit (-6);
 	}
 
 	/* open output file */
 	shenc->output_fp = open_output_file(shenc->ainfo.output_file_name_buf);
 	if (shenc->output_fp == NULL) {
 		perror("Error opening output file");
-		return (-6);
+		exit (-6);
 	}
+
+	return shenc;
+}
+
+static int encode_shenc (struct shenc * shenc)
+{
+	int return_code;
 
 	return_code = shcodecs_encoder_run(shenc->encoder);
 
@@ -200,13 +207,14 @@ static int encode_file (char * filename)
 		fprintf(stderr, "Encode Success\n");
 	}
 
-	cleanup (shenc);
-
 	return 0;
 }
 
 int main(int argc, char *argv[])
 {
+	struct shenc * shenc;
+	int ret;
+
 	if (argc != 2 || !strncmp (argv[1], "-h", 2) || !strncmp (argv[1], "--help", 6)) {
 		usage (argv[0]);
 		return -1;
@@ -220,5 +228,11 @@ int main(int argc, char *argv[])
         signal (SIGINT, sig_handler);
         signal (SIGPIPE, sig_handler);
 
-        return encode_file (argv[1]);
+	shenc = setup_file (argv[1]);
+
+	ret = encode_shenc (shenc);
+
+	cleanup (shenc);
+
+        return ret;
 }
