@@ -31,6 +31,9 @@
 
 #include "encoder_private.h"
 
+#undef MAX
+#define MAX(a,b) ((a>b)?(a):(b))
+
 int vpu4_clock_on(void);
 int vpu4_clock_off(void);
 
@@ -390,6 +393,49 @@ int shcodecs_encoder_run(SHCodecs_Encoder * encoder)
 	} else {
 		return mpeg4_encode_run (encoder, AVCBE_MPEG4);
 	}
+}
+
+int shcodecs_encoder_run_multiple (SHCodecs_Encoder * encoders[], int nr_encoders)
+{
+	SHCodecs_Encoder * encoder;
+	int i, maxwidth=0, maxheight=0;
+
+	for (i=0; i < nr_encoders; i++) {
+		encoder = encoders[i];
+
+		if (encoder == NULL)
+			return -1;
+
+		maxwidth = MAX(maxwidth, encoder->width);
+		maxheight = MAX(maxheight, encoder->height);
+	}
+
+	if (shcodecs_encoder_global_init (maxwidth, maxheight) < 0) {
+		for (i=0; i < nr_encoders; i++) {
+			free(encoders[i]);
+		}
+		return -1;
+	}
+
+	for (i=0; i < nr_encoders; i++) {
+		encoder = encoders[i];
+
+		if (encoder->initialized < 1) {
+			if (shcodecs_encoder_deferred_init (encoder) == -1) {
+				return -1;
+			}
+		}
+	}
+
+	/* XXX: Check formats */
+	for (i=0; i < nr_encoders; i++) {
+		encoder = encoders[i];
+		if (encoder->format != SHCodecs_Format_H264) {
+			fprintf (stderr, "Only multiple H.264 encode!\n");
+			return -1;
+		}
+	}
+	return h264_encode_run_multiple (encoders, nr_encoders, AVCBE_H264);
 }
 
 int
