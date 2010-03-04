@@ -552,38 +552,6 @@ h264_encode_multiple(SHCodecs_Encoder *encs[], int nr_encoders)
 }
 
 int
-h264_encode_run (SHCodecs_Encoder *enc, long stream_type)
-{
-	long rc, length;
-
-	if (enc->initialized < 2) {
-		rc = h264_encode_deferred_init(enc, stream_type);
-		if (rc != 0)
-			return rc;
-	}
-
-	rc = h264_encode_multiple(&enc, 1);
-	if (rc != 0)
-		return rc;
-
-	/* End encoding */
-	length = avcbe_put_end_code(enc->stream_info, &enc->end_code_buff_info, AVCBE_END_OF_STRM);
-	if (length <= 0)
-		return vpu_err(enc, __func__, __LINE__, length);
-	rc = output_data(enc, END, enc->end_code_buff_info.buff_top, length);
-	if (rc != 0)
-		return rc;
-
-	if (enc->output_filler_enable == 1) {
-		rc = avcbe_put_filler_data(&enc->stream_buff_info,
-				enc->other_options_h264.avcbe_put_start_code, 2);
-		// TODO shouldn't this be output?
-	}
-
-	return 0;
-}
-
-int
 h264_encode_run_multiple (SHCodecs_Encoder *encs[], int nr_encoders, long stream_type)
 {
 	SHCodecs_Encoder * enc;
@@ -620,4 +588,10 @@ h264_encode_run_multiple (SHCodecs_Encoder *encs[], int nr_encoders, long stream
 	}
 
 	return 0;
+}
+
+int
+h264_encode_run (SHCodecs_Encoder *enc, long stream_type)
+{
+	return h264_encode_run_multiple (&enc, 1, stream_type);
 }
