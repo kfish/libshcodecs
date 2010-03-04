@@ -139,6 +139,15 @@ int
 shcodecs_encoder_run (SHCodecs_Encoder * encoder);
 
 /**
+ * Run multiple encoders.
+ * \param encoders An array of  SHCodecs_Encoder* handles.
+ * \param nr_encoers The number of elements in the \a encoders array.
+ * \retval 0 Success
+ */
+int
+shcodecs_encoder_run_multiple (SHCodecs_Encoder * encoders[], int nr_encoders);
+
+/**
  * Get the width in pixels of the encoded image
  * \param encoder The SHCodecs_Encoder* handle
  * \returns The width in pixels
