@@ -433,7 +433,7 @@ int shcodecs_encoder_run_multiple (SHCodecs_Encoder * encoders[], int nr_encoder
 	for (i=0; i < nr_encoders; i++) {
 		encoder = encoders[i];
 		if (encoder->format != SHCodecs_Format_H264) {
-			fprintf (stderr, "Only multiple H.264 encode!\n");
+			fprintf (stderr, "%s: Multiple encode is currently only supported where all streams are H.264\n", __func__);
 			return -1;
 		}
 	}
