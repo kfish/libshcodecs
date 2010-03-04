@@ -34,6 +34,10 @@
 #undef MAX
 #define MAX(a,b) ((a>b)?(a):(b))
 
+/* Minimum size as this buffer is used for data other than encoded frames */
+/* TODO min size has not been verified, just takem from sample code */
+#define MIN_STREAM_BUFF_SIZE (160000*4)
+
 int vpu4_clock_on(void);
 int vpu4_clock_off(void);
 
@@ -61,10 +65,8 @@ dimension_stream_buff_size (int width, int height)
 		size = size / 2;
 	}
 
-	/* Minimum size as this buffer is used for data other than encoded frames */
-	/* TODO min size has not been verified, just takem from sample code */
-	if (size < 160000)
-		size = 160000;
+	if (size < MIN_STREAM_BUFF_SIZE)
+		size = MIN_STREAM_BUFF_SIZE;
 
 	/* Make size a multiple of 32 */
 	size = (size + 31) & ~31;
