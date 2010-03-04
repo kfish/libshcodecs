@@ -197,25 +197,18 @@ static struct shenc * setup_file (char * filename)
 
 static int encode_shenc (struct shenc * shenc)
 {
-	int return_code;
 
-	return_code = shcodecs_encoder_run(shenc->encoder);
-
-	if (return_code < 0) {
-		fprintf(stderr, "Error encoding, error code=%d\n", return_code);
-	} else {
-		fprintf(stderr, "Encode Success\n");
-	}
 
 	return 0;
 }
 
 int main(int argc, char *argv[])
 {
-	struct shenc * shenc;
-	int ret;
+	struct shenc ** shencs;
+	SHCodecs_Encoder ** encoders;
+	int i, nr_encoders, ret;
 
-	if (argc != 2 || !strncmp (argv[1], "-h", 2) || !strncmp (argv[1], "--help", 6)) {
+	if (argc < 2 || !strncmp (argv[1], "-h", 2) || !strncmp (argv[1], "--help", 6)) {
 		usage (argv[0]);
 		return -1;
         }
@@ -228,11 +221,39 @@ int main(int argc, char *argv[])
         signal (SIGINT, sig_handler);
         signal (SIGPIPE, sig_handler);
 
-	shenc = setup_file (argv[1]);
+	nr_encoders = argc-1;
 
-	ret = encode_shenc (shenc);
+	shencs = calloc (sizeof (struct shenc *), nr_encoders);
+	if (shencs == NULL) {
+		fprintf (stderr, "Out of memory\n");
+		exit (-1);
+	}
 
-	cleanup (shenc);
+	encoders = calloc (sizeof (SHCodecs_Encoder *), nr_encoders);
+	if (encoders == NULL) {
+		fprintf (stderr, "Out of memory\n");
+		exit (-1);
+	}
+
+	for (i=0; i < nr_encoders; i++) {
+		shencs[i] = setup_file (argv[i+1]);
+		encoders[i] = shencs[i]->encoder;
+	}
+
+	ret = shcodecs_encoder_run_multiple (encoders, nr_encoders);
+
+	if (ret < 0) {
+		fprintf(stderr, "Error encoding, error code=%d\n", ret);
+	} else {
+		fprintf(stderr, "Encode Success\n");
+	}
+
+	for (i=0; i < nr_encoders; i++) {
+		cleanup (shencs[i]);
+	}
+
+	free (encoders);
+	free (shencs);
 
         return ret;
 }
