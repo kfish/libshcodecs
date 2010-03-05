@@ -14,6 +14,7 @@ noinst_HEADERS = \
 	avcbencsmp.h \
 	capture.h \
 	framerate.h \
+	thrqueue.h \
 	ControlFileUtil.h \
 	veu_colorspace.h
 
@@ -27,6 +28,7 @@ shcodecs_record_SOURCES = \
 	shcodecs-record.c \
 	capture.c \
 	framerate.c \
+	thrqueue.c \
 	veu_colorspace.c \
 	ControlFileUtil.c \
 	avcbeinputuser.c
