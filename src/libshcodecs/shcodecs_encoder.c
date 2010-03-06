@@ -599,4 +599,20 @@ shcodecs_encoder_get_input_physical_addr (SHCodecs_Encoder * encoder,
   return 0;
 }
 
+/**
+ * Set the physical address of input data.
+ * \param encoder The SHCodecs_Encoder* handle
+ * \returns size in bytes of CbCr plane.
+ * \retval -1 \a encoder invalid
+ */
+int
+shcodecs_encoder_set_input_physical_addr (SHCodecs_Encoder * encoder, 
+		     unsigned int *addr_y, unsigned int *addr_c)
+{
+  if (encoder == NULL) return -1;
 
+  encoder->addr_y = (unsigned char *)addr_y;
+  encoder->addr_c = (unsigned char *)addr_c;
+
+  return 0;
+}
