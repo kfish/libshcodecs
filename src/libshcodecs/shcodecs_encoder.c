@@ -293,18 +293,18 @@ shcodecs_encoder_deferred_init (SHCodecs_Encoder * encoder)
 
 	buf_size = work_area_size(encoder);
 	encoder->work_area.area_size = buf_size;
-	encoder->work_area.area_top = memalign(buf_size, 4);
+	encoder->work_area.area_top = memalign(4, buf_size);
 	if (!encoder->work_area.area_top)
 		goto err;
 
 	buf_size = stream_buff_size(encoder);
 	encoder->stream_buff_info.buff_size = buf_size;
-	encoder->stream_buff_info.buff_top = memalign(buf_size, 32);
+	encoder->stream_buff_info.buff_top = memalign(32, buf_size);
 	if (!encoder->stream_buff_info.buff_top)
 		goto err;
 
 	encoder->end_code_buff_info.buff_size = MY_END_CODE_BUFF_SIZE;
-	encoder->end_code_buff_info.buff_top = memalign(MY_END_CODE_BUFF_SIZE, 32);
+	encoder->end_code_buff_info.buff_top = memalign(32, MY_END_CODE_BUFF_SIZE);
 	if (!encoder->end_code_buff_info.buff_top)
 		goto err;
 
