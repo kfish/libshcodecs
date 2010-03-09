@@ -117,25 +117,25 @@ h264_encode_init (SHCodecs_Encoder *enc, long stream_type)
 
 	/* Access Unit Delimiter (AUD) output buffer */
 	enc->aud_buf_info.buff_size = 16;
-	enc->aud_buf_info.buff_top = memalign(16, 4);
+	enc->aud_buf_info.buff_top = memalign(4, 16);
 	if (!enc->aud_buf_info.buff_top)
 		goto err;
 
 	/* SPS output buffer */
 	enc->sps_buf_info.buff_size = MY_SPS_STREAM_BUFF_SIZE;
-	enc->sps_buf_info.buff_top = memalign(MY_SPS_STREAM_BUFF_SIZE, 32);
+	enc->sps_buf_info.buff_top = memalign(32, MY_SPS_STREAM_BUFF_SIZE);
 	if (!enc->sps_buf_info.buff_top)
 		goto err;
 
 	/* PPS output buffer */
 	enc->pps_buf_info.buff_size = MY_PPS_STREAM_BUFF_SIZE;
-	enc->pps_buf_info.buff_top = memalign(MY_PPS_STREAM_BUFF_SIZE, 32);
+	enc->pps_buf_info.buff_top = memalign(32, MY_PPS_STREAM_BUFF_SIZE);
 	if (!enc->pps_buf_info.buff_top)
 		goto err;
 
 	/* SEI output buffer */
 	enc->sei_buf_info.buff_size = MY_SEI_STREAM_BUFF_SIZE;
-	enc->sei_buf_info.buff_top = memalign(MY_SEI_STREAM_BUFF_SIZE, 4);
+	enc->sei_buf_info.buff_top = memalign(4, MY_SEI_STREAM_BUFF_SIZE);
 	if (!enc->sei_buf_info.buff_top)
 		goto err;
 
