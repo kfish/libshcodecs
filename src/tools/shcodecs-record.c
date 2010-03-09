@@ -314,6 +314,8 @@ static int write_output(SHCodecs_Encoder *encoder,
 
 	if (shcodecs_encoder_get_frame_num_delta(encoder) > 0 &&
 			pvt->enc_framerate != NULL) {
+		if (pvt->enc_framerate->nr_handled >= pvt->ainfo.frames_to_encode)
+			return 1;
 		framerate_mark (pvt->enc_framerate);
 		ifps = framerate_instantaneous_fps (pvt->enc_framerate);
 		mfps = framerate_mean_fps (pvt->enc_framerate);
