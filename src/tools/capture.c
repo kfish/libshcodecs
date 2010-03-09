@@ -38,6 +38,7 @@ struct buffer {
 	void *start;              	/* User space addr */
 	unsigned char *phys_addr;	/* Only used for USERPTR I/O */
 	size_t length;
+	struct v4l2_buffer v4l2buf;
 };
 
 struct capture_ {
@@ -120,12 +121,9 @@ read_frame(capture * cap, capture_callback cb, void *user_data)
 		}
 
 		assert(buf.index < cap->n_buffers);
-
+		memcpy(&cap->buffers[buf.index].v4l2buf, &buf, sizeof(struct v4l2_buffer));
 		cb(cap, cap->buffers[buf.index].start,
 		   cap->buffers[buf.index].length, user_data);
-
-		if (-1 == xioctl (cap->fd, VIDIOC_QBUF, &buf))
-			errno_exit("VIDIOC_QBUF");
 
 		break;
 
@@ -157,14 +155,12 @@ read_frame(capture * cap, capture_callback cb, void *user_data)
 				break;
 		}
 		assert(i < cap->n_buffers);
+		memcpy(&cap->buffers[buf.index].v4l2buf, &buf, sizeof(struct v4l2_buffer));
 
 		if (cap->use_physical)
 			cb(cap, cap->buffers[i].phys_addr, buf.length, user_data);
 		else
 			cb(cap, cap->buffers[i].start, buf.length, user_data);
-
-		if (-1 == xioctl(cap->fd, VIDIOC_QBUF, &buf))
-			errno_exit("VIDIOC_QBUF");
 
 		break;
 	}
@@ -172,6 +168,32 @@ read_frame(capture * cap, capture_callback cb, void *user_data)
 	return 1;
 }
 
+void
+capture_queue_buffer(capture * cap, const void * buffer_data)
+{
+	int i;
+
+	if (cap->use_physical) {
+		for (i = 0; i < cap->n_buffers; ++i) {
+			if (cap->buffers[i].phys_addr == buffer_data) {
+				goto found;
+			}
+		}
+	} else {
+		for (i = 0; i < cap->n_buffers; ++i) {
+			if (cap->buffers[i].start == buffer_data) {
+				goto found;
+			}
+		}
+	}
+
+	fprintf (stderr, "%s: Tried to release bad buffer %d %p\n", __func__, i, buffer_data);
+	exit (EXIT_FAILURE);
+
+found:
+	if (-1 == xioctl(cap->fd, VIDIOC_QBUF, &cap->buffers[i].v4l2buf))
+		errno_exit("VIDIOC_QBUF");
+}
 
 int
 capture_set_use_physical(capture * cap, int use_physical)

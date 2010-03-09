@@ -84,6 +84,8 @@ process_image(capture * ceu, const unsigned char *frame_data, size_t length, voi
 	if (fwrite(frame_data, 1, size, stdout) != size)
 		exit(EXIT_FAILURE);
 
+	capture_queue_buffer (ceu, frame_data);
+
 	framerate_wait(pvt->cap_framerate);
 }
 

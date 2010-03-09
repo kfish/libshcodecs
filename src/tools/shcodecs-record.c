@@ -236,6 +236,7 @@ void *capture_thread(void *data)
 
 		framerate_wait(pvt->cap_framerate);
 		capture_get_frame(pvt->ceu, capture_image_cb, pvt);
+		capture_queue_buffer (pvt->ceu, pvt->cap_y);
 	}
 }
 
