@@ -239,6 +239,7 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 					SHCodecs_Format format)
 {
 	SHCodecs_Encoder *encoder;
+	long return_code;
 
 	encoder = calloc(1, sizeof(SHCodecs_Encoder));
 	if (encoder == NULL)
@@ -265,21 +266,6 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	encoder->output_filler_enable = 0;
 	encoder->output_filler_data = 0;
 
-	return encoder;
-}
-
-static int
-shcodecs_encoder_deferred_init (SHCodecs_Encoder * encoder)
-{
-	long return_code;
-	long width_height;
-	unsigned long buf_size;
-	unsigned char *pY;
-	int i;
-
-	width_height = ROUND_UP_16(encoder->width) * ROUND_UP_16(encoder->height);
-	width_height += (width_height / 2);
-
 	init_other_API_enc_param(&encoder->other_API_enc_param);
 
 	if (encoder->format == SHCodecs_Format_H264) {
@@ -287,8 +273,24 @@ shcodecs_encoder_deferred_init (SHCodecs_Encoder * encoder)
 	} else {
 		return_code = mpeg4_encode_init (encoder, AVCBE_MPEG4);
 	}
-	if (return_code < 0)
-		goto err;
+	if (return_code < 0) {
+		free (encoder);
+		return NULL;
+	}
+
+	return encoder;
+}
+
+static int
+shcodecs_encoder_deferred_init (SHCodecs_Encoder * encoder)
+{
+	long width_height;
+	unsigned long buf_size;
+	unsigned char *pY;
+	int i;
+
+	width_height = ROUND_UP_16(encoder->width) * ROUND_UP_16(encoder->height);
+	width_height += (width_height / 2);
 
 	encoder->y_bytes = (((encoder->width + 15) / 16) * 16) * (((encoder->height + 15) / 16) * 16);
 
