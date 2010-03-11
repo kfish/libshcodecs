@@ -236,7 +236,6 @@ void *capture_thread(void *data)
 
 		framerate_wait(pvt->cap_framerate);
 		capture_get_frame(pvt->ceu, capture_image_cb, pvt);
-		capture_queue_buffer (pvt->ceu, pvt->cap_y);
 	}
 }
 
@@ -270,6 +269,8 @@ void *process_capture_thread(void *data)
 			enc_y, enc_c,
 			pvt->enc_w, pvt->enc_h, pvt->enc_w, YCbCr420,
 			pvt->rotate_cap);
+
+		capture_queue_buffer (pvt->ceu, pvt->cap_y);
 
 		/* Setup the VEU to scale the encoder input buffer (physical addr) to
 		   the LCD frame buffer (physical addr) */
