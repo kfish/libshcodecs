@@ -50,6 +50,7 @@
 #include "veu_colorspace.h"
 #include "ControlFileUtil.h"
 #include "framerate.h"
+#include "thrqueue.h"
 
 #define DEBUG
 
@@ -70,19 +71,18 @@ struct private_data {
 	pthread_t convert_thread;
 	pthread_t capture_thread;
 
+	struct Queue * captured_queue;
+
 	FILE *output_fp;
 
 	APPLI_INFO ainfo;	/* Capture params */
 	SHCodecs_Encoder *encoder;
 
 	pthread_mutex_t capture_start_mutex;
-	pthread_mutex_t capture_done_mutex;
 	pthread_mutex_t encode_start_mutex;
 
 	/* Captured frame information */
 	capture *ceu;
-	unsigned char *cap_y;
-	unsigned char *cap_c;
 	int rotate_cap;
 	int cap_w;
 	int cap_h;
@@ -218,12 +218,8 @@ capture_image_cb(capture *ceu, const unsigned char *frame_data, size_t length,
 {
 	struct private_data *pvt = (struct private_data*)user_data;
 
-	pvt->cap_y = (unsigned char *)frame_data;
-	pvt->cap_c = pvt->cap_y + (pvt->cap_w * pvt->cap_h);
-
+	queue_enq (pvt->captured_queue, frame_data);
 	pvt->captured_frames++;
-
-	pthread_mutex_unlock(&pvt->capture_done_mutex);
 }
 
 void *capture_main(void *data)
@@ -245,11 +241,13 @@ void *convert_main(void *data)
 	struct private_data *pvt = (struct private_data*)data;
 	int pitch, offset;
 	void *ptr;
+	unsigned char *cap_y, *cap_c;
 	unsigned char *enc_y, *enc_c;
 	unsigned int src_w, src_h;
 
 	while(1){
-		pthread_mutex_lock(&pvt->capture_done_mutex); 
+		cap_y = queue_deq(pvt->captured_queue);
+		cap_c = cap_y + (pvt->cap_w * pvt->cap_h);
 
 		shcodecs_encoder_get_input_physical_addr (pvt->encoder, (unsigned int *)&enc_y, (unsigned int *)&enc_c);
 
@@ -264,13 +262,13 @@ void *convert_main(void *data)
 		/* We are clipping, not scaling, as we need to perform a rotation,
 		   but the VEU cannot do a rotate & scale at the same time. */
 		sh_veu_operation(0,
-			pvt->cap_y, pvt->cap_c,
+			cap_y, cap_c,
 			src_w, src_h, pvt->cap_w, YCbCr420,
 			enc_y, enc_c,
 			pvt->enc_w, pvt->enc_h, pvt->enc_w, YCbCr420,
 			pvt->rotate_cap);
 
-		capture_queue_buffer (pvt->ceu, pvt->cap_y);
+		capture_queue_buffer (pvt->ceu, cap_y);
 
 		/* Setup the VEU to scale the encoder input buffer (physical addr) to
 		   the LCD frame buffer (physical addr) */
@@ -372,7 +370,6 @@ void cleanup (void)
 	pthread_cancel (pvt->capture_thread);
 	sh_veu_close();
 
-	pthread_mutex_destroy (&pvt->capture_done_mutex);
 	pthread_mutex_destroy (&pvt->encode_start_mutex);
 	pthread_mutex_destroy (&pvt->capture_start_mutex);
 }
@@ -501,8 +498,9 @@ int main(int argc, char *argv[])
 	pthread_mutex_init(&pvt->encode_start_mutex, NULL);
 	pthread_mutex_unlock(&pvt->encode_start_mutex);
 
-	pthread_mutex_init(&pvt->capture_done_mutex, NULL);
-	pthread_mutex_lock(&pvt->capture_done_mutex);
+	/* Initialize the queues */
+	pvt->captured_queue = queue_init();
+	queue_limit (pvt->captured_queue, 2);
 
 	/* Create the threads */
 	rc = pthread_create(&pvt->capture_thread, NULL, capture_main, pvt);
