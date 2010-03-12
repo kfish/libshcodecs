@@ -67,8 +67,8 @@ struct private_data {
 	int lcd_w;
 	int lcd_h;
 
-	pthread_t thread_blit;
-	pthread_t thread_capture;
+	pthread_t convert_thread;
+	pthread_t capture_thread;
 
 	FILE *output_fp;
 
@@ -226,7 +226,7 @@ capture_image_cb(capture *ceu, const unsigned char *frame_data, size_t length,
 	pthread_mutex_unlock(&pvt->capture_done_mutex);
 }
 
-void *capture_thread(void *data)
+void *capture_main(void *data)
 {
 	struct private_data *pvt = (struct private_data*)data;
 
@@ -240,7 +240,7 @@ void *capture_thread(void *data)
 }
 
 
-void *process_capture_thread(void *data)
+void *convert_main(void *data)
 {
 	struct private_data *pvt = (struct private_data*)data;
 	int pitch, offset;
@@ -366,10 +366,10 @@ void cleanup (void)
 	capture_close(pvt->ceu);
 	close_output_file(pvt->output_fp);
 
-	pthread_cancel (pvt->thread_blit);
+	pthread_cancel (pvt->convert_thread);
 	display_close(pvt);
 
-	pthread_cancel (pvt->thread_capture);
+	pthread_cancel (pvt->capture_thread);
 	sh_veu_close();
 
 	pthread_mutex_destroy (&pvt->capture_done_mutex);
@@ -505,12 +505,12 @@ int main(int argc, char *argv[])
 	pthread_mutex_lock(&pvt->capture_done_mutex);
 
 	/* Create the threads */
-	rc = pthread_create(&pvt->thread_capture, NULL, capture_thread, pvt);
+	rc = pthread_create(&pvt->capture_thread, NULL, capture_main, pvt);
 	if (rc){
 		fprintf(stderr, "pthread_create failed, exiting\n");
 		return -6;
 	}
-	rc = pthread_create(&pvt->thread_blit, NULL, process_capture_thread, pvt);
+	rc = pthread_create(&pvt->convert_thread, NULL, convert_main, pvt);
 	if (rc){
 		fprintf(stderr, "pthread_create failed, exiting\n");
 		return -7;
