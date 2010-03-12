@@ -249,8 +249,6 @@ void *convert_main(void *data)
 		cap_y = queue_deq(pvt->captured_queue);
 		cap_c = cap_y + (pvt->cap_w * pvt->cap_h);
 
-		shcodecs_encoder_get_input_physical_addr (pvt->encoder, (unsigned int *)&enc_y, (unsigned int *)&enc_c);
-
 		if (pvt->rotate_cap == NO_ROT) {
 			src_w = pvt->cap_w;
 			src_h = pvt->cap_h;
@@ -258,6 +256,8 @@ void *convert_main(void *data)
 			src_w = pvt->enc_h;
 			src_h = pvt->enc_w;
 		}
+
+		shcodecs_encoder_get_input_physical_addr (pvt->encoder, (unsigned int *)&enc_y, (unsigned int *)&enc_c);
 
 		/* We are clipping, not scaling, as we need to perform a rotation,
 		   but the VEU cannot do a rotate & scale at the same time. */
