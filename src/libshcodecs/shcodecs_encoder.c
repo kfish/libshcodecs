@@ -253,7 +253,6 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	encoder->input = NULL;
 	encoder->output = NULL;
 
-	encoder->error_return_function = 0;
 	encoder->error_return_code = 0;
 
 	encoder->initialized = 0;

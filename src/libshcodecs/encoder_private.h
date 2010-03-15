@@ -118,7 +118,6 @@ struct _SHCodecs_Encoder {
 	void *output_user_data;
 
 	/* Internal encode error tracking */
-	long error_return_function;	/* ID of the API function when error ocuured */
 	long error_return_code;	/* return_value of the API function when error ocuured */
 
 	/* Internal */
