@@ -19,13 +19,16 @@
 
 		shcodecs_encoder_init;
 		shcodecs_encoder_close;
-		shcodecs_encoder_set_output_callback;
 		shcodecs_encoder_set_input_callback;
+		shcodecs_encoder_set_input_release_callback;
+		shcodecs_encoder_set_output_callback;
 		shcodecs_encoder_get_input_physical_addr;
+		shcodecs_encoder_set_input_physical_addr;
 		shcodecs_encoder_input_provide;
 		shcodecs_encoder_get_y_bytes;
 		shcodecs_encoder_get_c_bytes;
 		shcodecs_encoder_run;
+		shcodecs_encoder_run_multiple;
 		shcodecs_encoder_get_width;
 		shcodecs_encoder_set_width;
 		shcodecs_encoder_get_height;

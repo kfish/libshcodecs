@@ -51,14 +51,17 @@
 #include "ControlFileUtil.h"
 #include "framerate.h"
 #include "display.h"
+#include "thrqueue.h"
 
 #define DEBUG
 
 struct private_data {
 	void *display;
 
-	pthread_t thread_blit;
-	pthread_t thread_capture;
+	pthread_t convert_thread;
+	pthread_t capture_thread;
+
+	struct Queue * captured_queue;
 
 	FILE *output_fp;
 
@@ -66,15 +69,14 @@ struct private_data {
 	SHCodecs_Encoder *encoder;
 
 	pthread_mutex_t capture_start_mutex;
-	pthread_mutex_t capture_done_mutex;
 	pthread_mutex_t encode_start_mutex;
 
 	/* Captured frame information */
 	capture *ceu;
-	unsigned long cap_y;
-	unsigned long cap_c;
+
 	unsigned long cap_w;
 	unsigned long cap_h;
+
 	int rotate_cap;
 
 	unsigned long enc_w;
@@ -134,15 +136,11 @@ capture_image_cb(capture *ceu, const unsigned char *frame_data, size_t length,
 {
 	struct private_data *pvt = (struct private_data*)user_data;
 
-	pvt->cap_y = (unsigned char *)frame_data;
-	pvt->cap_c = pvt->cap_y + (pvt->cap_w * pvt->cap_h);
-
+	queue_enq (pvt->captured_queue, frame_data);
 	pvt->captured_frames++;
-
-	pthread_mutex_unlock(&pvt->capture_done_mutex);
 }
 
-void *capture_thread(void *data)
+void *capture_main(void *data)
 {
 	struct private_data *pvt = (struct private_data*)data;
 
@@ -156,18 +154,18 @@ void *capture_thread(void *data)
 }
 
 
-void *process_capture_thread(void *data)
+void *convert_main(void *data)
 {
 	struct private_data *pvt = (struct private_data*)data;
 	int pitch, offset;
 	void *ptr;
 	unsigned long enc_y, enc_c;
 	unsigned long src_w, src_h;
+	unsigned char *cap_y, *cap_c;
 
 	while(1){
-		pthread_mutex_lock(&pvt->capture_done_mutex); 
-
-		shcodecs_encoder_get_input_physical_addr (pvt->encoder, (unsigned int *)&enc_y, (unsigned int *)&enc_c);
+		cap_y = queue_deq(pvt->captured_queue);
+		cap_c = cap_y + (pvt->cap_w * pvt->cap_h);
 
 		if (pvt->rotate_cap == SHVEU_NO_ROT) {
 			src_w = pvt->cap_w;
@@ -177,14 +175,18 @@ void *process_capture_thread(void *data)
 			src_h = pvt->enc_w;
 		}
 
+		shcodecs_encoder_get_input_physical_addr (pvt->encoder, (unsigned int *)&enc_y, (unsigned int *)&enc_c);
+
 		/* We are clipping, not scaling, as we need to perform a rotation,
 		   but the VEU cannot do a rotate & scale at the same time. */
 		shveu_operation(0,
-			(unsigned long)pvt->cap_y, (unsigned long)pvt->cap_c,
-			(unsigned long)src_w, (unsigned long)src_h, pvt->cap_w, SHVEU_YCbCr420,
+			cap_y, cap_c,
+			src_w, src_h, pvt->cap_w, SHVEU_YCbCr420,
 			enc_y, enc_c,
 			pvt->enc_w, pvt->enc_h, pvt->enc_w, SHVEU_YCbCr420,
 			pvt->rotate_cap);
+
+		capture_queue_buffer (pvt->ceu, cap_y);
 
 		/* Use the VEU to scale the encoder input buffer to the frame buffer */
 		display_update(pvt->display,
@@ -229,6 +231,9 @@ static int write_output(SHCodecs_Encoder *encoder,
 
 	if (shcodecs_encoder_get_frame_num_delta(encoder) > 0 &&
 			pvt->enc_framerate != NULL) {
+		if (pvt->enc_framerate->nr_handled >= pvt->ainfo.frames_to_encode &&
+				pvt->ainfo.frames_to_encode > 0)
+			return 1;
 		framerate_mark (pvt->enc_framerate);
 		ifps = framerate_instantaneous_fps (pvt->enc_framerate);
 		mfps = framerate_mean_fps (pvt->enc_framerate);
@@ -277,13 +282,12 @@ void cleanup (void)
 	capture_close(pvt->ceu);
 	close_output_file(pvt->output_fp);
 
-	pthread_cancel (pvt->thread_blit);
+	pthread_cancel (pvt->convert_thread);
 	display_close(pvt->display);
 
-	pthread_cancel (pvt->thread_capture);
+	pthread_cancel (pvt->capture_thread);
 	shveu_close();
 
-	pthread_mutex_destroy (&pvt->capture_done_mutex);
 	pthread_mutex_destroy (&pvt->encode_start_mutex);
 	pthread_mutex_destroy (&pvt->capture_start_mutex);
 }
@@ -412,16 +416,17 @@ int main(int argc, char *argv[])
 	pthread_mutex_init(&pvt->encode_start_mutex, NULL);
 	pthread_mutex_unlock(&pvt->encode_start_mutex);
 
-	pthread_mutex_init(&pvt->capture_done_mutex, NULL);
-	pthread_mutex_lock(&pvt->capture_done_mutex);
+	/* Initialize the queues */
+	pvt->captured_queue = queue_init();
+	queue_limit (pvt->captured_queue, 2);
 
 	/* Create the threads */
-	rc = pthread_create(&pvt->thread_capture, NULL, capture_thread, pvt);
+	rc = pthread_create(&pvt->capture_thread, NULL, capture_main, pvt);
 	if (rc){
 		fprintf(stderr, "pthread_create failed, exiting\n");
 		return -6;
 	}
-	rc = pthread_create(&pvt->thread_blit, NULL, process_capture_thread, pvt);
+	rc = pthread_create(&pvt->convert_thread, NULL, convert_main, pvt);
 	if (rc){
 		fprintf(stderr, "pthread_create failed, exiting\n");
 		return -7;

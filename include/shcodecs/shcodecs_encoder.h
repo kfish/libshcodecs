@@ -28,6 +28,20 @@ typedef void SHCodecs_Encoder;
 typedef int (*SHCodecs_Encoder_Input) (SHCodecs_Encoder * encoder, void * user_data);
 
 /**
+ * Signature of a callback for libshcodecs to call when it no longer requires
+ * access to a previously input YUV buffer.
+ * To pause encoding, return 1 from this callback.
+ * \param encoder The SHCodecs_Encoder* handle
+ * \param user_data Arbitrary data supplied by user
+ * \retval 0 Continue encoding
+ * \retval 1 Pause encoding, return from shcodecs_encode()
+ */
+typedef int (*SHCodecs_Encoder_Input_Release) (SHCodecs_Encoder * encoder,
+                                               unsigned char * y_input,
+                                               unsigned char * c_input,
+                                               void * user_data);
+
+/**
  * Signature of a callback for libshcodecs to call when it has encoded data.
  * To pause encoding, return 1 from this callback.
  * \param encoder The SHCodecs_Encoder* handle
@@ -80,6 +94,18 @@ int
 shcodecs_encoder_set_input_callback (SHCodecs_Encoder * encoder,
                                      SHCodecs_Encoder_Input input_cb,
                                      void * user_data);
+
+/**
+ * Set the callback for libshcodecs to call when it no longer requires
+ * access to a previously input YUV buffer.
+ * \param encoder The SHCodecs_Encoder* handle
+ * \param release_cb The callback function
+ * \param user_data Additional data to pass to the callback function
+ */
+int
+shcodecs_encoder_set_input_release_callback (SHCodecs_Encoder * encoder,
+                                             SHCodecs_Encoder_Input_Release release_cb,
+                                             void * user_data);
 
 /**
  * Provide input data to the encoder.
@@ -137,6 +163,15 @@ shcodecs_encoder_get_c_bytes (SHCodecs_Encoder * encoder);
  */
 int
 shcodecs_encoder_run (SHCodecs_Encoder * encoder);
+
+/**
+ * Run multiple encoders.
+ * \param encoders An array of  SHCodecs_Encoder* handles.
+ * \param nr_encoers The number of elements in the \a encoders array.
+ * \retval 0 Success
+ */
+int
+shcodecs_encoder_run_multiple (SHCodecs_Encoder * encoders[], int nr_encoders);
 
 /**
  * Get the width in pixels of the encoded image
@@ -202,6 +237,17 @@ int
 shcodecs_encoder_get_input_physical_addr (SHCodecs_Encoder * encoder, 
                                           unsigned int *addr_y, unsigned int *addr_C);
 
+/**
+ * Set the physical address of input data.
+ * This function must ONLY be called from within an SHCodecs_Encoder_Input callback.
+ * \param encoder The SHCodecs_Encoder* handle
+ * \param y_input Pointer to the Y plane of input data
+ * \param c_input Pointer to the CbCr plane of input data
+ * \retval -1 \a encoder invalid
+ */
+int
+shcodecs_encoder_set_input_physical_addr (SHCodecs_Encoder * encoder, 
+                                          unsigned int *addr_y, unsigned int *addr_C);
 
 #include <shcodecs/encode_general.h>
 #include <shcodecs/encode_properties.h>

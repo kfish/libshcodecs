@@ -52,6 +52,8 @@ void capture_stop_capturing(capture * cap);
 void capture_get_frame(capture * cap, capture_callback cb,
 			  void *user_data);
 
+void capture_queue_buffer(capture * cap, const void * buffer_data);
+
 /* Get the properties of the captured frames 
  * The v4l device may not support the request size
  */

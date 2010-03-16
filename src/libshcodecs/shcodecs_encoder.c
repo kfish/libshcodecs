@@ -31,6 +31,13 @@
 
 #include "encoder_private.h"
 
+#undef MAX
+#define MAX(a,b) ((a>b)?(a):(b))
+
+/* Minimum size as this buffer is used for data other than encoded frames */
+/* TODO min size has not been verified, just takem from sample code */
+#define MIN_STREAM_BUFF_SIZE (160000*4)
+
 int vpu4_clock_on(void);
 int vpu4_clock_off(void);
 
@@ -46,9 +53,9 @@ work_area_size (SHCodecs_Encoder * encoder)
 }
 
 static unsigned long
-stream_buff_size (SHCodecs_Encoder * encoder)
+dimension_stream_buff_size (int width, int height)
 {
-	long wh = encoder->width * encoder->height;
+	long wh = width * height;
 	long size = wh + wh/2;	/* Size of uncompressed YCbCr420 frame */
 
    	/* Apply minimum compression ratio */
@@ -58,10 +65,8 @@ stream_buff_size (SHCodecs_Encoder * encoder)
 		size = size / 2;
 	}
 
-	/* Minimum size as this buffer is used for data other than encoded frames */
-	/* TODO min size has not been verified, just takem from sample code */
-	if (size < 160000)
-		size = 160000;
+	if (size < MIN_STREAM_BUFF_SIZE)
+		size = MIN_STREAM_BUFF_SIZE;
 
 	/* Make size a multiple of 32 */
 	size = (size + 31) & ~31;
@@ -69,14 +74,24 @@ stream_buff_size (SHCodecs_Encoder * encoder)
 	return size;
 }
 
+static unsigned long
+encoder_stream_buff_size (SHCodecs_Encoder * encoder)
+{
+	return dimension_stream_buff_size (encoder->width, encoder->height);
+}
+
 /*----------------------------------------------------------------------------------------------*/
 /* set the parameters of VPU4 */
 /*----------------------------------------------------------------------------------------------*/
+
+static M4IPH_VPU4_INIT_OPTION global_vpu4_param;
+unsigned long global_temp_buf_size;
+
 static void
-set_VPU4_param(SHCodecs_Encoder * encoder)
+set_VPU4_param(int maxwidth, int maxheight)
 {
-	M4IPH_VPU4_INIT_OPTION * vpu4_param = &(encoder->vpu4_param);
-	unsigned long buf_size, tb;
+	M4IPH_VPU4_INIT_OPTION * vpu4_param = &global_vpu4_param;
+	unsigned long tb;
 
 	/* VPU4 Base Address For SH-Mobile 3A */
 	vpu4_param->m4iph_vpu_base_address = 0xFE900000;
@@ -103,10 +118,10 @@ set_VPU4_param(SHCodecs_Encoder * encoder)
 	vpu4_param->m4iph_vpu_mask_address_disable = M4IPH_OFF;
 
 	/* Temporary Buffer */
-	buf_size = stream_buff_size (encoder);
-	tb = (unsigned long)m4iph_sdr_malloc(buf_size, 32);
+	global_temp_buf_size = dimension_stream_buff_size (maxwidth, maxheight);
+	tb = (unsigned long)m4iph_sdr_malloc(global_temp_buf_size, 32);
 	vpu4_param->m4iph_temporary_buff_address = tb;
-	vpu4_param->m4iph_temporary_buff_size = buf_size;
+	vpu4_param->m4iph_temporary_buff_size = global_temp_buf_size;
 }
 
 static int
@@ -163,8 +178,8 @@ void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
 			m4iph_sdr_free(encoder->local_frames[i].Y_fmemp, width_height);
 	}
 
-	buf_size = stream_buff_size (encoder);
-	m4iph_sdr_free((unsigned char *)encoder->vpu4_param.m4iph_temporary_buff_address, buf_size);
+	/* XXX: Do this for last encoder_close only */
+	m4iph_sdr_free((unsigned char *)global_vpu4_param.m4iph_temporary_buff_address, global_temp_buf_size);
 
 	m4iph_sdr_close();
 	m4iph_vpu_close();
@@ -178,6 +193,39 @@ void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
 	free(encoder->end_code_buff_info.buff_top);
 
 	free(encoder);
+}
+
+static int shcodecs_encoder_global_init (int maxwidth, int maxheight)
+{
+	long return_code;
+
+	if (m4iph_vpu_open() < 0) {
+		return -1;
+	}
+	m4iph_sdr_open();
+
+	m4iph_sleep_time_init();
+
+	/* Set the VPU parameters */
+	set_VPU4_param(maxwidth, maxheight);
+
+	/* Initialize VPU */
+	return_code = m4iph_vpu4_init(&global_vpu4_param);
+	if (return_code < 0) {
+		if (return_code == -1) {
+			fprintf(stderr,
+				"%s: m4iph_vpu4_init PARAMETER ERROR!\n", __func__);
+		}
+		return -1;
+	}
+
+	/* stream buffer 0 clear */
+	encode_time_init();
+	vpu4_clock_on();
+
+	avcbe_start_encoding();
+
+	return 0;
 }
 
 /**
@@ -196,12 +244,6 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	encoder = calloc(1, sizeof(SHCodecs_Encoder));
 	if (encoder == NULL)
 		return NULL;
-
-	if (m4iph_vpu_open() < 0) {
-		free (encoder);
-		return NULL;
-	}
-	m4iph_sdr_open();
 
 	encoder->width = width;
 	encoder->height = height;
@@ -224,41 +266,19 @@ SHCodecs_Encoder *shcodecs_encoder_init(int width, int height,
 	encoder->output_filler_enable = 0;
 	encoder->output_filler_data = 0;
 
-	m4iph_sleep_time_init();
-
-	/* Set the VPU parameters */
-	set_VPU4_param(encoder);
-
-	/* Initialize VPU */
-	return_code = m4iph_vpu4_init(&(encoder->vpu4_param));
-	if (return_code < 0) {
-		if (return_code == -1) {
-			fprintf(stderr,
-				"%s: m4iph_vpu4_init PARAMETER ERROR!\n", __func__);
-		}
-		goto err;
-	}
-
 	init_other_API_enc_param(&encoder->other_API_enc_param);
-
-	/* stream buffer 0 clear */
-	encode_time_init();
-	vpu4_clock_on();
-
 
 	if (encoder->format == SHCodecs_Format_H264) {
 		return_code = h264_encode_init (encoder, AVCBE_H264);
 	} else {
 		return_code = mpeg4_encode_init (encoder, AVCBE_MPEG4);
 	}
-	if (return_code < 0)
-		goto err;
+	if (return_code < 0) {
+		free (encoder);
+		return NULL;
+	}
 
 	return encoder;
-
-err:
-	shcodecs_encoder_close(encoder);
-	return NULL;
 }
 
 static int
@@ -297,7 +317,7 @@ shcodecs_encoder_deferred_init (SHCodecs_Encoder * encoder)
 	if (!encoder->work_area.area_top)
 		goto err;
 
-	buf_size = stream_buff_size(encoder);
+	buf_size = encoder_stream_buff_size(encoder);
 	encoder->stream_buff_info.buff_size = buf_size;
 	encoder->stream_buff_info.buff_top = memalign(32, buf_size);
 	if (!encoder->stream_buff_info.buff_top)
@@ -335,6 +355,24 @@ shcodecs_encoder_set_input_callback(SHCodecs_Encoder * encoder,
 }
 
 /**
+ * Set the callback for libshcodecs to call when it no longer requires
+ * access to a previously input YUV buffer.
+ * \param encoder The SHCodecs_Encoder* handle
+ * \param release_cb The callback function
+ * \param user_data Additional data to pass to the callback function
+ */
+int
+shcodecs_encoder_set_input_release_callback (SHCodecs_Encoder * encoder,
+                                             SHCodecs_Encoder_Input_Release release_cb,
+                                             void * user_data)
+{
+	encoder->release = release_cb;
+	encoder->release_user_data = user_data;
+
+	return 0;
+}
+
+/**
  * Set the callback for libshcodecs to call when encoded data is available.
  * \param encoder The SHCodecs_Encoder* handle
  * \param encodec_cb The callback function
@@ -362,6 +400,11 @@ int shcodecs_encoder_run(SHCodecs_Encoder * encoder)
 			return -1;
 
 	if (encoder->initialized < 1) {
+		if (shcodecs_encoder_global_init (encoder->width, encoder->height) < 0) {
+			free (encoder);
+			return -1;
+		}
+
 		if (shcodecs_encoder_deferred_init (encoder) == -1) {
 			return -1;
 		}
@@ -372,6 +415,49 @@ int shcodecs_encoder_run(SHCodecs_Encoder * encoder)
 	} else {
 		return mpeg4_encode_run (encoder, AVCBE_MPEG4);
 	}
+}
+
+int shcodecs_encoder_run_multiple (SHCodecs_Encoder * encoders[], int nr_encoders)
+{
+	SHCodecs_Encoder * encoder;
+	int i, maxwidth=0, maxheight=0;
+
+	for (i=0; i < nr_encoders; i++) {
+		encoder = encoders[i];
+
+		if (encoder == NULL)
+			return -1;
+
+		maxwidth = MAX(maxwidth, encoder->width);
+		maxheight = MAX(maxheight, encoder->height);
+	}
+
+	if (shcodecs_encoder_global_init (maxwidth, maxheight) < 0) {
+		for (i=0; i < nr_encoders; i++) {
+			free(encoders[i]);
+		}
+		return -1;
+	}
+
+	for (i=0; i < nr_encoders; i++) {
+		encoder = encoders[i];
+
+		if (encoder->initialized < 1) {
+			if (shcodecs_encoder_deferred_init (encoder) == -1) {
+				return -1;
+			}
+		}
+	}
+
+	/* XXX: Check formats */
+	for (i=0; i < nr_encoders; i++) {
+		encoder = encoders[i];
+		if (encoder->format != SHCodecs_Format_H264) {
+			fprintf (stderr, "%s: Multiple encode is currently only supported where all streams are H.264\n", __func__);
+			return -1;
+		}
+	}
+	return h264_encode_run_multiple (encoders, nr_encoders, AVCBE_H264);
 }
 
 int
@@ -515,4 +601,20 @@ shcodecs_encoder_get_input_physical_addr (SHCodecs_Encoder * encoder,
   return 0;
 }
 
+/**
+ * Set the physical address of input data.
+ * \param encoder The SHCodecs_Encoder* handle
+ * \returns size in bytes of CbCr plane.
+ * \retval -1 \a encoder invalid
+ */
+int
+shcodecs_encoder_set_input_physical_addr (SHCodecs_Encoder * encoder, 
+		     unsigned int *addr_y, unsigned int *addr_c)
+{
+  if (encoder == NULL) return -1;
 
+  encoder->addr_y = (unsigned char *)addr_y;
+  encoder->addr_c = (unsigned char *)addr_c;
+
+  return 0;
+}

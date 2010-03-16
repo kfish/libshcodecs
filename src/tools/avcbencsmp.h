@@ -39,7 +39,8 @@ typedef struct {
 	long xpic;
 	long ypic;
 
-    long frames_to_encode;
+	long frames_to_encode;		/* target number of frames to encode */
+	long frame_counter_of_input;	/* the number of input frames encoded so far */
 
 } APPLI_INFO;
 

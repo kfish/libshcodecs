@@ -14,6 +14,7 @@ noinst_HEADERS = \
 	avcbencsmp.h \
 	capture.h \
 	framerate.h \
+	thrqueue.h \
 	ControlFileUtil.h
 
 shcodecs_dec_SOURCES = shcodecs-dec.c
@@ -28,6 +29,7 @@ shcodecs_record_SOURCES = \
 	capture.c \
 	display.c \
 	framerate.c \
+	thrqueue.c \
 	ControlFileUtil.c \
 	avcbeinputuser.c
 
