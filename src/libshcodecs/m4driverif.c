@@ -242,7 +242,7 @@ int m4iph_vpu_open(int stream_buf_size)
 	vpu->work_buff = m4iph_sdr_malloc(stream_buf_size, 32);
 	CHECK_ALLOC(vpu->work_buff, stream_buf_size, "work buffer (kernel)", err);
 
-	vpu->params.m4iph_vpu_base_address = 0xfe900000;
+	vpu->params.m4iph_vpu_base_address = VP4_CTRL;
 
 	/* Little endian */
 	vpu->params.m4iph_vpu_endian = 0x3ff;
@@ -523,6 +523,16 @@ void m4iph_avcbe_perror(char *msg, int error)
 
 void avcbd_get_time_code(long h, long m, long s)
 {
+}
+
+long m4iph_dec_continue(void)
+{
+	return 0;
+}
+
+long m4iph_enc_continue(long output_bits)
+{
+	return 1;
 }
 
 int vpu4_clock_on(void)

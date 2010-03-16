@@ -29,7 +29,6 @@
 
 #include "avcbe.h"		/* SuperH MEPG-4&H.264 Video Encode Library Header */
 #include "m4iph_vpu4.h"		/* SuperH MEPG-4&H.264 Video Driver Library Header */
-#include "sh7722_vpu.h"
 #include "encoder_common.h"		/* User Application Sample Header */
 #include "m4driverif.h"
 
@@ -85,20 +84,6 @@ unsigned long avcbe_insert_filler_data_for_cpb_buffer(unsigned long
 #endif
 }
 
-/*-------------------------------------------------------------------------*/
-/*      dummy function			                                           */
-/*-------------------------------------------------------------------------*/
-long m4iph_dec_continue()
-{
-	return (0);		/* dummy function */
-}
-
-/*float logf(float x) // dummy function
-{
-	float y;
-	y = (float) log(x);
-	return y;
-}*/
 
 long encode_time;
 

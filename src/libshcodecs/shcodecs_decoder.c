@@ -233,8 +233,6 @@ shcodecs_decoder_get_frame_count (SHCodecs_Decoder * decoder)
 
 /***********************************************************/
 
-long m4iph_enc_continue(long output_bits);
-
 void *global_context;
 
 /***********************************************************/
@@ -690,17 +688,6 @@ static int decode_frame(SHCodecs_Decoder * decoder)
 		return -1;
 	}
 }
-
-#if 1
-/*
- * m4iph_enc_continue
- *
- */
-long m4iph_enc_continue(long output_bits)
-{
-	return 1;
-}
-#endif
 
 /*
  * extract_frame: extract a decoded frame from the VPU
