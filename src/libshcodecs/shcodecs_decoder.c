@@ -83,11 +83,10 @@ SHCodecs_Decoder *shcodecs_decoder_init(int width, int height, int format)
                 decoder->max_nal_size /= 2; /* Apply MinCR */
 
 	/* Initialize m4iph */
-	if (m4iph_vpu_open() < 0) {
+	if (m4iph_vpu_open(decoder->max_nal_size) < 0) {
 		free (decoder);
 		return NULL;
 	}
-	m4iph_sdr_open();
 
 	/* Stream initialize */
 	if (stream_init(decoder)) {
@@ -115,8 +114,6 @@ void shcodecs_decoder_close(SHCodecs_Decoder * decoder)
 	if (decoder->si_sei)
 		free(decoder->si_sei);
 
-	/* m4driverif */
-	m4iph_sdr_close();
 	m4iph_vpu_close();
 
 	free(decoder);
@@ -248,34 +245,12 @@ void *global_context;
  */
 static int stream_init(SHCodecs_Decoder * decoder)
 {
-	M4IPH_VPU4_INIT_OPTION vpu_init_option;
 	int i,j;
 	int iContext_ReqWorkSize;
 	void *pv_wk_buff;
 	size_t dp_size;
 	TAVCBD_FMEM *frame_list;
 	long stream_mode;
-
-	pv_wk_buff = m4iph_sdr_malloc(decoder->max_nal_size, 32);
-	CHECK_ALLOC(pv_wk_buff, decoder->max_nal_size, "work buffer (kernel)",
-		    err1);
-
-	vpu_init_option.m4iph_vpu_base_address = 0xfe900000;
-	vpu_init_option.m4iph_vpu_endian = 0x3ff;
-
-#ifdef DISABLE_INT
-	vpu_init_option.m4iph_vpu_interrupt_enable = M4IPH_OFF;
-#else
-	vpu_init_option.m4iph_vpu_interrupt_enable = M4IPH_ON;
-#endif
-
-	vpu_init_option.m4iph_vpu_clock_supply_control =
-	    M4IPH_CTL_FRAME_UNIT;
-	vpu_init_option.m4iph_vpu_mask_address_disable = M4IPH_OFF;
-	vpu_init_option.m4iph_temporary_buff_address =
-	    (unsigned long) ALIGN_NBYTES(pv_wk_buff, 32);
-	vpu_init_option.m4iph_temporary_buff_size = decoder->max_nal_size;
-	m4iph_vpu4_init(&vpu_init_option);
 
 	avcbd_start_decoding();
 
@@ -324,7 +299,7 @@ static int stream_init(SHCodecs_Decoder * decoder)
 		 * Although the VPU requires 16 bytes alignment, the
 		 * cache line size is 32 bytes on the SH4.
 		 */
-		pthread_mutex_lock(&vpu_mutex);
+		m4iph_vpu_lock();
 
 		/* luma frame */
 		decoder->si_flist[i].Y_fmemp =
@@ -342,7 +317,7 @@ static int stream_init(SHCodecs_Decoder * decoder)
 		CHECK_ALLOC(decoder->si_flist[i].C_fmemp,
 			    iContext_ReqWorkSize >> 1,
 			    "C component (kernel memory)", err1);
-		pthread_mutex_unlock(&vpu_mutex);
+		m4iph_vpu_unlock();
 	}
 
 	if (decoder->si_type == F_H264) {
@@ -357,7 +332,7 @@ static int stream_init(SHCodecs_Decoder * decoder)
 	/* 16 bytes for each macroblocks */
 	dp_size = (iContext_ReqWorkSize * 16) >> 8;
 
-	pthread_mutex_lock(&vpu_mutex);
+	m4iph_vpu_lock();
 
 	decoder->si_dp_264 = m4iph_sdr_malloc(dp_size, 32);
 	CHECK_ALLOC(decoder->si_dp_264, dp_size, "data partition 1", err1);
@@ -375,7 +350,7 @@ static int stream_init(SHCodecs_Decoder * decoder)
 	CHECK_ALLOC(decoder->si_ff.C_fmemp, (iContext_ReqWorkSize >> 1),
 		    "C component of filtered frame", err1);
 
-	pthread_mutex_unlock(&vpu_mutex);
+	m4iph_vpu_unlock();
 
 	stream_mode = (decoder->si_type == F_H264) ? AVCBD_TYPE_AVC : AVCBD_TYPE_MPEG4;
 

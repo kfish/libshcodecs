@@ -39,6 +39,11 @@
 #include <avcbd.h>
 #include "avcbd_optionaldata.h"
 #include "avcbd_inner_typedef.h"
+#include "m4driverif.h"
+
+static int m4iph_sdr_open(void);
+static void m4iph_sdr_close(void);
+
 
 static int fgets_with_openclose(char *fname, char *buf, size_t maxlen)
 {
@@ -134,6 +139,8 @@ static int sleep_time;
 static unsigned long sdr_base, sdr_start, sdr_end;
 unsigned long _BM4VSD_BGN, _BM4VSD_END;
 pthread_mutex_t vpu_mutex = PTHREAD_MUTEX_INITIALIZER;
+M4IPH_VPU4_INIT_OPTION vpu_params;
+
 
 static void usr_memcpy32(unsigned long *dst, unsigned long *src,
 			 long size);
@@ -198,9 +205,10 @@ void m4iph_restart(void)
 	/* Do nothing for Linux */
 }
 
-int m4iph_vpu_open(void)
+int m4iph_vpu_open(int stream_buf_size)
 {
 	int ret;
+	void *pv_wk_buff;
 
 	ret = locate_uio_device("VPU", &uio_dev);
 	if (ret < 0)
@@ -218,12 +226,54 @@ int m4iph_vpu_open(void)
 	if (ret < 0)
 		return ret;
 
+	m4iph_sdr_open();
+
+
+	pv_wk_buff = m4iph_sdr_malloc(stream_buf_size, 32);
+	CHECK_ALLOC(pv_wk_buff, stream_buf_size, "work buffer (kernel)", err);
+
+	vpu_params.m4iph_vpu_base_address = 0xfe900000;
+
+	/* Little endian */
+	vpu_params.m4iph_vpu_endian = 0x3ff;
+
+#ifdef DISABLE_INT
+	vpu_params.m4iph_vpu_interrupt_enable = M4IPH_OFF;
+#else
+	vpu_params.m4iph_vpu_interrupt_enable = M4IPH_ON;
+#endif
+
+	vpu_params.m4iph_vpu_clock_supply_control = M4IPH_CTL_FRAME_UNIT;
+	vpu_params.m4iph_vpu_mask_address_disable = M4IPH_OFF;
+	vpu_params.m4iph_temporary_buff_address = (unsigned long)pv_wk_buff;
+	vpu_params.m4iph_temporary_buff_size = stream_buf_size;
+
+	/* Initialize VPU */
+	ret = m4iph_vpu4_init(&vpu_params);
+	if (ret < 0)
+		return ret;
+
 	return 0;
+
+err:
+	return -1;
 }
 
 void m4iph_vpu_close(void)
 {
+	m4iph_sdr_close();
 }
+
+void m4iph_vpu_lock(void)
+{
+	pthread_mutex_lock(&vpu_mutex);
+}
+
+void m4iph_vpu_unlock(void)
+{
+	pthread_mutex_unlock(&vpu_mutex);
+}
+
 
 unsigned long m4iph_reg_table_read(unsigned long *addr,
 				   unsigned long *data, long nr_longs)
@@ -265,14 +315,14 @@ void m4iph_reg_table_write(unsigned long *addr, unsigned long *data,
 #endif
 }
 
-int m4iph_sdr_open(void)
+static int m4iph_sdr_open(void)
 {
 	sdr_base = sdr_start = uio_mem.address;
 	sdr_end = sdr_base + uio_mem.size;
 	return 0;
 }
 
-void m4iph_sdr_close(void)
+static void m4iph_sdr_close(void)
 {
 	sdr_base = sdr_start = sdr_end = 0;
 }

@@ -27,8 +27,6 @@
 #include <malloc.h>
 
 #include "m4driverif.h"
-#include "m4iph_vpu4.h"		/* SuperH MEPG-4&H.264 Video Driver Library Header */
-
 #include "encoder_private.h"
 
 #undef MAX
@@ -37,11 +35,6 @@
 /* Minimum size as this buffer is used for data other than encoded frames */
 /* TODO min size has not been verified, just takem from sample code */
 #define MIN_STREAM_BUFF_SIZE (160000*4)
-
-int vpu4_clock_on(void);
-int vpu4_clock_off(void);
-
-SHCodecs_vpu *global_vpu_data = NULL;
 
 
 static unsigned long
@@ -82,110 +75,6 @@ encoder_stream_buff_size (SHCodecs_Encoder * encoder)
 {
 	return dimension_stream_buff_size (encoder->width, encoder->height);
 }
-
-/*----------------------------------------------------------------------------------------------*/
-/* set the parameters of VPU4 */
-/*----------------------------------------------------------------------------------------------*/
-
-static int vpu_open(int width, int height)
-{
-	M4IPH_VPU4_INIT_OPTION *vpu4_param;
-	SHCodecs_vpu *vpu;
-	long return_code;
-	unsigned long tb;
-
-	/* TODO lock */
-
-	if (global_vpu_data) {
-		if (dimension_stream_buff_size (width, height)
-			 <= global_vpu_data->temp_buf_size) {
-			global_vpu_data->num_encoders++;
-			return 0;
-		} else {
-			return -1;
-		}
-	}
-
-	vpu = malloc(sizeof(*vpu));
-	if (!vpu) {
-		return -1;
-	}
-	global_vpu_data = vpu;
-	vpu4_param = &vpu->params;
-
-	if (m4iph_vpu_open() < 0) {
-		return -1;
-	}
-	m4iph_sdr_open();
-	m4iph_sleep_time_init();
-
-
-	/* VPU4 Base Address For SH-Mobile 3A */
-	vpu4_param->m4iph_vpu_base_address = 0xFE900000;
-
-	/* Endian */
-#ifdef _LIT
-	vpu4_param->m4iph_vpu_endian = 0x000003FF;	/* for Little Endian */
-#else
-	vpu4_param->m4iph_vpu_endian = 0x00000000;	/* for Big Endian */
-#endif
-
-
-	/* Interrupt */
-#ifdef DISABLE_INT
-	vpu4_param->m4iph_vpu_interrupt_enable = M4IPH_OFF;
-#else
-	vpu4_param->m4iph_vpu_interrupt_enable = M4IPH_ON;
-#endif
-
-	/* Supply of VPU4 Clock */
-	vpu4_param->m4iph_vpu_clock_supply_control = 0;
-
-	/* Address Mask change */
-	vpu4_param->m4iph_vpu_mask_address_disable = M4IPH_OFF;
-
-	/* Temporary Buffer */
-	vpu->temp_buf_size = dimension_stream_buff_size (width, height);
-	tb = (unsigned long)m4iph_sdr_malloc(vpu->temp_buf_size, 32);
-	vpu4_param->m4iph_temporary_buff_address = tb;
-	vpu4_param->m4iph_temporary_buff_size = vpu->temp_buf_size;
-
-	/* Initialize VPU */
-	return_code = m4iph_vpu4_init(&vpu->params);
-	if (return_code < 0) {
-		if (return_code == -1) {
-			fprintf(stderr,
-				"%s: m4iph_vpu4_init PARAMETER ERROR!\n", __func__);
-		}
-		return -1;
-	}
-
-	vpu4_clock_on();
-
-	vpu->num_encoders = 0;
-	global_vpu_data = vpu;
-
-	/* TODO unlock */
-
-	return 0;
-}
-
-static void vpu_close(void)
-{
-	/* TODO lock */
-	SHCodecs_vpu *vpu = global_vpu_data;
-
-	if (--vpu->num_encoders == 0) {
-		m4iph_sdr_free((unsigned char *)
-			vpu->params.m4iph_temporary_buff_address,
-			vpu->temp_buf_size);
-		m4iph_sdr_close();
-		m4iph_vpu_close();
-	}
-
-	/* TODO unlock */
-}
-
 
 static int
 init_other_API_enc_param(OTHER_API_ENC_PARAM * other_API_enc_param)
@@ -251,13 +140,13 @@ void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
 
 	free(encoder);
 
-	vpu_close();
+	m4iph_vpu_close();
 }
 
 static int
 shcodecs_encoder_global_init (int width, int height)
 {
-	if (vpu_open(width, height) != 0)
+	if (m4iph_vpu_open(dimension_stream_buff_size (width, height)) < 0)
 		return -1;
 
 	/* stream buffer 0 clear */

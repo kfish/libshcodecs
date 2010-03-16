@@ -20,8 +20,6 @@
 #ifndef _M4DRIVERIF_H_
 #define _M4DRIVERIF_H_
 
-#include <pthread.h>
-
 /* Align address in w bytes boundary. VPU needs 16 bytes alignment.
  * Length of a cache line of SH4/SH4AL-DSP is 32 bytes.
  */
@@ -37,14 +35,15 @@
 		}							\
 	} while (0)
 
-extern pthread_mutex_t vpu_mutex;
+
+int m4iph_vpu_open(int stream_buf_size);
+void m4iph_vpu_close(void);
+
+void m4iph_vpu_lock(void);
+void m4iph_vpu_unlock(void);
 
 void *m4iph_sdr_malloc(unsigned long count, int align);
 void m4iph_sdr_free(void *address, unsigned long count);
-int m4iph_sdr_open(void);
-void m4iph_sdr_close(void);
-int m4iph_vpu_open(void);
-void m4iph_vpu_close(void);
 void m4iph_avcbd_perror(char *msg, int error);
 void m4iph_avcbe_perror(char *msg, int error);
 void *m4iph_map_sdr_mem(void *address, int size);
