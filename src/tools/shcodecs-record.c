@@ -55,6 +55,8 @@
 
 #define DEBUG
 
+#define MAX_ENCODERS 8
+
 struct private_data {
 	void *display;
 
@@ -65,8 +67,10 @@ struct private_data {
 
 	FILE *output_fp;
 
+	int nr_encoders;
+
 	APPLI_INFO ainfo;	/* Capture params */
-	SHCodecs_Encoder *encoder;
+	SHCodecs_Encoder *encoders[MAX_ENCODERS];
 
 	pthread_mutex_t capture_start_mutex;
 	pthread_mutex_t encode_start_mutex;
@@ -175,7 +179,7 @@ void *convert_main(void *data)
 			src_h = pvt->enc_w;
 		}
 
-		shcodecs_encoder_get_input_physical_addr (pvt->encoder, (unsigned int *)&enc_y, (unsigned int *)&enc_c);
+		shcodecs_encoder_get_input_physical_addr (pvt->encoders[0], (unsigned int *)&enc_y, (unsigned int *)&enc_c);
 
 		/* We are clipping, not scaling, as we need to perform a rotation,
 		   but the VEU cannot do a rotate & scale at the same time. */
@@ -276,7 +280,7 @@ void cleanup (void)
 	framerate_destroy (pvt->enc_framerate);
 
 	capture_stop_capturing(pvt->ceu);
-	shcodecs_encoder_close(pvt->encoder);
+	shcodecs_encoder_close(pvt->encoders[0]);
 	capture_close(pvt->ceu);
 	close_output_file(pvt->output_fp);
 
@@ -407,6 +411,8 @@ int main(int argc, char *argv[])
 	debug_printf("Input file: %s\n", pvt->ainfo.input_file_name_buf);
 	debug_printf("Output file: %s\n", pvt->ainfo.output_file_name_buf);
 
+	pvt->nr_encoders = 1;
+
 	/* Initalise the mutexes */
 	pthread_mutex_init(&pvt->capture_start_mutex, NULL);
 	pthread_mutex_lock(&pvt->capture_start_mutex);
@@ -482,26 +488,26 @@ int main(int argc, char *argv[])
 	}
 
 	/* VPU Encoder initialisation */
-	pvt->encoder = shcodecs_encoder_init(pvt->enc_w, pvt->enc_h, stream_type);
-	if (pvt->encoder == NULL) {
+	pvt->encoders[0] = shcodecs_encoder_init(pvt->enc_w, pvt->enc_h, stream_type);
+	if (pvt->encoders[0] == NULL) {
 		fprintf(stderr, "shcodecs_encoder_init failed, exiting\n");
 		return -5;
 	}
-	shcodecs_encoder_set_input_callback(pvt->encoder, get_input, pvt);
-	shcodecs_encoder_set_output_callback(pvt->encoder, write_output, pvt);
+	shcodecs_encoder_set_input_callback(pvt->encoders[0], get_input, pvt);
+	shcodecs_encoder_set_output_callback(pvt->encoders[0], write_output, pvt);
 
-	return_code = ctrlfile_set_enc_param(pvt->encoder, ctrl_filename);
+	return_code = ctrlfile_set_enc_param(pvt->encoders[0], ctrl_filename);
 	if (return_code < 0) {
 		fprintf (stderr, "Problem with encoder params in control file!\n");
 		return -9;
 	}
 	/* Override the encoding frame size as it may not be the same size as the
 	   camera capture size */
-	shcodecs_encoder_set_xpic_size(pvt->encoder, pvt->enc_w);
-	shcodecs_encoder_set_ypic_size(pvt->encoder, pvt->enc_h);
+	shcodecs_encoder_set_xpic_size(pvt->encoders[0], pvt->enc_w);
+	shcodecs_encoder_set_ypic_size(pvt->encoders[0], pvt->enc_h);
 
 	/* Set up the frame rate timer to match the encode framerate */
-	target_fps10 = shcodecs_encoder_get_frame_rate(pvt->encoder);
+	target_fps10 = shcodecs_encoder_get_frame_rate(pvt->encoders[0]);
 	fprintf (stderr, "Target framerate:   %.1f fps\n", target_fps10 / 10.0);
 
 	/* Initialize framerate timer */
@@ -509,7 +515,7 @@ int main(int argc, char *argv[])
 
 	capture_start_capturing(pvt->ceu);
 
-	rc = shcodecs_encoder_run(pvt->encoder);
+	rc = shcodecs_encoder_run_multiple(pvt->encoders, pvt->nr_encoders);
 	if (rc != 0) {
 		fprintf(stderr, "Error encoding, error code=%d\n", rc);
 		rc = -10;
