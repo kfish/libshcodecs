@@ -149,12 +149,6 @@ static int setup_uio_map(struct uio_device *udp, int nr,
 struct uio_device uio_dev;
 struct uio_map uio_mmio, uio_mem;
 
-unsigned long _BM4VSD_BGN, _BM4VSD_END;
-
-
-static void usr_memcpy32(unsigned long *dst, unsigned long *src,
-			 long size);
-int avcbd_idr_adjust(void *context);
 
 /* User defined functions as specified by the Encoder/Decoder middleware
  * documents.
@@ -205,7 +199,7 @@ long m4iph_sleep(void)
 		tm = 1000 - (tv.tv_usec - tv1.tv_usec) / 1000;
 	}
 	vpu->sleep_time += tm;
-	/* avcbd_idr_adjust(global_context); */
+
 	return 0;
 }
 
@@ -457,20 +451,10 @@ void *m4iph_sdr_malloc(unsigned long count, int align)
 
 void m4iph_sdr_free(void *address, unsigned long count)
 {
-	/* fprintf(stderr, "%s() is not required\n", __FUNCTION__); */
-}
-
-#if 0
-float logf(float x)
-{
-	return (float) log((double) x);
-}
-
-float ceilf(float x)
-{
-	return (float) ceil((double) x);
-}
+#if DEBUG
+	fprintf(stderr, "%s() is not required\n", __FUNCTION__);
 #endif
+}
 
 void m4iph_avcbd_perror(char *msg, int error)
 {
