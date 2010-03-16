@@ -361,8 +361,8 @@ shcodecs_encoder_deferred_init (SHCodecs_Encoder * encoder)
 	if (!encoder->stream_buff_info.buff_top)
 		goto err;
 
-	encoder->end_code_buff_info.buff_size = MY_END_CODE_BUFF_SIZE;
-	encoder->end_code_buff_info.buff_top = memalign(32, MY_END_CODE_BUFF_SIZE);
+	encoder->end_code_buff_info.buff_size = END_CODE_BUFF_SIZE;
+	encoder->end_code_buff_info.buff_top = memalign(32, END_CODE_BUFF_SIZE);
 	if (!encoder->end_code_buff_info.buff_top)
 		goto err;
 

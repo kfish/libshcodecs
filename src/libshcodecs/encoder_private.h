@@ -166,8 +166,8 @@ struct _SHCodecs_Encoder {
 	TAVCBE_STREAM_BUFF sps_buf_info;
 	TAVCBE_STREAM_BUFF pps_buf_info;
 	TAVCBE_STREAM_BUFF sei_buf_info;
-	TAVCBE_STREAM_BUFF my_filler_data_buff_info;	/* for FillerData(CPB  Buffer) */
-	unsigned long my_filler_data_buff[MY_FILLER_DATA_BUFF_SIZE / 4];	/* for FillerData */
+	TAVCBE_STREAM_BUFF filler_data_buff_info;	/* for FillerData(CPB  Buffer) */
+	unsigned long filler_data_buff[FILLER_DATA_BUFF_SIZE / 4];	/* for FillerData */
 
 	avcbe_other_options_h264 other_options_h264;	/* parameters to control details */
 	unsigned char ref_frame_num;	/* »²¾È¥Õ¥ì¡¼¥à¿ô¡Ê1 or 2) (H.264¤Î¤ß¡Ë */

@@ -65,16 +65,16 @@ unsigned long avcbe_insert_filler_data_for_cpb_buffer(unsigned long
 #if 0
 	if (encoder->output_filler_enable == 1) {
 		/* Output Stream Buffer Infomation For Filler Data */
-		my_filler_data_buff_info.buff_top =
-		    (unsigned char *) &my_filler_data_buff[0];
-		my_filler_data_buff_info.buff_size =
-		    MY_FILLER_DATA_BUFF_SIZE;
-		if (input_filler_size > MY_FILLER_DATA_BUFF_SIZE) {
-			input_filler_size = MY_FILLER_DATA_BUFF_SIZE;	/* clip to buffer max size */
+		filler_data_buff_info.buff_top =
+		    (unsigned char *) &filler_data_buff[0];
+		filler_data_buff_info.buff_size =
+		    FILLER_DATA_BUFF_SIZE;
+		if (input_filler_size > FILLER_DATA_BUFF_SIZE) {
+			input_filler_size = FILLER_DATA_BUFF_SIZE;	/* clip to buffer max size */
 		}
 		/* Input Filler Data */
 		encoder->output_filler_data =
-		    avcbe_put_filler_data(&my_filler_data_buff_info,
+		    avcbe_put_filler_data(&filler_data_buff_info,
 					  AVCBE_ON, input_filler_size);
 	} else {
 		encoder->output_filler_data = input_filler_size;

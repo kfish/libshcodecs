@@ -25,30 +25,30 @@
 /*----------------------------------------------------------*/
 /*       Output buffer size for EOS                         */
 /*----------------------------------------------------------*/
-#define MY_END_CODE_BUFF_SIZE 32	/* byte unit */
+#define END_CODE_BUFF_SIZE 32	/* byte unit */
 
 /*----------------------------------------------------------*/
 /*       SPS-stream-output buffer size                      */
 /*----------------------------------------------------------*/
-#define MY_SPS_STREAM_BUFF_SIZE 256 /* byte unit */	/* this value must be multiple of 32 */
+#define SPS_STREAM_BUFF_SIZE 256 /* byte unit */	/* this value must be multiple of 32 */
 
 /*----------------------------------------------------------*/
 /*       PPS-stream-output buffer size                      */
 /*----------------------------------------------------------*/
-#define MY_PPS_STREAM_BUFF_SIZE 256 /* byte unit */	/* this value must be multiple of 32 */
+#define PPS_STREAM_BUFF_SIZE 256 /* byte unit */	/* this value must be multiple of 32 */
 
 /*----------------------------------------------------------*/
 /*       SEI-stream-output buffer size                      */
 /*----------------------------------------------------------*/
-/*#define MY_SEI_STREAM_BUFF_SIZE       175000 *//* Level 1 */
-/*#define MY_SEI_STREAM_BUFF_SIZE       2000000 *//* Level 2 */
-/*#define MY_SEI_STREAM_BUFF_SIZE       10000000 *//* Level 3 */
-#define MY_SEI_STREAM_BUFF_SIZE	100000
+/*#define SEI_STREAM_BUFF_SIZE       175000 *//* Level 1 */
+/*#define SEI_STREAM_BUFF_SIZE       2000000 *//* Level 2 */
+/*#define SEI_STREAM_BUFF_SIZE       10000000 *//* Level 3 */
+#define SEI_STREAM_BUFF_SIZE	100000
 
 /*----------------------------------------------------------*/
 /*    Filler-data-stream-output buffer size                 */
 /*----------------------------------------------------------*/
-#define MY_FILLER_DATA_BUFF_SIZE 256
+#define FILLER_DATA_BUFF_SIZE 256
 
 
 

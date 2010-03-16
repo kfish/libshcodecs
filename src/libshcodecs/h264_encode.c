@@ -122,20 +122,20 @@ h264_encode_init (SHCodecs_Encoder *enc, long stream_type)
 		goto err;
 
 	/* SPS output buffer */
-	enc->sps_buf_info.buff_size = MY_SPS_STREAM_BUFF_SIZE;
-	enc->sps_buf_info.buff_top = memalign(32, MY_SPS_STREAM_BUFF_SIZE);
+	enc->sps_buf_info.buff_size = SPS_STREAM_BUFF_SIZE;
+	enc->sps_buf_info.buff_top = memalign(32, SPS_STREAM_BUFF_SIZE);
 	if (!enc->sps_buf_info.buff_top)
 		goto err;
 
 	/* PPS output buffer */
-	enc->pps_buf_info.buff_size = MY_PPS_STREAM_BUFF_SIZE;
-	enc->pps_buf_info.buff_top = memalign(32, MY_PPS_STREAM_BUFF_SIZE);
+	enc->pps_buf_info.buff_size = PPS_STREAM_BUFF_SIZE;
+	enc->pps_buf_info.buff_top = memalign(32, PPS_STREAM_BUFF_SIZE);
 	if (!enc->pps_buf_info.buff_top)
 		goto err;
 
 	/* SEI output buffer */
-	enc->sei_buf_info.buff_size = MY_SEI_STREAM_BUFF_SIZE;
-	enc->sei_buf_info.buff_top = memalign(4, MY_SEI_STREAM_BUFF_SIZE);
+	enc->sei_buf_info.buff_size = SEI_STREAM_BUFF_SIZE;
+	enc->sei_buf_info.buff_top = memalign(4, SEI_STREAM_BUFF_SIZE);
 	if (!enc->sei_buf_info.buff_top)
 		goto err;
 
@@ -442,7 +442,7 @@ h264_encode_frame(SHCodecs_Encoder *enc, unsigned char *py, unsigned char *pc)
 				if ((enc->output_filler_enable == 1)
 				    && (enc->output_filler_data > 0)) {
 					cb_ret = output_data(enc, FILL,
-						enc->my_filler_data_buff_info.buff_top,
+						enc->filler_data_buff_info.buff_top,
 						enc->output_filler_data);
 					if (cb_ret != 0)
 						return cb_ret;
@@ -519,8 +519,8 @@ h264_encode_multiple(SHCodecs_Encoder *encs[], int nr_encoders)
 		enc->frame_skip_num = 0;
 
 		/* Filler Data output buffer */
-		enc->my_filler_data_buff_info.buff_top = (unsigned char *) &enc->my_filler_data_buff[0];
-		enc->my_filler_data_buff_info.buff_size = MY_FILLER_DATA_BUFF_SIZE;
+		enc->filler_data_buff_info.buff_top = (unsigned char *) &enc->filler_data_buff[0];
+		enc->filler_data_buff_info.buff_size = FILLER_DATA_BUFF_SIZE;
 	}
 
 	/* For all frames to encode */
