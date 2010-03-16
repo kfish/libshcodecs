@@ -260,7 +260,7 @@ h264_output_SEI_parameters(SHCodecs_Encoder *enc)
 }
 
 static long
-setup_veu_params(SHCodecs_Encoder *enc)
+setup_vui_params(SHCodecs_Encoder *enc)
 {
 	avcbe_vui_main_param *vui_param;
 	long rc, length;
@@ -506,7 +506,7 @@ h264_encode_multiple(SHCodecs_Encoder *encs[], int nr_encoders)
 	for (i=0; i < nr_encoders; i++) {
 		enc = encs[i];
 		if (enc->other_options_h264.avcbe_out_vui_parameters == AVCBE_ON) {
-			rc = setup_veu_params(enc);
+			rc = setup_vui_params(enc);
 			if (rc != 0)
 				return rc;
 		}
