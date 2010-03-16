@@ -102,6 +102,13 @@ typedef struct {
 	avcbe_sei_recovery_point_param sei_recovery_point_param;
 } OTHER_API_ENC_PARAM;
 
+/* VPU data - common for all encoder instances */
+typedef struct _SHCodecs_vpu {
+	int num_encoders;
+	M4IPH_VPU4_INIT_OPTION params;
+	unsigned long temp_buf_size;
+} SHCodecs_vpu;
+
 struct _SHCodecs_Encoder {
 	int width;
 	int height;
