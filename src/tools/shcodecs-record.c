@@ -57,6 +57,11 @@
 
 #define MAX_ENCODERS 8
 
+struct encode_data {
+	unsigned long enc_w;
+	unsigned long enc_h;
+};
+
 struct private_data {
 	void *display;
 
@@ -72,6 +77,8 @@ struct private_data {
 	APPLI_INFO ainfo;	/* Capture params */
 	SHCodecs_Encoder *encoders[MAX_ENCODERS];
 
+	struct encode_data encdata[MAX_ENCODERS];
+
 	pthread_mutex_t capture_start_mutex;
 	pthread_mutex_t encode_start_mutex;
 
@@ -82,9 +89,6 @@ struct private_data {
 	unsigned long cap_h;
 
 	int rotate_cap;
-
-	unsigned long enc_w;
-	unsigned long enc_h;
 
 	struct framerate * cap_framerate;
 	struct framerate * enc_framerate;
@@ -175,8 +179,8 @@ void *convert_main(void *data)
 			src_w = pvt->cap_w;
 			src_h = pvt->cap_h;
 		} else {
-			src_w = pvt->enc_h;
-			src_h = pvt->enc_w;
+			src_w = pvt->encdata[0].enc_h;
+			src_h = pvt->encdata[0].enc_w;
 		}
 
 		shcodecs_encoder_get_input_physical_addr (pvt->encoders[0], (unsigned int *)&enc_y, (unsigned int *)&enc_c);
@@ -187,7 +191,7 @@ void *convert_main(void *data)
 			cap_y, cap_c,
 			src_w, src_h, pvt->cap_w, SHVEU_YCbCr420,
 			enc_y, enc_c,
-			pvt->enc_w, pvt->enc_h, pvt->enc_w, SHVEU_YCbCr420,
+			pvt->encdata[0].enc_w, pvt->encdata[0].enc_h, pvt->encdata[0].enc_w, SHVEU_YCbCr420,
 			pvt->rotate_cap);
 
 		/* Let the encoder get_input function return */
@@ -461,19 +465,19 @@ int main(int argc, char *argv[])
 	}
 
 	if (pvt->rotate_cap == SHVEU_NO_ROT) {
-		pvt->enc_w = pvt->cap_w;
-		pvt->enc_h = pvt->cap_h;
+		pvt->encdata[0].enc_w = pvt->cap_w;
+		pvt->encdata[0].enc_h = pvt->cap_h;
 	} else {
-		pvt->enc_w = pvt->cap_h;
-		pvt->enc_h = pvt->cap_h * pvt->cap_h / pvt->cap_w;
+		pvt->encdata[0].enc_w = pvt->cap_h;
+		pvt->encdata[0].enc_h = pvt->cap_h * pvt->cap_h / pvt->cap_w;
 		/* Round down to nearest multiple of 16 for VPU */
-		pvt->enc_w = pvt->enc_w - (pvt->enc_w % 16);
-		pvt->enc_h = pvt->enc_h - (pvt->enc_h % 16);
+		pvt->encdata[0].enc_w = pvt->encdata[0].enc_w - (pvt->encdata[0].enc_w % 16);
+		pvt->encdata[0].enc_h = pvt->encdata[0].enc_h - (pvt->encdata[0].enc_h % 16);
 		debug_printf("Rotating & croping camera image...\n");
 	}
 
 	debug_printf("Camera resolution:  %dx%d\n", pvt->cap_w, pvt->cap_h);
-	debug_printf("Encode resolution:  %dx%d\n", pvt->enc_w, pvt->enc_h);
+	debug_printf("Encode resolution:  %dx%d\n", pvt->encdata[0].enc_w, pvt->encdata[0].enc_h);
 
 	pvt->display = display_open(0);
 	if (!pvt->display) {
@@ -488,7 +492,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* VPU Encoder initialisation */
-	pvt->encoders[0] = shcodecs_encoder_init(pvt->enc_w, pvt->enc_h, stream_type);
+	pvt->encoders[0] = shcodecs_encoder_init(pvt->encdata[0].enc_w, pvt->encdata[0].enc_h, stream_type);
 	if (pvt->encoders[0] == NULL) {
 		fprintf(stderr, "shcodecs_encoder_init failed, exiting\n");
 		return -5;
@@ -503,8 +507,8 @@ int main(int argc, char *argv[])
 	}
 	/* Override the encoding frame size as it may not be the same size as the
 	   camera capture size */
-	shcodecs_encoder_set_xpic_size(pvt->encoders[0], pvt->enc_w);
-	shcodecs_encoder_set_ypic_size(pvt->encoders[0], pvt->enc_h);
+	shcodecs_encoder_set_xpic_size(pvt->encoders[0], pvt->encdata[0].enc_w);
+	shcodecs_encoder_set_ypic_size(pvt->encoders[0], pvt->encdata[0].enc_h);
 
 	/* Set up the frame rate timer to match the encode framerate */
 	target_fps10 = shcodecs_encoder_get_frame_rate(pvt->encoders[0]);
