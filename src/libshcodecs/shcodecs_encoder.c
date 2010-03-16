@@ -61,7 +61,7 @@ dimension_stream_buff_size (int width, int height)
 	long wh = width * height;
 	long size = wh + wh/2;	/* Size of uncompressed YCbCr420 frame */
 
-   	/* Apply minimum compression ratio */
+	/* Apply minimum compression ratio */
 	if (wh >= 720 * 480) /* >= D1 */ {
 		size = size / 4;
 	} else {
@@ -518,9 +518,9 @@ shcodecs_encoder_input_provide (SHCodecs_Encoder * encoder,
 int
 shcodecs_encoder_get_width (SHCodecs_Encoder * encoder)
 {
-  if (encoder == NULL) return -1;
+	if (encoder == NULL) return -1;
 
-  return encoder->width;
+	return encoder->width;
 }
 
 /**
@@ -535,13 +535,13 @@ shcodecs_encoder_get_width (SHCodecs_Encoder * encoder)
  */
 int shcodecs_encoder_set_width (SHCodecs_Encoder * encoder, int width)
 {
-  if (encoder == NULL) return -1;
-  if (encoder->initialized != 0) return -2;
-  if (width <= 0 || width > SHCODECS_MAX_FX) return -3;
+	if (encoder == NULL) return -1;
+	if (encoder->initialized != 0) return -2;
+	if (width <= 0 || width > SHCODECS_MAX_FX) return -3;
 
-  encoder->width = width;
+	encoder->width = width;
 
-  return width;
+	return width;
 }
 
 /*
@@ -553,9 +553,9 @@ int shcodecs_encoder_set_width (SHCodecs_Encoder * encoder, int width)
 int
 shcodecs_encoder_get_height (SHCodecs_Encoder * encoder)
 {
-  if (encoder == NULL) return -1;
+	if (encoder == NULL) return -1;
 
-  return encoder->height;
+	return encoder->height;
 }
 
 /**
@@ -570,13 +570,13 @@ shcodecs_encoder_get_height (SHCodecs_Encoder * encoder)
  */
 int shcodecs_encoder_set_height (SHCodecs_Encoder * encoder, int height)
 {
-  if (encoder == NULL) return -1;
-  if (encoder->initialized != 0) return -2;
-  if (height <= 0 || height > SHCODECS_MAX_FY) return -3;
+	if (encoder == NULL) return -1;
+	if (encoder->initialized != 0) return -2;
+	if (height <= 0 || height > SHCODECS_MAX_FY) return -3;
 
-  encoder->height = height;
+	encoder->height = height;
 
-  return height;
+	return height;
 }
 
 /**
@@ -588,9 +588,9 @@ int shcodecs_encoder_set_height (SHCodecs_Encoder * encoder, int height)
 int
 shcodecs_encoder_get_y_bytes (SHCodecs_Encoder * encoder)
 {
-  if (encoder == NULL) return -1;
+	if (encoder == NULL) return -1;
 
-  return encoder->y_bytes;
+	return encoder->y_bytes;
 }
 
 /**
@@ -602,9 +602,9 @@ shcodecs_encoder_get_y_bytes (SHCodecs_Encoder * encoder)
 int
 shcodecs_encoder_get_c_bytes (SHCodecs_Encoder * encoder)
 {
-  if (encoder == NULL) return -1;
-  
-  return encoder->y_bytes/2;
+	if (encoder == NULL) return -1;
+
+	return encoder->y_bytes/2;
 }
 
 /**
@@ -633,10 +633,10 @@ int
 shcodecs_encoder_get_input_physical_addr (SHCodecs_Encoder * encoder, 
 		     unsigned int *addr_y, unsigned int *addr_C)
 {
-  if (encoder == NULL) return -1;
-  *addr_y = (unsigned int)encoder->addr_y;
-  *addr_C = (unsigned int)encoder->addr_c;
-  return 0;
+	if (encoder == NULL) return -1;
+	*addr_y = (unsigned int)encoder->addr_y;
+	*addr_C = (unsigned int)encoder->addr_c;
+	return 0;
 }
 
 /**
@@ -649,10 +649,10 @@ int
 shcodecs_encoder_set_input_physical_addr (SHCodecs_Encoder * encoder, 
 		     unsigned int *addr_y, unsigned int *addr_c)
 {
-  if (encoder == NULL) return -1;
+	if (encoder == NULL) return -1;
 
-  encoder->addr_y = (unsigned char *)addr_y;
-  encoder->addr_c = (unsigned char *)addr_c;
+	encoder->addr_y = (unsigned char *)addr_y;
+	encoder->addr_c = (unsigned char *)addr_c;
 
-  return 0;
+	return 0;
 }
