@@ -161,10 +161,10 @@ void *convert_main(void *data)
 	void *ptr;
 	unsigned long enc_y, enc_c;
 	unsigned long src_w, src_h;
-	unsigned char *cap_y, *cap_c;
+	unsigned long cap_y, cap_c;
 
 	while(1){
-		cap_y = queue_deq(pvt->captured_queue);
+		cap_y = (unsigned long) queue_deq(pvt->captured_queue);
 		cap_c = cap_y + (pvt->cap_w * pvt->cap_h);
 
 		if (pvt->rotate_cap == SHVEU_NO_ROT) {
@@ -186,21 +186,19 @@ void *convert_main(void *data)
 			pvt->enc_w, pvt->enc_h, pvt->enc_w, SHVEU_YCbCr420,
 			pvt->rotate_cap);
 
-		capture_queue_buffer (pvt->ceu, cap_y);
+		/* Let the encoder get_input function return */
+		pthread_mutex_unlock(&pvt->encode_start_mutex);
+
 
 		/* Use the VEU to scale the encoder input buffer to the frame buffer */
 		display_update(pvt->display,
-				enc_y,
-				enc_c,
-				pvt->enc_w,
-				pvt->enc_h,
-				pvt->enc_w,
+				cap_y, cap_c,
+				src_w, src_h, src_w,
 				V4L2_PIX_FMT_NV12);
 
-		pvt->output_frames++;
+		capture_queue_buffer (pvt->ceu, cap_y);
 
-		/* Let the encoder get_input function return */
-		pthread_mutex_unlock(&pvt->encode_start_mutex);
+		pvt->output_frames++;
 	}
 }
 
