@@ -39,8 +39,6 @@
 
 extern long encode_time;
 
-unsigned long m4iph_sleep_time_get(void);
-
 
 #ifdef OUTPUT_ERROR_MSGS
 #define MSG_LEN 127

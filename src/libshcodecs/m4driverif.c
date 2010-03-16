@@ -41,6 +41,22 @@
 #include "avcbd_inner_typedef.h"
 #include "m4driverif.h"
 
+/* VPU data - common for all encoder & decoder instances */
+typedef struct _SHCodecs_vpu {
+	pthread_mutex_t mutex;
+	int num_codecs;
+	M4IPH_VPU4_INIT_OPTION params;
+	unsigned long work_buff_size;
+	void *work_buff;
+	int sleep_time;
+
+	unsigned long sdr_base;
+	unsigned long sdr_start;
+	unsigned long sdr_end;
+} SHCodecs_vpu;
+
+static SHCodecs_vpu vpu_data;
+
 static int m4iph_sdr_open(void);
 static void m4iph_sdr_close(void);
 
@@ -79,7 +95,6 @@ static int locate_uio_device(char *name, struct uio_device *udp)
 		if (strncmp(name, buf, strlen(name)) == 0)
 			break;
 	}
-
 	if (uio_id >= MAXUIOIDS)
 		return -1;
 
@@ -134,12 +149,7 @@ static int setup_uio_map(struct uio_device *udp, int nr,
 struct uio_device uio_dev;
 struct uio_map uio_mmio, uio_mem;
 
-/* extern void *global_context; */
-static int sleep_time;
-static unsigned long sdr_base, sdr_start, sdr_end;
 unsigned long _BM4VSD_BGN, _BM4VSD_END;
-pthread_mutex_t vpu_mutex = PTHREAD_MUTEX_INITIALIZER;
-M4IPH_VPU4_INIT_OPTION vpu_params;
 
 
 static void usr_memcpy32(unsigned long *dst, unsigned long *src,
@@ -151,20 +161,19 @@ int avcbd_idr_adjust(void *context);
  */
 void m4iph_sleep_time_init(void)
 {
-	sleep_time = 0;
+	SHCodecs_vpu *vpu = &vpu_data;
+	vpu->sleep_time = 0;
 }
 
 unsigned long m4iph_sleep_time_get(void)
 {
-	return sleep_time;
-}
-
-void m4iph_start(void)
-{
+	SHCodecs_vpu *vpu = &vpu_data;
+	return vpu->sleep_time;
 }
 
 long m4iph_sleep(void)
 {
+	SHCodecs_vpu *vpu = &vpu_data;
 	struct timeval tv, tv1;
 	struct timezone tz;
 	long tm;
@@ -195,9 +204,14 @@ long m4iph_sleep(void)
 	if (tm < 0) {
 		tm = 1000 - (tv.tv_usec - tv1.tv_usec) / 1000;
 	}
-	sleep_time += tm;
+	vpu->sleep_time += tm;
 	/* avcbd_idr_adjust(global_context); */
 	return 0;
+}
+
+void m4iph_start(void)
+{
+	/* Do nothing for Linux */
 }
 
 void m4iph_restart(void)
@@ -207,6 +221,7 @@ void m4iph_restart(void)
 
 int m4iph_vpu_open(int stream_buf_size)
 {
+	SHCodecs_vpu *vpu = &vpu_data;
 	int ret;
 	void *pv_wk_buff;
 
@@ -229,27 +244,28 @@ int m4iph_vpu_open(int stream_buf_size)
 	m4iph_sdr_open();
 
 
-	pv_wk_buff = m4iph_sdr_malloc(stream_buf_size, 32);
-	CHECK_ALLOC(pv_wk_buff, stream_buf_size, "work buffer (kernel)", err);
+	vpu->work_buff_size = stream_buf_size;
+	vpu->work_buff = m4iph_sdr_malloc(stream_buf_size, 32);
+	CHECK_ALLOC(vpu->work_buff, stream_buf_size, "work buffer (kernel)", err);
 
-	vpu_params.m4iph_vpu_base_address = 0xfe900000;
+	vpu->params.m4iph_vpu_base_address = 0xfe900000;
 
 	/* Little endian */
-	vpu_params.m4iph_vpu_endian = 0x3ff;
+	vpu->params.m4iph_vpu_endian = 0x3ff;
 
 #ifdef DISABLE_INT
-	vpu_params.m4iph_vpu_interrupt_enable = M4IPH_OFF;
+	vpu->params.m4iph_vpu_interrupt_enable = M4IPH_OFF;
 #else
-	vpu_params.m4iph_vpu_interrupt_enable = M4IPH_ON;
+	vpu->params.m4iph_vpu_interrupt_enable = M4IPH_ON;
 #endif
 
-	vpu_params.m4iph_vpu_clock_supply_control = M4IPH_CTL_FRAME_UNIT;
-	vpu_params.m4iph_vpu_mask_address_disable = M4IPH_OFF;
-	vpu_params.m4iph_temporary_buff_address = (unsigned long)pv_wk_buff;
-	vpu_params.m4iph_temporary_buff_size = stream_buf_size;
+	vpu->params.m4iph_vpu_clock_supply_control = M4IPH_CTL_FRAME_UNIT;
+	vpu->params.m4iph_vpu_mask_address_disable = M4IPH_OFF;
+	vpu->params.m4iph_temporary_buff_address = (unsigned long)vpu->work_buff;
+	vpu->params.m4iph_temporary_buff_size = vpu->work_buff_size;
 
 	/* Initialize VPU */
-	ret = m4iph_vpu4_init(&vpu_params);
+	ret = m4iph_vpu4_init(&vpu->params);
 	if (ret < 0)
 		return ret;
 
@@ -266,12 +282,14 @@ void m4iph_vpu_close(void)
 
 void m4iph_vpu_lock(void)
 {
-	pthread_mutex_lock(&vpu_mutex);
+	SHCodecs_vpu *vpu = &vpu_data;
+	pthread_mutex_lock(&vpu->mutex);
 }
 
 void m4iph_vpu_unlock(void)
 {
-	pthread_mutex_unlock(&vpu_mutex);
+	SHCodecs_vpu *vpu = &vpu_data;
+	pthread_mutex_unlock(&vpu->mutex);
 }
 
 
@@ -317,14 +335,16 @@ void m4iph_reg_table_write(unsigned long *addr, unsigned long *data,
 
 static int m4iph_sdr_open(void)
 {
-	sdr_base = sdr_start = uio_mem.address;
-	sdr_end = sdr_base + uio_mem.size;
+	SHCodecs_vpu *vpu = &vpu_data;
+	vpu->sdr_base = vpu->sdr_start = uio_mem.address;
+	vpu->sdr_end = vpu->sdr_base + uio_mem.size;
 	return 0;
 }
 
 static void m4iph_sdr_close(void)
 {
-	sdr_base = sdr_start = sdr_end = 0;
+	SHCodecs_vpu *vpu = &vpu_data;
+	vpu->sdr_base = vpu->sdr_start = vpu->sdr_end = 0;
 }
 
 void *m4iph_map_sdr_mem(void *address, int size)
@@ -345,13 +365,14 @@ int m4iph_sync_sdr_mem(void *address, int size)
 unsigned long m4iph_sdr_read(unsigned char *src_phys, unsigned char *dest_virt,
 			     unsigned long count)
 {
+	SHCodecs_vpu *vpu = &vpu_data;
 	unsigned char *buf, *src_virt;
 	unsigned long addr;
 	int roundoff;
 	int pagesize = getpagesize();
 
-	if ((unsigned long) src_phys + count >= sdr_end
-	    || (unsigned long) src_phys < sdr_start) {
+	if ((unsigned long) src_phys + count >= vpu->sdr_end
+	    || (unsigned long) src_phys < vpu->sdr_start) {
 		fprintf(stderr, "%s: Invalid read from SDR memory. ",
 			__FUNCTION__);
 		fprintf(stderr, "src_phys = %p, count = %ld\n", src_phys,
@@ -381,13 +402,14 @@ unsigned long m4iph_sdr_read(unsigned char *src_phys, unsigned char *dest_virt,
 void m4iph_sdr_write(unsigned char *dest_phys, unsigned char *src_virt,
 		     unsigned long count)
 {
+	SHCodecs_vpu *vpu = &vpu_data;
 	unsigned char *buf, *dest_virt;
 	unsigned long addr;
 	int roundoff;
 	int pagesize = getpagesize();
 
-	if ((unsigned long) dest_phys + count >= sdr_end
-	    || (unsigned long) dest_phys < sdr_start) {
+	if ((unsigned long) dest_phys + count >= vpu->sdr_end
+	    || (unsigned long) dest_phys < vpu->sdr_start) {
 		fprintf(stderr, "%s: Invalid write to SDR memory. ",
 			__FUNCTION__);
 		fprintf(stderr, "dest_phys = %p, count = %ld\n", dest_phys,
@@ -415,20 +437,21 @@ void m4iph_sdr_write(unsigned char *dest_phys, unsigned char *src_virt,
 /* Allocate sdr memory */
 void *m4iph_sdr_malloc(unsigned long count, int align)
 {
+	SHCodecs_vpu *vpu = &vpu_data;
 	unsigned long ret;
 	int size;
 
-	ret = ((sdr_base + (align - 1)) & ~(align - 1));
-	size = ret - sdr_base + count;
+	ret = ((vpu->sdr_base + (align - 1)) & ~(align - 1));
+	size = ret - vpu->sdr_base + count;
 
-	if (sdr_base + size >= sdr_end) {
+	if (vpu->sdr_base + size >= vpu->sdr_end) {
 		fprintf(stderr, "%s: Allocation of size %ld failed\n",
 			__FUNCTION__, count);
-		fprintf(stderr, "sdr_base = %08lx, sdr_end = %08lx\n", sdr_base,
-		       sdr_end);
+		fprintf(stderr, "vpu->sdr_base = %08lx, vpu->sdr_end = %08lx\n", vpu->sdr_base,
+		       vpu->sdr_end);
 		return NULL;
 	}
-	sdr_base += size;
+	vpu->sdr_base += size;
 	return (void *) ret;
 }
 

@@ -179,8 +179,5 @@ int h264_encode_run_multiple (SHCodecs_Encoder *encs[], int nr_encoders, long st
 int mpeg4_encode_init (SHCodecs_Encoder * encoder, long stream_type);
 int mpeg4_encode_run (SHCodecs_Encoder * encoder, long stream_type);
 
-/* Other internal functions */
-void m4iph_sleep_time_init(void);
-
 #endif				/* __ENCODER_PRIVATE_H__ */
 
