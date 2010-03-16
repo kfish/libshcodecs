@@ -59,6 +59,7 @@
 
 struct encode_data {
 	pthread_mutex_t encode_start_mutex;
+	FILE *output_fp;
 
 	unsigned long enc_w;
 	unsigned long enc_h;
@@ -71,8 +72,6 @@ struct private_data {
 	pthread_t capture_thread;
 
 	struct Queue * captured_queue;
-
-	FILE *output_fp;
 
 	int nr_encoders;
 
@@ -252,7 +251,7 @@ static int write_output(SHCodecs_Encoder *encoder,
 		}
 	}
 
-	if (fwrite(data, 1, length, pvt->output_fp) < (size_t)length)
+	if (fwrite(data, 1, length, pvt->encdata[0].output_fp) < (size_t)length)
 		return -1;
 
 	return 0;
@@ -289,9 +288,14 @@ void cleanup (void)
 	framerate_destroy (pvt->enc_framerate);
 
 	capture_stop_capturing(pvt->ceu);
-	shcodecs_encoder_close(pvt->encoders[0]);
+
+	for (i=0; i , pvt->nr_encoders; i++)
+		shcodecs_encoder_close(pvt->encoders[i]);
+
 	capture_close(pvt->ceu);
-	close_output_file(pvt->output_fp);
+
+	for (i=0; i , pvt->nr_encoders; i++)
+		close_output_file(pvt->encdata[i].output_fp);
 
 	pthread_cancel (pvt->convert_thread);
 	display_close(pvt->display);
@@ -418,7 +422,6 @@ int main(int argc, char *argv[])
 		return -2;
 	}
 
-
 	debug_printf("Input file: %s\n", pvt->ainfo.input_file_name_buf);
 	debug_printf("Output file: %s\n", pvt->ainfo.output_file_name_buf);
 
@@ -496,15 +499,14 @@ int main(int argc, char *argv[])
 		return -5;
 	}
 
-	/* open output file */
-	pvt->output_fp = open_output_file(pvt->ainfo.output_file_name_buf);
-	if (pvt->output_fp == NULL) {
-		fprintf(stderr, "Error opening output file\n");
-		return -8;
-	}
-
 	/* VPU Encoder initialisation */
 	for (i=0; i < pvt->nr_encoders; i++) {
+		pvt->encdata[i].output_fp = open_output_file(pvt->ainfo.output_file_name_buf);
+		if (pvt->encdata[i].output_fp == NULL) {
+			fprintf(stderr, "Error opening output file\n");
+			return -8;
+		}
+
 		pvt->encoders[i] = shcodecs_encoder_init(pvt->encdata[i].enc_w, pvt->encdata[i].enc_h, stream_type);
 		if (pvt->encoders[i] == NULL) {
 			fprintf(stderr, "shcodecs_encoder_init failed, exiting\n");
