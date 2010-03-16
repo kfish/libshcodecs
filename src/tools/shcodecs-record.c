@@ -58,6 +58,8 @@
 #define MAX_ENCODERS 8
 
 struct encode_data {
+	pthread_mutex_t encode_start_mutex;
+
 	unsigned long enc_w;
 	unsigned long enc_h;
 };
@@ -80,7 +82,6 @@ struct private_data {
 	struct encode_data encdata[MAX_ENCODERS];
 
 	pthread_mutex_t capture_start_mutex;
-	pthread_mutex_t encode_start_mutex;
 
 	/* Captured frame information */
 	capture *ceu;
@@ -195,7 +196,7 @@ void *convert_main(void *data)
 			pvt->rotate_cap);
 
 		/* Let the encoder get_input function return */
-		pthread_mutex_unlock(&pvt->encode_start_mutex);
+		pthread_mutex_unlock(&pvt->encdata[0].encode_start_mutex);
 
 
 		/* Use the VEU to scale the encoder input buffer to the frame buffer */
@@ -218,7 +219,7 @@ static int get_input(SHCodecs_Encoder *encoder, void *user_data)
 
 	/* This mutex is unlocked once the capture buffer has been copied to the
 	   encoder input buffer */
-	pthread_mutex_lock(&pvt->encode_start_mutex);
+	pthread_mutex_lock(&pvt->encdata[0].encode_start_mutex);
 
 	if (pvt->enc_framerate == NULL) {
 		pvt->enc_framerate = framerate_new_measurer ();
@@ -294,7 +295,7 @@ void cleanup (void)
 	pthread_cancel (pvt->capture_thread);
 	shveu_close();
 
-	pthread_mutex_destroy (&pvt->encode_start_mutex);
+	pthread_mutex_destroy (&pvt->encdata[0].encode_start_mutex);
 	pthread_mutex_destroy (&pvt->capture_start_mutex);
 }
 
@@ -421,8 +422,8 @@ int main(int argc, char *argv[])
 	pthread_mutex_init(&pvt->capture_start_mutex, NULL);
 	pthread_mutex_lock(&pvt->capture_start_mutex);
 
-	pthread_mutex_init(&pvt->encode_start_mutex, NULL);
-	pthread_mutex_unlock(&pvt->encode_start_mutex);
+	pthread_mutex_init(&pvt->encdata[0].encode_start_mutex, NULL);
+	pthread_mutex_unlock(&pvt->encdata[0].encode_start_mutex);
 
 	/* Initialize the queues */
 	pvt->captured_queue = queue_init();
