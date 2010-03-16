@@ -20,12 +20,6 @@ AnnexB handling
 m4driverif.c
 	* s/perror("open")/perror(buf)/
 
-Dual encode
-	* (uiomux-dual-encode branch) make shcodecs-enc take multiple control
-	file inputs
-	==> add dual encode support to sighttpd
-	==> add dual encode support to gst-sh-mobile
-
 Decoder cancel
 	* returning != 0 from a vpu_decoded() callback stops the decoder,
 	but resuming doesn't flush out the remaining frames. For testing,
