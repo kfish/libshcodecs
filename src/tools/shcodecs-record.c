@@ -426,22 +426,20 @@ int main(int argc, char *argv[])
 		return_code = ctrlfile_get_params(pvt->encdata[i].ctrl_filename,
 				&pvt->encdata[i].ainfo, &pvt->encdata[i].stream_type);
 		if (return_code < 0) {
-			fprintf(stderr, "Error opening control file.\n");
+			fprintf(stderr, "Error opening control file %s.\n", pvt->encdata[i].ctrl_filename);
 			return -2;
 		}
 
-		debug_printf("Input file: %s\n", pvt->encdata[i].ainfo.input_file_name_buf);
-		debug_printf("Output file: %s\n", pvt->encdata[i].ainfo.output_file_name_buf);
+		debug_printf("[%d] Input file: %s\n", i, pvt->encdata[i].ainfo.input_file_name_buf);
+		debug_printf("[%d] Output file: %s\n", i, pvt->encdata[i].ainfo.output_file_name_buf);
+
+		pthread_mutex_init(&pvt->encdata[i].encode_start_mutex, NULL);
+		pthread_mutex_unlock(&pvt->encdata[i].encode_start_mutex);
 	}
 
 	/* Initalise the mutexes */
 	pthread_mutex_init(&pvt->capture_start_mutex, NULL);
 	pthread_mutex_lock(&pvt->capture_start_mutex);
-
-	for (i=0; i < pvt->nr_encoders; i++) {
-		pthread_mutex_init(&pvt->encdata[i].encode_start_mutex, NULL);
-		pthread_mutex_unlock(&pvt->encdata[i].encode_start_mutex);
-	}
 
 	/* Initialize the queues */
 	pvt->captured_queue = queue_init();
@@ -531,7 +529,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* Set up the frame rate timer to match the encode framerate */
-	target_fps10 = shcodecs_encoder_get_frame_rate(pvt->encoders[i]);
+	target_fps10 = shcodecs_encoder_get_frame_rate(pvt->encoders[0]);
 	fprintf (stderr, "Target framerate:   %.1f fps\n", target_fps10 / 10.0);
 
 	/* Initialize framerate timer */
