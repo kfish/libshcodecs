@@ -208,7 +208,7 @@ int m4iph_vpu_open(int stream_buf_size)
 
 	ret = locate_uio_device("VPU", &uio_dev);
 	if (ret < 0)
-		return ret;
+		goto err;
 
 #ifdef DEBUG
 	fprintf(stderr, "found matching UIO device at %s\n", uio_dev.path);
@@ -216,11 +216,11 @@ int m4iph_vpu_open(int stream_buf_size)
 
 	ret = setup_uio_map(&uio_dev, 0, &uio_mmio);
 	if (ret < 0)
-		return ret;
+		goto err;
 
 	ret = setup_uio_map(&uio_dev, 1, &uio_mem);
 	if (ret < 0)
-		return ret;
+		goto err;
 
 	m4iph_sdr_open();
 
