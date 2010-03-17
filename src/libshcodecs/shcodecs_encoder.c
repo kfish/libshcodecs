@@ -335,7 +335,6 @@ int shcodecs_encoder_run(SHCodecs_Encoder * encoder)
 
 	if (encoder->initialized < 1) {
 		if (shcodecs_encoder_global_init (encoder->width, encoder->height) < 0) {
-			free (encoder);
 			return -1;
 		}
 
