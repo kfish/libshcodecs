@@ -139,6 +139,8 @@ void debug_printf(const char *fmt, ...)
 #endif
 }
 
+struct private_data pvt_data;
+
 
 /*****************************************************************************/
 
@@ -218,21 +220,20 @@ void *convert_main(void *data)
 	}
 }
 
-
 /* SHCodecs_Encoder_Input callback for acquiring an image */
 static int get_input(SHCodecs_Encoder *encoder, void *user_data)
 {
-	struct private_data *pvt = (struct private_data*)user_data;
+	struct encode_data *encdata = (struct encode_data*)user_data;
 
 	/* This mutex is unlocked once the capture buffer has been copied to the
 	   encoder input buffer */
-	pthread_mutex_lock(&pvt->encdata[0].encode_start_mutex);
+	pthread_mutex_lock(&encdata->encode_start_mutex);
 
-	if (pvt->encdata[0].enc_framerate == NULL) {
-		pvt->encdata[0].enc_framerate = framerate_new_measurer ();
+	if (encdata->enc_framerate == NULL) {
+		encdata->enc_framerate = framerate_new_measurer ();
 	}
 
-	pthread_mutex_unlock(&pvt->capture_start_mutex);
+	pthread_mutex_unlock(&pvt_data.capture_start_mutex);
 	return 0;
 }
 
@@ -240,29 +241,27 @@ static int get_input(SHCodecs_Encoder *encoder, void *user_data)
 static int write_output(SHCodecs_Encoder *encoder,
 			unsigned char *data, int length, void *user_data)
 {
-	struct private_data *pvt = (struct private_data*)user_data;
+	struct encode_data *encdata = (struct encode_data*)user_data;
 	double ifps, mfps;
 
 	if (shcodecs_encoder_get_frame_num_delta(encoder) > 0 &&
-			pvt->encdata[0].enc_framerate != NULL) {
-		if (pvt->encdata[0].enc_framerate->nr_handled >= pvt->encdata[0].ainfo.frames_to_encode &&
-				pvt->encdata[0].ainfo.frames_to_encode > 0)
+			encdata->enc_framerate != NULL) {
+		if (encdata->enc_framerate->nr_handled >= encdata->ainfo.frames_to_encode &&
+				encdata->ainfo.frames_to_encode > 0)
 			return 1;
-		framerate_mark (pvt->encdata[0].enc_framerate);
-		ifps = framerate_instantaneous_fps (pvt->encdata[0].enc_framerate);
-		mfps = framerate_mean_fps (pvt->encdata[0].enc_framerate);
-		if (pvt->encdata[0].enc_framerate->nr_handled % 10 == 0) {
+		framerate_mark (encdata->enc_framerate);
+		ifps = framerate_instantaneous_fps (encdata->enc_framerate);
+		mfps = framerate_mean_fps (encdata->enc_framerate);
+		if (encdata->enc_framerate->nr_handled % 10 == 0) {
 			fprintf (stderr, "  Encoding @ %4.2f fps \t(avg %4.2f fps)\r", ifps, mfps);
 		}
 	}
 
-	if (fwrite(data, 1, length, pvt->encdata[0].output_fp) < (size_t)length)
+	if (fwrite(data, 1, length, encdata->output_fp) < (size_t)length)
 		return -1;
 
 	return 0;
 }
-
-struct private_data pvt_data;
 
 void cleanup (void)
 {
@@ -514,8 +513,8 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "shcodecs_encoder_init failed, exiting\n");
 			return -5;
 		}
-		shcodecs_encoder_set_input_callback(pvt->encoders[i], get_input, pvt);
-		shcodecs_encoder_set_output_callback(pvt->encoders[i], write_output, pvt);
+		shcodecs_encoder_set_input_callback(pvt->encoders[i], get_input, &pvt->encdata[i]);
+		shcodecs_encoder_set_output_callback(pvt->encoders[i], write_output, &pvt->encdata[i]);
 
 		return_code = ctrlfile_set_enc_param(pvt->encoders[i], pvt->encdata[i].ctrl_filename);
 		if (return_code < 0) {
