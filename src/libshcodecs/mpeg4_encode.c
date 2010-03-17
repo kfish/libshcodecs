@@ -294,6 +294,13 @@ mpeg4_encode_frame (SHCodecs_Encoder *enc, long stream_type,
 	if (rc != 0)
 		return vpu_err(enc, __func__, __LINE__, rc);
 
+	if (enc->frame_counter != 0) {
+		/* Restore stream context */
+		rc = avcbe_set_backup(enc->stream_info, &enc->backup_area);
+		if (rc != 0)
+			return vpu_err(enc, __func__, __LINE__, rc);
+	}
+
 	gettimeofday(&tv, NULL);
 
 	/* Encode the frame */
@@ -353,6 +360,11 @@ mpeg4_encode_frame (SHCodecs_Encoder *enc, long stream_type,
 
 	enc->frm += enc->frame_no_increment;
 	enc->frame_counter++;
+
+	/* Save stream context */
+	rc = avcbe_get_backup(enc->stream_info, &enc->backup_area);
+	if (rc != 0)
+		return vpu_err(enc, __func__, __LINE__, rc);
 
 	return cb_ret;
 }
@@ -433,7 +445,9 @@ mpeg4_encode_picture (SHCodecs_Encoder *enc,
 		}
 
 		/* Encode the frame */
+		m4iph_vpu_lock();
 		rc = mpeg4_encode_frame(enc, stream_type, enc->addr_y, enc->addr_c);
+		m4iph_vpu_unlock();
 		if (rc != 0)
 			return rc;
 	}
