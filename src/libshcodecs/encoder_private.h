@@ -139,6 +139,7 @@ struct _SHCodecs_Encoder {
 	TAVCBE_FMEM local_frames[NUM_LDEC_FRAMES];
 	TAVCBE_FMEM input_frames[NUM_INPUT_FRAMES];
 	TAVCBE_WORKAREA work_area;
+	TAVCBE_WORKAREA backup_area;
 
 	TAVCBE_STREAM_BUFF stream_buff_info;
 	TAVCBE_STREAM_BUFF end_code_buff_info;
