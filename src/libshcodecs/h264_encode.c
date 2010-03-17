@@ -552,7 +552,9 @@ h264_encode_multiple(SHCodecs_Encoder *encs[], int nr_encoders)
 			}
 
 			/* Encode the frame */
+			m4iph_vpu_lock();
 			rc = h264_encode_frame(enc, enc->addr_y, enc->addr_c);
+			m4iph_vpu_unlock();
 
 			if (enc->release) {
 				enc->release(enc, enc->addr_y, enc->addr_c, enc->release_user_data);
