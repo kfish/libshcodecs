@@ -32,6 +32,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <signal.h>
+#include <pthread.h>
 
 #include <shcodecs/shcodecs_encoder.h>
 
@@ -70,7 +71,6 @@ shenc_new (void)
 
         return shenc;
 }
-
 
 /* SHCodecs_Encoder_Input callback for acquiring an image from the input file */
 static int get_input(SHCodecs_Encoder * encoder, void *user_data)
@@ -195,18 +195,27 @@ static struct shenc * setup_file (char * filename)
 	return shenc;
 }
 
-static int encode_shenc (struct shenc * shenc)
+void *convert_main(void *data)
 {
+	struct shenc * shenc = (struct shenc *)data;
+	int ret;
 
+	ret = shcodecs_encoder_run (shenc->encoder);
+	if (ret < 0) {
+		fprintf(stderr, "Error encoding, error code=%d\n", ret);
+	} else {
+		fprintf(stderr, "Encode Success\n");
+	}
 
-	return 0;
+	cleanup (shenc);
+	return NULL;
 }
 
 int main(int argc, char *argv[])
 {
 	struct shenc ** shencs;
-	SHCodecs_Encoder ** encoders;
 	int i, nr_encoders, ret;
+	pthread_t * threads;
 
 	if (argc < 2 || !strncmp (argv[1], "-h", 2) || !strncmp (argv[1], "--help", 6)) {
 		usage (argv[0]);
@@ -229,31 +238,28 @@ int main(int argc, char *argv[])
 		exit (-1);
 	}
 
-	encoders = calloc (sizeof (SHCodecs_Encoder *), nr_encoders);
-	if (encoders == NULL) {
+	threads = calloc (sizeof (pthread_t), nr_encoders);
+	if (threads == NULL) {
 		fprintf (stderr, "Out of memory\n");
 		exit (-1);
 	}
 
 	for (i=0; i < nr_encoders; i++) {
 		shencs[i] = setup_file (argv[i+1]);
-		encoders[i] = shencs[i]->encoder;
-	}
 
-	ret = shcodecs_encoder_run_multiple (encoders, nr_encoders);
-
-	if (ret < 0) {
-		fprintf(stderr, "Error encoding, error code=%d\n", ret);
-	} else {
-		fprintf(stderr, "Encode Success\n");
+		ret = pthread_create(&threads[i], NULL, convert_main, shencs[i]);
+		if (ret){
+			fprintf(stderr, "pthread_create failed (%d)\n", ret);
+			exit (-1);
+		}
 	}
 
 	for (i=0; i < nr_encoders; i++) {
-		cleanup (shencs[i]);
+		if (threads[i] != NULL)
+			pthread_join(threads[i], NULL);
 	}
 
-	free (encoders);
 	free (shencs);
 
-        return ret;
+	return 0;
 }
