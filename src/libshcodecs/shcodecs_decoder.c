@@ -592,12 +592,10 @@ static int decode_frame(SHCodecs_Decoder * decoder)
                                 }
                         }
 
-#if 0 /* WTF? */
 			if (decoder->si_ilen & 31)
 				hosei = 31;
 			else
 				hosei = 0;
-#endif
 #if 0 /* WTF? */
 			if (counter) {
 				for (i = 0; i < 16; i++) {
@@ -621,6 +619,16 @@ static int decode_frame(SHCodecs_Decoder * decoder)
 		counter = 1;
 		/* XXX: unlock VPU */
 
+		if (decoder->si_type == F_H264) {
+			curr_len = decoder->si_ilen;
+		} else {
+			curr_len = (unsigned) (decoder->last_frame_status.read_bits + 7) >> 3;
+			decoder->si_ilen -= curr_len;
+			avcbd_get_frame_size(decoder->si_ctxt, &frame_size);
+			decoder->si_fx = frame_size.width;
+			decoder->si_fy = frame_size.height;
+		}
+
 		if (decoder->last_frame_status.error_num < 0) {
 #ifdef DEBUG
 			m4iph_avcbd_perror("avcbd_decode_picture()",
@@ -637,15 +645,6 @@ static int decode_frame(SHCodecs_Decoder * decoder)
 			}
 #endif
 			break;
-		}
-		if (decoder->si_type == F_H264) {
-			curr_len = decoder->si_ilen;
-		} else {
-			curr_len = (unsigned) (decoder->last_frame_status.read_bits + 7) >> 3;
-			decoder->si_ilen -= curr_len;
-			avcbd_get_frame_size(decoder->si_ctxt, &frame_size);
-			decoder->si_fx = frame_size.width;
-			decoder->si_fy = frame_size.height;
 		}
 
 		/* This is where actual input data is read */
