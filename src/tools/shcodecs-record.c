@@ -183,15 +183,15 @@ void *convert_main(void *data)
 		cap_y = (unsigned long) queue_deq(pvt->captured_queue);
 		cap_c = cap_y + (pvt->cap_w * pvt->cap_h);
 
-		if (pvt->rotate_cap == SHVEU_NO_ROT) {
-			src_w = pvt->cap_w;
-			src_h = pvt->cap_h;
-		} else {
-			src_w = pvt->encdata[0].enc_h;
-			src_h = pvt->encdata[0].enc_w;
-		}
-
 		for (i=0; i < pvt->nr_encoders; i++) {
+			if (pvt->rotate_cap == SHVEU_NO_ROT) {
+				src_w = pvt->cap_w;
+				src_h = pvt->cap_h;
+			} else {
+				src_w = pvt->encdata[i].enc_h;
+				src_h = pvt->encdata[i].enc_w;
+			}
+
 			shcodecs_encoder_get_input_physical_addr (pvt->encoders[i], (unsigned int *)&enc_y, (unsigned int *)&enc_c);
 
 			/* We are clipping, not scaling, as we need to perform a rotation,
@@ -207,8 +207,7 @@ void *convert_main(void *data)
 			pthread_mutex_unlock(&pvt->encdata[i].encode_start_mutex);
 		}
 
-
-		/* Use the VEU to scale the encoder input buffer to the frame buffer */
+		/* Use the VEU to scale the capture buffer to the frame buffer */
 		display_update(pvt->display,
 				cap_y, cap_c,
 				src_w, src_h, src_w,
@@ -282,23 +281,24 @@ void cleanup (void)
 
 	framerate_destroy (pvt->cap_framerate);
 
-	time = (double)framerate_elapsed_time (pvt->encdata[0].enc_framerate);
-	time /= 1000000;
-
-	debug_printf("Elapsed time (encode): %0.3g s\n", time);
-	debug_printf("Encoded %d frames (%.2f fps)\n",
-			pvt->encdata[0].enc_framerate->nr_handled,
-		 	framerate_mean_fps (pvt->encdata[0].enc_framerate));
-	framerate_destroy (pvt->encdata[0].enc_framerate);
-
 	capture_stop_capturing(pvt->ceu);
 
-	for (i=0; i , pvt->nr_encoders; i++)
+	for (i=0; i < pvt->nr_encoders; i++) {
+		time = (double)framerate_elapsed_time (pvt->encdata[i].enc_framerate);
+		time /= 1000000;
+
+		debug_printf("[%d] Elapsed time (encode): %0.3g s\n", i, time);
+		debug_printf("[%d] Encoded %d frames (%.2f fps)\n", i,
+				pvt->encdata[i].enc_framerate->nr_handled,
+			 	framerate_mean_fps (pvt->encdata[i].enc_framerate));
+		framerate_destroy (pvt->encdata[i].enc_framerate);
+
 		shcodecs_encoder_close(pvt->encoders[i]);
+	}
 
 	capture_close(pvt->ceu);
 
-	for (i=0; i , pvt->nr_encoders; i++)
+	for (i=0; i < pvt->nr_encoders; i++)
 		close_output_file(pvt->encdata[i].output_fp);
 
 	pthread_cancel (pvt->convert_thread);
@@ -307,7 +307,7 @@ void cleanup (void)
 	pthread_cancel (pvt->capture_thread);
 	shveu_close();
 
-	for (i=0; i , pvt->nr_encoders; i++)
+	for (i=0; i < pvt->nr_encoders; i++)
 		pthread_mutex_destroy (&pvt->encdata[i].encode_start_mutex);
 
 	pthread_mutex_destroy (&pvt->capture_start_mutex);
