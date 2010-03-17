@@ -350,7 +350,7 @@ h264_encode_frame(SHCodecs_Encoder *enc, unsigned char *py, unsigned char *pc)
 		/* Restore stream context */
 		rc = avcbe_set_backup(enc->stream_info, &enc->backup_area);
 		if (rc != 0)
-			return rc;
+			return vpu_err(enc, __func__, __LINE__, rc);
 	}
 
 	/* Encode SPS and PPS for 1st frame */
@@ -500,7 +500,7 @@ h264_encode_frame(SHCodecs_Encoder *enc, unsigned char *py, unsigned char *pc)
 	/* Save stream context */
 	rc = avcbe_get_backup(enc->stream_info, &enc->backup_area);
 	if (rc != 0)
-		return rc;
+		return vpu_err(enc, __func__, __LINE__, rc);
 
 	return 0;
 }
