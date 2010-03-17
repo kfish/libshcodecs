@@ -58,6 +58,11 @@
 #define MAX_ENCODERS 8
 
 struct encode_data {
+	char ctrl_filename[MAXPATHLEN];
+	APPLI_INFO ainfo;
+
+	long stream_type;
+
 	pthread_mutex_t encode_start_mutex;
 	FILE *output_fp;
 
@@ -75,7 +80,6 @@ struct private_data {
 
 	int nr_encoders;
 
-	APPLI_INFO ainfo;	/* Capture params */
 	SHCodecs_Encoder *encoders[MAX_ENCODERS];
 
 	struct encode_data encdata[MAX_ENCODERS];
@@ -240,8 +244,8 @@ static int write_output(SHCodecs_Encoder *encoder,
 
 	if (shcodecs_encoder_get_frame_num_delta(encoder) > 0 &&
 			pvt->enc_framerate != NULL) {
-		if (pvt->enc_framerate->nr_handled >= pvt->ainfo.frames_to_encode &&
-				pvt->ainfo.frames_to_encode > 0)
+		if (pvt->enc_framerate->nr_handled >= pvt->encdata[0].ainfo.frames_to_encode &&
+				pvt->encdata[0].ainfo.frames_to_encode > 0)
 			return 1;
 		framerate_mark (pvt->enc_framerate);
 		ifps = framerate_instantaneous_fps (pvt->enc_framerate);
@@ -326,10 +330,8 @@ int main(int argc, char *argv[])
 {
 	struct private_data *pvt;
 	int return_code, rc;
-	long stream_type;
 	unsigned int pixel_format;
-	char ctrl_filename[MAXPATHLEN];
-	int c, i;
+	int c, i=0;
 	long target_fps10;
 	unsigned long rotate_input;
 
@@ -337,15 +339,16 @@ int main(int argc, char *argv[])
 	int show_version = 0;
 	int show_help = 0;
 
-	pvt = &pvt_data;
-
 	progname = argv[0];
 
 	if (argc == 1) {
 		usage(progname);
 		return 0;
 	}
-	ctrl_filename[0] = '\0';
+
+	pvt = &pvt_data;
+
+	memset (pvt, 0, sizeof(struct private_data));
 
 	pvt->captured_frames = 0;
 	pvt->output_frames = 0;
@@ -375,7 +378,7 @@ int main(int argc, char *argv[])
 			break;
 		case 'i':
 			if (optarg)
-				strncpy(ctrl_filename, optarg, MAXPATHLEN-1);
+				strncpy(pvt->encdata[i++].ctrl_filename, optarg, MAXPATHLEN-1);
 			break;
 		case 'r':
 			if (optarg) {
@@ -408,24 +411,29 @@ int main(int argc, char *argv[])
 	      goto exit_err;
 	}
 
-	if (optind == (argc-1) && ctrl_filename[0] == '\0') {
-		strncpy(ctrl_filename, argv[optind++], MAXPATHLEN-1);
-	}
-	if ( (strcmp(ctrl_filename, "-") == 0) || (ctrl_filename[0] == '\0') ){
-		fprintf(stderr, "Invalid v4l2 configuration file.\n");
-		return -1;
+	while (optind < argc) {
+		strncpy(pvt->encdata[i++].ctrl_filename, argv[optind++], MAXPATHLEN-1);
 	}
 
-	return_code = ctrlfile_get_params(ctrl_filename, &pvt->ainfo, &stream_type);
-	if (return_code < 0) {
-		fprintf(stderr, "Error opening control file.\n");
-		return -2;
+	pvt->nr_encoders = i;
+
+	for (i=0; i < pvt->nr_encoders; i++) {
+		if ( (strcmp(pvt->encdata[i].ctrl_filename, "-") == 0) ||
+				(pvt->encdata[i].ctrl_filename[0] == '\0') ){
+			fprintf(stderr, "Invalid v4l2 configuration file.\n");
+			return -1;
+		}
+
+		return_code = ctrlfile_get_params(pvt->encdata[i].ctrl_filename,
+				&pvt->encdata[i].ainfo, &pvt->encdata[i].stream_type);
+		if (return_code < 0) {
+			fprintf(stderr, "Error opening control file.\n");
+			return -2;
+		}
+
+		debug_printf("Input file: %s\n", pvt->encdata[i].ainfo.input_file_name_buf);
+		debug_printf("Output file: %s\n", pvt->encdata[i].ainfo.output_file_name_buf);
 	}
-
-	debug_printf("Input file: %s\n", pvt->ainfo.input_file_name_buf);
-	debug_printf("Output file: %s\n", pvt->ainfo.output_file_name_buf);
-
-	pvt->nr_encoders = 1;
 
 	/* Initalise the mutexes */
 	pthread_mutex_init(&pvt->capture_start_mutex, NULL);
@@ -461,7 +469,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* Camera capture initialisation */
-	pvt->ceu = capture_open_userio(pvt->ainfo.input_file_name_buf, pvt->ainfo.xpic, pvt->ainfo.ypic);
+	pvt->ceu = capture_open_userio(pvt->encdata[0].ainfo.input_file_name_buf, pvt->encdata[0].ainfo.xpic, pvt->encdata[0].ainfo.ypic);
 	if (pvt->ceu == NULL) {
 		fprintf(stderr, "capture_open failed, exiting\n");
 		return -3;
@@ -501,13 +509,13 @@ int main(int argc, char *argv[])
 
 	/* VPU Encoder initialisation */
 	for (i=0; i < pvt->nr_encoders; i++) {
-		pvt->encdata[i].output_fp = open_output_file(pvt->ainfo.output_file_name_buf);
+		pvt->encdata[i].output_fp = open_output_file(pvt->encdata[i].ainfo.output_file_name_buf);
 		if (pvt->encdata[i].output_fp == NULL) {
 			fprintf(stderr, "Error opening output file\n");
 			return -8;
 		}
 
-		pvt->encoders[i] = shcodecs_encoder_init(pvt->encdata[i].enc_w, pvt->encdata[i].enc_h, stream_type);
+		pvt->encoders[i] = shcodecs_encoder_init(pvt->encdata[i].enc_w, pvt->encdata[i].enc_h, pvt->encdata[i].stream_type);
 		if (pvt->encoders[i] == NULL) {
 			fprintf(stderr, "shcodecs_encoder_init failed, exiting\n");
 			return -5;
@@ -515,7 +523,7 @@ int main(int argc, char *argv[])
 		shcodecs_encoder_set_input_callback(pvt->encoders[i], get_input, pvt);
 		shcodecs_encoder_set_output_callback(pvt->encoders[i], write_output, pvt);
 
-		return_code = ctrlfile_set_enc_param(pvt->encoders[i], ctrl_filename);
+		return_code = ctrlfile_set_enc_param(pvt->encoders[i], pvt->encdata[i].ctrl_filename);
 		if (return_code < 0) {
 			fprintf (stderr, "Problem with encoder params in control file!\n");
 			return -9;
