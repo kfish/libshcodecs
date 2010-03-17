@@ -454,7 +454,7 @@ int main(int argc, char *argv[])
 	signal (SIGINT, sig_handler);
 	signal (SIGPIPE, sig_handler);
 
-	/* VEU Scaler initialisation */
+	/* VEU initialisation */
 	if (shveu_open() < 0) {
 		fprintf (stderr, "Could not open VEU, exiting\n");
 	}
@@ -492,9 +492,9 @@ int main(int argc, char *argv[])
 			/* Round down to nearest multiple of 16 for VPU */
 			pvt->encdata[i].enc_w = pvt->encdata[i].enc_w - (pvt->encdata[i].enc_w % 16);
 			pvt->encdata[i].enc_h = pvt->encdata[i].enc_h - (pvt->encdata[i].enc_h % 16);
-			debug_printf("Rotating & cropping camera image for encode %d...\n", i);
+			debug_printf("[%d] Rotating & cropping camera image ...\n", i);
 		}
-		debug_printf("Encode %d resolution:  %dx%d\n", i, pvt->encdata[i].enc_w, pvt->encdata[i].enc_h);
+		debug_printf("[%d] Encode resolution:  %dx%d\n", i, pvt->encdata[i].enc_w, pvt->encdata[i].enc_h);
 
 		/* VPU Encoder initialisation */
 		pvt->encdata[i].output_fp = open_output_file(pvt->encdata[i].ainfo.output_file_name_buf);
