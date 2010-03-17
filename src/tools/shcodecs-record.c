@@ -68,6 +68,8 @@ struct encode_data {
 
 	unsigned long enc_w;
 	unsigned long enc_h;
+
+	struct framerate * enc_framerate;
 };
 
 struct private_data {
@@ -95,7 +97,6 @@ struct private_data {
 	int rotate_cap;
 
 	struct framerate * cap_framerate;
-	struct framerate * enc_framerate;
 
 	int captured_frames;
 	int output_frames;
@@ -227,8 +228,8 @@ static int get_input(SHCodecs_Encoder *encoder, void *user_data)
 	   encoder input buffer */
 	pthread_mutex_lock(&pvt->encdata[0].encode_start_mutex);
 
-	if (pvt->enc_framerate == NULL) {
-		pvt->enc_framerate = framerate_new_measurer ();
+	if (pvt->encdata[0].enc_framerate == NULL) {
+		pvt->encdata[0].enc_framerate = framerate_new_measurer ();
 	}
 
 	pthread_mutex_unlock(&pvt->capture_start_mutex);
@@ -243,14 +244,14 @@ static int write_output(SHCodecs_Encoder *encoder,
 	double ifps, mfps;
 
 	if (shcodecs_encoder_get_frame_num_delta(encoder) > 0 &&
-			pvt->enc_framerate != NULL) {
-		if (pvt->enc_framerate->nr_handled >= pvt->encdata[0].ainfo.frames_to_encode &&
+			pvt->encdata[0].enc_framerate != NULL) {
+		if (pvt->encdata[0].enc_framerate->nr_handled >= pvt->encdata[0].ainfo.frames_to_encode &&
 				pvt->encdata[0].ainfo.frames_to_encode > 0)
 			return 1;
-		framerate_mark (pvt->enc_framerate);
-		ifps = framerate_instantaneous_fps (pvt->enc_framerate);
-		mfps = framerate_mean_fps (pvt->enc_framerate);
-		if (pvt->enc_framerate->nr_handled % 10 == 0) {
+		framerate_mark (pvt->encdata[0].enc_framerate);
+		ifps = framerate_instantaneous_fps (pvt->encdata[0].enc_framerate);
+		mfps = framerate_mean_fps (pvt->encdata[0].enc_framerate);
+		if (pvt->encdata[0].enc_framerate->nr_handled % 10 == 0) {
 			fprintf (stderr, "  Encoding @ %4.2f fps \t(avg %4.2f fps)\r", ifps, mfps);
 		}
 	}
@@ -282,14 +283,14 @@ void cleanup (void)
 
 	framerate_destroy (pvt->cap_framerate);
 
-	time = (double)framerate_elapsed_time (pvt->enc_framerate);
+	time = (double)framerate_elapsed_time (pvt->encdata[0].enc_framerate);
 	time /= 1000000;
 
 	debug_printf("Elapsed time (encode): %0.3g s\n", time);
 	debug_printf("Encoded %d frames (%.2f fps)\n",
-			pvt->enc_framerate->nr_handled,
-		 	framerate_mean_fps (pvt->enc_framerate));
-	framerate_destroy (pvt->enc_framerate);
+			pvt->encdata[0].enc_framerate->nr_handled,
+		 	framerate_mean_fps (pvt->encdata[0].enc_framerate));
+	framerate_destroy (pvt->encdata[0].enc_framerate);
 
 	capture_stop_capturing(pvt->ceu);
 
@@ -353,8 +354,6 @@ int main(int argc, char *argv[])
 	pvt->captured_frames = 0;
 	pvt->output_frames = 0;
 	pvt->rotate_cap = SHVEU_NO_ROT;
-
-	pvt->enc_framerate = NULL;
 
 	while (1) {
 #ifdef HAVE_GETOPT_LONG
@@ -486,6 +485,11 @@ int main(int argc, char *argv[])
 
 	debug_printf("Camera resolution:  %dx%d\n", pvt->cap_w, pvt->cap_h);
 
+	pvt->display = display_open(0);
+	if (!pvt->display) {
+		return -5;
+	}
+
 	for (i=0; i < pvt->nr_encoders; i++) {
 		if (pvt->rotate_cap == SHVEU_NO_ROT) {
 			pvt->encdata[i].enc_w = pvt->cap_w;
@@ -498,17 +502,9 @@ int main(int argc, char *argv[])
 			pvt->encdata[i].enc_h = pvt->encdata[i].enc_h - (pvt->encdata[i].enc_h % 16);
 			debug_printf("Rotating & cropping camera image for encode %d...\n", i);
 		}
-	}
+		debug_printf("Encode %d resolution:  %dx%d\n", i, pvt->encdata[i].enc_w, pvt->encdata[i].enc_h);
 
-	debug_printf("Encode resolution:  %dx%d\n", pvt->encdata[0].enc_w, pvt->encdata[0].enc_h);
-
-	pvt->display = display_open(0);
-	if (!pvt->display) {
-		return -5;
-	}
-
-	/* VPU Encoder initialisation */
-	for (i=0; i < pvt->nr_encoders; i++) {
+		/* VPU Encoder initialisation */
 		pvt->encdata[i].output_fp = open_output_file(pvt->encdata[i].ainfo.output_file_name_buf);
 		if (pvt->encdata[i].output_fp == NULL) {
 			fprintf(stderr, "Error opening output file\n");
@@ -532,11 +528,11 @@ int main(int argc, char *argv[])
 	   	camera capture size */
 		shcodecs_encoder_set_xpic_size(pvt->encoders[i], pvt->encdata[i].enc_w);
 		shcodecs_encoder_set_ypic_size(pvt->encoders[i], pvt->encdata[i].enc_h);
-
-		/* Set up the frame rate timer to match the encode framerate */
-		target_fps10 = shcodecs_encoder_get_frame_rate(pvt->encoders[i]);
-		fprintf (stderr, "Target framerate:   %.1f fps\n", target_fps10 / 10.0);
 	}
+
+	/* Set up the frame rate timer to match the encode framerate */
+	target_fps10 = shcodecs_encoder_get_frame_rate(pvt->encoders[i]);
+	fprintf (stderr, "Target framerate:   %.1f fps\n", target_fps10 / 10.0);
 
 	/* Initialize framerate timer */
 	pvt->cap_framerate = framerate_new_timer (target_fps10 / 10.0);
