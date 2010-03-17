@@ -53,6 +53,7 @@ typedef struct _SHCodecs_vpu {
 } SHCodecs_vpu;
 
 static SHCodecs_vpu vpu_data;
+static int vpu_initialised = 0;
 
 static int m4iph_sdr_open(void);
 static void m4iph_sdr_close(void);
@@ -194,6 +195,17 @@ int m4iph_vpu_open(int stream_buf_size)
 	int ret;
 	void *pv_wk_buff;
 
+	/* TODO race condition here. Not fixed as the mutex should be in shared
+	   mem to protect processes */
+	if (vpu_initialised) {
+		m4iph_vpu_lock();
+		m4iph_vpu_unlock();
+		return 0;
+	}
+
+	pthread_mutex_init(&vpu->mutex, NULL);
+	m4iph_vpu_lock();
+
 	ret = locate_uio_device("VPU", &uio_dev);
 	if (ret < 0)
 		return ret;
@@ -211,7 +223,6 @@ int m4iph_vpu_open(int stream_buf_size)
 		return ret;
 
 	m4iph_sdr_open();
-
 
 	vpu->work_buff_size = stream_buf_size;
 	vpu->work_buff = m4iph_sdr_malloc(stream_buf_size, 32);
@@ -235,18 +246,20 @@ int m4iph_vpu_open(int stream_buf_size)
 
 	/* Initialize VPU */
 	ret = m4iph_vpu4_init(&vpu->params);
-	if (ret < 0)
-		return ret;
-
-	return 0;
-
+	vpu_initialised = 1;
 err:
-	return -1;
+	m4iph_vpu_unlock();
+	return ret;
 }
 
 void m4iph_vpu_close(void)
 {
-	m4iph_sdr_close();
+	SHCodecs_vpu *vpu = &vpu_data;
+
+	if (--vpu->num_codecs == 0) {
+		pthread_mutex_destroy (&vpu->mutex);
+		m4iph_sdr_close();
+	}
 }
 
 void m4iph_vpu_lock(void)
