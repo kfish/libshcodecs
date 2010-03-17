@@ -438,7 +438,6 @@ mpeg4_encode_picture (SHCodecs_Encoder *enc,
 			enc->addr_c = input_frame.C_fmemp;
 			cb_ret = enc->input(enc, enc->input_user_data);
 			if (cb_ret != 0) {
-				fprintf (stderr, "%s: ERROR acquiring input image!\n", __func__);
 				enc->error_return_code = cb_ret;
 				return cb_ret;
 			}
@@ -468,7 +467,7 @@ mpeg4_encode_run (SHCodecs_Encoder *enc, long stream_type)
 
 	rc = mpeg4_encode_picture (enc, stream_type);
 	if (rc != 0)
-		return vpu_err(enc, __func__, __LINE__, rc);
+		return rc;
 
 	/* End encoding */
 	length = avcbe_put_end_code(enc->stream_info, &enc->end_code_buff_info, AVCBE_VOSE);
