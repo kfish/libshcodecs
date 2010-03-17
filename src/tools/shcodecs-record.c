@@ -160,11 +160,11 @@ void *capture_main(void *data)
 	struct private_data *pvt = (struct private_data*)data;
 
 	while(1){
-		/* This mutex is unlocked once the capture buffer is free */
-		pthread_mutex_lock(&pvt->capture_start_mutex);
-
 		framerate_wait(pvt->cap_framerate);
 		capture_get_frame(pvt->ceu, capture_image_cb, pvt);
+
+		/* This mutex is unlocked once the capture buffer is free */
+		pthread_mutex_lock(&pvt->capture_start_mutex);
 	}
 }
 
@@ -214,6 +214,7 @@ void *convert_main(void *data)
 				V4L2_PIX_FMT_NV12);
 
 		capture_queue_buffer (pvt->ceu, cap_y);
+		pthread_mutex_unlock(&pvt->capture_start_mutex);
 
 		pvt->output_frames++;
 	}
@@ -232,7 +233,6 @@ static int get_input(SHCodecs_Encoder *encoder, void *user_data)
 		encdata->enc_framerate = framerate_new_measurer ();
 	}
 
-	pthread_mutex_unlock(&pvt_data.capture_start_mutex);
 	return 0;
 }
 
@@ -445,11 +445,6 @@ int main(int argc, char *argv[])
 	queue_limit (pvt->captured_queue, 2);
 
 	/* Create the threads */
-	rc = pthread_create(&pvt->capture_thread, NULL, capture_main, pvt);
-	if (rc){
-		fprintf(stderr, "pthread_create failed, exiting\n");
-		return -6;
-	}
 	rc = pthread_create(&pvt->convert_thread, NULL, convert_main, pvt);
 	if (rc){
 		fprintf(stderr, "pthread_create failed, exiting\n");
@@ -535,6 +530,12 @@ int main(int argc, char *argv[])
 	pvt->cap_framerate = framerate_new_timer (target_fps10 / 10.0);
 
 	capture_start_capturing(pvt->ceu);
+
+	rc = pthread_create(&pvt->capture_thread, NULL, capture_main, pvt);
+	if (rc){
+		fprintf(stderr, "pthread_create failed, exiting\n");
+		return -6;
+	}
 
 	rc = shcodecs_encoder_run_multiple(pvt->encoders, pvt->nr_encoders);
 	if (rc != 0) {
