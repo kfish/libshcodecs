@@ -59,7 +59,7 @@ static void
 usage (const char * progname)
 {
 	printf ("Usage: %s [options] ...\n", progname);
-	printf ("Encode a YCbCr 4:2:0 file using the SH-Mobile VPU\n");
+	printf ("Decode an H.264 or MPEG-4 Elementary Stream to a YCbCr 4:2:0 file using the SH-Mobile VPU\n");
 	printf ("\nFile options\n");
 	printf ("  -i, --input            Set the input filename\n");
 	printf ("  -o, --output           Set the output filename\n");
