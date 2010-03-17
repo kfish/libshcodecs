@@ -175,7 +175,6 @@ void *convert_main(void *data)
 	int pitch, offset;
 	void *ptr;
 	unsigned long enc_y, enc_c;
-	unsigned long src_w, src_h;
 	unsigned long cap_y, cap_c;
 	int i;
 
@@ -184,21 +183,13 @@ void *convert_main(void *data)
 		cap_c = cap_y + (pvt->cap_w * pvt->cap_h);
 
 		for (i=0; i < pvt->nr_encoders; i++) {
-			if (pvt->rotate_cap == SHVEU_NO_ROT) {
-				src_w = pvt->cap_w;
-				src_h = pvt->cap_h;
-			} else {
-				src_w = pvt->encdata[i].enc_h;
-				src_h = pvt->encdata[i].enc_w;
-			}
-
 			shcodecs_encoder_get_input_physical_addr (pvt->encoders[i], (unsigned int *)&enc_y, (unsigned int *)&enc_c);
 
 			/* We are clipping, not scaling, as we need to perform a rotation,
 		   	but the VEU cannot do a rotate & scale at the same time. */
 			shveu_operation(0,
 				cap_y, cap_c,
-				src_w, src_h, pvt->cap_w, SHVEU_YCbCr420,
+				pvt->cap_w, pvt->cap_h, pvt->cap_w, SHVEU_YCbCr420,
 				enc_y, enc_c,
 				pvt->encdata[i].enc_w, pvt->encdata[i].enc_h, pvt->encdata[i].enc_w, SHVEU_YCbCr420,
 				pvt->rotate_cap);
@@ -210,7 +201,7 @@ void *convert_main(void *data)
 		/* Use the VEU to scale the capture buffer to the frame buffer */
 		display_update(pvt->display,
 				cap_y, cap_c,
-				src_w, src_h, src_w,
+				pvt->cap_w, pvt->cap_h, pvt->cap_w,
 				V4L2_PIX_FMT_NV12);
 
 		capture_queue_buffer (pvt->ceu, cap_y);
@@ -483,6 +474,7 @@ int main(int argc, char *argv[])
 	}
 
 	for (i=0; i < pvt->nr_encoders; i++) {
+#if 0
 		if (pvt->rotate_cap == SHVEU_NO_ROT) {
 			pvt->encdata[i].enc_w = pvt->cap_w;
 			pvt->encdata[i].enc_h = pvt->cap_h;
@@ -494,7 +486,17 @@ int main(int argc, char *argv[])
 			pvt->encdata[i].enc_h = pvt->encdata[i].enc_h - (pvt->encdata[i].enc_h % 16);
 			debug_printf("[%d] Rotating & cropping camera image ...\n", i);
 		}
+#else
+		/* Override the encoding frame size in case of rotation */
+		if (pvt->rotate_cap == SHVEU_NO_ROT) {
+			pvt->encdata[i].enc_w = pvt->encdata[i].ainfo.xpic;
+			pvt->encdata[i].enc_h = pvt->encdata[i].ainfo.ypic;
+		} else {
+			pvt->encdata[i].enc_w = pvt->encdata[i].ainfo.ypic;
+			pvt->encdata[i].enc_h = pvt->encdata[i].ainfo.xpic;
+		}
 		debug_printf("[%d] Encode resolution:  %dx%d\n", i, pvt->encdata[i].enc_w, pvt->encdata[i].enc_h);
+#endif
 
 		/* VPU Encoder initialisation */
 		pvt->encdata[i].output_fp = open_output_file(pvt->encdata[i].ainfo.output_file_name_buf);
@@ -516,10 +518,9 @@ int main(int argc, char *argv[])
 			fprintf (stderr, "Problem with encoder params in control file!\n");
 			return -9;
 		}
-		/* Override the encoding frame size as it may not be the same size as the
-	   	camera capture size */
-		shcodecs_encoder_set_xpic_size(pvt->encoders[i], pvt->encdata[i].enc_w);
-		shcodecs_encoder_set_ypic_size(pvt->encoders[i], pvt->encdata[i].enc_h);
+
+		//shcodecs_encoder_set_xpic_size(pvt->encoders[i], pvt->encdata[i].enc_w);
+		//shcodecs_encoder_set_ypic_size(pvt->encoders[i], pvt->encdata[i].enc_h);
 	}
 
 	/* Set up the frame rate timer to match the encode framerate */
