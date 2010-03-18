@@ -104,11 +104,10 @@ struct private_data {
 };
 
 
-static char * optstring = "i:r:Phv";
+static char * optstring = "r:Phv";
 
 #ifdef HAVE_GETOPT_LONG
 static struct option long_options[] = {
-	{ "input" , required_argument, NULL, 'i'},
 	{ "rotate", required_argument, NULL, 'r'},
 	{ "no-preview", no_argument, NULL, 'P'},
 	{ "help", no_argument, 0, 'h'},
@@ -121,8 +120,6 @@ usage (const char * progname)
 {
   printf ("Usage: %s [options] <control file>\n", progname);
   printf ("Encode video from a V4L2 device using the SH-Mobile VPU, with preview\n");
-  printf ("\nFile options\n");
-  printf ("  -i, --input          Set the v4l2 configuration file\n");
   printf ("\nCapture options\n");
   printf ("  -r 90, --rotate 90   Rotate the camera capture buffer 90 degrees and crop\n");
   printf ("\nDisplay options\n");
@@ -384,10 +381,6 @@ int main(int argc, char *argv[])
 			break;
 		case 'v': /* version */
 			show_version = 1;
-			break;
-		case 'i':
-			if (optarg)
-				strncpy(pvt->encdata[i++].ctrl_filename, optarg, MAXPATHLEN-1);
 			break;
 		case 'r':
 			if (optarg) {

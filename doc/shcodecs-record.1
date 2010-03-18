@@ -1,4 +1,4 @@
-.TH "shcodecs-record" 1 "June 2009" "SH Codecs" "Linux-SH Multimedia"
+.TH "shcodecs-record" 1 "March 2010" "SH Codecs" "Linux-SH Multimedia"
 
 .SH NAME
 shcodecs-record \- Encode V4L2 video input using the SH-Mobile VPU
@@ -7,7 +7,7 @@ shcodecs-record \- Encode V4L2 video input using the SH-Mobile VPU
 .PP
 .B \fBshcodecs-record\fR \fIcontrol-file\fR
 .PP
-.B \fBshcodecs-record\fR [\-r \fBrotate 90\fR | \-\-rotate \fBrotate 90\fR ] [\-i \fBcontrol-file\fR | \-\-input \fBcontrol-file\fR ]
+.B \fBshcodecs-record\fR [\-r \fB90\fR | \-\-rotate \fB90\fR ] \fBcontrol-file\fR
 .PP
 \fBshcodecs-record\fR [\-h  | \-\-help ]  [\-v  | \-\-version ]
 
@@ -16,11 +16,11 @@ shcodecs-record \- Encode V4L2 video input using the SH-Mobile VPU
 \fBshcodecs-record\fR accepts the following options:
 
 .SS "File options"
-.IP "\-i \fBcontrol-file\fR, \-\-input \fBcontrol-file\fR" 10
+.IP "\fBcontrol-file\fR" 10
 Set the control file.
 
 .SS "Capture options"
-.IP "\-r \fBrotate 90\fR, \-\-rotate \fBrotate 90\fR" 10
+.IP "\-r \fB90\fR, \-\-rotate \fB90\fR" 10
 Rotate and crop the image 90 degrees before encoding.
 
 .SS "Miscellaneous options"
@@ -31,10 +31,10 @@ Output version information and exit.
 
 .SH DESCRIPTION
 .B shcodecs-record
-Encodes V4L2 video input using the SH-Mobile VPU
+Encodes V4L2 video input as an H.264 or MPEG-4 Elementary Stream using the SH-Mobile VPU.
 
 .SH AUTHORS
 
-shcodecs-record was written by Phil Edworthy & Jeremy Baker, based on earlier work by Conrad Parker.
+shcodecs-record was written by Conrad Parker, Phil Edworthy & Jeremy Baker.
 
 Please report bugs to <linux-sh@vger.kernel.org>
