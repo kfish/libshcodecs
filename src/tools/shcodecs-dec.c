@@ -44,9 +44,6 @@
 #define DEFAULT_WIDTH 320
 #define DEFAULT_HEIGHT 240
 
-/* XXX: extern declarations, why are these not in a public header for those libs? */
-extern unsigned long m4iph_sleep_time_get(void);
-
 /***********************************************************/
 
 /* Forward declarations */
@@ -327,8 +324,6 @@ int main(int argc, char **argv)
 	local_close ();
 
 	shcodecs_decoder_close(decoder);
-
-	debug_printf("Total sleep  time = %d(msec)\n",(int)m4iph_sleep_time_get());
 
 	fprintf (stderr, "Total bytes consumed: %ld\n", total_input_consumed);
 	fprintf (stderr, "Total bytes output: %ld\n", total_output_bytes);

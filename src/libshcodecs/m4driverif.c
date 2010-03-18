@@ -31,9 +31,7 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <sys/mman.h>
-#include <sys/time.h>
 #include <sh7722_vpu.h>
 #include <m4iph_vpu4.h>
 #include <avcbd.h>
@@ -48,7 +46,6 @@ typedef struct _SHCodecs_vpu {
 	M4IPH_VPU4_INIT_OPTION params;
 	unsigned long work_buff_size;
 	void *work_buff;
-	int sleep_time;
 
 	unsigned long sdr_base;
 	unsigned long sdr_start;
@@ -153,26 +150,10 @@ struct uio_map uio_mmio, uio_mem;
 /* User defined functions as specified by the Encoder/Decoder middleware
  * documents.
  */
-void m4iph_sleep_time_init(void)
-{
-	SHCodecs_vpu *vpu = &vpu_data;
-	vpu->sleep_time = 0;
-}
-
-unsigned long m4iph_sleep_time_get(void)
-{
-	SHCodecs_vpu *vpu = &vpu_data;
-	return vpu->sleep_time;
-}
-
 long m4iph_sleep(void)
 {
 	SHCodecs_vpu *vpu = &vpu_data;
-	struct timeval tv, tv1;
-	struct timezone tz;
-	long tm;
 
-	gettimeofday(&tv, &tz);
 #ifdef DISABLE_INT
 	while (m4iph_vpu4_status() != 0);
 	m4iph_vpu4_int_handler();
@@ -193,12 +174,6 @@ long m4iph_sleep(void)
 
 	m4iph_vpu4_int_handler();
 #endif
-	gettimeofday(&tv1, &tz);
-	tm = (tv1.tv_usec - tv.tv_usec) / 1000;
-	if (tm < 0) {
-		tm = 1000 - (tv.tv_usec - tv1.tv_usec) / 1000;
-	}
-	vpu->sleep_time += tm;
 
 	return 0;
 }
