@@ -141,6 +141,7 @@ void debug_printf(const char *fmt, ...)
 
 struct private_data pvt_data;
 
+static int alive=1;
 
 /*****************************************************************************/
 
@@ -159,13 +160,17 @@ void *capture_main(void *data)
 {
 	struct private_data *pvt = (struct private_data*)data;
 
-	while(1){
+	while(alive){
 		framerate_wait(pvt->cap_framerate);
 		capture_get_frame(pvt->ceu, capture_image_cb, pvt);
 
 		/* This mutex is unlocked once the capture buffer is free */
 		pthread_mutex_lock(&pvt->capture_start_mutex);
 	}
+
+	pthread_mutex_unlock(&pvt->capture_start_mutex);
+
+	return NULL;
 }
 
 
@@ -178,7 +183,7 @@ void *convert_main(void *data)
 	unsigned long cap_y, cap_c;
 	int i;
 
-	while(1){
+	while(alive){
 		cap_y = (unsigned long) queue_deq(pvt->captured_queue);
 		cap_c = cap_y + (pvt->cap_w * pvt->cap_h);
 
@@ -209,6 +214,8 @@ void *convert_main(void *data)
 
 		pvt->output_frames++;
 	}
+
+	return NULL;
 }
 
 /* SHCodecs_Encoder_Input callback for acquiring an image */
@@ -259,6 +266,8 @@ void cleanup (void)
 	struct private_data *pvt = &pvt_data;
 	int i;
 
+	alive=0;
+
 	time = (double)framerate_elapsed_time (pvt->cap_framerate);
 	time /= 1000000;
 
@@ -287,19 +296,18 @@ void cleanup (void)
 		shcodecs_encoder_close(pvt->encoders[i]);
 	}
 
+	pthread_join (pvt->capture_thread, NULL);
+	pthread_join (pvt->convert_thread, NULL);
+
 	capture_close(pvt->ceu);
-
-	for (i=0; i < pvt->nr_encoders; i++)
-		close_output_file(pvt->encdata[i].output_fp);
-
-	pthread_cancel (pvt->convert_thread);
 	display_close(pvt->display);
-
-	pthread_cancel (pvt->capture_thread);
 	shveu_close();
 
-	for (i=0; i < pvt->nr_encoders; i++)
+	for (i=0; i < pvt->nr_encoders; i++) {
+		close_output_file(pvt->encdata[i].output_fp);
+		pthread_mutex_unlock(&pvt->encdata[i].encode_start_mutex);
 		pthread_mutex_destroy (&pvt->encdata[i].encode_start_mutex);
+	}
 
 	pthread_mutex_destroy (&pvt->capture_start_mutex);
 }
