@@ -39,13 +39,12 @@ shcodecs_record_LDADD = $(SHVEU_LIBS) $(UIOMUX_LIBS) -lrt -lpthread $(SHCODECS_L
 
 shcodecs_enc_SOURCES =  \
 	shcodecs-enc.c \
-	capture.c \
 	framerate.c \
 	ControlFileUtil.c \
 	avcbeinputuser.c
 
-shcodecs_enc_CFLAGS = $(SHVEU_CFLAGS) $(UIOMUX_CFLAGS)
-shcodecs_enc_LDADD = $(SHVEU_LIBS) $(UIOMUX_LIBS) -lrt $(SHCODECS_LIBS)
+shcodecs_enc_CFLAGS = $(UIOMUX_CFLAGS)
+shcodecs_enc_LDADD = $(UIOMUX_LIBS) -lrt $(SHCODECS_LIBS)
 
 shcodecs_enc_benchmark_SOURCES =  \
 	shcodecs-enc-benchmark.c \
