@@ -192,15 +192,19 @@ void m4iph_restart(void)
 int m4iph_vpu_open(int stream_buf_size)
 {
 	SHCodecs_vpu *vpu = &vpu_data;
-	int ret;
+	int ret = 0;
 	void *pv_wk_buff;
 
 	/* TODO race condition here. Not fixed as the mutex should be in shared
 	   mem to protect processes */
 	if (vpu_initialised) {
 		m4iph_vpu_lock();
+		if (vpu->work_buff_size < stream_buf_size) {
+			m4iph_sdr_free(vpu->work_buff, vpu->work_buff_size);
+			goto reinit;
+		}
 		m4iph_vpu_unlock();
-		return 0;
+		return ret;
 	}
 
 	pthread_mutex_init(&vpu->mutex, NULL);
@@ -224,10 +228,6 @@ int m4iph_vpu_open(int stream_buf_size)
 
 	m4iph_sdr_open();
 
-	vpu->work_buff_size = stream_buf_size;
-	vpu->work_buff = m4iph_sdr_malloc(stream_buf_size, 32);
-	CHECK_ALLOC(vpu->work_buff, stream_buf_size, "work buffer (kernel)", err);
-
 	vpu->params.m4iph_vpu_base_address = VP4_CTRL;
 
 	/* Little endian */
@@ -241,6 +241,11 @@ int m4iph_vpu_open(int stream_buf_size)
 
 	vpu->params.m4iph_vpu_clock_supply_control = M4IPH_CTL_FRAME_UNIT;
 	vpu->params.m4iph_vpu_mask_address_disable = M4IPH_OFF;
+
+reinit:
+	vpu->work_buff_size = stream_buf_size;
+	vpu->work_buff = m4iph_sdr_malloc(stream_buf_size, 32);
+	CHECK_ALLOC(vpu->work_buff, stream_buf_size, "work buffer (kernel)", err);
 	vpu->params.m4iph_temporary_buff_address = (unsigned long)vpu->work_buff;
 	vpu->params.m4iph_temporary_buff_size = vpu->work_buff_size;
 
