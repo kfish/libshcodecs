@@ -232,13 +232,13 @@ int main(int argc, char *argv[])
 
 	nr_encoders = argc-1;
 
-	shencs = calloc (sizeof (struct shenc *), nr_encoders);
+	shencs = calloc (nr_encoders, sizeof (struct shenc *));
 	if (shencs == NULL) {
 		fprintf (stderr, "Out of memory\n");
 		exit (-1);
 	}
 
-	threads = calloc (sizeof (pthread_t), nr_encoders);
+	threads = calloc (nr_encoders, sizeof (pthread_t));
 	if (threads == NULL) {
 		fprintf (stderr, "Out of memory\n");
 		exit (-1);
