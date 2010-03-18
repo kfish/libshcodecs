@@ -168,6 +168,8 @@ void *capture_main(void *data)
 		pthread_mutex_lock(&pvt->capture_start_mutex);
 	}
 
+	capture_stop_capturing(pvt->ceu);
+
 	pthread_mutex_unlock(&pvt->capture_start_mutex);
 
 	return NULL;
@@ -266,8 +268,6 @@ void cleanup (void)
 	struct private_data *pvt = &pvt_data;
 	int i;
 
-	alive=0;
-
 	time = (double)framerate_elapsed_time (pvt->cap_framerate);
 	time /= 1000000;
 
@@ -281,8 +281,6 @@ void cleanup (void)
 
 	framerate_destroy (pvt->cap_framerate);
 
-	capture_stop_capturing(pvt->ceu);
-
 	for (i=0; i < pvt->nr_encoders; i++) {
 		time = (double)framerate_elapsed_time (pvt->encdata[i].enc_framerate);
 		time /= 1000000;
@@ -291,13 +289,16 @@ void cleanup (void)
 		debug_printf("[%d] Encoded %d frames (%.2f fps)\n", i,
 				pvt->encdata[i].enc_framerate->nr_handled,
 			 	framerate_mean_fps (pvt->encdata[i].enc_framerate));
-		framerate_destroy (pvt->encdata[i].enc_framerate);
 
 		shcodecs_encoder_close(pvt->encoders[i]);
+
+		framerate_destroy (pvt->encdata[i].enc_framerate);
 	}
 
-	pthread_join (pvt->capture_thread, NULL);
+	alive=0;
+
 	pthread_join (pvt->convert_thread, NULL);
+	pthread_join (pvt->capture_thread, NULL);
 
 	capture_close(pvt->ceu);
 	display_close(pvt->display);
