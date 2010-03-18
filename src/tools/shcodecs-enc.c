@@ -201,14 +201,9 @@ void *convert_main(void *data)
 	int ret;
 
 	ret = shcodecs_encoder_run (shenc->encoder);
-	if (ret < 0) {
-		fprintf(stderr, "Error encoding, error code=%d\n", ret);
-	} else {
-		fprintf(stderr, "Encode Success\n");
-	}
-
 	cleanup (shenc);
-	return NULL;
+
+	return (void *)ret;
 }
 
 int main(int argc, char *argv[])
@@ -216,6 +211,7 @@ int main(int argc, char *argv[])
 	struct shenc ** shencs;
 	int i, nr_encoders, ret;
 	pthread_t * threads;
+	void *thread_ret;
 
 	if (argc < 2 || !strncmp (argv[1], "-h", 2) || !strncmp (argv[1], "--help", 6)) {
 		usage (argv[0]);
@@ -253,8 +249,14 @@ int main(int argc, char *argv[])
 	}
 
 	for (i=0; i < nr_encoders; i++) {
-		if (threads[i] != NULL)
-			pthread_join(threads[i], NULL);
+		if (threads[i] != NULL) {
+			pthread_join(threads[i], &thread_ret);
+			if ((int)thread_ret < 0) {
+				fprintf(stderr, "Error encoding %d\n", i);
+			} else {
+				fprintf(stderr, "Encode %d Success\n", i);
+			}
+		}
 	}
 
 	free (shencs);
