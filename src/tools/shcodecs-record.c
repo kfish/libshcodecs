@@ -233,7 +233,7 @@ static int get_input(SHCodecs_Encoder *encoder, void *user_data)
 		encdata->enc_framerate = framerate_new_measurer ();
 	}
 
-	return 0;
+	return (alive?0:1);
 }
 
 /* SHCodecs_Encoder_Output callback for writing out the encoded data */
@@ -259,7 +259,7 @@ static int write_output(SHCodecs_Encoder *encoder,
 	if (fwrite(data, 1, length, encdata->output_fp) < (size_t)length)
 		return -1;
 
-	return 0;
+	return (alive?0:1);
 }
 
 void cleanup (void)
@@ -548,10 +548,12 @@ int main(int argc, char *argv[])
 	}
 
 	rc = shcodecs_encoder_run_multiple(pvt->encoders, pvt->nr_encoders);
-	if (rc != 0) {
+	if (rc < 0) {
 		fprintf(stderr, "Error encoding, error code=%d\n", rc);
 		rc = -10;
 	}
+	/* Exit ok if shcodecs_encoder_run was stopped cleanly */
+	if (rc == 1) rc = 0;
 
 	cleanup ();
 
