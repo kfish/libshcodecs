@@ -234,13 +234,13 @@ int main(int argc, char *argv[])
 
 	shencs = calloc (nr_encoders, sizeof (struct shenc *));
 	if (shencs == NULL) {
-		fprintf (stderr, "Out of memory\n");
+		perror(NULL);
 		exit (-1);
 	}
 
 	threads = calloc (nr_encoders, sizeof (pthread_t));
 	if (threads == NULL) {
-		fprintf (stderr, "Out of memory\n");
+		perror(NULL);
 		exit (-1);
 	}
 
@@ -248,10 +248,8 @@ int main(int argc, char *argv[])
 		shencs[i] = setup_file (argv[i+1]);
 
 		ret = pthread_create(&threads[i], NULL, convert_main, shencs[i]);
-		if (ret){
-			fprintf(stderr, "pthread_create failed (%d)\n", ret);
-			exit (-1);
-		}
+		if (ret)
+			fprintf(stderr, "Thread %d failed: %s\n", i, strerror(ret));
 	}
 
 	for (i=0; i < nr_encoders; i++) {
