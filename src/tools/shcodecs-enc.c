@@ -248,10 +248,12 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "Thread %d failed: %s\n", i, strerror(ret));
 	}
 
+	ret = 0;
 	for (i=0; i < nr_encoders; i++) {
 		if (threads[i] != NULL) {
 			pthread_join(threads[i], &thread_ret);
 			if ((int)thread_ret < 0) {
+				ret = (int)thread_ret;
 				fprintf(stderr, "Error encoding %d\n", i);
 			} else {
 				fprintf(stderr, "Encode %d Success\n", i);
@@ -261,5 +263,5 @@ int main(int argc, char *argv[])
 
 	free (shencs);
 
-	return 0;
+	return ret;
 }
