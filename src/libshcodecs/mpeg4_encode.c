@@ -51,7 +51,7 @@ vpu_err(SHCodecs_Encoder *enc, const char *func, int line, long rc)
 	char msg[MSG_LEN+1];
 	msg[MSG_LEN] = 0;
 	snprintf(msg, MSG_LEN, "%s, line %d: returned %ld", func, line, rc);
-	m4iph_avcbd_perror(msg, rc);
+	m4iph_avcbe_perror(msg, rc);
 	enc->error_return_code = rc;
 	return rc;
 }

@@ -35,6 +35,7 @@
 #include <sh7722_vpu.h>
 #include <m4iph_vpu4.h>
 #include <avcbd.h>
+#include <avcbe.h>
 #include "avcbd_optionaldata.h"
 #include "avcbd_inner_typedef.h"
 #include "m4driverif.h"
@@ -493,7 +494,35 @@ void m4iph_avcbd_perror(char *msg, int error)
 
 void m4iph_avcbe_perror(char *msg, int error)
 {
-	fprintf(stderr, "%s: %d\n", msg, error);
+	fprintf(stderr, "%s: ", msg);
+	switch (error) {
+	case AVCBE_ENCODE_ERROR:
+		fprintf(stderr, "Parameter Error\n");
+		break;
+	case AVCBE_NOT_IN_ORDER_ERROR:
+		fprintf(stderr, "Function call not-in-order\n");
+		break;
+	case AVCBE_OUTPUT_BUFFER_SHORT_ERROR:
+		fprintf(stderr, "Stream-output buffer is short\n");
+		break;
+	case AVCBE_VPU_ERROR_AFTER_ENCODING:
+		fprintf(stderr, "End of Stream\n");
+		break;
+	case AVCBE_TEMPORARY_BUFFER_SHORT_ERROR:
+		fprintf(stderr, "Temporary buffer too short\n");
+		break;
+	case AVCBE_VUI_PARAMETERS_NOT_SPECIFIED_ERROR:
+		fprintf(stderr, "avcbe_set_vui_parameters was not called\n");
+		break;
+	case AVCBE_QUANT_MATRIX_NOT_SPECIFIED_ERROR:
+		fprintf(stderr, "avcbe_set_quant_type1 function was not called\n");
+		break;
+	case AVCBE_WORK_AREA_SHORT_ERROR:
+		fprintf(stderr, "size of work-field area is short\n");
+		break;
+	default:
+		fprintf(stderr, "Unknown error %d\n", error);
+	}
 }
 
 void avcbd_get_time_code(long h, long m, long s)
