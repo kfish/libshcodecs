@@ -609,7 +609,7 @@ static int decode_frame(SHCodecs_Decoder * decoder)
 						 decoder->si_ilen + hosei, NULL);
 		}
 
-		/* XXX: lock VPU */
+		m4iph_vpu_lock();
 		ret = avcbd_decode_picture(decoder->si_ctxt, decoder->si_ilen * 8);
 #ifdef DEBUG
 		fprintf
@@ -617,7 +617,7 @@ static int decode_frame(SHCodecs_Decoder * decoder)
 #endif
 		ret = avcbd_get_last_frame_stat(decoder->si_ctxt, &decoder->last_frame_status);
 		counter = 1;
-		/* XXX: unlock VPU */
+		m4iph_vpu_unlock();
 
 		if (decoder->si_type == F_H264) {
 			curr_len = decoder->si_ilen;
