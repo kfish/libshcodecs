@@ -54,6 +54,7 @@ typedef struct _SHCodecs_vpu {
 
 static SHCodecs_vpu vpu_data;
 static int vpu_initialised = 0;
+static int vpu_init_started = 0;
 
 static int m4iph_sdr_open(void);
 static void m4iph_sdr_close(void);
@@ -195,8 +196,12 @@ int m4iph_vpu_open(int stream_buf_size)
 	int ret = 0;
 	void *pv_wk_buff;
 
-	/* TODO race condition here. Not fixed as the mutex should be in shared
-	   mem to protect processes */
+	if (vpu_init_started)
+		while (!vpu_initialised)
+			usleep(1000);
+
+	vpu_init_started = 1;
+
 	if (vpu_initialised) {
 		m4iph_vpu_lock();
 		if (vpu->work_buff_size < stream_buf_size) {
@@ -209,6 +214,7 @@ int m4iph_vpu_open(int stream_buf_size)
 
 	pthread_mutex_init(&vpu->mutex, NULL);
 	m4iph_vpu_lock();
+	vpu_initialised = 1;
 
 	ret = locate_uio_device("VPU", &uio_dev);
 	if (ret < 0)
@@ -251,7 +257,6 @@ reinit:
 
 	/* Initialize VPU */
 	ret = m4iph_vpu4_init(&vpu->params);
-	vpu_initialised = 1;
 err:
 	m4iph_vpu_unlock();
 	return ret;
