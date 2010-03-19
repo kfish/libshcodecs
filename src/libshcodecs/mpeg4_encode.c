@@ -416,7 +416,7 @@ mpeg4_encode_picture (SHCodecs_Encoder *enc,
 #else
 		if (enc->release) {
 			enc->release (enc, input_frame.Y_fmemp, input_frame.C_fmemp,
-                                      enc_release_user_data);
+                                      enc->release_user_data);
 		}
 #endif
 
