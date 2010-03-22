@@ -142,7 +142,7 @@ int main(int argc, char **argv)
 
 	if (argc == 1) {
 		usage(progname);
-		exit(0);
+		return 0;
 	}
 
 	setvbuf(stdout, NULL, _IONBF, 0);
@@ -181,7 +181,7 @@ int main(int argc, char **argv)
 				stream_type = SHCodecs_Format_H264;
 			else {
 				fprintf(stderr, "Unknown video format: %s.\n", optarg);
-				exit(-1);
+				return -1;
 			}
 			break;
 		case 'o':
@@ -222,7 +222,7 @@ int main(int argc, char **argv)
 			break;
 		default:
 			usage(progname);
-			exit(-2);
+			return -2;
 		}
 	}
 
@@ -240,25 +240,25 @@ int main(int argc, char **argv)
 
 	if (w == -1 || h == -1){
 		fprintf(stderr, "Invalid width and/or height specified.\n");
-		exit(-3);
+		return -3;
 	}
 	if ( (strcmp(input_filename, "-") == 0) || (input_filename[0] == '\0') ){
 		fprintf(stderr, "Invalid input file.\n");
-		exit(-4);
+		return -4;
 	}
 #if 0
 	if ( (strcmp(output_filename, "-") == 0) || (output_filename[0] == '\0') ){
 		fprintf(stderr, "Invalid output file.\n");
-		exit(-5);
+		return -5;
 	}
 #endif
 	if (w < SHCODECS_MIN_FX || w > SHCODECS_MAX_FX || h < SHCODECS_MIN_FY || h > SHCODECS_MAX_FY) {
 		fprintf(stderr, "Invalid width and/or height specified.\n");
-		exit(-6);
+		return -6;
 	}
 	if (optind > argc){
 		fprintf(stderr, "Too many arguments.\n");
-		exit(-7);
+		return -7;
 	}
 
 	if (stream_type == -1) {
@@ -277,7 +277,7 @@ int main(int argc, char **argv)
  	stSchePara.sched_priority = sched_get_priority_max(SCHED_FIFO);
 	if (sched_setscheduler(0, SCHED_RR, &stSchePara) != 0) {
 		perror("sched_setscheduler");
-		exit(-8);
+		return -8;
 	}
 
 	/* H.264 spec: Max NAL size is the size of an uncomrpessed immage divided
