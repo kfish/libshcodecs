@@ -180,7 +180,7 @@ int main(int argc, char **argv)
 			else if (strncmp(optarg, "h264", 4) == 0)
 				stream_type = SHCodecs_Format_H264;
 			else {
-				debug_printf("Unknown video format: %s.\n", optarg);
+				fprintf(stderr, "Unknown video format: %s.\n", optarg);
 				exit(-1);
 			}
 			break;
@@ -239,25 +239,25 @@ int main(int argc, char **argv)
 	}
 
 	if (w == -1 || h == -1){
-		debug_printf("Invalid width and/or height specified.\n");
+		fprintf(stderr, "Invalid width and/or height specified.\n");
 		exit(-3);
 	}
 	if ( (strcmp(input_filename, "-") == 0) || (input_filename[0] == '\0') ){
-		debug_printf("Invalid input file.\n");
+		fprintf(stderr, "Invalid input file.\n");
 		exit(-4);
 	}
 #if 0
 	if ( (strcmp(output_filename, "-") == 0) || (output_filename[0] == '\0') ){
-		debug_printf("Invalid output file.\n");
+		fprintf(stderr, "Invalid output file.\n");
 		exit(-5);
 	}
 #endif
 	if (w < SHCODECS_MIN_FX || w > SHCODECS_MAX_FX || h < SHCODECS_MIN_FY || h > SHCODECS_MAX_FY) {
-		debug_printf("Invalid width and/or height specified.\n");
+		fprintf(stderr, "Invalid width and/or height specified.\n");
 		exit(-6);
 	}
 	if (optind > argc){
-		debug_printf("Too many arguments.\n");
+		fprintf(stderr, "Too many arguments.\n");
 		exit(-7);
 	}
 
