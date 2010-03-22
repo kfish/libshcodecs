@@ -132,7 +132,6 @@ int main(int argc, char **argv)
 	SHCodecs_Decoder * decoder;
 	int ret=0, stream_type = -1, i, w, h, c;
 	char input_filename[MAXPATHLEN], output_filename[MAXPATHLEN];
-	struct sched_param stSchePara;
 	int bytes_decoded, frames_decoded;
 	ssize_t n;
 	char * ext;
@@ -273,12 +272,6 @@ int main(int argc, char **argv)
 	debug_printf("Resolution: %dx%d\n", w, h);
 	debug_printf("Input  file: %s\n", input_filename);
 	debug_printf("Output file: %s\n", output_filename);
-
- 	stSchePara.sched_priority = sched_get_priority_max(SCHED_FIFO);
-	if (sched_setscheduler(0, SCHED_RR, &stSchePara) != 0) {
-		perror("sched_setscheduler");
-		return -8;
-	}
 
 	/* H.264 spec: Max NAL size is the size of an uncomrpessed immage divided
 	   by the "Minimum Compression Ratio", MinCR. This is 2 for most levels
