@@ -275,8 +275,6 @@ mpeg4_encode_frame (SHCodecs_Encoder *enc, long stream_type,
 	TAVCBE_FMEM input_buf;
 	avcbe_frame_stat frame_stat;
 	long pic_type;
-	struct timeval tv, tv1;
-	long tm;
 	int cb_ret = 0;
 
 	input_buf.Y_fmemp = py;
@@ -301,20 +299,11 @@ mpeg4_encode_frame (SHCodecs_Encoder *enc, long stream_type,
 			return vpu_err(enc, __func__, __LINE__, rc);
 	}
 
-	gettimeofday(&tv, NULL);
-
 	/* Encode the frame */
 	rc = avcbe_encode_picture(enc->stream_info, enc->frm,
 				 AVCBE_ANY_VOP,
 				 AVCBE_OUTPUT_NONE,
 				 &enc->stream_buff_info, NULL);
-
-	gettimeofday(&tv1, NULL);
-	tm = (tv1.tv_usec - tv.tv_usec) / 1000;
-	if (tm < 0)
-		tm = 1000 - (tv.tv_usec - tv1.tv_usec) / 1000;
-	encode_time += tm;
-
 	if (rc != 0)
 		return vpu_err(enc, __func__, __LINE__, rc);
 

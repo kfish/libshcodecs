@@ -33,9 +33,6 @@ Compile options
 	* make libshcodecs _native_ x86 build possible for building docs
 	(with no library output)
 
-Cleanups
-	* encoder: remove gettimeofday(), encode_time etc. throughout
-
 Tools
 -----
 

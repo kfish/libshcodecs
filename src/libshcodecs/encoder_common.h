@@ -50,11 +50,4 @@
 /*----------------------------------------------------------*/
 #define FILLER_DATA_BUFF_SIZE 256
 
-
-
-/*-------------- proto-type declaration ----------------------------*/
-
-void encode_time_init(void);
-unsigned long encode_time_get(void);
-
 #endif				/* AVCBENCSMP */

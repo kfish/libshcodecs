@@ -150,9 +150,6 @@ shcodecs_encoder_global_init (int width, int height)
 	if (m4iph_vpu_open(dimension_stream_buff_size (width, height)) < 0)
 		return -1;
 
-	/* stream buffer 0 clear */
-	encode_time_init();
-
 	avcbe_start_encoding();
 
 	return 0;
