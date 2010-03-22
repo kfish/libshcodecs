@@ -150,7 +150,9 @@ shcodecs_encoder_global_init (int width, int height)
 	if (m4iph_vpu_open(dimension_stream_buff_size (width, height)) < 0)
 		return -1;
 
+	m4iph_vpu_lock();
 	avcbe_start_encoding();
+	m4iph_vpu_unlock();
 
 	return 0;
 }

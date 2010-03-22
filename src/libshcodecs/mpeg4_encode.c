@@ -391,14 +391,17 @@ mpeg4_encode_picture (SHCodecs_Encoder *enc,
 
 	/* For all frames to encode */
 	while (1) {
+		m4iph_vpu_lock();
 #ifdef USE_BVOP
 		/* Find an input buffer that isn't in use */
 		if (enc->other_options_mpeg4.avcbe_b_vop_num > 0) {
 
 			rc = avcbe_get_buffer_check(enc->stream_info,
 						   &frame_check_array[0]);
-			if (rc < 0)
+			if (rc < 0) {
+				m4iph_vpu_unlock();
 				return vpu_err(enc, __func__, __LINE__, rc);
+			}
 
 			for (i=0; i < (enc->other_options_mpeg4.avcbe_b_vop_num + 1); i++) {
 				if (frame_check_array[i].avcbe_status == AVCBE_UNLOCK) {
@@ -428,12 +431,12 @@ mpeg4_encode_picture (SHCodecs_Encoder *enc,
 			cb_ret = enc->input(enc, enc->input_user_data);
 			if (cb_ret != 0) {
 				enc->error_return_code = cb_ret;
+				m4iph_vpu_unlock();
 				return cb_ret;
 			}
 		}
 
 		/* Encode the frame */
-		m4iph_vpu_lock();
 		rc = mpeg4_encode_frame(enc, stream_type, enc->addr_y, enc->addr_c);
 		m4iph_vpu_unlock();
 		if (rc != 0)
@@ -449,8 +452,10 @@ mpeg4_encode_run (SHCodecs_Encoder *enc, long stream_type)
 	long rc, length;
 	int cb_ret=0;
 
+	m4iph_vpu_lock();
 	if (enc->initialized < 2)
 		mpeg4_encode_deferred_init (enc, stream_type);
+	m4iph_vpu_unlock();
 
 	enc->error_return_code = 0;
 
@@ -459,7 +464,9 @@ mpeg4_encode_run (SHCodecs_Encoder *enc, long stream_type)
 		return rc;
 
 	/* End encoding */
+	m4iph_vpu_lock();
 	length = avcbe_put_end_code(enc->stream_info, &enc->end_code_buff_info, AVCBE_VOSE);
+	m4iph_vpu_unlock();
 	if (length <= 0)
 		return vpu_err(enc, __func__, __LINE__, length);
 
