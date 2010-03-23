@@ -36,13 +36,6 @@ Compile options
 Tools
 -----
 
-shcodecs-record
-
-	* add --no-preview option
-	Current --no-preview branch causes subsequent invocations to freeze
-	and only capture 1 frame. It seems to block on the first VEU op.
-	Perhaps some issue with VEU no-op?
-
 shcodecs-play
 
 	* print error if cannot init decoder (eg. no size given)

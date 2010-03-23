@@ -5,19 +5,15 @@ shcodecs-record \- Encode V4L2 video input using the SH-Mobile VPU
 
 .SH SYNOPSIS
 .PP
-.B \fBshcodecs-record\fR \fIcontrol-file\fR
+.B \fBshcodecs-record\fR \fIcontrol-file\fR \fB...\fR
 .PP
-.B \fBshcodecs-record\fR [\-r \fB90\fR | \-\-rotate \fB90\fR ] \fBcontrol-file\fR
+.B \fBshcodecs-record\fR [\-r \fB90\fR | \-\-rotate \fB90\fR ] \fBcontrol-file\fR \fB...\fR
 .PP
 \fBshcodecs-record\fR [\-h  | \-\-help ]  [\-v  | \-\-version ]
 
 .SH OPTIONS
 .PP
 \fBshcodecs-record\fR accepts the following options:
-
-.SS "File options"
-.IP "\fBcontrol-file\fR" 10
-Set the control file.
 
 .SS "Capture options"
 .IP "\-r \fB90\fR, \-\-rotate \fB90\fR" 10
@@ -31,7 +27,8 @@ Output version information and exit.
 
 .SH DESCRIPTION
 .B shcodecs-record
-Encodes V4L2 video input as an H.264 or MPEG-4 Elementary Stream using the SH-Mobile VPU.
+Encodes V4L2 video input as an H.264 or MPEG-4 Elementary Stream using the SH-Mobile VPU,
+according to the specifications of the given input file(s).
 
 .SH AUTHORS
 

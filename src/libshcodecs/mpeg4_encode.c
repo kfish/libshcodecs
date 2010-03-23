@@ -51,7 +51,7 @@ vpu_err(SHCodecs_Encoder *enc, const char *func, int line, long rc)
 	char msg[MSG_LEN+1];
 	msg[MSG_LEN] = 0;
 	snprintf(msg, MSG_LEN, "%s, line %d: returned %ld", func, line, rc);
-	m4iph_avcbd_perror(msg, rc);
+	m4iph_avcbe_perror(msg, rc);
 	enc->error_return_code = rc;
 	return rc;
 }
@@ -420,7 +420,7 @@ mpeg4_encode_picture (SHCodecs_Encoder *enc,
 #else
 		if (enc->release) {
 			enc->release (enc, input_frame.Y_fmemp, input_frame.C_fmemp,
-                                      enc_release_user_data);
+                                      enc->release_user_data);
 		}
 #endif
 

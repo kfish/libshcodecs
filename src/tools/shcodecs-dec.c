@@ -44,13 +44,23 @@
 #define DEFAULT_WIDTH 320
 #define DEFAULT_HEIGHT 240
 
+struct shdec {
+	int		input_fd;	/* Input file descriptor */
+	int		output_fd;	/* Output file descriptor */
+	unsigned char	*input_buffer;	/* Pointer to input buffer */
+	size_t		si_isize;	/* Total size of input data */
+
+	long max_nal_size;
+	long total_input_consumed;
+	long total_output_bytes;
+};
+
+
 /***********************************************************/
 
 /* Forward declarations */
-static int update_input(SHCodecs_Decoder * decoder, int len);
-
-static int local_init (char *pInputfile, char *pOutputfile);
-static int local_close (void);
+static int local_init (struct shdec * dec, char *pInputfile, char *pOutputfile);
+static int local_close (struct shdec * dec);
 
 static void
 usage (const char * progname)
@@ -90,16 +100,6 @@ static struct option long_options[] = {
 };
 #endif
 
-/* local vars, removed from ST_STREAM_INFO */
-int		input_fd;	/* Input file descriptor */
-int		output_fd;	/* Output file descriptor */
-unsigned char	*input_buffer;	/* Pointer to input buffer */
-int		si_ipos;	/* Current position in input stream */
-size_t		si_isize;	/* Total size of input data */
-
-long max_nal_size;
-long total_input_consumed = 0;
-long total_output_bytes = 0;
 
 /***********************************************************/
 
@@ -110,14 +110,15 @@ local_vpu4_decoded (SHCodecs_Decoder * decoder,
 		    unsigned char * c_buf, int c_size,
 		    void * user_data)
 {
+	struct shdec * dec = (struct shdec *)user_data;
 	ssize_t len;
 
-	if (output_fd != -1) {
-		len = write(output_fd, y_buf, y_size);
-		write(output_fd, c_buf, c_size);
+	if (dec->output_fd != -1) {
+		len = write(dec->output_fd, y_buf, y_size);
+		write(dec->output_fd, c_buf, c_size);
 	}
 
-	total_output_bytes += y_size+c_size;
+	dec->total_output_bytes += y_size+c_size;
 
 	return 0;
 }
@@ -126,10 +127,11 @@ local_vpu4_decoded (SHCodecs_Decoder * decoder,
 
 int main(int argc, char **argv)
 {
+	struct shdec dec1;
+	struct shdec * dec = &dec1;
 	SHCodecs_Decoder * decoder;
 	int ret=0, stream_type = -1, i, w, h, c;
 	char input_filename[MAXPATHLEN], output_filename[MAXPATHLEN];
-	struct sched_param stSchePara;
 	int bytes_decoded, frames_decoded;
 	ssize_t n;
 	char * ext;
@@ -139,7 +141,7 @@ int main(int argc, char **argv)
 
 	if (argc == 1) {
 		usage(progname);
-		exit(0);
+		return 0;
 	}
 
 	setvbuf(stdout, NULL, _IONBF, 0);
@@ -177,8 +179,8 @@ int main(int argc, char **argv)
 			else if (strncmp(optarg, "h264", 4) == 0)
 				stream_type = SHCodecs_Format_H264;
 			else {
-				debug_printf("Unknown video format: %s.\n", optarg);
-				exit(-1);
+				fprintf(stderr, "Unknown video format: %s.\n", optarg);
+				return -1;
 			}
 			break;
 		case 'o':
@@ -219,7 +221,7 @@ int main(int argc, char **argv)
 			break;
 		default:
 			usage(progname);
-			exit(-2);
+			return -2;
 		}
 	}
 
@@ -236,26 +238,26 @@ int main(int argc, char **argv)
 	}
 
 	if (w == -1 || h == -1){
-		debug_printf("Invalid width and/or height specified.\n");
-		exit(-3);
+		fprintf(stderr, "Invalid width and/or height specified.\n");
+		return -3;
 	}
 	if ( (strcmp(input_filename, "-") == 0) || (input_filename[0] == '\0') ){
-		debug_printf("Invalid input file.\n");
-		exit(-4);
+		fprintf(stderr, "Invalid input file.\n");
+		return -4;
 	}
 #if 0
 	if ( (strcmp(output_filename, "-") == 0) || (output_filename[0] == '\0') ){
-		debug_printf("Invalid output file.\n");
-		exit(-5);
+		fprintf(stderr, "Invalid output file.\n");
+		return -5;
 	}
 #endif
 	if (w < SHCODECS_MIN_FX || w > SHCODECS_MAX_FX || h < SHCODECS_MIN_FY || h > SHCODECS_MAX_FY) {
-		debug_printf("Invalid width and/or height specified.\n");
-		exit(-6);
+		fprintf(stderr, "Invalid width and/or height specified.\n");
+		return -6;
 	}
 	if (optind > argc){
-		debug_printf("Too many arguments.\n");
-		exit(-7);
+		fprintf(stderr, "Too many arguments.\n");
+		return -7;
 	}
 
 	if (stream_type == -1) {
@@ -271,18 +273,15 @@ int main(int argc, char **argv)
 	debug_printf("Input  file: %s\n", input_filename);
 	debug_printf("Output file: %s\n", output_filename);
 
- 	stSchePara.sched_priority = sched_get_priority_max(SCHED_FIFO);
-	if (sched_setscheduler(0, SCHED_RR, &stSchePara) != 0) {
-		perror("sched_setscheduler");
-		exit(-8);
-	}
-
 	/* H.264 spec: Max NAL size is the size of an uncomrpessed immage divided
 	   by the "Minimum Compression Ratio", MinCR. This is 2 for most levels
 	   but is 4 for levels 3.1 to 4. Since we don't know the level, we just
 	   use MinCR=2. */
-	max_nal_size = (w * h * 3) / 2; /* YCbCr420 */
-	max_nal_size /= 2;              /* Apply MinCR */
+	dec->max_nal_size = (w * h * 3) / 2; /* YCbCr420 */
+	dec->max_nal_size /= 2;              /* Apply MinCR */
+
+	dec->total_input_consumed = 0;
+	dec->total_output_bytes = 0;
 
 	/* Open file descriptors to talk to the VPU and SDR drivers */
 
@@ -290,28 +289,28 @@ int main(int argc, char **argv)
 		exit (-9);
 	}
 
-	local_init(input_filename, output_filename);
+	local_init(dec, input_filename, output_filename);
 
-	shcodecs_decoder_set_decoded_callback (decoder, local_vpu4_decoded, NULL);
+	shcodecs_decoder_set_decoded_callback (decoder, local_vpu4_decoded, dec);
 
 	/* decode main loop */
 	do {
 		int rem;
 
-		bytes_decoded = shcodecs_decode (decoder, input_buffer, si_isize);
+		bytes_decoded = shcodecs_decode (decoder, dec->input_buffer, dec->si_isize);
 		frames_decoded = shcodecs_decoder_get_frame_count (decoder);
-		if (bytes_decoded > 0) total_input_consumed += bytes_decoded;
+		if (bytes_decoded > 0) dec->total_input_consumed += bytes_decoded;
 		
-		rem = si_isize - bytes_decoded;
-		memmove(input_buffer, input_buffer + bytes_decoded, rem);
-		n = read (input_fd, input_buffer + rem, max_nal_size - rem);
+		rem = dec->si_isize - bytes_decoded;
+		memmove(dec->input_buffer, dec->input_buffer + bytes_decoded, rem);
+		n = read (dec->input_fd, dec->input_buffer + rem, dec->max_nal_size - rem);
 		if (n < 0) break;
 
-		si_isize = rem + n;
+		dec->si_isize = rem + n;
 	} while (!(n == 0 && bytes_decoded == 0));
 
-	bytes_decoded = shcodecs_decode (decoder, input_buffer, si_isize);
-	if (bytes_decoded > 0) total_input_consumed += bytes_decoded;
+	bytes_decoded = shcodecs_decode (decoder, dec->input_buffer, dec->si_isize);
+	if (bytes_decoded > 0) dec->total_input_consumed += bytes_decoded;
 
 	debug_printf ("\nshcodecs-dec: Finalizing ...\n");
 
@@ -321,12 +320,12 @@ int main(int argc, char **argv)
 	frames_decoded = shcodecs_decoder_get_frame_count (decoder);
 	fprintf (stderr, "Total frames decoded: %d\n", frames_decoded);
 
-	local_close ();
+	local_close (dec);
 
 	shcodecs_decoder_close(decoder);
 
-	fprintf (stderr, "Total bytes consumed: %ld\n", total_input_consumed);
-	fprintf (stderr, "Total bytes output: %ld\n", total_output_bytes);
+	fprintf (stderr, "Total bytes consumed: %ld\n", dec->total_input_consumed);
+	fprintf (stderr, "Total bytes output: %ld\n", dec->total_output_bytes);
 
 exit_ok:
 	exit (0);
@@ -339,10 +338,10 @@ exit_err:
  * open_input
  *
  */
-static int open_input(char *input_filename)
+static int open_input(struct shdec * dec, char *input_filename)
 {
-	input_fd = open(input_filename, O_RDONLY);
-	if (input_fd == -1) {
+	dec->input_fd = open(input_filename, O_RDONLY);
+	if (dec->input_fd == -1) {
 		perror(input_filename);
 		return -1;
 	}
@@ -353,10 +352,10 @@ static int open_input(char *input_filename)
  * open_output
  *
  */
-static int open_output(char *output_filename)
+static int open_output(struct shdec * dec, char *output_filename)
 {
-	output_fd = open(output_filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-	if (output_fd == -1) {
+	dec->output_fd = open(output_filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (dec->output_fd == -1) {
 		perror(output_filename);
 		return -1;
 	}
@@ -364,32 +363,30 @@ static int open_output(char *output_filename)
 }
 
 static int
-local_init (char *input_filename, char *output_filename)
+local_init (struct shdec * dec, char *input_filename, char *output_filename)
 {
 	struct timeval tv;
 	struct timezone tz;
 
 	/* Open input/output stream */
-	input_fd = output_fd = -1;
-	if (input_filename[0] != '\0' && open_input(input_filename))
+	dec->input_fd = dec->output_fd = -1;
+	if (input_filename[0] != '\0' && open_input(dec, input_filename))
 		return -50;
-	if (output_filename[0] != '\0' && open_output(output_filename))
+	if (output_filename[0] != '\0' && open_output(dec, output_filename))
 		return -51;
 
 	/* Allocate memory for input buffer */
-	input_buffer = malloc(max_nal_size);
-	debug_printf("input buffer = %X\n",(int)input_buffer);
-	if (input_buffer == NULL) goto err2;
+	dec->input_buffer = malloc(dec->max_nal_size);
+	debug_printf("input buffer = %X\n",(int)dec->input_buffer);
+	if (dec->input_buffer == NULL) goto err2;
 
-	if (input_fd != -1) {
+	if (dec->input_fd != -1) {
 		/* Fill input buffer */
-		if ((si_isize = read(input_fd, input_buffer, max_nal_size)) <= 0) {
+		if ((dec->si_isize = read(dec->input_fd, dec->input_buffer, dec->max_nal_size)) <= 0) {
 				perror(input_filename);
 				return -54;
 		}
 	}
-
-	si_ipos = 0;
 
 	gettimeofday(&tv, &tz);
 	debug_printf("decode start %ld,%ld\n",tv.tv_sec,tv.tv_usec);
@@ -401,18 +398,18 @@ err2:
 	
 	
 static int
-local_close (void)
+local_close (struct shdec * dec)
 {
 	struct timeval tv;
 	struct timezone tz;
 
-	if (output_fd != -1 && output_fd > 2)
-		close(output_fd);
-	if (input_fd != -1 && input_fd > 2)
-		close(input_fd);
+	if (dec->output_fd != -1 && dec->output_fd > 2)
+		close(dec->output_fd);
+	if (dec->input_fd != -1 && dec->input_fd > 2)
+		close(dec->input_fd);
 
-	if (input_buffer)
-		free(input_buffer);
+	if (dec->input_buffer)
+		free(dec->input_buffer);
 
 	gettimeofday(&tv, &tz);
 	debug_printf("%ld,%ld\n",tv.tv_sec,tv.tv_usec);
