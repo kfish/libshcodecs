@@ -412,6 +412,9 @@ int main(int argc, char **argv)
 			pthread_join(threads[i], &thread_ret);
 			if ((int)thread_ret < 0) {
 				ret = (int)thread_ret;
+				fprintf(stderr, "Error decoding %d\n", i);
+			} else {
+				fprintf(stderr, "Decode %d Success\n", i);
 			}
 		}
 	}
