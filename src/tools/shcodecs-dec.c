@@ -31,6 +31,7 @@
 #include <sys/param.h>
 #include <sys/types.h>
 #include <sys/time.h>
+#include <pthread.h>
 
 #include <shcodecs/shcodecs_decoder.h>
 
@@ -43,6 +44,15 @@
 
 #define DEFAULT_WIDTH 320
 #define DEFAULT_HEIGHT 240
+
+
+/* getopt isn't thread safe */
+pthread_mutex_t mutex;
+
+struct argst {
+	int argc;
+	char **argv;
+};
 
 struct shdec {
 	int		input_fd;	/* Input file descriptor */
@@ -125,7 +135,7 @@ local_vpu4_decoded (SHCodecs_Decoder * decoder,
 
 /***********************************************************/
 
-int main(int argc, char **argv)
+int main2(int argc, char **argv)
 {
 	struct shdec dec1;
 	struct shdec * dec = &dec1;
@@ -153,6 +163,10 @@ int main(int argc, char **argv)
 	w = DEFAULT_WIDTH;
 	h = DEFAULT_HEIGHT;
 
+	/* getopt isn't thread safe & it needs resetting */
+	pthread_mutex_lock(&mutex);
+	optind = 1;
+
 	while (1) {
 #ifdef HAVE_GETOPT_LONG
 		c = getopt_long(argc, argv, optstring, long_options, &i);
@@ -165,7 +179,6 @@ int main(int argc, char **argv)
 			usage (progname);
 			goto exit_err;
 		}
-
 		switch (c) {
 		case 'H': /* --help */
 			show_help = 1;
@@ -179,6 +192,7 @@ int main(int argc, char **argv)
 			else if (strncmp(optarg, "h264", 4) == 0)
 				stream_type = SHCodecs_Format_H264;
 			else {
+				pthread_mutex_unlock(&mutex);
 				fprintf(stderr, "Unknown video format: %s.\n", optarg);
 				return -1;
 			}
@@ -224,6 +238,7 @@ int main(int argc, char **argv)
 			return -2;
 		}
 	}
+	pthread_mutex_unlock(&mutex);
 
 	if (show_version) {
 		printf ("%s version " VERSION "\n", progname);
@@ -286,7 +301,7 @@ int main(int argc, char **argv)
 	/* Open file descriptors to talk to the VPU and SDR drivers */
 
 	if ((decoder = shcodecs_decoder_init(w, h, stream_type)) == NULL) {
-		exit (-9);
+		return -9;
 	}
 
 	local_init(dec, input_filename, output_filename);
@@ -328,10 +343,96 @@ int main(int argc, char **argv)
 	fprintf (stderr, "Total bytes output: %ld\n", dec->total_output_bytes);
 
 exit_ok:
-	exit (0);
+	return 0;
 
 exit_err:
-	exit (1);
+	return 1;
+}
+
+
+void *instance_main(void *data)
+{
+	struct argst *args = (struct argst *) data;
+	return (void *)main2(args->argc, args->argv);
+}
+
+int main(int argc, char **argv)
+{
+	int ret=0, c, i, j;
+	char * progname = argv[0];
+	struct argst * args;
+	int nr_instances = 1;
+	int argv_idx = 0;
+	pthread_t * threads;
+	void *thread_ret;
+
+	if (argc == 1) {
+		usage(progname);
+		return 0;
+	}
+
+	/* Count the instances */
+	for (i=1; i<argc; i++) {
+		if (strcmp(argv[i], ",") == 0)
+			nr_instances++;
+	}
+
+
+	threads = calloc (nr_instances, sizeof (pthread_t));
+	if (threads == NULL) {
+		perror(NULL);
+		return -1;
+	}
+
+	args = calloc (nr_instances, sizeof (*args));
+	if (args == NULL) {
+		perror(NULL);
+		return -1;
+	}
+
+	pthread_mutex_init(&mutex, NULL);
+
+	/* Split the arguments into instances */
+	i = 0;
+	argv_idx = 0;
+
+	for (j=1; j<argc; j++) {
+		if (strcmp(argv[j], ",") == 0) {
+			args[i].argc = j - argv_idx;
+			args[i].argv = &argv[argv_idx];
+			argv_idx = j;
+			i++;
+		}
+	}
+	if (argv_idx != argc) {
+		args[i].argc = j - argv_idx;
+		args[i].argv = &argv[argv_idx];
+	}
+
+
+	/* Run each instance in a separate thread */
+	for (i=0; i<nr_instances; i++) {
+		ret = pthread_create(&threads[i], NULL, instance_main, &args[i]);
+		if (ret < 0) perror("pthread_create");
+	}
+
+	/* Wait for the threads */
+	for (i=0; i<nr_instances; i++) {
+		if (threads[i] != 0) {
+			pthread_join(threads[i], &thread_ret);
+			if ((int)thread_ret < 0) {
+				ret = (int)thread_ret;
+			}
+		}
+	}
+
+	pthread_mutex_destroy (&mutex);
+	free(threads);
+	free(args);
+	return ret;
+
+exit_err:
+	return 1;
 }
 
 /*
