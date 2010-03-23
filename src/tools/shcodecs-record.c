@@ -118,7 +118,7 @@ static struct option long_options[] = {
 static void
 usage (const char * progname)
 {
-  printf ("Usage: %s [options] <control file>\n", progname);
+  printf ("Usage: %s [options] <control file> ...\n", progname);
   printf ("Encode video from a V4L2 device using the SH-Mobile VPU, with preview\n");
   printf ("\nCapture options\n");
   printf ("  -r 90, --rotate 90   Rotate the camera capture buffer 90 degrees and crop\n");

@@ -42,7 +42,7 @@
 static void
 usage (const char * progname)
 {
-	printf ("Usage: %s <control file>\n", progname);
+	printf ("Usage: %s <control file> ...\n", progname);
 	printf ("Encode a video file using the SH-Mobile VPU\n");
 	printf ("\nMiscellaneous options\n");
 	printf ("  -h, --help             Display this help and exit\n");
