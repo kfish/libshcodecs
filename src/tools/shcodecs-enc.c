@@ -190,11 +190,14 @@ err:
 
 void *convert_main(void *data)
 {
-	struct shenc * shenc = (struct shenc *)data;
-	int ret;
+	struct shenc *shenc;
+	int ret = -1;
 
-	ret = shcodecs_encoder_run (shenc->encoder);
-	cleanup (shenc);
+	shenc = setup_enc ((char *) data);
+	if (shenc) {
+		ret = shcodecs_encoder_run (shenc->encoder);
+		cleanup (shenc);
+	}
 
 	return (void *)ret;
 }
@@ -203,7 +206,6 @@ int main(int argc, char *argv[])
 {
 	char * progname = argv[0];
 	int show_help = 0, show_version = 0;
-	struct shenc ** shencs;
 	int i, nr_encoders, ret;
 	pthread_t * threads;
 	void *thread_ret;
@@ -236,12 +238,6 @@ int main(int argc, char *argv[])
 
 	nr_encoders = argc-1;
 
-	shencs = calloc (nr_encoders, sizeof (struct shenc *));
-	if (shencs == NULL) {
-		perror(NULL);
-		exit (-1);
-	}
-
 	threads = calloc (nr_encoders, sizeof (pthread_t));
 	if (threads == NULL) {
 		perror(NULL);
@@ -249,17 +245,14 @@ int main(int argc, char *argv[])
 	}
 
 	for (i=0; i < nr_encoders; i++) {
-		shencs[i] = setup_enc (argv[i+1]);
-		if (shencs[i]) {
-			ret = pthread_create(&threads[i], NULL, convert_main, shencs[i]);
-			if (ret)
-				fprintf(stderr, "Thread %d failed: %s\n", i, strerror(ret));
-		}
+		ret = pthread_create(&threads[i], NULL, convert_main, argv[i+1]);
+		if (ret)
+			fprintf(stderr, "Thread %d failed: %s\n", i, strerror(ret));
 	}
 
 	ret = 0;
 	for (i=0; i < nr_encoders; i++) {
-		if (threads[i] != NULL) {
+		if (threads[i] != 0) {
 			pthread_join(threads[i], &thread_ret);
 			if ((int)thread_ret < 0) {
 				ret = (int)thread_ret;
@@ -269,8 +262,6 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
-
-	free (shencs);
 
 	return ret;
 }
