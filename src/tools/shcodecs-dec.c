@@ -458,21 +458,21 @@ local_init (struct shdec * dec, char *input_filename, char *output_filename)
 
 	/* Open input/output stream */
 	dec->input_fd = dec->output_fd = -1;
-	if (input_filename[0] != '\0' && open_input(dec, input_filename))
+	if (input_filename != NULL && open_input(dec, input_filename))
 		return -50;
-	if (output_filename[0] != '\0' && open_output(dec, output_filename))
+	if (output_filename != NULL && open_output(dec, output_filename))
 		return -51;
 
 	/* Allocate memory for input buffer */
 	dec->input_buffer = malloc(dec->max_nal_size);
-	debug_printf("input buffer = %X\n",(int)dec->input_buffer);
-	if (dec->input_buffer == NULL) goto err2;
+	if (dec->input_buffer == NULL)
+		return -1;
 
 	if (dec->input_fd != -1) {
 		/* Fill input buffer */
 		if ((dec->si_isize = read(dec->input_fd, dec->input_buffer, dec->max_nal_size)) <= 0) {
-				perror(input_filename);
-				return -54;
+			perror(input_filename);
+			return -54;
 		}
 	}
 
@@ -480,8 +480,6 @@ local_init (struct shdec * dec, char *input_filename, char *output_filename)
 	debug_printf("decode start %ld,%ld\n",tv.tv_sec,tv.tv_usec);
 
 	return 0;
-err2:
-	return -1;
 }
 	
 	
