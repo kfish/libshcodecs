@@ -52,25 +52,12 @@ usage (const char * progname)
 }
 
 struct shenc {
-        APPLI_INFO ainfo; /* Application Data */
-        SHCodecs_Encoder *encoder; /* Encoder */
+	APPLI_INFO ainfo; /* Application Data */
+	SHCodecs_Encoder *encoder; /* Encoder */
 	FILE * output_fp;
 	struct framerate * enc_framerate;
 	long stream_type;
 };
-
-struct shenc *
-shenc_new (void)
-{
-        struct shenc * shenc;
-
-        shenc = malloc (sizeof(*shenc));
-        if (shenc == NULL) return NULL;
-
-        memset (shenc, 0, sizeof(*shenc));
-
-        return shenc;
-}
 
 /* SHCodecs_Encoder_Input callback for acquiring an image from the input file */
 static int get_input(SHCodecs_Encoder * encoder, void *user_data)
@@ -145,54 +132,60 @@ void sig_handler(int sig)
 	kill(getpid(), sig);
 }
 
-static struct shenc * setup_file (char * filename)
+static struct shenc * setup_enc(char * filename)
 {
 	struct shenc * shenc;
-	int return_code;
+	int ret;
 
-	shenc = shenc_new();
+	shenc = calloc (1, sizeof(*shenc));
+	if (!shenc)
+		return NULL;
 
-	return_code = ctrlfile_get_params(filename, &shenc->ainfo, &shenc->stream_type);
-	if (return_code < 0) {
-		perror("Error opening control file");
-		exit (-1);
+	ret = ctrlfile_get_params(filename, &shenc->ainfo, &shenc->stream_type);
+	if (ret < 0) {
+		fprintf(stderr, "Error opening control file");
+		goto err;
 	}
 
 	fprintf(stderr, "Input file: %s\n", shenc->ainfo.input_file_name_buf);
 	fprintf(stderr, "Output file: %s\n", shenc->ainfo.output_file_name_buf);
 
-	shenc->encoder = NULL;
-	signal (SIGINT, sig_handler);
-	signal (SIGPIPE, sig_handler);
-
 	/* Setup encoder */
 	shenc->encoder = shcodecs_encoder_init(shenc->ainfo.xpic, shenc->ainfo.ypic, shenc->stream_type);
+	if (!shenc->encoder) {
+		fprintf(stderr, "Error initialising encoder");
+		goto err;
+	}
 
 	shcodecs_encoder_set_input_callback(shenc->encoder, get_input, shenc);
 	shcodecs_encoder_set_output_callback(shenc->encoder, write_output, shenc);
 
 	/* set parameters for use in encoding */
-	return_code = ctrlfile_set_enc_param(shenc->encoder, filename);
-	if (return_code < 0) {
-		perror("Problem with encoder params in control file!\n");
-		exit (-3);
+	ret = ctrlfile_set_enc_param(shenc->encoder, filename);
+	if (ret < 0) {
+		fprintf(stderr, "Problem with encoder params in control file!\n");
+		goto err;
 	}
 
 	/* open input YUV data file */
-	return_code = open_input_image_file(&shenc->ainfo);
-	if (return_code != 0) {
-		perror("Error opening input file");
-		exit (-6);
+	ret = open_input_image_file(&shenc->ainfo);
+	if (ret != 0) {
+		fprintf(stderr, "Error opening input file");
+		goto err;
 	}
 
 	/* open output file */
 	shenc->output_fp = open_output_file(shenc->ainfo.output_file_name_buf);
-	if (shenc->output_fp == NULL) {
-		perror("Error opening output file");
-		exit (-6);
+	if (!shenc->output_fp) {
+		fprintf(stderr, "Error opening output file");
+		goto err;
 	}
 
 	return shenc;
+
+err:
+	cleanup(shenc);
+	return NULL;
 }
 
 void *convert_main(void *data)
@@ -208,23 +201,38 @@ void *convert_main(void *data)
 
 int main(int argc, char *argv[])
 {
+	char * progname = argv[0];
+	int show_help = 0, show_version = 0;
 	struct shenc ** shencs;
 	int i, nr_encoders, ret;
 	pthread_t * threads;
 	void *thread_ret;
 
-	if (argc < 2 || !strncmp (argv[1], "-h", 2) || !strncmp (argv[1], "--help", 6)) {
-		usage (argv[0]);
-		return -1;
-        }
-
-	if (!strncmp (argv[1], "-v", 2) || !strncmp (argv[1], "--version", 9)) {
-		printf ("%s version " VERSION "\n", argv[0]);
-		return -1;
+	if (argc == 1) {
+		usage(progname);
+		return 0;
 	}
 
-        signal (SIGINT, sig_handler);
-        signal (SIGPIPE, sig_handler);
+	/* Check for help or version */
+	for (i=1; i<argc; i++) {
+		if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help"))
+			show_help = 1;
+
+		if (!strcmp(argv[i], "-v") || !strcmp(argv[i], "--version"))
+			show_version = 1;
+	}
+	if (show_version)
+		printf ("%s version " VERSION "\n", progname);
+
+	if (show_help)
+		usage (progname);
+
+	if (show_version || show_help)
+		return 0;
+
+
+	signal (SIGINT, sig_handler);
+	signal (SIGPIPE, sig_handler);
 
 	nr_encoders = argc-1;
 
@@ -241,11 +249,12 @@ int main(int argc, char *argv[])
 	}
 
 	for (i=0; i < nr_encoders; i++) {
-		shencs[i] = setup_file (argv[i+1]);
-
-		ret = pthread_create(&threads[i], NULL, convert_main, shencs[i]);
-		if (ret)
-			fprintf(stderr, "Thread %d failed: %s\n", i, strerror(ret));
+		shencs[i] = setup_enc (argv[i+1]);
+		if (shencs[i]) {
+			ret = pthread_create(&threads[i], NULL, convert_main, shencs[i]);
+			if (ret)
+				fprintf(stderr, "Thread %d failed: %s\n", i, strerror(ret));
+		}
 	}
 
 	ret = 0;
