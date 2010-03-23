@@ -177,7 +177,7 @@ int main2(int argc, char **argv)
 			break;
 		if (c == ':') {
 			usage (progname);
-			goto exit_err;
+			goto arg_err;
 		}
 		switch (c) {
 		case 'H': /* --help */
@@ -192,9 +192,8 @@ int main2(int argc, char **argv)
 			else if (strncmp(optarg, "h264", 4) == 0)
 				stream_type = SHCodecs_Format_H264;
 			else {
-				pthread_mutex_unlock(&mutex);
 				fprintf(stderr, "Unknown video format: %s.\n", optarg);
-				return -1;
+				goto arg_err;
 			}
 			break;
 		case 'o':
@@ -235,7 +234,7 @@ int main2(int argc, char **argv)
 			break;
 		default:
 			usage(progname);
-			return -2;
+			goto arg_err;
 		}
 	}
 	pthread_mutex_unlock(&mutex);
@@ -345,7 +344,8 @@ int main2(int argc, char **argv)
 exit_ok:
 	return 0;
 
-exit_err:
+arg_err:
+	pthread_mutex_unlock(&mutex);
 	return 1;
 }
 
@@ -430,9 +430,6 @@ int main(int argc, char **argv)
 	free(threads);
 	free(args);
 	return ret;
-
-exit_err:
-	return 1;
 }
 
 /*
