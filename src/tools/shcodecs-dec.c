@@ -209,7 +209,7 @@ int get_dec_opts(int argc, char **argv, struct dec_opts *opts)
 		}
 	}
 
-	if ( !strcmp(opts->file_in, "-") || (opts->file_in == NULL) ) {
+	if ( (opts->file_in == NULL) || !strcmp(opts->file_in, "-") ) {
 		fprintf(stderr, "Invalid input file.\n");
 		return -1;
 	}
