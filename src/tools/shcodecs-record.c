@@ -43,6 +43,7 @@
 #include <pthread.h>
 #include <errno.h>
 
+#include <uiomux/uiomux.h>
 #include <shveu/shveu.h>
 #include <shcodecs/shcodecs_encoder.h>
 
@@ -96,6 +97,8 @@ struct encode_data {
 };
 
 struct private_data {
+	UIOMux * uiomux;
+
 	int nr_cameras;
 	struct camera_data cameras[MAX_CAMERAS];
 
@@ -206,12 +209,14 @@ void *convert_main(void *data)
 
 			/* We are clipping, not scaling, as we need to perform a rotation,
 		   	but the VEU cannot do a rotate & scale at the same time. */
+			uiomux_lock (pvt->uiomux, UIOMUX_SH_VEU);
 			shveu_operation(0,
 				cap_y, cap_c,
 				cam->cap_w, cam->cap_h, cam->cap_w, SHVEU_YCbCr420,
 				enc_y, enc_c,
 				pvt->encdata[i].enc_w, pvt->encdata[i].enc_h, pvt->encdata[i].enc_w, SHVEU_YCbCr420,
 				pvt->rotate_cap);
+			uiomux_unlock (pvt->uiomux, UIOMUX_SH_VEU);
 
 			/* Let the encoder get_input function return */
 			pthread_mutex_unlock(&pvt->encdata[i].encode_start_mutex);
@@ -219,10 +224,12 @@ void *convert_main(void *data)
 
 		if (cam == pvt->encdata[0].camera && pvt->do_preview) {
 			/* Use the VEU to scale the capture buffer to the frame buffer */
+			uiomux_lock (pvt->uiomux, UIOMUX_SH_VEU);
 			display_update(pvt->display,
 					cap_y, cap_c,
 					cam->cap_w, cam->cap_h, cam->cap_w,
 					V4L2_PIX_FMT_NV12);
+			uiomux_unlock (pvt->uiomux, UIOMUX_SH_VEU);
 		}
 
 		capture_queue_buffer (cam->ceu, cap_y);
@@ -340,6 +347,8 @@ void cleanup (void)
 		struct camera_data * cam = &pvt->cameras[i];
 		pthread_mutex_destroy (&cam->capture_start_mutex);
 	}
+
+	uiomux_close (pvt->uiomux);
 }
 
 void sig_handler(int sig)
@@ -468,6 +477,8 @@ int main(int argc, char *argv[])
 	}
 
 	pvt->nr_encoders = i;
+
+	pvt->uiomux = uiomux_open ();
 
 	for (i=0; i < pvt->nr_encoders; i++) {
 		if ( (strcmp(pvt->encdata[i].ctrl_filename, "-") == 0) ||
