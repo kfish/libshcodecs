@@ -217,7 +217,7 @@ void *convert_main(void *data)
 			pthread_mutex_unlock(&pvt->encdata[i].encode_start_mutex);
 		}
 
-		if (pvt->do_preview) {
+		if (cam == pvt->encdata[0].camera && pvt->do_preview) {
 			/* Use the VEU to scale the capture buffer to the frame buffer */
 			display_update(pvt->display,
 					cap_y, cap_c,
