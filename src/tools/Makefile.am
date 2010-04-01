@@ -4,7 +4,7 @@ INCLUDES = -I$(top_builddir) \
            -I$(top_srcdir)/include
 
 SHCODECSDIR = ../libshcodecs
-SHCODECS_LIBS = $(SHCODECSDIR)/libshcodecs.la -lm
+SHCODECS_LIBS = $(SHCODECSDIR)/libshcodecs.la $(VPU4_DEC_LIBS) $(VPU4_ENC_LIBS) -lm
 
 bin_PROGRAMS = shcodecs-dec shcodecs-enc shcodecs-cap shcodecs-play shcodecs-record
 
