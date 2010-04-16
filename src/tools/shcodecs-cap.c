@@ -34,6 +34,7 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include <uiomux/uiomux.h>
 #include <shveu/shveu.h>
 
 #include "capture.h"
@@ -96,6 +97,7 @@ int main(int argc, char **argv)
 	struct camera_data cam;
 	unsigned int count, x;
 	double time;
+	UIOMux * uiomux=NULL;
 
 	cam.width = 320;
 	cam.height = 240;
@@ -172,11 +174,15 @@ int main(int argc, char **argv)
 		cam.ceu = capture_open(cam.dev_name, cam.width, cam.height);
 	} else {
 		fprintf(stderr, "Capture at %dx%d using user\n", cam.width, cam.height);
+		if ((uiomux = uiomux_open()) == NULL) {
+			fprintf (stderr, "Could not open UIOMux, exiting\n");
+			exit (EXIT_FAILURE);
+		}
 		if (shveu_open() < 0) {
 			fprintf (stderr, "Could not open VEU, exiting\n");
 			exit (EXIT_FAILURE);
 		}
-		cam.ceu = capture_open_userio(cam.dev_name, cam.width, cam.height);
+		cam.ceu = capture_open_userio(cam.dev_name, cam.width, cam.height, uiomux);
 	}
 	cam.cap_framerate = framerate_new_timer (30.0);
 
@@ -199,6 +205,7 @@ int main(int argc, char **argv)
 	fflush(stdout);
 	if (cam.mode == 1) {
 		shveu_close();
+		uiomux_close (uiomux);
 	}
 
 	exit(EXIT_SUCCESS);
