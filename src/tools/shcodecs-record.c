@@ -355,10 +355,6 @@ void sig_handler(int sig)
 {
 	cleanup ();
 
-#ifdef DEBUG
-	fprintf (stderr, "Got signal %d\n", sig);
-#endif
-
 	/* Send ourselves the signal: see http://www.cons.org/cracauer/sigint.html */
 	signal(sig, SIG_DFL);
 	kill(getpid(), sig);
