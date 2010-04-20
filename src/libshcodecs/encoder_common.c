@@ -84,16 +84,3 @@ unsigned long avcbe_insert_filler_data_for_cpb_buffer(unsigned long
 #endif
 }
 
-
-long encode_time;
-
-void encode_time_init(void)
-{
-	encode_time = 0;
-}
-
-unsigned long encode_time_get(void)
-{
-	return encode_time;
-}
-

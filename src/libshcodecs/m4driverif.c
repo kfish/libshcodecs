@@ -54,6 +54,8 @@ typedef struct _SHCodecs_vpu {
 } SHCodecs_vpu;
 
 static SHCodecs_vpu vpu_data;
+static int vpu_initialised = 0;
+static int vpu_init_started = 0;
 
 static int m4iph_sdr_open(void);
 static void m4iph_sdr_close(void);
@@ -192,12 +194,32 @@ void m4iph_restart(void)
 int m4iph_vpu_open(int stream_buf_size)
 {
 	SHCodecs_vpu *vpu = &vpu_data;
-	int ret;
+	int ret = 0;
 	void *pv_wk_buff;
+
+	if (vpu_init_started)
+		while (!vpu_initialised)
+			usleep(1000);
+
+	vpu_init_started = 1;
+
+	if (vpu_initialised) {
+		m4iph_vpu_lock();
+		if (vpu->work_buff_size < stream_buf_size) {
+			m4iph_sdr_free(vpu->work_buff, vpu->work_buff_size);
+			goto reinit;
+		}
+		m4iph_vpu_unlock();
+		return ret;
+	}
+
+	pthread_mutex_init(&vpu->mutex, NULL);
+	m4iph_vpu_lock();
+	vpu_initialised = 1;
 
 	ret = locate_uio_device("VPU", &uio_dev);
 	if (ret < 0)
-		return ret;
+		goto err;
 
 #ifdef DEBUG
 	fprintf(stderr, "found matching UIO device at %s\n", uio_dev.path);
@@ -205,18 +227,13 @@ int m4iph_vpu_open(int stream_buf_size)
 
 	ret = setup_uio_map(&uio_dev, 0, &uio_mmio);
 	if (ret < 0)
-		return ret;
+		goto err;
 
 	ret = setup_uio_map(&uio_dev, 1, &uio_mem);
 	if (ret < 0)
-		return ret;
+		goto err;
 
 	m4iph_sdr_open();
-
-
-	vpu->work_buff_size = stream_buf_size;
-	vpu->work_buff = m4iph_sdr_malloc(stream_buf_size, 32);
-	CHECK_ALLOC(vpu->work_buff, stream_buf_size, "work buffer (kernel)", err);
 
 	vpu->params.m4iph_vpu_base_address = VP4_CTRL;
 
@@ -231,23 +248,29 @@ int m4iph_vpu_open(int stream_buf_size)
 
 	vpu->params.m4iph_vpu_clock_supply_control = M4IPH_CTL_FRAME_UNIT;
 	vpu->params.m4iph_vpu_mask_address_disable = M4IPH_OFF;
+
+reinit:
+	vpu->work_buff_size = stream_buf_size;
+	vpu->work_buff = m4iph_sdr_malloc(stream_buf_size, 32);
+	CHECK_ALLOC(vpu->work_buff, stream_buf_size, "work buffer (kernel)", err);
 	vpu->params.m4iph_temporary_buff_address = (unsigned long)vpu->work_buff;
 	vpu->params.m4iph_temporary_buff_size = vpu->work_buff_size;
 
 	/* Initialize VPU */
 	ret = m4iph_vpu4_init(&vpu->params);
-	if (ret < 0)
-		return ret;
-
-	return 0;
-
 err:
-	return -1;
+	m4iph_vpu_unlock();
+	return ret;
 }
 
 void m4iph_vpu_close(void)
 {
-	m4iph_sdr_close();
+	SHCodecs_vpu *vpu = &vpu_data;
+
+	if (--vpu->num_codecs == 0) {
+		pthread_mutex_destroy (&vpu->mutex);
+		m4iph_sdr_close();
+	}
 }
 
 void m4iph_vpu_lock(void)

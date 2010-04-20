@@ -18,7 +18,7 @@ noinst_HEADERS = \
 	ControlFileUtil.h
 
 shcodecs_dec_SOURCES = shcodecs-dec.c
-shcodecs_dec_LDADD = $(SHCODECS_LIBS)
+shcodecs_dec_LDADD = -lrt $(SHCODECS_LIBS)
 
 shcodecs_play_SOURCES = shcodecs-play.c framerate.c display.c
 shcodecs_play_CFLAGS = $(SHVEU_CFLAGS) $(UIOMUX_CFLAGS)

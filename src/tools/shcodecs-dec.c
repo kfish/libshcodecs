@@ -31,6 +31,7 @@
 #include <sys/param.h>
 #include <sys/types.h>
 #include <sys/time.h>
+#include <pthread.h>
 
 #include <shcodecs/shcodecs_decoder.h>
 
@@ -43,6 +44,23 @@
 
 #define DEFAULT_WIDTH 320
 #define DEFAULT_HEIGHT 240
+
+
+/* getopt isn't thread safe */
+pthread_mutex_t mutex;
+
+struct argst {
+	int argc;
+	char **argv;
+};
+
+struct dec_opts {
+	char *file_in;
+	char *file_out;
+	int w;
+	int h;
+	int format;
+};
 
 struct shdec {
 	int		input_fd;	/* Input file descriptor */
@@ -124,34 +142,15 @@ local_vpu4_decoded (SHCodecs_Decoder * decoder,
 }
 
 /***********************************************************/
-
-int main(int argc, char **argv)
+int get_dec_opts(int argc, char **argv, struct dec_opts *opts)
 {
-	struct shdec dec1;
-	struct shdec * dec = &dec1;
-	SHCodecs_Decoder * decoder;
-	int ret=0, stream_type = -1, i, w, h, c;
-	char input_filename[MAXPATHLEN], output_filename[MAXPATHLEN];
-	int bytes_decoded, frames_decoded;
-	ssize_t n;
-	char * ext;
-	char * progname = argv[0];
-	int show_version = 0;
-	int show_help = 0;
+	int c, i;
 
-	if (argc == 1) {
-		usage(progname);
-		return 0;
-	}
-
-	setvbuf(stdout, NULL, _IONBF, 0);
-	output_filename[0] = input_filename[0] = '\0';
-	memset(input_filename, 0, sizeof(input_filename));
-	memset(output_filename, 0, sizeof(output_filename));
-
-	/* Set defaults */
-	w = DEFAULT_WIDTH;
-	h = DEFAULT_HEIGHT;
+	opts->file_in = NULL;
+	opts->file_out = NULL;
+	opts->w = DEFAULT_WIDTH;
+	opts->h = DEFAULT_HEIGHT;
+	opts->format = -1;
 
 	while (1) {
 #ifdef HAVE_GETOPT_LONG
@@ -162,134 +161,110 @@ int main(int argc, char **argv)
 		if (c == -1)
 			break;
 		if (c == ':') {
-			usage (progname);
-			goto exit_err;
+			return -1;
 		}
-
 		switch (c) {
-		case 'H': /* --help */
-			show_help = 1;
-			break;
-		case 'v': /* --version */
-			show_version = 1;
-			break;
 		case 'f':
 			if (strncmp(optarg, "mpeg4", 5) == 0)
-				stream_type = SHCodecs_Format_MPEG4;
+				opts->format = SHCodecs_Format_MPEG4;
 			else if (strncmp(optarg, "h264", 4) == 0)
-				stream_type = SHCodecs_Format_H264;
-			else {
-				fprintf(stderr, "Unknown video format: %s.\n", optarg);
-				return -1;
-			}
+				opts->format = SHCodecs_Format_H264;
 			break;
 		case 'o':
-			if (optarg)
-				strncpy(output_filename, optarg, sizeof(output_filename) - 1);
+			opts->file_out = optarg;
 			break;
 		case 'i':
-			if (optarg)
-				strncpy(input_filename, optarg, sizeof(input_filename) - 1);
+			opts->file_in = optarg;
 			break;
 		case 'w':
 			if (optarg)
-				w = strtoul(optarg, NULL, 10);
+				opts->w = strtoul(optarg, NULL, 10);
 			break;
 		case 'h':
 			if (optarg)
-				h = strtoul(optarg, NULL, 10);
+				opts->h = strtoul(optarg, NULL, 10);
 			break;
 		case 's':
 			if (optarg) {
 				if (!strncasecmp (optarg, "qcif", 4)) {
-					w = 176;
-					h = 144;
+					opts->w = 176;
+					opts->h = 144;
 				} else if (!strncmp (optarg, "cif", 3)) {
-					w = 352;
-					h = 288;
+					opts->w = 352;
+					opts->h = 288;
 				} else if (!strncmp (optarg, "qvga", 4)) {
-					w = 320;
-					h = 240;
+					opts->w = 320;
+					opts->h = 240;
 				} else if (!strncmp (optarg, "vga", 3)) {
-					w = 640;
-					h = 480;
+					opts->w = 640;
+					opts->h = 480;
 				} else if (!strncmp (optarg, "720p", 4)) {
-					w = 1280;
-					h = 720;
+					opts->w = 1280;
+					opts->h = 720;
 				}
 			}
 			break;
 		default:
-			usage(progname);
-			return -2;
+			return -1;
 		}
 	}
 
-	if (show_version) {
-		printf ("%s version " VERSION "\n", progname);
-	}
-
-	if (show_help) {
-		usage (progname);
-	}
-
-	if (show_version || show_help) {
-		return 0;
-	}
-
-	if (w == -1 || h == -1){
-		fprintf(stderr, "Invalid width and/or height specified.\n");
-		return -3;
-	}
-	if ( (strcmp(input_filename, "-") == 0) || (input_filename[0] == '\0') ){
+	if ( (opts->file_in == NULL) || !strcmp(opts->file_in, "-") ) {
 		fprintf(stderr, "Invalid input file.\n");
-		return -4;
+		return -1;
 	}
-#if 0
-	if ( (strcmp(output_filename, "-") == 0) || (output_filename[0] == '\0') ){
-		fprintf(stderr, "Invalid output file.\n");
-		return -5;
-	}
-#endif
-	if (w < SHCODECS_MIN_FX || w > SHCODECS_MAX_FX || h < SHCODECS_MIN_FY || h > SHCODECS_MAX_FY) {
+	if (opts->w < SHCODECS_MIN_FX || opts->w > SHCODECS_MAX_FX ||
+	    opts->h < SHCODECS_MIN_FY || opts->h > SHCODECS_MAX_FY) {
 		fprintf(stderr, "Invalid width and/or height specified.\n");
-		return -6;
+		return -1;
 	}
 	if (optind > argc){
 		fprintf(stderr, "Too many arguments.\n");
-		return -7;
+		return -1;
 	}
 
-	if (stream_type == -1) {
-		ext = strrchr (input_filename, '.');
+	if (opts->format == -1) {
+		char *ext = strrchr (opts->file_in, '.');
 		if (ext == NULL || !strncmp (ext, ".264", 4))
-			stream_type = SHCodecs_Format_H264;
+			opts->format = SHCodecs_Format_H264;
 		else
-			stream_type = SHCodecs_Format_MPEG4;
+			opts->format = SHCodecs_Format_MPEG4;
 	}
 
-	debug_printf("Format: %s\n", stream_type == SHCodecs_Format_H264 ? "H.264" : "MPEG4");
-	debug_printf("Resolution: %dx%d\n", w, h);
-	debug_printf("Input  file: %s\n", input_filename);
-	debug_printf("Output file: %s\n", output_filename);
+	return 0;
+}
+
+int decode(struct dec_opts *opts)
+{
+	struct shdec dec1;
+	struct shdec * dec = &dec1;
+	SHCodecs_Decoder * decoder;
+	int bytes_decoded, frames_decoded;
+	ssize_t n;
+
+	debug_printf("Format: %s\n", opts->format == SHCodecs_Format_H264 ? "H.264" : "MPEG4");
+	debug_printf("Resolution: %dx%d\n", opts->w, opts->h);
+	debug_printf("Input  file: %s\n", opts->file_in);
+	debug_printf("Output file: %s\n", opts->file_out);
 
 	/* H.264 spec: Max NAL size is the size of an uncomrpessed immage divided
 	   by the "Minimum Compression Ratio", MinCR. This is 2 for most levels
 	   but is 4 for levels 3.1 to 4. Since we don't know the level, we just
 	   use MinCR=2. */
-	dec->max_nal_size = (w * h * 3) / 2; /* YCbCr420 */
-	dec->max_nal_size /= 2;              /* Apply MinCR */
+	dec->max_nal_size = (opts->w * opts->h * 3) / 2; /* YCbCr420 */
+	dec->max_nal_size /= 2;                          /* Apply MinCR */
 
 	dec->total_input_consumed = 0;
 	dec->total_output_bytes = 0;
 
 	/* Open file descriptors to talk to the VPU and SDR drivers */
 
-	if ((decoder = shcodecs_decoder_init(w, h, stream_type)) == NULL) {
-		exit (-9);
+	if ((decoder = shcodecs_decoder_init(opts->w, opts->h, opts->format)) == NULL) {
+		return -1;
 	}
 
-	local_init(dec, input_filename, output_filename);
+	if (local_init(dec, opts->file_in, opts->file_out) < 0)
+		return -1;
 
 	shcodecs_decoder_set_decoded_callback (decoder, local_vpu4_decoded, dec);
 
@@ -312,26 +287,142 @@ int main(int argc, char **argv)
 	bytes_decoded = shcodecs_decode (decoder, dec->input_buffer, dec->si_isize);
 	if (bytes_decoded > 0) dec->total_input_consumed += bytes_decoded;
 
-	debug_printf ("\nshcodecs-dec: Finalizing ...\n");
-
 	/* Finalize the decode output, in case a final frame is available */
 	shcodecs_decoder_finalize (decoder);
 
 	frames_decoded = shcodecs_decoder_get_frame_count (decoder);
-	fprintf (stderr, "Total frames decoded: %d\n", frames_decoded);
+	debug_printf("Total frames decoded: %d\n", frames_decoded);
 
 	local_close (dec);
 
 	shcodecs_decoder_close(decoder);
 
-	fprintf (stderr, "Total bytes consumed: %ld\n", dec->total_input_consumed);
-	fprintf (stderr, "Total bytes output: %ld\n", dec->total_output_bytes);
+	debug_printf("Total bytes consumed: %ld\n", dec->total_input_consumed);
+	debug_printf("Total bytes output: %ld\n", dec->total_output_bytes);
 
-exit_ok:
-	exit (0);
+	return 0;
+}
 
-exit_err:
-	exit (1);
+int dec_main(int argc, char **argv)
+{
+	struct dec_opts opts;
+	int ret = -1;
+
+	/* getopt isn't thread safe & it's index needs resetting */
+	pthread_mutex_lock(&mutex);
+	optind = 1;
+	ret = get_dec_opts(argc, argv, &opts);
+	pthread_mutex_unlock(&mutex);
+
+	if (ret == 0)
+		ret = decode(&opts);
+
+	return ret;
+}
+
+/* Thread for running function with main args */
+void *instance_main(void *data)
+{
+	struct argst *args = (struct argst *) data;
+	return (void *)dec_main(args->argc, args->argv);
+}
+
+int main(int argc, char **argv)
+{
+	int ret=0, c, i, j;
+	char * progname = argv[0];
+	int show_help = 0, show_version = 0;
+	struct argst * args;
+	int nr_instances = 1;
+	int argv_idx = 0;
+	pthread_t * threads;
+	void *thread_ret;
+
+	if (argc == 1) {
+		usage(progname);
+		return 0;
+	}
+
+	/* Check for help or version */
+	for (i=1; i<argc; i++) {
+		if (!strcmp(argv[i], "-H") || !strcmp(argv[i], "--help"))
+			show_help = 1;
+
+		if (!strcmp(argv[i], "-v") || !strcmp(argv[i], "--version"))
+			show_version = 1;
+	}
+	if (show_version)
+		printf ("%s version " VERSION "\n", progname);
+
+	if (show_help)
+		usage (progname);
+
+	if (show_version || show_help)
+		return 0;
+
+
+	/* Count the instances */
+	for (i=1; i<argc; i++) {
+		if (strcmp(argv[i], ",") == 0)
+			nr_instances++;
+	}
+
+
+	threads = calloc (nr_instances, sizeof (pthread_t));
+	if (threads == NULL) {
+		perror(NULL);
+		return -1;
+	}
+
+	args = calloc (nr_instances, sizeof (*args));
+	if (args == NULL) {
+		perror(NULL);
+		return -1;
+	}
+
+	pthread_mutex_init(&mutex, NULL);
+
+	/* Split the arguments into instances */
+	i = 0;
+	argv_idx = 0;
+
+	for (j=1; j<argc; j++) {
+		if (strcmp(argv[j], ",") == 0) {
+			args[i].argc = j - argv_idx;
+			args[i].argv = &argv[argv_idx];
+			argv_idx = j;
+			i++;
+		}
+	}
+	if (argv_idx != argc) {
+		args[i].argc = j - argv_idx;
+		args[i].argv = &argv[argv_idx];
+	}
+
+
+	/* Run each instance in a separate thread */
+	for (i=0; i<nr_instances; i++) {
+		ret = pthread_create(&threads[i], NULL, instance_main, &args[i]);
+		if (ret < 0) perror("pthread_create");
+	}
+
+	/* Wait for the threads */
+	for (i=0; i<nr_instances; i++) {
+		if (threads[i] != 0) {
+			pthread_join(threads[i], &thread_ret);
+			if ((int)thread_ret < 0) {
+				ret = (int)thread_ret;
+				fprintf(stderr, "Error decoding %d\n", i);
+			} else {
+				fprintf(stderr, "Decode %d Success\n", i);
+			}
+		}
+	}
+
+	pthread_mutex_destroy (&mutex);
+	free(threads);
+	free(args);
+	return ret;
 }
 
 /*
@@ -370,21 +461,21 @@ local_init (struct shdec * dec, char *input_filename, char *output_filename)
 
 	/* Open input/output stream */
 	dec->input_fd = dec->output_fd = -1;
-	if (input_filename[0] != '\0' && open_input(dec, input_filename))
+	if (input_filename != NULL && open_input(dec, input_filename))
 		return -50;
-	if (output_filename[0] != '\0' && open_output(dec, output_filename))
+	if (output_filename != NULL && open_output(dec, output_filename))
 		return -51;
 
 	/* Allocate memory for input buffer */
 	dec->input_buffer = malloc(dec->max_nal_size);
-	debug_printf("input buffer = %X\n",(int)dec->input_buffer);
-	if (dec->input_buffer == NULL) goto err2;
+	if (dec->input_buffer == NULL)
+		return -1;
 
 	if (dec->input_fd != -1) {
 		/* Fill input buffer */
 		if ((dec->si_isize = read(dec->input_fd, dec->input_buffer, dec->max_nal_size)) <= 0) {
-				perror(input_filename);
-				return -54;
+			perror(input_filename);
+			return -54;
 		}
 	}
 
@@ -392,8 +483,6 @@ local_init (struct shdec * dec, char *input_filename, char *output_filename)
 	debug_printf("decode start %ld,%ld\n",tv.tv_sec,tv.tv_usec);
 
 	return 0;
-err2:
-	return -1;
 }
 	
 	

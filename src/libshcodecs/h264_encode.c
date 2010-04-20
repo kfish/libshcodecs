@@ -37,8 +37,6 @@
 //#define OUTPUT_INFO_MSGS
 //#define OUTPUT_STREAM_INFO
 
-extern long encode_time;
-
 
 #ifdef OUTPUT_ERROR_MSGS
 #define MSG_LEN 127
@@ -328,8 +326,6 @@ h264_encode_frame(SHCodecs_Encoder *enc, unsigned char *py, unsigned char *pc)
 	TAVCBE_FMEM input_buf;
 	TAVCBE_STREAM_BUFF *extra_stream_buff;
 	char pic_type;
-	struct timeval tv, tv1;
-	long tm;
 	int start_of_frame;
 	long nal_size;
 	int cb_ret = 0;
@@ -345,6 +341,13 @@ h264_encode_frame(SHCodecs_Encoder *enc, unsigned char *py, unsigned char *pc)
 				    &input_buf, enc->ldec, enc->ref1, 0);
 	if (rc != 0)
 		return vpu_err(enc, __func__, __LINE__, rc);
+
+	if (enc->frame_counter != 0) {
+		/* Restore stream context */
+		rc = avcbe_set_backup(enc->stream_info, &enc->backup_area);
+		if (rc != 0)
+			return vpu_err(enc, __func__, __LINE__, rc);
+	}
 
 	/* Encode SPS and PPS for 1st frame */
 	if (enc->frame_counter == 0) {
@@ -370,20 +373,12 @@ h264_encode_frame(SHCodecs_Encoder *enc, unsigned char *py, unsigned char *pc)
 				return rc;
 		}
 
-		gettimeofday(&tv, NULL);
-
 		/* Encode the frame */
 		enc_rc = avcbe_encode_picture(enc->stream_info, enc->frm,
 					 AVCBE_ANY_VOP,
 					 AVCBE_OUTPUT_SLICE,
 					 &enc->stream_buff_info,
 					 extra_stream_buff);
-		gettimeofday(&tv1, NULL);
-		tm = (tv1.tv_usec - tv.tv_usec) / 1000;
-		if (tm < 0)
-			tm = 1000 - (tv.tv_usec - tv1.tv_usec) / 1000;
-		encode_time += tm;
-
 		if (enc_rc < 0)
 			return vpu_err(enc, __func__, __LINE__, enc_rc);
 		vpu_info_msg(enc, __func__, __LINE__, enc->frm, enc_rc);
@@ -490,6 +485,11 @@ h264_encode_frame(SHCodecs_Encoder *enc, unsigned char *py, unsigned char *pc)
 
 	} /* while */
 
+	/* Save stream context */
+	rc = avcbe_get_backup(enc->stream_info, &enc->backup_area);
+	if (rc != 0)
+		return vpu_err(enc, __func__, __LINE__, rc);
+
 	return 0;
 }
 
@@ -540,7 +540,9 @@ h264_encode_multiple(SHCodecs_Encoder *encs[], int nr_encoders)
 			}
 
 			/* Encode the frame */
+			m4iph_vpu_lock();
 			rc = h264_encode_frame(enc, enc->addr_y, enc->addr_c);
+			m4iph_vpu_unlock();
 
 			if (enc->release) {
 				enc->release(enc, enc->addr_y, enc->addr_c, enc->release_user_data);

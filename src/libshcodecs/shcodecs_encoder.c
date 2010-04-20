@@ -134,6 +134,7 @@ void shcodecs_encoder_close(SHCodecs_Encoder * encoder)
 		h264_encode_close(encoder);
 	}
 
+	free(encoder->backup_area.area_top);
 	free(encoder->work_area.area_top);
 	free(encoder->stream_buff_info.buff_top);
 	free(encoder->end_code_buff_info.buff_top);
@@ -149,10 +150,9 @@ shcodecs_encoder_global_init (int width, int height)
 	if (m4iph_vpu_open(dimension_stream_buff_size (width, height)) < 0)
 		return -1;
 
-	/* stream buffer 0 clear */
-	encode_time_init();
-
+	m4iph_vpu_lock();
 	avcbe_start_encoding();
+	m4iph_vpu_unlock();
 
 	return 0;
 }
@@ -244,6 +244,12 @@ shcodecs_encoder_deferred_init (SHCodecs_Encoder * encoder)
 	if (!encoder->work_area.area_top)
 		goto err;
 
+	buf_size = 5500;
+	encoder->backup_area.area_size = buf_size;
+	encoder->backup_area.area_top = memalign(4, buf_size);
+	if (!encoder->backup_area.area_top)
+		goto err;
+
 	buf_size = encoder_stream_buff_size(encoder);
 	encoder->stream_buff_info.buff_size = buf_size;
 	encoder->stream_buff_info.buff_top = memalign(32, buf_size);
@@ -328,7 +334,6 @@ int shcodecs_encoder_run(SHCodecs_Encoder * encoder)
 
 	if (encoder->initialized < 1) {
 		if (shcodecs_encoder_global_init (encoder->width, encoder->height) < 0) {
-			free (encoder);
 			return -1;
 		}
 
