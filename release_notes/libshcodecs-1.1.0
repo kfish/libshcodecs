@@ -1,0 +1,278 @@
+libshcodecs 1.1.0 Release
+=========================
+
+libshcodecs is a library for controlling SH-Mobile hardware codecs.
+
+The [SH-Mobile][0] processor series includes a hardware video processing
+unit that supports MPEG-4 and H.264 encoding and decoding.
+libshcodecs is available under the terms of the GNU LGPL.
+
+The source archive, and more information about the library are available from:
+
+	https://oss.renesas.com/modules/document/?libshcodecs
+
+New in this release
+===================
+
+This is version 1.1.0, including support for simultaneous encode and decode
+of multiple streams. The shcodecs-record tool can now encode multiple streams
+of different resolutions from each of multiple camera source.
+
+Library
+-------
+
+The library now allows multiple threads to create decoders and encoders for
+simultaneous, independent execution. Additionally, the encoder provides a
+new shcodecs_encoder_run_multiple() function for running an array of
+encoders in consistent order from a single thread.
+
+Added new public API functions:
+	* shcodecs_encoder_run_multiple()
+	* shcodecs_encoder_set_input_physical_addr()
+	* shcodecs_encoder_set_width()
+	* shcodecs_encoder_set_height()
+
+Updated shared version info to 9:0:2.
+
+Tools
+-----
+
+The shcodecs tools now use libuiomux and libshveu for memory allocation,
+colorspace coversion and rescaling.
+
+The shcodecs-dec and shcodecs-enc tools can support multiple simultaneous
+decodes and encodes.
+
+The shcodecs-record tool now supports multiple V4L2 camera interfaces, and
+can encode multiple streams of different resolutions from each camera source.
+
+Additional improvements have been made in the capture and display handling,
+and in the internal thread synchronisation method of all tools.
+
+Details
+-------
+
+This release includes the following changes since version 1.0.0:
+
+Conrad Parker (105):
+      Add configure check for UIOMux
+      add configure check for libshveu
+      shcodecs-record: update address types for libshveu
+      use configured CFLAGS, LIBS in tools Makefile
+      update shcodecs-cap to use libshveu
+      Merge branch 'shveu'
+      shcodecs-record: use SHVEU_NO_ROT, SHVEU_ROT_90
+      add TODO file
+      add encoder general deferred init framework
+      encoder: defer allocation of input and temp buffers
+      defer calculation of y_bytes
+      add encoder_set_{width,height}() functions
+      defer VPU temporary buffer allocation
+      style: remove hungarian prefix in header
+      encoder.h: clarify docs for get_input_physical_addr
+      TODO: add shcodecs-play verbose error, float fps
+      shcodecs-record: buffer types, fix build warning
+      Merge branch vsync+display
+      Revert "defer VPU temporary buffer allocation"
+      TODO: add cleanups (remove gettimeofday in lib)
+      rename sdr_{read,write} src,dest args
+      intermediate {src,dest}_virt variables for clarity
+      add TODO file
+      add encoder general deferred init framework
+      encoder: defer allocation of input and temp buffers
+      defer calculation of y_bytes
+      add encoder_set_{width,height}() functions
+      style: remove hungarian prefix in header
+      encoder.h: clarify docs for get_input_physical_addr
+      TODO: add shcodecs-play verbose error, float fps
+      TODO: add cleanups (remove gettimeofday in lib)
+      rename sdr_{read,write} src,dest args
+      intermediate {src,dest}_virt variables for clarity
+      add NULL check on shcodecs_encoder_run()
+      framerate: add NULL checks to internal API functions
+      shcodecs-enc: check framerate object is not NULL on cleanup
+      re-order encoder initialization, move avcbe_start_encode()
+      Merge branch '1.0-stable'
+      encoder: make separate internal dimension_stream_buff_size()
+      encoder: decouple vpu4_param initialization from encoder instance
+      encoder: split all non-stream-specific initialization out
+      defer global and stream-specific init to run()
+      implement h264_encode_run_multiple()
+      implement shcodecs_encoder_run_multiple()
+      make a separate state for encoder tool
+      split out encode_file(filename) function
+      shcodecs-enc: split out setup/encode/cleanup functions
+      add shcodecs_encoder_run_multiple() to headers
+      encoder: increase minimum stream buffer size
+      improve encode_multiple() error message for non-H.264 streams
+      shcodecs-enc: use run_multiple(), handle multiple input control files
+      tools: move frame counter back into appli_info
+      reimplement h264_encode_run() in terms of h264_encode_run_multiple()
+      add thrqueue.[ch]
+      add type and setter for input_release callback
+      call input_release from H.264, MPEG-4, MP4 BVOP
+      add shcodecs_encoder_set_input_physical_addr()
+      Merge branch 'set-input-physical-addr' into 1.0-dual-encode
+      Fix memory alignment and size of internal buffers
+      Merge branch '1.0-stable'
+      Merge branch '1.0-stable' into 1.0-dual-encode
+      tools: add capture_queue_buffer()
+      shcodecs-record: stop after requested nr. frames
+      Revert encoder-specific parameter initialization
+      release V4L2 capture buffer earlier
+      shcodecs-record: re-enable use of -1 for unlimited streaming
+      shcodecs-record: simplify thread names
+      record: replace capture_done_mutex with captured_queue
+      record: move encoder input address closer to usage
+      Merge branch '1.0-dual-encode'
+      update TODO: dual encode
+      preview captured image, not converted image
+      record: set up to use run_multiple()
+      make new encdata structure, move enc_w, enc_h there
+      move encode_start_mutex into per-encoder encdata
+      record: loop over encoders throughout
+      record: move output_fp into per-encoder data
+      record: per-encoder ctrl_filename, ainfo etc.
+      record: move enc_framerate into per-encoder data
+      record: cleanups
+      record: pass encdata to encoder i/o callbacks
+      record: cleanups
+      record: re-arrange capture_start_mutex
+      record: cleanups, spelling
+      record: always use encode sizes specified in ctrl file
+      record: clean up thread termination
+      record: re-order capture termination
+      record: break out of encode_run on cleanup
+      shcodecs-record: add --no-preview option
+      update TODO: shcodecs-record --no-preview
+      Document that multiple enc control files are valid
+      Merge branch 'master' into multithread
+      shcodecs-record: support multiple cameras
+      shcodecs-record: only show preview of first encode
+      shcodecs-record: use uiomux locking around VEU ops
+      cap: rename private_data to camera_data
+      configure: AM_PROG_CC_C_O for per-target cflags
+      Merge branch 'multithread'
+      Merge branch 'multicamera'
+      use main tool's uiomux to alloc capture buffers
+      update config.h.in
+      record: remove unneeded debug message
+      add D1, VGA, CIF control files
+      set D1,VGA,CIF control files to 4Mb/s
+      Release 1.1.0
+
+Phil Edworthy (52):
+      use uiomux_malloc with shveu in tools
+      Fix compiler warnings for capture.
+      Merge branch 'master' into shveu
+      play/record: Add wait for vsync After panning the frame buffer to the new frame to show, wait for vsync to occur. This ensures that the back buffer is available to write to without it showing on the screen, otherwise you get frame tearing. Note: Ignore the return code as this ioctl isn't in the mainline kernel yet.
+      play/record: Use common display code.
+      cleanup: Removed unused macro & data
+      dual: Isolate vpu open/close code
+      enc: Changed name of func to reflect use
+      enc: Get rid of stupid MY_ prefixes
+      style: whitespace formatting
+      vpu: Use common vpu setup code
+      vpu: use a vpu data struct & clean up
+      vpu: More clean up
+      vpu: More clean up
+      dec: Correct usage text
+      record: Remove -i option as its not needed
+      vpu: Removed sleep time related code It doesn't do anything particularly useful and wasn't initialised.
+      enc: Remove unused files/libs from Makefile
+      enc: Add save & restore stream context
+      enc: Display error msgs for new calls to avcbe_* functions
+      enc: Add vpu lock around frame encoding
+      vpu: Create a mutex and correct open/close
+      enc: Run multiple encoders as threads
+      mpeg4: Add save/restore context & vpu locking
+      mpeg4: Make encode termination handling the same as H.264
+      enc: Stop lib freeing itself
+      vpu: Include mutex unlock on error
+      enc: Correct order of args to calloc
+      enc: Use standard error messages
+      enc: Pass encoder return values to main
+      vpu: Handle calls to vpu_init with larger stream buffers
+      dec: Add vpu locking
+      vpu: Better protection of vpu startup
+      enc: Return error if any encoder fails
+      enc: Remove encode time as nothing uses it
+      enc: Add lock around all middleware functions
+      enc: Correct vpu error msgs
+      enc: Fix MPEG4 code when not using BVOPs
+      shcodecs-dec: Replace global data with instance data
+      shcodecs-dec: Always send error msgs out
+      shcodecs-dec: Return errors rather than call exit
+      shcodecs-dec: Remove priority manipulation code
+      shcodecs-dec: Support multiple decoders Multiple decoders can be run in their own threads. The options for each decoder are separated with a ',' e.g.: shcodecs-dec -i a.264 -o a.yuv -s vga , -i b.264 -o b.yuv -s vga
+      shcodecs-dec: Fix mutex use so it's not locked on errors
+      shcodecs-dec: Split arg handling & decode functionality
+      shcodecs-dec: Clean up file open
+      shcodecs-enc: Improve error handling
+      shcodecs-dec: Report decode success/failure
+      shcodecs-enc: Move all enc related calls out of main
+      shcodecs-dec: Fix problem when no input file is specified
+      Fix linking for cross-compiling on Ubuntu 9.10
+      tools: Fix errors when setting unusual positions, etc.
+
+Takashi Namiki (1):
+      Fixed crap output data and infinity loop in decoder
+
+Yusuke Goda (2):
+      Change of 720p bitrate
+      Change of 720p bitrate
+
+ TODO                                |   43 ++
+ config.h.in                         |    9 +
+ configure.ac                        |   79 +++-
+ data/Makefile.am                    |    6 +
+ data/k264-v4l2-720p-stream.ctl      |    2 +-
+ data/k264-v4l2-cif-stream.ctl       |   96 ++++
+ data/k264-v4l2-d1-stream.ctl        |   96 ++++
+ data/k264-v4l2-vga-stream.ctl       |   96 ++++
+ doc/shcodecs-enc.1                  |    5 +-
+ doc/shcodecs-record.1               |   17 +-
+ include/shcodecs/shcodecs_encoder.h |   82 +++-
+ src/examples/Makefile.am            |    2 +-
+ src/libshcodecs/Version_script.in   |    7 +-
+ src/libshcodecs/encoder_common.c    |   42 +--
+ src/libshcodecs/encoder_common.h    |   26 +-
+ src/libshcodecs/encoder_private.h   |   27 +-
+ src/libshcodecs/h264_encode.c       |  169 ++++---
+ src/libshcodecs/m4driverif.c        |  274 +++++++----
+ src/libshcodecs/m4driverif.h        |   13 +-
+ src/libshcodecs/mpeg4_encode.c      |   56 ++-
+ src/libshcodecs/shcodecs_decoder.c  |   73 +--
+ src/libshcodecs/shcodecs_encoder.c  |  330 ++++++++-----
+ src/tests/Makefile.am               |    2 +-
+ src/tools/Makefile.am               |   33 +-
+ src/tools/avcbeinputuser.c          |   12 +-
+ src/tools/avcbencsmp.h              |    3 +-
+ src/tools/capture.c                 |   76 ++-
+ src/tools/capture.h                 |    6 +-
+ src/tools/display.c                 |  262 ++++++++++
+ src/tools/display.h                 |   72 +++
+ src/tools/framerate.c               |   14 +
+ src/tools/shcodecs-cap.c            |   96 ++--
+ src/tools/shcodecs-dec.c            |  431 ++++++++++-------
+ src/tools/shcodecs-enc.c            |  222 ++++++---
+ src/tools/shcodecs-play.c           |  203 ++------
+ src/tools/shcodecs-record.c         |  655 +++++++++++++------------
+ src/tools/thrqueue.c                |  306 ++++++++++++
+ src/tools/thrqueue.h                |   37 ++
+ src/tools/veu_colorspace.c          |  941 -----------------------------------
+ src/tools/veu_colorspace.h          |   95 ----
+ 40 files changed, 2721 insertions(+), 2295 deletions(-)
+ create mode 100644 TODO
+ create mode 100644 data/k264-v4l2-cif-stream.ctl
+ create mode 100644 data/k264-v4l2-d1-stream.ctl
+ create mode 100644 data/k264-v4l2-vga-stream.ctl
+ create mode 100644 src/tools/display.c
+ create mode 100644 src/tools/display.h
+ create mode 100644 src/tools/thrqueue.c
+ create mode 100644 src/tools/thrqueue.h
+ delete mode 100644 src/tools/veu_colorspace.c
+ delete mode 100644 src/tools/veu_colorspace.h
+
+[0]: http://www.renesas.com/fmwk.jsp?cnt=sh_mobile_family_landing.jsp&fp=/products/mpumcu/sh_mobile/
+
