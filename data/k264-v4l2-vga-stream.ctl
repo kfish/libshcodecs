@@ -25,7 +25,7 @@ ref_frame_num                                      = 1;
 /* avcbe_encoding_property */
 /* ----------------------- */
 stream_type                                        = 2;
-bitrate                                            = 1000000;
+bitrate                                            = 4000000;
 x_pic_size                                         = 640;
 y_pic_size                                         = 480;
 frame_rate                                         = 300;
