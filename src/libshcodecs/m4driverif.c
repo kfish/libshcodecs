@@ -22,15 +22,10 @@
 #endif
 
 #include <errno.h>
-#include <fcntl.h>
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/mman.h>
 #include <uiomux/uiomux.h>
 #include <sh7722_vpu.h>
 #include <m4iph_vpu4.h>
@@ -62,34 +57,6 @@ static int vpu_initialised = 0;
 static int vpu_init_started = 0;
 
 
-/* User defined functions as specified by the Encoder/Decoder middleware
- * documents.
- */
-long m4iph_sleep(void)
-{
-	SHCodecs_vpu *vpu = &vpu_data;
-
-#ifdef DISABLE_INT
-	while (m4iph_vpu4_status() != 0);
-#else
-	uiomux_sleep(vpu->uiomux, UIOMUX_SH_VPU);
-#endif
-	m4iph_vpu4_int_handler();
-
-	return 0;
-}
-
-void m4iph_start(void)
-{
-	/* Do nothing for Linux */
-}
-
-void m4iph_restart(void)
-{
-	/* Do nothing for Linux */
-}
-
-
 int m4iph_vpu_open(int stream_buf_size)
 {
 	SHCodecs_vpu *vpu = &vpu_data;
@@ -102,6 +69,9 @@ int m4iph_vpu_open(int stream_buf_size)
 	vpu_init_started = 1;
 
 	if (!vpu_initialised) {
+
+		vpu->num_codecs = 0;
+		vpu->work_buff_size = 0;
 
 		vpu->uiomux = uiomux_open();
 		if (!vpu->uiomux)
@@ -118,15 +88,19 @@ int m4iph_vpu_open(int stream_buf_size)
 	}
 
 	/* Note: This must be done outside vpu lock as UIOMux malloc also locks the vpu */
-	vpu->work_buff_size = stream_buf_size;
-	vpu->work_buff = m4iph_sdr_malloc(stream_buf_size, 32);
-	if (!vpu->work_buff) {
-		uiomux_close(vpu->uiomux);
-		return -1;
+	if (vpu->work_buff_size < stream_buf_size) {
+		vpu->work_buff_size = stream_buf_size;
+		vpu->work_buff = m4iph_sdr_malloc(stream_buf_size, 32);
+		if (!vpu->work_buff) {
+			uiomux_close(vpu->uiomux);
+			return -1;
+		}
 	}
 
 
 	m4iph_vpu_lock();
+
+	vpu->num_codecs++;
 
 	vpu->params.m4iph_vpu_base_address = VP4_CTRL;
 
@@ -173,91 +147,6 @@ void m4iph_vpu_unlock(void)
 {
 	SHCodecs_vpu *vpu = &vpu_data;
 	uiomux_unlock (vpu->uiomux, UIOMUX_SH_VPU);
-}
-
-
-unsigned long m4iph_reg_table_read(unsigned long *addr,
-				   unsigned long *data, long nr_longs)
-{
-	unsigned long *reg_base = vpu_data.uio_mmio.iomem;
-	int k;
-
-	reg_base += ((unsigned long) addr - VP4_CTRL) / 4;
-
-	for (k = 0; k < nr_longs; k++)
-		data[k] = reg_base[k];
-	return nr_longs;
-}
-
-void m4iph_reg_table_write(unsigned long *addr, unsigned long *data,
-			   long nr_longs)
-{
-	unsigned long *reg_base = vpu_data.uio_mmio.iomem;
-	int k;
-
-	reg_base += ((unsigned long) addr - VP4_CTRL) / 4;
-
-	for (k = 0; k < nr_longs; k++)
-		reg_base[k] = data[k];
-}
-
-void *m4iph_map_sdr_mem(void *address, int size)
-{
-	SHCodecs_vpu *vpu = &vpu_data;
-	return uiomux_phys_to_virt (vpu->uiomux, UIOMUX_SH_VPU, address);
-}
-
-int m4iph_unmap_sdr_mem(void *address, int size)
-{
-	return 0;
-}
-
-int m4iph_sync_sdr_mem(void *address, int size)
-{
-	return 0;
-}
-
-unsigned long m4iph_sdr_read(unsigned char *src_phys, unsigned char *dest_virt,
-			     unsigned long count)
-{
-	SHCodecs_vpu *vpu = &vpu_data;
-	unsigned char *src_virt;
-
-	src_virt = uiomux_phys_to_virt (vpu->uiomux, UIOMUX_SH_VPU, src_phys);
-	if (!src_virt) {
-		fprintf(stderr, "%s: src_phys %p invalid\n", __func__);
-		return 0;
-	}
-	memcpy(dest_virt, src_virt, count);
-	return count;
-}
-
-/* Same arg order as memcpy; does alignment on dest */
-void m4iph_sdr_write(unsigned char *dest_phys, unsigned char *src_virt,
-		     unsigned long count)
-{
-	SHCodecs_vpu *vpu = &vpu_data;
-	unsigned char *dest_virt;
-
-	dest_virt = uiomux_phys_to_virt (vpu->uiomux, UIOMUX_SH_VPU, dest_phys);
-	if (!dest_virt)
-		fprintf(stderr, "%s: dest_phys %p invalid\n", __func__);
-	memcpy(dest_virt, src_virt, count);
-}
-
-/* Allocate sdr memory */
-void *m4iph_sdr_malloc(unsigned long count, int align)
-{
-	SHCodecs_vpu *vpu = &vpu_data;
-	void *virt = uiomux_malloc (vpu->uiomux, UIOMUX_SH_VPU, count, align);
-	return uiomux_virt_to_phys (vpu->uiomux, UIOMUX_SH_VPU, virt);
-}
-
-void m4iph_sdr_free(void *address, unsigned long count)
-{
-	SHCodecs_vpu *vpu = &vpu_data;
-	void *virt = uiomux_phys_to_virt (vpu->uiomux, UIOMUX_SH_VPU, address);
-	uiomux_free (vpu->uiomux, UIOMUX_SH_VPU, virt, count);
 }
 
 void m4iph_avcbd_perror(char *msg, int error)
@@ -352,6 +241,114 @@ void m4iph_avcbe_perror(char *msg, int error)
 		fprintf(stderr, "Unknown error %d\n", error);
 	}
 }
+
+void *m4iph_map_sdr_mem(void *address, int size)
+{
+	SHCodecs_vpu *vpu = &vpu_data;
+	return uiomux_phys_to_virt (vpu->uiomux, UIOMUX_SH_VPU, (unsigned long)address);
+}
+
+int m4iph_unmap_sdr_mem(void *address, int size)
+{
+	return 0;
+}
+
+
+/* User defined functions as specified by the Encoder/Decoder middleware
+ * documents.
+ */
+long m4iph_sleep(void)
+{
+	SHCodecs_vpu *vpu = &vpu_data;
+
+#ifdef DISABLE_INT
+	while (m4iph_vpu4_status() != 0);
+#else
+	uiomux_sleep(vpu->uiomux, UIOMUX_SH_VPU);
+#endif
+	m4iph_vpu4_int_handler();
+
+	return 0;
+}
+
+void m4iph_start(void)
+{
+	/* Do nothing for Linux */
+}
+
+void m4iph_restart(void)
+{
+	/* Do nothing for Linux */
+}
+
+unsigned long m4iph_reg_table_read(unsigned long *addr,
+				   unsigned long *data, long nr_longs)
+{
+	unsigned long *reg_base = vpu_data.uio_mmio.iomem;
+	int k;
+
+	reg_base += ((unsigned long) addr - VP4_CTRL) / 4;
+
+	for (k = 0; k < nr_longs; k++)
+		data[k] = reg_base[k];
+	return nr_longs;
+}
+
+void m4iph_reg_table_write(unsigned long *addr, unsigned long *data,
+			   long nr_longs)
+{
+	unsigned long *reg_base = vpu_data.uio_mmio.iomem;
+	int k;
+
+	reg_base += ((unsigned long) addr - VP4_CTRL) / 4;
+
+	for (k = 0; k < nr_longs; k++)
+		reg_base[k] = data[k];
+}
+
+unsigned long m4iph_sdr_read(unsigned char *src_phys, unsigned char *dest_virt,
+			     unsigned long count)
+{
+	SHCodecs_vpu *vpu = &vpu_data;
+	unsigned char *src_virt;
+
+	src_virt = uiomux_phys_to_virt (vpu->uiomux, UIOMUX_SH_VPU, (unsigned long)src_phys);
+	if (!src_virt) {
+		fprintf(stderr, "%s: src_phys %p invalid\n", __func__, src_phys);
+		return 0;
+	}
+	memcpy(dest_virt, src_virt, count);
+	return count;
+}
+
+/* Same arg order as memcpy; does alignment on dest */
+void m4iph_sdr_write(unsigned char *dest_phys, unsigned char *src_virt,
+		     unsigned long count)
+{
+	SHCodecs_vpu *vpu = &vpu_data;
+	unsigned char *dest_virt;
+
+	dest_virt = uiomux_phys_to_virt (vpu->uiomux, UIOMUX_SH_VPU, (unsigned long)dest_phys);
+	if (!dest_virt)
+		fprintf(stderr, "%s: dest_phys %p invalid\n", __func__, dest_phys);
+	memcpy(dest_virt, src_virt, count);
+}
+
+/* Allocate sdr memory */
+void *m4iph_sdr_malloc(unsigned long count, int align)
+{
+	SHCodecs_vpu *vpu = &vpu_data;
+	void *virt = uiomux_malloc (vpu->uiomux, UIOMUX_SH_VPU, count, align);
+	return (void *)uiomux_virt_to_phys (vpu->uiomux, UIOMUX_SH_VPU, virt);
+}
+
+void m4iph_sdr_free(void *address, unsigned long count)
+{
+	SHCodecs_vpu *vpu = &vpu_data;
+	void *virt = uiomux_phys_to_virt (vpu->uiomux, UIOMUX_SH_VPU, (unsigned long)address);
+	uiomux_free (vpu->uiomux, UIOMUX_SH_VPU, virt, count);
+}
+
 
 void avcbd_get_time_code(long h, long m, long s)
 {
