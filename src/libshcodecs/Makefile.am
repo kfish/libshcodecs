@@ -41,4 +41,4 @@ libshcodecs_la_SOURCES = \
 
 libshcodecs_la_CFLAGS = -DSH -D_LIT -DVPU4=1 -DVPU3IP -DVPU4IP -DANNEX_B
 libshcodecs_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@
-libshcodecs_la_LIBADD = -lstdc++ $(VPU4_DEC_LIBS) $(VPU4_ENC_LIBS) -lm
+libshcodecs_la_LIBADD = -lstdc++ $(VPU4_DEC_LIBS) $(VPU4_ENC_LIBS) $(UIOMUX_LIBS) -lm

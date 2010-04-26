@@ -32,6 +32,7 @@
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/mman.h>
+#include <uiomux/uiomux.h>
 #include <sh7722_vpu.h>
 #include <m4iph_vpu4.h>
 #include <avcbd.h>
@@ -40,8 +41,18 @@
 #include "avcbd_inner_typedef.h"
 #include "m4driverif.h"
 
+struct uio_map {
+	unsigned long address;
+	unsigned long size;
+	void *iomem;
+};
+
 /* VPU data - common for all encoder & decoder instances */
 typedef struct _SHCodecs_vpu {
+	UIOMux *uiomux;
+	struct uio_map uio_mmio;
+	struct uio_map uio_mem;
+
 	pthread_mutex_t mutex;
 	int num_codecs;
 	M4IPH_VPU4_INIT_OPTION params;
@@ -61,95 +72,6 @@ static int m4iph_sdr_open(void);
 static void m4iph_sdr_close(void);
 
 
-static int fgets_with_openclose(char *fname, char *buf, size_t maxlen)
-{
-	FILE *fp;
-
-	if ((fp = fopen(fname, "r")) != NULL) {
-		fgets(buf, maxlen, fp);
-		fclose(fp);
-		return strlen(buf);
-	} else {
-		return -1;
-	}
-}
-
-struct uio_device {
-	char *name;
-	char *path;
-	int fd;
-};
-
-#define MAXUIOIDS  100
-#define MAXNAMELEN 256
-
-static int locate_uio_device(char *name, struct uio_device *udp)
-{
-	char fname[MAXNAMELEN], buf[MAXNAMELEN];
-	int uio_id, i;
-
-	for (uio_id = 0; uio_id < MAXUIOIDS; uio_id++) {
-		sprintf(fname, "/sys/class/uio/uio%d/name", uio_id);
-		if (fgets_with_openclose(fname, buf, MAXNAMELEN) < 0)
-			continue;
-		if (strncmp(name, buf, strlen(name)) == 0)
-			break;
-	}
-	if (uio_id >= MAXUIOIDS)
-		return -1;
-
-	udp->name = strdup(buf);
-	udp->path = strdup(fname);
-	udp->path[strlen(udp->path) - 4] = '\0';
-
-	sprintf(buf, "/dev/uio%d", uio_id);
-	udp->fd = open(buf, O_RDWR | O_SYNC /*| O_NONBLOCK */ );
-
-	if (udp->fd < 0) {
-		perror(buf);
-		return -1;
-	}
-
-	return 0;
-}
-
-struct uio_map {
-	unsigned long address;
-	unsigned long size;
-	void *iomem;
-};
-
-static int setup_uio_map(struct uio_device *udp, int nr,
-			 struct uio_map *ump)
-{
-	char fname[MAXNAMELEN], buf[MAXNAMELEN];
-
-	sprintf(fname, "%s/maps/map%d/addr", udp->path, nr);
-	if (fgets_with_openclose(fname, buf, MAXNAMELEN) <= 0)
-		return -1;
-
-	ump->address = strtoul(buf, NULL, 0);
-
-	sprintf(fname, "%s/maps/map%d/size", udp->path, nr);
-	if (fgets_with_openclose(fname, buf, MAXNAMELEN) <= 0)
-		return -1;
-
-	ump->size = strtoul(buf, NULL, 0);
-
-	ump->iomem = mmap(0, ump->size,
-			  PROT_READ | PROT_WRITE, MAP_SHARED,
-			  udp->fd, nr * getpagesize());
-
-	if (ump->iomem == MAP_FAILED)
-		return -1;
-
-	return 0;
-}
-
-struct uio_device uio_dev;
-struct uio_map uio_mmio, uio_mem;
-
-
 /* User defined functions as specified by the Encoder/Decoder middleware
  * documents.
  */
@@ -159,24 +81,10 @@ long m4iph_sleep(void)
 
 #ifdef DISABLE_INT
 	while (m4iph_vpu4_status() != 0);
-	m4iph_vpu4_int_handler();
 #else
-	/* Enable interrupt in UIO driver */
-	{
-		unsigned long enable = 1;
-
-		write(uio_dev.fd, &enable, sizeof(u_long));
-	}
-
-	/* Wait for an interrupt */
-	{
-		unsigned long n_pending;
-
-		read(uio_dev.fd, &n_pending, sizeof(u_long));
-	}
-
-	m4iph_vpu4_int_handler();
+	uiomux_sleep(vpu->uiomux, UIOMUX_SH_VPU);
 #endif
+	m4iph_vpu4_int_handler();
 
 	return 0;
 }
@@ -190,6 +98,7 @@ void m4iph_restart(void)
 {
 	/* Do nothing for Linux */
 }
+
 
 int m4iph_vpu_open(int stream_buf_size)
 {
@@ -217,21 +126,24 @@ int m4iph_vpu_open(int stream_buf_size)
 	m4iph_vpu_lock();
 	vpu_initialised = 1;
 
-	ret = locate_uio_device("VPU", &uio_dev);
-	if (ret < 0)
+	vpu->uiomux = uiomux_open();
+	if (!vpu->uiomux)
 		goto err;
 
-#ifdef DEBUG
-	fprintf(stderr, "found matching UIO device at %s\n", uio_dev.path);
-#endif
-
-	ret = setup_uio_map(&uio_dev, 0, &uio_mmio);
-	if (ret < 0)
+	ret = uiomux_get_mmio (vpu->uiomux, UIOMUX_SH_VPU,
+		&vpu->uio_mmio.address,
+		&vpu->uio_mmio.size,
+		&vpu->uio_mmio.iomem);
+	if (!ret)
 		goto err;
 
-	ret = setup_uio_map(&uio_dev, 1, &uio_mem);
-	if (ret < 0)
+	ret = uiomux_get_mem (vpu->uiomux, UIOMUX_SH_VPU,
+		&vpu->uio_mem.address,
+		&vpu->uio_mem.size,
+		&vpu->uio_mem.iomem);
+	if (!ret)
 		goto err;
+
 
 	m4iph_sdr_open();
 
@@ -270,6 +182,7 @@ void m4iph_vpu_close(void)
 	if (--vpu->num_codecs == 0) {
 		pthread_mutex_destroy (&vpu->mutex);
 		m4iph_sdr_close();
+		uiomux_close(vpu->uiomux);
 	}
 }
 
@@ -289,7 +202,7 @@ void m4iph_vpu_unlock(void)
 unsigned long m4iph_reg_table_read(unsigned long *addr,
 				   unsigned long *data, long nr_longs)
 {
-	unsigned long *reg_base = uio_mmio.iomem;
+	unsigned long *reg_base = vpu_data.uio_mmio.iomem;
 	int k;
 
 	reg_base += ((unsigned long) addr - VP4_CTRL) / 4;
@@ -308,7 +221,7 @@ unsigned long m4iph_reg_table_read(unsigned long *addr,
 void m4iph_reg_table_write(unsigned long *addr, unsigned long *data,
 			   long nr_longs)
 {
-	unsigned long *reg_base = uio_mmio.iomem;
+	unsigned long *reg_base = vpu_data.uio_mmio.iomem;
 	int k;
 
 	reg_base += ((unsigned long) addr - VP4_CTRL) / 4;
@@ -329,8 +242,8 @@ void m4iph_reg_table_write(unsigned long *addr, unsigned long *data,
 static int m4iph_sdr_open(void)
 {
 	SHCodecs_vpu *vpu = &vpu_data;
-	vpu->sdr_base = vpu->sdr_start = uio_mem.address;
-	vpu->sdr_end = vpu->sdr_base + uio_mem.size;
+	vpu->sdr_base = vpu->sdr_start = vpu_data.uio_mem.address;
+	vpu->sdr_end = vpu->sdr_base + vpu_data.uio_mem.size;
 	return 0;
 }
 
@@ -342,7 +255,7 @@ static void m4iph_sdr_close(void)
 
 void *m4iph_map_sdr_mem(void *address, int size)
 {
-	return uio_mem.iomem + ((unsigned long) address - uio_mem.address);
+	return vpu_data.uio_mem.iomem + ((unsigned long) address - vpu_data.uio_mem.address);
 }
 
 int m4iph_unmap_sdr_mem(void *address, int size)
