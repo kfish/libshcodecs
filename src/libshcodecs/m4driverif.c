@@ -562,16 +562,6 @@ long m4iph_enc_continue(long output_bits)
 	return 1;
 }
 
-int vpu4_clock_on(void)
-{
-	return 0;
-}
-
-int vpu4_clock_off(void)
-{
-	return 0;
-}
-
 int avcbd_idr_adjust(void *context)
 {
 	TAVCBD_VARIABLES *var;
