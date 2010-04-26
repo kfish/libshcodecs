@@ -50,24 +50,16 @@ struct uio_map {
 typedef struct _SHCodecs_vpu {
 	UIOMux *uiomux;
 	struct uio_map uio_mmio;
-	struct uio_map uio_mem;
 
 	int num_codecs;
 	M4IPH_VPU4_INIT_OPTION params;
 	unsigned long work_buff_size;
 	void *work_buff;
-
-	unsigned long sdr_base;
-	unsigned long sdr_start;
-	unsigned long sdr_end;
 } SHCodecs_vpu;
 
 static SHCodecs_vpu vpu_data;
 static int vpu_initialised = 0;
 static int vpu_init_started = 0;
-
-static int m4iph_sdr_open(void);
-static void m4iph_sdr_close(void);
 
 
 /* User defined functions as specified by the Encoder/Decoder middleware
@@ -102,7 +94,6 @@ int m4iph_vpu_open(int stream_buf_size)
 {
 	SHCodecs_vpu *vpu = &vpu_data;
 	int ret = 0;
-	void *pv_wk_buff;
 
 	if (vpu_init_started)
 		while (!vpu_initialised)
@@ -110,39 +101,32 @@ int m4iph_vpu_open(int stream_buf_size)
 
 	vpu_init_started = 1;
 
-	if (vpu_initialised) {
-		m4iph_vpu_lock();
-		if (vpu->work_buff_size < stream_buf_size) {
-			m4iph_sdr_free(vpu->work_buff, vpu->work_buff_size);
-			goto reinit;
+	if (!vpu_initialised) {
+
+		vpu->uiomux = uiomux_open();
+		if (!vpu->uiomux)
+			return -1;
+
+		ret = uiomux_get_mmio (vpu->uiomux, UIOMUX_SH_VPU,
+			&vpu->uio_mmio.address,
+			&vpu->uio_mmio.size,
+			&vpu->uio_mmio.iomem);
+		if (!ret) {
+			uiomux_close(vpu->uiomux);
+			return -1;
 		}
-		m4iph_vpu_unlock();
-		return ret;
 	}
 
-	vpu->uiomux = uiomux_open();
-	if (!vpu->uiomux)
-		return ret;
+	/* Note: This must be done outside vpu lock as UIOMux malloc also locks the vpu */
+	vpu->work_buff_size = stream_buf_size;
+	vpu->work_buff = m4iph_sdr_malloc(stream_buf_size, 32);
+	if (!vpu->work_buff) {
+		uiomux_close(vpu->uiomux);
+		return -1;
+	}
+
 
 	m4iph_vpu_lock();
-	vpu_initialised = 1;
-
-	ret = uiomux_get_mmio (vpu->uiomux, UIOMUX_SH_VPU,
-		&vpu->uio_mmio.address,
-		&vpu->uio_mmio.size,
-		&vpu->uio_mmio.iomem);
-	if (!ret)
-		goto err;
-
-	ret = uiomux_get_mem (vpu->uiomux, UIOMUX_SH_VPU,
-		&vpu->uio_mem.address,
-		&vpu->uio_mem.size,
-		&vpu->uio_mem.iomem);
-	if (!ret)
-		goto err;
-
-
-	m4iph_sdr_open();
 
 	vpu->params.m4iph_vpu_base_address = VP4_CTRL;
 
@@ -158,17 +142,15 @@ int m4iph_vpu_open(int stream_buf_size)
 	vpu->params.m4iph_vpu_clock_supply_control = M4IPH_CTL_FRAME_UNIT;
 	vpu->params.m4iph_vpu_mask_address_disable = M4IPH_OFF;
 
-reinit:
-	vpu->work_buff_size = stream_buf_size;
-	vpu->work_buff = m4iph_sdr_malloc(stream_buf_size, 32);
-	CHECK_ALLOC(vpu->work_buff, stream_buf_size, "work buffer (kernel)", err);
 	vpu->params.m4iph_temporary_buff_address = (unsigned long)vpu->work_buff;
 	vpu->params.m4iph_temporary_buff_size = vpu->work_buff_size;
 
 	/* Initialize VPU */
 	ret = m4iph_vpu4_init(&vpu->params);
-err:
+
 	m4iph_vpu_unlock();
+
+	vpu_initialised = 1;
 	return ret;
 }
 
@@ -177,7 +159,6 @@ void m4iph_vpu_close(void)
 	SHCodecs_vpu *vpu = &vpu_data;
 
 	if (--vpu->num_codecs == 0) {
-		m4iph_sdr_close();
 		uiomux_close(vpu->uiomux);
 	}
 }
@@ -205,12 +186,6 @@ unsigned long m4iph_reg_table_read(unsigned long *addr,
 
 	for (k = 0; k < nr_longs; k++)
 		data[k] = reg_base[k];
-
-#if DEBUG
-	for (offset = 0; offset < nr_longs; offset++)
-		fprintf(stderr, "%s: addr = %p, data = %08lx\n", __FUNCTION__,
-		       addr++, *data++);
-#endif
 	return nr_longs;
 }
 
@@ -224,34 +199,12 @@ void m4iph_reg_table_write(unsigned long *addr, unsigned long *data,
 
 	for (k = 0; k < nr_longs; k++)
 		reg_base[k] = data[k];
-
-#if DEBUG
-	for (offset = 0; offset < nr_longs; offset++) {
-		fprintf(stderr, "%s: addr = %p, data = %08lx\n", __FUNCTION__, addr,
-		       *data);
-		addr++;
-		data++;
-	}
-#endif
-}
-
-static int m4iph_sdr_open(void)
-{
-	SHCodecs_vpu *vpu = &vpu_data;
-	vpu->sdr_base = vpu->sdr_start = vpu_data.uio_mem.address;
-	vpu->sdr_end = vpu->sdr_base + vpu_data.uio_mem.size;
-	return 0;
-}
-
-static void m4iph_sdr_close(void)
-{
-	SHCodecs_vpu *vpu = &vpu_data;
-	vpu->sdr_base = vpu->sdr_start = vpu->sdr_end = 0;
 }
 
 void *m4iph_map_sdr_mem(void *address, int size)
 {
-	return vpu_data.uio_mem.iomem + ((unsigned long) address - vpu_data.uio_mem.address);
+	SHCodecs_vpu *vpu = &vpu_data;
+	return uiomux_phys_to_virt (vpu->uiomux, UIOMUX_SH_VPU, address);
 }
 
 int m4iph_unmap_sdr_mem(void *address, int size)
@@ -268,35 +221,14 @@ unsigned long m4iph_sdr_read(unsigned char *src_phys, unsigned char *dest_virt,
 			     unsigned long count)
 {
 	SHCodecs_vpu *vpu = &vpu_data;
-	unsigned char *buf, *src_virt;
-	unsigned long addr;
-	int roundoff;
-	int pagesize = getpagesize();
+	unsigned char *src_virt;
 
-	if ((unsigned long) src_phys + count >= vpu->sdr_end
-	    || (unsigned long) src_phys < vpu->sdr_start) {
-		fprintf(stderr, "%s: Invalid read from SDR memory. ",
-			__FUNCTION__);
-		fprintf(stderr, "src_phys = %p, count = %ld\n", src_phys,
-			count);
+	src_virt = uiomux_phys_to_virt (vpu->uiomux, UIOMUX_SH_VPU, src_phys);
+	if (!src_virt) {
+		fprintf(stderr, "%s: src_phys %p invalid\n", __func__);
 		return 0;
 	}
-	addr = (unsigned long) src_phys & ~(pagesize - 1);
-	roundoff = (unsigned long) src_phys - addr;
-	buf =
-	    (unsigned char *) m4iph_map_sdr_mem((void *) addr,
-						count + roundoff);
-	if (buf == NULL) {
-		fprintf(stderr, "%s: Aborting since mmap() failed.\n",
-		       __FUNCTION__);
-		fprintf(stderr, "%s: src_phys = %p, dest_virt = %p, count = %ld\n",
-		       __FUNCTION__, src_phys, dest_virt, count);
-		abort();
-	}
-	src_virt = buf + roundoff;
-
 	memcpy(dest_virt, src_virt, count);
-	m4iph_unmap_sdr_mem(buf, count + roundoff);
 	return count;
 }
 
@@ -305,63 +237,27 @@ void m4iph_sdr_write(unsigned char *dest_phys, unsigned char *src_virt,
 		     unsigned long count)
 {
 	SHCodecs_vpu *vpu = &vpu_data;
-	unsigned char *buf, *dest_virt;
-	unsigned long addr;
-	int roundoff;
-	int pagesize = getpagesize();
+	unsigned char *dest_virt;
 
-	if ((unsigned long) dest_phys + count >= vpu->sdr_end
-	    || (unsigned long) dest_phys < vpu->sdr_start) {
-		fprintf(stderr, "%s: Invalid write to SDR memory. ",
-			__FUNCTION__);
-		fprintf(stderr, "dest_phys = %p, count = %ld\n", dest_phys,
-			count);
-		return;
-	}
-	addr = (unsigned long) dest_phys & ~(pagesize - 1);
-	roundoff = (unsigned long) dest_phys - addr;
-	buf =
-	    (unsigned char *) m4iph_map_sdr_mem((void *) addr,
-						count + roundoff);
-	if (buf == NULL) {
-		fprintf(stderr, "%s: Aborting since mmap() failed.\n",
-		       __FUNCTION__);
-		fprintf(stderr, "%s: dest_phys = %p, src_virt = %p, count = %ld\n",
-		       __FUNCTION__, dest_phys, src_virt, count);
-		abort();
-	}
-	dest_virt = buf + roundoff;
-
+	dest_virt = uiomux_phys_to_virt (vpu->uiomux, UIOMUX_SH_VPU, dest_phys);
+	if (!dest_virt)
+		fprintf(stderr, "%s: dest_phys %p invalid\n", __func__);
 	memcpy(dest_virt, src_virt, count);
-	m4iph_unmap_sdr_mem(buf, count + roundoff);
 }
 
 /* Allocate sdr memory */
 void *m4iph_sdr_malloc(unsigned long count, int align)
 {
 	SHCodecs_vpu *vpu = &vpu_data;
-	unsigned long ret;
-	int size;
-
-	ret = ((vpu->sdr_base + (align - 1)) & ~(align - 1));
-	size = ret - vpu->sdr_base + count;
-
-	if (vpu->sdr_base + size >= vpu->sdr_end) {
-		fprintf(stderr, "%s: Allocation of size %ld failed\n",
-			__FUNCTION__, count);
-		fprintf(stderr, "vpu->sdr_base = %08lx, vpu->sdr_end = %08lx\n", vpu->sdr_base,
-		       vpu->sdr_end);
-		return NULL;
-	}
-	vpu->sdr_base += size;
-	return (void *) ret;
+	void *virt = uiomux_malloc (vpu->uiomux, UIOMUX_SH_VPU, count, align);
+	return uiomux_virt_to_phys (vpu->uiomux, UIOMUX_SH_VPU, virt);
 }
 
 void m4iph_sdr_free(void *address, unsigned long count)
 {
-#if DEBUG
-	fprintf(stderr, "%s() is not required\n", __FUNCTION__);
-#endif
+	SHCodecs_vpu *vpu = &vpu_data;
+	void *virt = uiomux_phys_to_virt (vpu->uiomux, UIOMUX_SH_VPU, address);
+	uiomux_free (vpu->uiomux, UIOMUX_SH_VPU, virt, count);
 }
 
 void m4iph_avcbd_perror(char *msg, int error)
