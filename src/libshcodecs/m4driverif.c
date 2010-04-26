@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <pthread.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
@@ -53,7 +52,6 @@ typedef struct _SHCodecs_vpu {
 	struct uio_map uio_mmio;
 	struct uio_map uio_mem;
 
-	pthread_mutex_t mutex;
 	int num_codecs;
 	M4IPH_VPU4_INIT_OPTION params;
 	unsigned long work_buff_size;
@@ -122,13 +120,12 @@ int m4iph_vpu_open(int stream_buf_size)
 		return ret;
 	}
 
-	pthread_mutex_init(&vpu->mutex, NULL);
-	m4iph_vpu_lock();
-	vpu_initialised = 1;
-
 	vpu->uiomux = uiomux_open();
 	if (!vpu->uiomux)
-		goto err;
+		return ret;
+
+	m4iph_vpu_lock();
+	vpu_initialised = 1;
 
 	ret = uiomux_get_mmio (vpu->uiomux, UIOMUX_SH_VPU,
 		&vpu->uio_mmio.address,
@@ -180,7 +177,6 @@ void m4iph_vpu_close(void)
 	SHCodecs_vpu *vpu = &vpu_data;
 
 	if (--vpu->num_codecs == 0) {
-		pthread_mutex_destroy (&vpu->mutex);
 		m4iph_sdr_close();
 		uiomux_close(vpu->uiomux);
 	}
@@ -189,13 +185,13 @@ void m4iph_vpu_close(void)
 void m4iph_vpu_lock(void)
 {
 	SHCodecs_vpu *vpu = &vpu_data;
-	pthread_mutex_lock(&vpu->mutex);
+	uiomux_lock (vpu->uiomux, UIOMUX_SH_VPU);
 }
 
 void m4iph_vpu_unlock(void)
 {
 	SHCodecs_vpu *vpu = &vpu_data;
-	pthread_mutex_unlock(&vpu->mutex);
+	uiomux_unlock (vpu->uiomux, UIOMUX_SH_VPU);
 }
 
 
