@@ -27,7 +27,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <uiomux/uiomux.h>
-#include <sh7722_vpu.h>
 #include <m4iph_vpu4.h>
 #include <avcbd.h>
 #include <avcbe.h>
@@ -102,7 +101,7 @@ int m4iph_vpu_open(int stream_buf_size)
 
 	vpu->num_codecs++;
 
-	vpu->params.m4iph_vpu_base_address = VP4_CTRL;
+	vpu->params.m4iph_vpu_base_address = vpu->uio_mmio.address;
 
 	/* Little endian */
 	vpu->params.m4iph_vpu_endian = 0x3ff;
@@ -287,7 +286,7 @@ unsigned long m4iph_reg_table_read(unsigned long *addr,
 	unsigned long *reg_base = vpu_data.uio_mmio.iomem;
 	int k;
 
-	reg_base += ((unsigned long) addr - VP4_CTRL) / 4;
+	reg_base += ((unsigned long) addr - vpu_data.uio_mmio.address) / 4;
 
 	for (k = 0; k < nr_longs; k++)
 		data[k] = reg_base[k];
@@ -300,7 +299,7 @@ void m4iph_reg_table_write(unsigned long *addr, unsigned long *data,
 	unsigned long *reg_base = vpu_data.uio_mmio.iomem;
 	int k;
 
-	reg_base += ((unsigned long) addr - VP4_CTRL) / 4;
+	reg_base += ((unsigned long) addr - vpu_data.uio_mmio.address) / 4;
 
 	for (k = 0; k < nr_longs; k++)
 		reg_base[k] = data[k];
