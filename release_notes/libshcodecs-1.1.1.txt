@@ -1,0 +1,44 @@
+libshcodecs 1.1.1 Release
+=========================
+
+libshcodecs is a library for controlling SH-Mobile hardware codecs.
+
+The [SH-Mobile][0] processor series includes a hardware video processing
+unit that supports MPEG-4 and H.264 encoding and decoding.
+libshcodecs is available under the terms of the GNU LGPL.
+
+The source archive, and more information about the library are available from:
+
+	https://oss.renesas.com/modules/document/?libshcodecs
+
+New in this release
+===================
+
+This is a brown paper bag release, including a missing file (display.h) and
+fixes for compile warnings and other cleanups. Following proper procedure, this
+new tarball has been generated with "make distcheck".
+
+Details
+-------
+
+This release includes the following changes since version 1.1.0:
+
+Conrad Parker (3):
+      add missing display.h to distribution
+      fix compile warnings throughout
+      Release 1.1.1
+
+Phil Edworthy (1):
+      Clean up: Remove unused symbols
+
+ configure.ac                      |    2 +-
+ src/libshcodecs/Version_script.in |   23 +++--------------------
+ src/libshcodecs/m4driverif.c      |   12 +-----------
+ src/tools/Makefile.am             |    1 +
+ src/tools/capture.c               |    2 +-
+ src/tools/display.c               |    6 ++++++
+ src/tools/shcodecs-record.c       |    4 ++--
+ 7 files changed, 15 insertions(+), 35 deletions(-)
+
+[0]: http://www.renesas.com/fmwk.jsp?cnt=sh_mobile_family_landing.jsp&fp=/products/mpumcu/sh_mobile/
+
