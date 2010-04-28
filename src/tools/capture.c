@@ -172,7 +172,7 @@ read_frame(capture * cap, capture_callback cb, void *user_data)
 void
 capture_queue_buffer(capture * cap, const void * buffer_data)
 {
-	int i;
+	unsigned int i;
 
 	if (cap->use_physical) {
 		for (i = 0; i < cap->n_buffers; ++i) {

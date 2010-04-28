@@ -164,7 +164,7 @@ capture_image_cb(capture *ceu, const unsigned char *frame_data, size_t length,
 {
 	struct camera_data *cam = (struct camera_data*)user_data;
 
-	queue_enq (cam->captured_queue, frame_data);
+	queue_enq (cam->captured_queue, (void *)frame_data);
 	cam->captured_frames++;
 }
 
@@ -232,7 +232,7 @@ void *convert_main(void *data)
 			uiomux_unlock (pvt->uiomux, UIOMUX_SH_VEU);
 		}
 
-		capture_queue_buffer (cam->ceu, cap_y);
+		capture_queue_buffer (cam->ceu, (void *)cap_y);
 		pthread_mutex_unlock(&cam->capture_start_mutex);
 
 		pvt->output_frames++;

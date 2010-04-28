@@ -239,15 +239,19 @@ int display_update(
 int display_set_fullscreen(void *p_display)
 {
 	struct display_t *pvt = (struct display_t *)p_display;
+
 	pvt->out_w = -1;
 	pvt->out_h = -1;
 	pvt->out_x = -1;
 	pvt->out_y = -1;
+
+	return 0;
 }
 
 int display_set_position(void *p_display, int w, int h, int x, int y)
 {
 	struct display_t *pvt = (struct display_t *)p_display;
+
 	pvt->out_w = w;
 	pvt->out_h = h;
 	pvt->out_x = x - (x % HW_ALIGN);
@@ -258,5 +262,7 @@ int display_set_position(void *p_display, int w, int h, int x, int y)
 	pvt->out_y = min(pvt->out_y, pvt->lcd_h);
 	pvt->out_w = min(pvt->out_w, pvt->lcd_w - pvt->out_x);
 	pvt->out_h = min(pvt->out_h, pvt->lcd_h - pvt->out_y);
+
+	return 0;
 }
 

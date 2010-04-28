@@ -205,7 +205,7 @@ int m4iph_vpu_open(int stream_buf_size)
 
 	if (vpu_initialised) {
 		m4iph_vpu_lock();
-		if (vpu->work_buff_size < stream_buf_size) {
+		if (vpu->work_buff_size < (unsigned int)stream_buf_size) {
 			m4iph_sdr_free(vpu->work_buff, vpu->work_buff_size);
 			goto reinit;
 		}
