@@ -13,6 +13,7 @@ noinst_PROGRAMS = shcodecs-enc-benchmark
 noinst_HEADERS = \
 	avcbencsmp.h \
 	capture.h \
+	display.h \
 	framerate.h \
 	thrqueue.h \
 	ControlFileUtil.h
