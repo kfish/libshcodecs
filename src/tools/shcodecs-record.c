@@ -71,10 +71,8 @@ struct camera_data {
 	unsigned long cap_h;
 	int captured_frames;
 
-	pthread_t convert_thread;
 	pthread_t capture_thread;
 	struct Queue * captured_queue;
-	pthread_mutex_t capture_start_mutex;
 
 	struct framerate * cap_framerate;
 };
@@ -163,8 +161,49 @@ capture_image_cb(capture *ceu, const unsigned char *frame_data, size_t length,
 		 void *user_data)
 {
 	struct camera_data *cam = (struct camera_data*)user_data;
+	struct private_data *pvt = &pvt_data;
+	int pitch, offset;
+	void *ptr;
+	unsigned long enc_y, enc_c;
+	unsigned long cap_y, cap_c;
+	int i;
 
-	queue_enq (cam->captured_queue, (void *)frame_data);
+	cap_y = (unsigned long) frame_data;
+	cap_c = cap_y + (cam->cap_w * cam->cap_h);
+
+	for (i=0; i < pvt->nr_encoders; i++) {
+		if (pvt->encdata[i].camera != cam) continue;
+
+		shcodecs_encoder_get_input_physical_addr (pvt->encoders[i], (unsigned int *)&enc_y, (unsigned int *)&enc_c);
+
+		/* We are clipping, not scaling, as we need to perform a rotation,
+	   	but the VEU cannot do a rotate & scale at the same time. */
+		uiomux_lock (pvt->uiomux, UIOMUX_SH_VEU);
+		shveu_operation(0,
+			cap_y, cap_c,
+			cam->cap_w, cam->cap_h, cam->cap_w, SHVEU_YCbCr420,
+			enc_y, enc_c,
+			pvt->encdata[i].enc_w, pvt->encdata[i].enc_h, pvt->encdata[i].enc_w, SHVEU_YCbCr420,
+			pvt->rotate_cap);
+		uiomux_unlock (pvt->uiomux, UIOMUX_SH_VEU);
+
+		/* Let the encoder get_input function return */
+		pthread_mutex_unlock(&pvt->encdata[i].encode_start_mutex);
+	}
+
+	if (cam == pvt->encdata[0].camera && pvt->do_preview) {
+		/* Use the VEU to scale the capture buffer to the frame buffer */
+		uiomux_lock (pvt->uiomux, UIOMUX_SH_VEU);
+		display_update(pvt->display,
+				cap_y, cap_c,
+				cam->cap_w, cam->cap_h, cam->cap_w,
+				V4L2_PIX_FMT_NV12);
+		uiomux_unlock (pvt->uiomux, UIOMUX_SH_VEU);
+	}
+
+	capture_queue_buffer (cam->ceu, (void *)cap_y);
+
+	pvt->output_frames++;
 	cam->captured_frames++;
 }
 
@@ -175,71 +214,13 @@ void *capture_main(void *data)
 	while(alive){
 		framerate_wait(cam->cap_framerate);
 		capture_get_frame(cam->ceu, capture_image_cb, cam);
-
-		/* This mutex is unlocked once the capture buffer is free */
-		pthread_mutex_lock(&cam->capture_start_mutex);
 	}
 
 	capture_stop_capturing(cam->ceu);
 
-	pthread_mutex_unlock(&cam->capture_start_mutex);
-
 	return NULL;
 }
 
-
-void *convert_main(void *data)
-{
-	struct camera_data *cam = (struct camera_data*)data;
-	struct private_data *pvt = &pvt_data;
-	int pitch, offset;
-	void *ptr;
-	unsigned long enc_y, enc_c;
-	unsigned long cap_y, cap_c;
-	int i;
-
-	while(alive){
-		cap_y = (unsigned long) queue_deq(cam->captured_queue);
-		cap_c = cap_y + (cam->cap_w * cam->cap_h);
-
-		for (i=0; i < pvt->nr_encoders; i++) {
-			if (pvt->encdata[i].camera != cam) continue;
-
-			shcodecs_encoder_get_input_physical_addr (pvt->encoders[i], (unsigned int *)&enc_y, (unsigned int *)&enc_c);
-
-			/* We are clipping, not scaling, as we need to perform a rotation,
-		   	but the VEU cannot do a rotate & scale at the same time. */
-			uiomux_lock (pvt->uiomux, UIOMUX_SH_VEU);
-			shveu_operation(0,
-				cap_y, cap_c,
-				cam->cap_w, cam->cap_h, cam->cap_w, SHVEU_YCbCr420,
-				enc_y, enc_c,
-				pvt->encdata[i].enc_w, pvt->encdata[i].enc_h, pvt->encdata[i].enc_w, SHVEU_YCbCr420,
-				pvt->rotate_cap);
-			uiomux_unlock (pvt->uiomux, UIOMUX_SH_VEU);
-
-			/* Let the encoder get_input function return */
-			pthread_mutex_unlock(&pvt->encdata[i].encode_start_mutex);
-		}
-
-		if (cam == pvt->encdata[0].camera && pvt->do_preview) {
-			/* Use the VEU to scale the capture buffer to the frame buffer */
-			uiomux_lock (pvt->uiomux, UIOMUX_SH_VEU);
-			display_update(pvt->display,
-					cap_y, cap_c,
-					cam->cap_w, cam->cap_h, cam->cap_w,
-					V4L2_PIX_FMT_NV12);
-			uiomux_unlock (pvt->uiomux, UIOMUX_SH_VEU);
-		}
-
-		capture_queue_buffer (cam->ceu, (void *)cap_y);
-		pthread_mutex_unlock(&cam->capture_start_mutex);
-
-		pvt->output_frames++;
-	}
-
-	return NULL;
-}
 
 /* SHCodecs_Encoder_Input callback for acquiring an image */
 static int get_input(SHCodecs_Encoder *encoder, void *user_data)
@@ -327,7 +308,6 @@ void cleanup (void)
 	for (i=0; i < pvt->nr_cameras; i++) {
 		struct camera_data * cam = &pvt->cameras[i];
 
-		pthread_join (cam->convert_thread, NULL);
 		pthread_join (cam->capture_thread, NULL);
 
 		capture_close(cam->ceu);
@@ -341,11 +321,6 @@ void cleanup (void)
 		close_output_file(pvt->encdata[i].output_fp);
 		pthread_mutex_unlock(&pvt->encdata[i].encode_start_mutex);
 		pthread_mutex_destroy (&pvt->encdata[i].encode_start_mutex);
-	}
-
-	for (i=0; i < pvt->nr_cameras; i++) {
-		struct camera_data * cam = &pvt->cameras[i];
-		pthread_mutex_destroy (&cam->capture_start_mutex);
 	}
 
 	uiomux_close (pvt->uiomux);
@@ -500,20 +475,9 @@ int main(int argc, char *argv[])
 	}
 
 	for (i=0; i < pvt->nr_cameras; i++) {
-		/* Initalise the mutexes */
-		pthread_mutex_init(&pvt->cameras[i].capture_start_mutex, NULL);
-		pthread_mutex_lock(&pvt->cameras[i].capture_start_mutex);
-
 		/* Initialize the queues */
 		pvt->cameras[i].captured_queue = queue_init();
 		queue_limit (pvt->cameras[i].captured_queue, NUM_CAPTURE_BUFS);
-
-		/* Create the threads */
-		rc = pthread_create(&pvt->cameras[i].convert_thread, NULL, convert_main, &pvt->cameras[i]);
-		if (rc) {
-			fprintf(stderr, "pthread_create failed, exiting\n");
-			return -7;
-		}
 
 		/* Camera capture initialisation */
 		pvt->cameras[i].ceu = capture_open_userio(pvt->cameras[i].devicename, pvt->cameras[i].cap_w, pvt->cameras[i].cap_h, pvt->uiomux);
