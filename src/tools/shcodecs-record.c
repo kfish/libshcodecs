@@ -85,7 +85,8 @@ struct encode_data {
 
 	long stream_type;
 
-	pthread_mutex_t encode_start_mutex;
+	struct Queue * enc_input_q;
+	struct Queue * enc_input_empty_q;
 	FILE *output_fp;
 
 	unsigned long enc_w;
@@ -174,6 +175,9 @@ capture_image_cb(capture *ceu, const unsigned char *frame_data, size_t length,
 	for (i=0; i < pvt->nr_encoders; i++) {
 		if (pvt->encdata[i].camera != cam) continue;
 
+		/* TODO Get a token for an empty encoder input buffer. Once shcodecs releases input buffers prior
+		   to encoding, we can put the buffer ptr into the queue.  */
+		queue_deq(pvt->encdata[i].enc_input_empty_q);
 		shcodecs_encoder_get_input_physical_addr (pvt->encoders[i], (unsigned int *)&enc_y, (unsigned int *)&enc_c);
 
 		/* We are clipping, not scaling, as we need to perform a rotation,
@@ -187,8 +191,7 @@ capture_image_cb(capture *ceu, const unsigned char *frame_data, size_t length,
 			pvt->rotate_cap);
 		uiomux_unlock (pvt->uiomux, UIOMUX_SH_VEU);
 
-		/* Let the encoder get_input function return */
-		pthread_mutex_unlock(&pvt->encdata[i].encode_start_mutex);
+		queue_enq(pvt->encdata[i].enc_input_q, (void*)enc_y);
 	}
 
 	if (cam == pvt->encdata[0].camera && pvt->do_preview) {
@@ -227,9 +230,9 @@ static int get_input(SHCodecs_Encoder *encoder, void *user_data)
 {
 	struct encode_data *encdata = (struct encode_data*)user_data;
 
-	/* This mutex is unlocked once the capture buffer has been copied to the
-	   encoder input buffer */
-	pthread_mutex_lock(&encdata->encode_start_mutex);
+	/* TODO Push a token for a free encoder input buffer */
+	queue_enq(encdata->enc_input_empty_q, NULL);
+	queue_deq(encdata->enc_input_q);
 
 	if (encdata->enc_framerate == NULL) {
 		encdata->enc_framerate = framerate_new_measurer ();
@@ -319,8 +322,6 @@ void cleanup (void)
 
 	for (i=0; i < pvt->nr_encoders; i++) {
 		close_output_file(pvt->encdata[i].output_fp);
-		pthread_mutex_unlock(&pvt->encdata[i].encode_start_mutex);
-		pthread_mutex_destroy (&pvt->encdata[i].encode_start_mutex);
 	}
 
 	uiomux_close (pvt->uiomux);
@@ -470,8 +471,12 @@ int main(int argc, char *argv[])
 		debug_printf("[%d] Input file: %s\n", i, pvt->encdata[i].ainfo.input_file_name_buf);
 		debug_printf("[%d] Output file: %s\n", i, pvt->encdata[i].ainfo.output_file_name_buf);
 
-		pthread_mutex_init(&pvt->encdata[i].encode_start_mutex, NULL);
-		pthread_mutex_unlock(&pvt->encdata[i].encode_start_mutex);
+		/* Initialize the queues */
+		pvt->encdata[i].enc_input_q = queue_init();
+		queue_limit (pvt->encdata[i].enc_input_q, 1);
+
+		pvt->encdata[i].enc_input_empty_q = queue_init();
+		queue_limit (pvt->encdata[i].enc_input_empty_q, 1);
 	}
 
 	for (i=0; i < pvt->nr_cameras; i++) {
