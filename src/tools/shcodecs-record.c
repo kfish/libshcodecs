@@ -109,8 +109,6 @@ struct private_data {
 	void *display;
 
 	int rotate_cap;
-
-	int output_frames;
 };
 
 
@@ -206,7 +204,6 @@ capture_image_cb(capture *ceu, const unsigned char *frame_data, size_t length,
 
 	capture_queue_buffer (cam->ceu, (void *)cap_y);
 
-	pvt->output_frames++;
 	cam->captured_frames++;
 }
 
@@ -284,10 +281,6 @@ void cleanup (void)
 
 		debug_printf("Captured %d frames (%.2f fps)\n", cam->captured_frames,
 			 	(double)cam->captured_frames/time);
-		if (pvt->do_preview) {
-			debug_printf("Displayed %d frames (%.2f fps)\n", pvt->output_frames,
-					(double)pvt->output_frames/time);
-		}
 
 		framerate_destroy (cam->cap_framerate);
 	}
@@ -387,7 +380,6 @@ int main(int argc, char *argv[])
 
 	pvt->do_preview = 1;
 
-	pvt->output_frames = 0;
 	pvt->rotate_cap = SHVEU_NO_ROT;
 
 	while (1) {
