@@ -364,7 +364,7 @@ static void init_mmap(capture * cap)
 
 	CLEAR(req);
 
-	req.count = 2;
+	req.count  = NUM_CAPTURE_BUFS;
 	req.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	req.memory = V4L2_MEMORY_MMAP;
 
@@ -378,7 +378,7 @@ static void init_mmap(capture * cap)
 		}
 	}
 
-	if (req.count < 2) {
+	if (req.count < NUM_CAPTURE_BUFS) {
 		fprintf(stderr, "Insufficient buffer memory on %s\n",
 			 cap->dev_name);
 		exit(EXIT_FAILURE);
@@ -427,8 +427,8 @@ init_userp(capture * cap, unsigned int buffer_size)
 
 	CLEAR(req);
 
-	req.count	= 2;
-	req.type	= V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	req.count  = NUM_CAPTURE_BUFS;
+	req.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	req.memory = V4L2_MEMORY_USERPTR;
 
 	if (-1 == xioctl(cap->fd, VIDIOC_REQBUFS, &req)) {
@@ -441,7 +441,7 @@ init_userp(capture * cap, unsigned int buffer_size)
 		}
 	}
 
-	if (req.count < 2) {
+	if (req.count < NUM_CAPTURE_BUFS) {
 		fprintf(stderr, "Insufficient buffer memory on %s\n",
 			 cap->dev_name);
 		exit(EXIT_FAILURE);

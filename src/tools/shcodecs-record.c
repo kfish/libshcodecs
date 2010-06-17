@@ -506,7 +506,7 @@ int main(int argc, char *argv[])
 
 		/* Initialize the queues */
 		pvt->cameras[i].captured_queue = queue_init();
-		queue_limit (pvt->cameras[i].captured_queue, 2);
+		queue_limit (pvt->cameras[i].captured_queue, NUM_CAPTURE_BUFS);
 
 		/* Create the threads */
 		rc = pthread_create(&pvt->cameras[i].convert_thread, NULL, convert_main, &pvt->cameras[i]);
