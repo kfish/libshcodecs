@@ -172,10 +172,9 @@ capture_image_cb(capture *ceu, const unsigned char *frame_data, size_t length,
 	for (i=0; i < pvt->nr_encoders; i++) {
 		if (pvt->encdata[i].camera != cam) continue;
 
-		/* TODO Get a token for an empty encoder input buffer. Once shcodecs releases input buffers prior
-		   to encoding, we can put the buffer ptr into the queue.  */
-		queue_deq(pvt->encdata[i].enc_input_empty_q);
-		shcodecs_encoder_get_input_physical_addr (pvt->encoders[i], (unsigned int *)&enc_y, (unsigned int *)&enc_c);
+		/* Get an empty encoder input frame */
+		enc_y = (unsigned long) queue_deq(pvt->encdata[i].enc_input_empty_q);
+		enc_c = enc_y + (pvt->encdata[i].enc_w * pvt->encdata[i].enc_h);
 
 		/* We are clipping, not scaling, as we need to perform a rotation,
 	   	but the VEU cannot do a rotate & scale at the same time. */
@@ -221,14 +220,29 @@ void *capture_main(void *data)
 }
 
 
+/* SHCodecs_Encoder_Input_Release callback */
+static int release_input_buf(SHCodecs_Encoder * encoder,
+                             unsigned char * y_input,
+                             unsigned char * c_input,
+                             void * user_data)
+{
+	struct encode_data *encdata = (struct encode_data*)user_data;
+
+	queue_enq (encdata->enc_input_empty_q, y_input);
+
+	return 0;
+}
+
 /* SHCodecs_Encoder_Input callback for acquiring an image */
 static int get_input(SHCodecs_Encoder *encoder, void *user_data)
 {
 	struct encode_data *encdata = (struct encode_data*)user_data;
+	unsigned long enc_y, enc_c;
 
-	/* TODO Push a token for a free encoder input buffer */
-	queue_enq(encdata->enc_input_empty_q, NULL);
-	queue_deq(encdata->enc_input_q);
+	/* Get a scaled frame from the queue */
+	enc_y = (unsigned long) queue_deq(encdata->enc_input_q);
+	enc_c = enc_y + (encdata->enc_w * encdata->enc_h);
+	shcodecs_encoder_set_input_physical_addr (encoder, enc_y, enc_c);
 
 	if (encdata->enc_framerate == NULL) {
 		encdata->enc_framerate = framerate_new_measurer ();
@@ -464,10 +478,7 @@ int main(int argc, char *argv[])
 
 		/* Initialize the queues */
 		pvt->encdata[i].enc_input_q = queue_init();
-		queue_limit (pvt->encdata[i].enc_input_q, 1);
-
 		pvt->encdata[i].enc_input_empty_q = queue_init();
-		queue_limit (pvt->encdata[i].enc_input_empty_q, 1);
 	}
 
 	for (i=0; i < pvt->nr_cameras; i++) {
@@ -543,6 +554,7 @@ int main(int argc, char *argv[])
 		}
 		shcodecs_encoder_set_input_callback(pvt->encoders[i], get_input, &pvt->encdata[i]);
 		shcodecs_encoder_set_output_callback(pvt->encoders[i], write_output, &pvt->encdata[i]);
+		shcodecs_encoder_set_input_release_callback(pvt->encoders[i], release_input_buf, &pvt->encdata[i]);
 
 		return_code = ctrlfile_set_enc_param(pvt->encoders[i], pvt->encdata[i].ctrl_filename);
 		if (return_code < 0) {

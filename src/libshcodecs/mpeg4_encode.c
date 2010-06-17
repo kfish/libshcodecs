@@ -365,7 +365,6 @@ mpeg4_encode_picture (SHCodecs_Encoder *enc,
 {
 	long rc;
 	int cb_ret;
-	TAVCBE_FMEM input_frame;
 #ifdef USE_BVOP
 	unsigned long i;
 	unsigned char *addr_y_tbl[17], *addr_c_tbl[17];
@@ -377,8 +376,31 @@ mpeg4_encode_picture (SHCodecs_Encoder *enc,
 		addr_y_tbl[i] = enc->input_frames[i].Y_fmemp;
 		addr_c_tbl[i] = enc->input_frames[i].C_fmemp;
 	}
+
+	/* Release a single input frame when using BVOPs as we need to keep 
+	   the frames as references. All are initially available */
+	if (enc->release) {
+		enc->release (enc,
+			enc->input_frames[0].Y_fmemp,
+			enc->input_frames[0].C_fmemp,
+			enc->release_user_data);
+	}
+#else
+	/* Release all input buffers */
+	for (i=0; i < NUM_INPUT_FRAMES; i++) {
+		if (enc->release) {
+			enc->release (enc,
+				enc->input_frames[i].Y_fmemp,
+				enc->input_frames[i].C_fmemp,
+				enc->release_user_data);
+		}
+	}
 #endif
-	
+
+	/* Fixed input buffer if client doesn't change it */
+	enc->addr_y = enc->input_frames[0].Y_fmemp;
+	enc->addr_c = enc->input_frames[0].C_fmemp;
+
 	enc->ldec = 0;		/* Index number of the image-work-field area */
 	enc->ref1 = 0;
 	enc->frm = 0;		/* Frame number to be encoded */
@@ -386,12 +408,27 @@ mpeg4_encode_picture (SHCodecs_Encoder *enc,
 	enc->frame_counter = 0;
 	enc->frame_skip_num = 0;
 
-	input_frame.Y_fmemp = enc->input_frames[0].Y_fmemp;
-	input_frame.C_fmemp = enc->input_frames[0].C_fmemp;
-
 	/* For all frames to encode */
 	while (1) {
 		m4iph_vpu_lock();
+
+		/* Get the encoder input frame */
+		if (enc->input) {
+			cb_ret = enc->input(enc, enc->input_user_data);
+			if (cb_ret != 0) {
+				enc->error_return_code = cb_ret;
+				m4iph_vpu_unlock();
+				return cb_ret;
+			}
+		}
+
+		/* Encode the frame */
+		rc = mpeg4_encode_frame(enc, stream_type, enc->addr_y, enc->addr_c);
+		if (rc != 0) {
+			m4iph_vpu_unlock();
+			return rc;
+		}
+
 #ifdef USE_BVOP
 		/* Find an input buffer that isn't in use */
 		if (enc->other_options_mpeg4.avcbe_b_vop_num > 0) {
@@ -405,42 +442,18 @@ mpeg4_encode_picture (SHCodecs_Encoder *enc,
 
 			for (i=0; i < (enc->other_options_mpeg4.avcbe_b_vop_num + 1); i++) {
 				if (frame_check_array[i].avcbe_status == AVCBE_UNLOCK) {
-					if (enc->release) {
-						enc->release (enc,
-                                                              addr_y_tbl[i],
-                                                              addr_c_tbl[i],
-                                                              enc->release_user_data);
-					}
-					input_frame.Y_fmemp = addr_y_tbl[i];
-					input_frame.C_fmemp = addr_c_tbl[i];
+					enc->addr_y = addr_y_tbl[i];
+					enc->addr_c = addr_c_tbl[i];
 					break;
 				}
 			}
 		}
-#else
-		if (enc->release) {
-			enc->release (enc, input_frame.Y_fmemp, input_frame.C_fmemp,
-                                      enc->release_user_data);
-		}
 #endif
 
-		/* Get the encoder input frame */
-		if (enc->input) {
-			enc->addr_y = input_frame.Y_fmemp;
-			enc->addr_c = input_frame.C_fmemp;
-			cb_ret = enc->input(enc, enc->input_user_data);
-			if (cb_ret != 0) {
-				enc->error_return_code = cb_ret;
-				m4iph_vpu_unlock();
-				return cb_ret;
-			}
-		}
+		if (enc->release)
+			enc->release (enc, enc->addr_y, enc->addr_c, enc->release_user_data);
 
-		/* Encode the frame */
-		rc = mpeg4_encode_frame(enc, stream_type, enc->addr_y, enc->addr_c);
 		m4iph_vpu_unlock();
-		if (rc != 0)
-			return rc;
 	}
 
 	return (0);

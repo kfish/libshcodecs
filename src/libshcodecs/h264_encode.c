@@ -500,9 +500,23 @@ h264_encode_multiple(SHCodecs_Encoder *encs[], int nr_encoders)
 	long rc;
 	int i, cb_ret;
 
-	/* Setup VUI parameters */
 	for (i=0; i < nr_encoders; i++) {
 		enc = encs[i];
+
+		/* Release all input buffers */
+		for (i=0; i < NUM_INPUT_FRAMES; i++) {
+			if (enc->release) {
+				enc->release (enc,
+					enc->input_frames[i].Y_fmemp,
+					enc->input_frames[i].C_fmemp,
+					enc->release_user_data);
+			}
+		}
+		/* Fixed input buffer if client doesn't change it */
+		enc->addr_y = enc->input_frames[0].Y_fmemp;
+		enc->addr_c = enc->input_frames[0].C_fmemp;
+
+		/* Setup VUI parameters */
 		if (enc->other_options_h264.avcbe_out_vui_parameters == AVCBE_ON) {
 			rc = setup_vui_params(enc);
 			if (rc != 0)
@@ -527,8 +541,6 @@ h264_encode_multiple(SHCodecs_Encoder *encs[], int nr_encoders)
 			enc = encs[i];
 			/* Get the encoder input frame */
 			if (enc->input) {
-				enc->addr_y = enc->input_frames[0].Y_fmemp;
-				enc->addr_c = enc->input_frames[0].C_fmemp;
 				cb_ret = enc->input(enc, enc->input_user_data);
 				if (cb_ret != 0) {
 #ifdef OUTPUT_STREAM_INFO
