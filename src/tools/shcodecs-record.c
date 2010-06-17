@@ -72,7 +72,6 @@ struct camera_data {
 	int captured_frames;
 
 	pthread_t capture_thread;
-	struct Queue * captured_queue;
 
 	struct framerate * cap_framerate;
 };
@@ -472,10 +471,6 @@ int main(int argc, char *argv[])
 	}
 
 	for (i=0; i < pvt->nr_cameras; i++) {
-		/* Initialize the queues */
-		pvt->cameras[i].captured_queue = queue_init();
-		queue_limit (pvt->cameras[i].captured_queue, NUM_CAPTURE_BUFS);
-
 		/* Camera capture initialisation */
 		pvt->cameras[i].ceu = capture_open_userio(pvt->cameras[i].devicename, pvt->cameras[i].cap_w, pvt->cameras[i].cap_h, pvt->uiomux);
 		if (pvt->cameras[i].ceu == NULL) {
