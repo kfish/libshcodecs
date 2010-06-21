@@ -1,24 +1,9 @@
 Library
 -------
 
-UIOMux support
-	* [2009/11/13] current uiomux branch failure is probably because
-	of the change in libuiomux from handing out physical addresses to
-	virtual. So, the fix is likely to insert some uiomux_virt_to_phys()
-	calls where physical addresses are required for the VPU.
-
-	* use m4iph_start() function for uio locking etc.: it is actually
-	called by the important avcbe_*() functions. Check middleware for
-	details!
-
-	* remove hardcoded memory addresses, replace with UIO-retrieved ones
-
 AnnexB handling
 	* AnnexB handling is useful for RTP; make this a runtime option;
 	currently it is compile-time.
-
-m4driverif.c
-	* s/perror("open")/perror(buf)/
 
 Decoder cancel
 	* returning != 0 from a vpu_decoded() callback stops the decoder,

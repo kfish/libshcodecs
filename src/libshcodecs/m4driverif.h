@@ -48,6 +48,5 @@ void m4iph_avcbd_perror(char *msg, int error);
 void m4iph_avcbe_perror(char *msg, int error);
 void *m4iph_map_sdr_mem(void *address, int size);
 int m4iph_unmap_sdr_mem(void *address, int size);
-int m4iph_sync_sdr_mem(void *address, int size);
 
 #endif

@@ -297,8 +297,6 @@ static int stream_init(SHCodecs_Decoder * decoder)
 		 * Although the VPU requires 16 bytes alignment, the
 		 * cache line size is 32 bytes on the SH4.
 		 */
-		m4iph_vpu_lock();
-
 		/* luma frame */
 		decoder->si_flist[i].Y_fmemp =
 		    m4iph_sdr_malloc(iContext_ReqWorkSize, 32);
@@ -315,7 +313,6 @@ static int stream_init(SHCodecs_Decoder * decoder)
 		CHECK_ALLOC(decoder->si_flist[i].C_fmemp,
 			    iContext_ReqWorkSize >> 1,
 			    "C component (kernel memory)", err1);
-		m4iph_vpu_unlock();
 	}
 
 	if (decoder->si_type == F_H264) {
@@ -329,8 +326,6 @@ static int stream_init(SHCodecs_Decoder * decoder)
 	}
 	/* 16 bytes for each macroblocks */
 	dp_size = (iContext_ReqWorkSize * 16) >> 8;
-
-	m4iph_vpu_lock();
 
 	decoder->si_dp_264 = m4iph_sdr_malloc(dp_size, 32);
 	CHECK_ALLOC(decoder->si_dp_264, dp_size, "data partition 1", err1);
@@ -347,8 +342,6 @@ static int stream_init(SHCodecs_Decoder * decoder)
 	    m4iph_sdr_malloc(iContext_ReqWorkSize >> 1, 32);
 	CHECK_ALLOC(decoder->si_ff.C_fmemp, (iContext_ReqWorkSize >> 1),
 		    "C component of filtered frame", err1);
-
-	m4iph_vpu_unlock();
 
 	stream_mode = (decoder->si_type == F_H264) ? AVCBD_TYPE_AVC : AVCBD_TYPE_MPEG4;
 
