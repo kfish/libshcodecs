@@ -97,6 +97,9 @@ struct encode_data {
 	struct framerate * enc_framerate;
 	int skipsize;
 	int skipcount;
+
+	double ifps;
+	double mfps;
 };
 
 struct private_data {
@@ -268,7 +271,6 @@ static int write_output(SHCodecs_Encoder *encoder,
 			unsigned char *data, int length, void *user_data)
 {
 	struct encode_data *encdata = (struct encode_data*)user_data;
-	double ifps, mfps;
 
 	if (shcodecs_encoder_get_frame_num_delta(encoder) > 0 &&
 			encdata->enc_framerate != NULL) {
@@ -276,11 +278,8 @@ static int write_output(SHCodecs_Encoder *encoder,
 				encdata->ainfo.frames_to_encode > 0)
 			return 1;
 		framerate_mark (encdata->enc_framerate);
-		ifps = framerate_instantaneous_fps (encdata->enc_framerate);
-		mfps = framerate_mean_fps (encdata->enc_framerate);
-		if (encdata->enc_framerate->nr_handled % 10 == 0) {
-			fprintf (stderr, "  Encoding @ %4.2f fps \t(avg %4.2f fps)\r", ifps, mfps);
-		}
+		encdata->ifps = framerate_instantaneous_fps (encdata->enc_framerate);
+		encdata->mfps = framerate_mean_fps (encdata->enc_framerate);
 	}
 
 	if (fwrite(data, 1, length, encdata->output_fp) < (size_t)length)
@@ -523,6 +522,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	fprintf (stderr, "Target   @");
 	for (i=0; i < pvt->nr_encoders; i++) {
 #if 0
 		if (pvt->rotate_cap == SHVEU_NO_ROT) {
@@ -574,9 +574,15 @@ int main(int argc, char *argv[])
 		//shcodecs_encoder_set_ypic_size(pvt->encoders[i], pvt->encdata[i].enc_h);
 
 		target_fps10 = shcodecs_encoder_get_frame_rate(pvt->encoders[i]);
+		fprintf (stderr, "\t%4.2f  ", target_fps10/10.0);
+
 		pvt->encdata[i].skipsize = 300 / target_fps10;
 		pvt->encdata[i].skipcount = 0;
+
+		pvt->encdata[i].ifps = 0;
+		pvt->encdata[i].mfps = 0;
 	}
+	fprintf (stderr, "\tFPS\n");
 
 	for (i=0; i < pvt->nr_cameras; i++) {
 		capture_start_capturing(pvt->cameras[i].ceu);
@@ -594,18 +600,35 @@ int main(int argc, char *argv[])
 			fprintf (stderr, "Thread %d failed: %s\n", i, strerror(rc));
 	}
 
+	while (alive) {
+		fprintf (stderr, "Encoding @");
+		for (i=0; i < pvt->nr_encoders; i++) {
+			fprintf (stderr, "\t%4.2f  ", pvt->encdata[i].ifps);
+		}
+		fprintf (stderr, "\tFPS\r");
+		usleep (300000);
+	}
+
+	fprintf (stderr, "\nEncoded  @");
+	for (i=0; i < pvt->nr_encoders; i++) {
+		fprintf (stderr, "\t%4.2f  ", pvt->encdata[i].mfps);
+	}
+	fprintf (stderr, "\tFPS\n");
+
+	fprintf (stderr, "Status   :");
 	rc = 0;
 	for (i=0; i < pvt->nr_encoders; i++) {
 		if (pvt->encdata[i].thread != 0) {
 			pthread_join (pvt->encdata[i].thread, &thread_ret);
 			if ((int)thread_ret < 0) {
 				rc = (int)thread_ret;
-				fprintf (stderr, "Error encoding %d\n", i);
+				fprintf (stderr, "\tErr %d", i);
 			} else {
-				fprintf (stderr, "Encode %d Success\n", i);
+				fprintf (stderr, "\tOK");
 			}
 		}
 	}
+	fprintf (stderr, "\n");
 
 	cleanup ();
 
