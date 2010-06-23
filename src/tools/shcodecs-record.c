@@ -73,7 +73,8 @@ struct camera_data {
 
 	pthread_t capture_thread;
 
-	struct framerate * cap_framerate;
+	struct Queue * captured_queue;
+	pthread_mutex_t capture_start_mutex;
 };
 
 struct encode_data {
@@ -210,7 +211,6 @@ void *capture_main(void *data)
 	struct camera_data *cam = (struct camera_data*)data;
 
 	while(alive){
-		framerate_wait(cam->cap_framerate);
 		capture_get_frame(cam->ceu, capture_image_cb, cam);
 	}
 
@@ -282,21 +282,6 @@ void cleanup (void)
 	double time;
 	struct private_data *pvt = &pvt_data;
 	int i;
-
-	for (i=0; i < pvt->nr_cameras; i++) {
-		struct camera_data * cam = &pvt->cameras[i];
-
-		time = (double)framerate_elapsed_time (cam->cap_framerate);
-		time /= 1000000;
-
-		debug_printf ("\n");
-		debug_printf("Elapsed time (capture): %0.3g s\n", time);
-
-		debug_printf("Captured %d frames (%.2f fps)\n", cam->captured_frames,
-			 	(double)cam->captured_frames/time);
-
-		framerate_destroy (cam->cap_framerate);
-	}
 
 	for (i=0; i < pvt->nr_encoders; i++) {
 		time = (double)framerate_elapsed_time (pvt->encdata[i].enc_framerate);
@@ -571,9 +556,6 @@ int main(int argc, char *argv[])
 	fprintf (stderr, "Target framerate:   %.1f fps\n", target_fps10 / 10.0);
 
 	for (i=0; i < pvt->nr_cameras; i++) {
-		/* Initialize framerate timer */
-		pvt->cameras[i].cap_framerate = framerate_new_timer (target_fps10 / 10.0);
-
 		capture_start_capturing(pvt->cameras[i].ceu);
 
 		rc = pthread_create(&pvt->cameras[i].capture_thread, NULL, capture_main, &pvt->cameras[i]);
