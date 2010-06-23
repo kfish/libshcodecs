@@ -93,6 +93,8 @@ struct encode_data {
 	unsigned long enc_h;
 
 	struct framerate * enc_framerate;
+	int skipsize;
+	int skipcount;
 };
 
 struct private_data {
@@ -161,6 +163,7 @@ capture_image_cb(capture *ceu, const unsigned char *frame_data, size_t length,
 {
 	struct camera_data *cam = (struct camera_data*)user_data;
 	struct private_data *pvt = &pvt_data;
+	struct encode_data *encdata;
 	int pitch, offset;
 	void *ptr;
 	unsigned long enc_y, enc_c;
@@ -173,9 +176,12 @@ capture_image_cb(capture *ceu, const unsigned char *frame_data, size_t length,
 	for (i=0; i < pvt->nr_encoders; i++) {
 		if (pvt->encdata[i].camera != cam) continue;
 
+		encdata = &pvt->encdata[i];
+
+		if (encdata->skipcount == 0) {
 		/* Get an empty encoder input frame */
-		enc_y = (unsigned long) queue_deq(pvt->encdata[i].enc_input_empty_q);
-		enc_c = enc_y + (pvt->encdata[i].enc_w * pvt->encdata[i].enc_h);
+		enc_y = (unsigned long) queue_deq(encdata->enc_input_empty_q);
+		enc_c = enc_y + (encdata->enc_w * encdata->enc_h);
 
 		/* We are clipping, not scaling, as we need to perform a rotation,
 	   	but the VEU cannot do a rotate & scale at the same time. */
@@ -184,11 +190,15 @@ capture_image_cb(capture *ceu, const unsigned char *frame_data, size_t length,
 			cap_y, cap_c,
 			cam->cap_w, cam->cap_h, cam->cap_w, SHVEU_YCbCr420,
 			enc_y, enc_c,
-			pvt->encdata[i].enc_w, pvt->encdata[i].enc_h, pvt->encdata[i].enc_w, SHVEU_YCbCr420,
+			encdata->enc_w, encdata->enc_h, encdata->enc_w, SHVEU_YCbCr420,
 			pvt->rotate_cap);
 		uiomux_unlock (pvt->uiomux, UIOMUX_SH_VEU);
 
-		queue_enq(pvt->encdata[i].enc_input_q, (void*)enc_y);
+		queue_enq(encdata->enc_input_q, (void*)enc_y);
+		}
+
+		encdata->skipcount++;
+		encdata->skipcount %= encdata->skipsize;
 	}
 
 	if (cam == pvt->encdata[0].camera && pvt->do_preview) {
@@ -549,11 +559,11 @@ int main(int argc, char *argv[])
 
 		//shcodecs_encoder_set_xpic_size(pvt->encoders[i], pvt->encdata[i].enc_w);
 		//shcodecs_encoder_set_ypic_size(pvt->encoders[i], pvt->encdata[i].enc_h);
-	}
 
-	/* Set up the frame rate timer to match the encode framerate */
-	target_fps10 = shcodecs_encoder_get_frame_rate(pvt->encoders[0]);
-	fprintf (stderr, "Target framerate:   %.1f fps\n", target_fps10 / 10.0);
+		target_fps10 = shcodecs_encoder_get_frame_rate(pvt->encoders[i]);
+		pvt->encdata[i].skipsize = 300 / target_fps10;
+		pvt->encdata[i].skipcount = 0;
+	}
 
 	for (i=0; i < pvt->nr_cameras; i++) {
 		capture_start_capturing(pvt->cameras[i].ceu);
