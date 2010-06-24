@@ -39,6 +39,24 @@
 #include "m4vsd_h263dec.h"
 
 /* #define DEBUG */
+/* #define OUTPUT_ERROR_MSGS */
+
+#ifdef OUTPUT_ERROR_MSGS
+#define MSG_LEN 127
+static long
+vpu_err(SHCodecs_Decoder *dec, const char *func, int line, long rc)
+{
+	char msg[MSG_LEN+1];
+	msg[MSG_LEN] = 0;
+	snprintf(msg, MSG_LEN, "%s, line %d: returned %ld", func, line, rc);
+	m4iph_avcbd_perror(msg, rc);
+	exit(1);
+	return rc;
+}
+#else
+#define vpu_err(enc, func, line, rc) (rc)
+#endif
+
 
 /* XXX: Forward declarations */
 static int decode_frame(SHCodecs_Decoder * decoder);
@@ -251,6 +269,7 @@ static int stream_init(SHCodecs_Decoder * decoder)
 	TAVCBD_FMEM *frame_list;
 	long stream_mode;
 	unsigned char *pBuf;
+	long rc;
 
 	avcbd_start_decoding();
 
@@ -260,10 +279,8 @@ static int stream_init(SHCodecs_Decoder * decoder)
 				    F_H264 ? AVCBD_TYPE_AVC :
 				    AVCBD_TYPE_MPEG4, decoder->si_max_fx,
 				    decoder->si_max_fy, 2) + 16;
-	if (iContext_ReqWorkSize == -1) {
-		/* printf("Invalid parameters for avcbd_get_workarea_size()\n"); */
-		return -1;
-	}
+	if (iContext_ReqWorkSize < 0)
+		return vpu_err(decoder, __func__, __LINE__, iContext_ReqWorkSize);
 
 	/* Allocate context memory */
 	decoder->si_ctxt = calloc(iContext_ReqWorkSize, 1);
@@ -346,14 +363,16 @@ static int stream_init(SHCodecs_Decoder * decoder)
 		frame_list[j].C_fmemp =
 		    ALIGN_NBYTES(decoder->si_flist[j].C_fmemp, 32);
 	}
-	avcbd_init_sequence(decoder->si_ctxt, decoder->si_ctxt_size,
+	rc = avcbd_init_sequence(decoder->si_ctxt, decoder->si_ctxt_size,
 			    decoder->si_fnum, frame_list,
 			    decoder->si_max_fx, decoder->si_max_fy, 2,
 			    ALIGN_NBYTES(decoder->si_dp_264, 32),
 			    ALIGN_NBYTES(decoder->si_dp_m4, 32), stream_mode,
 			    &pv_wk_buff);
-
 	free(frame_list);
+	if (rc != 0)
+		return vpu_err(decoder, __func__, __LINE__, rc);
+
 
 	if (decoder->si_type == F_H264) {
 		avcbd_set_resume_err (decoder->si_ctxt, 0, AVCBD_CNCL_REF_TYPE1);
@@ -544,11 +563,8 @@ static int decode_frame(SHCodecs_Decoder * decoder)
 			len--;
 #endif
 			ret = avcbd_set_stream_pointer(decoder->si_ctxt, input, len, NULL);
-#ifdef DEBUG
-			fprintf
-			    (stderr, "shcodecs_decoder::decode_frame: H.264 avcbd_set_stream_pointer returned %ld\n",
-			     ret);
-#endif
+			if (ret < 0)
+				return vpu_err(decoder, __func__, __LINE__, ret);
 		} else {
 			unsigned char *ptr;
 			long hosei = 0;
@@ -588,18 +604,26 @@ static int decode_frame(SHCodecs_Decoder * decoder)
 			}
 #endif
 
-			avcbd_set_stream_pointer(decoder->si_ctxt,
+			ret = avcbd_set_stream_pointer(decoder->si_ctxt,
 						 decoder->si_input + decoder->si_ipos,
 						 decoder->si_ilen + hosei, NULL);
+			if (ret < 0)
+				return vpu_err(decoder, __func__, __LINE__, ret);
 		}
 
 		m4iph_vpu_lock();
 		ret = avcbd_decode_picture(decoder->si_ctxt, decoder->si_ilen * 8);
+		if (ret < 0)
+			(void) vpu_err(decoder, __func__, __LINE__, ret);
+
 #ifdef DEBUG
 		fprintf
 		    (stderr, "shcodecs_decoder::decode_frame: avcbd_decode_picture returned %d\n", ret);
 #endif
 		ret = avcbd_get_last_frame_stat(decoder->si_ctxt, &decoder->last_frame_status);
+		if (ret < 0)
+			return vpu_err(decoder, __func__, __LINE__, ret);
+
 		counter = 1;
 		m4iph_vpu_unlock();
 
