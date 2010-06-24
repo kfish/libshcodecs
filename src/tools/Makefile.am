@@ -6,7 +6,7 @@ INCLUDES = -I$(top_builddir) \
 SHCODECSDIR = ../libshcodecs
 SHCODECS_LIBS = $(SHCODECSDIR)/libshcodecs.la $(VPU4_DEC_LIBS) $(VPU4_ENC_LIBS) -lm
 
-bin_PROGRAMS = shcodecs-dec shcodecs-enc shcodecs-cap shcodecs-play shcodecs-record
+bin_PROGRAMS = shcodecs-dec shcodecs-enc shcodecs-encdec shcodecs-cap shcodecs-play shcodecs-record
 
 noinst_PROGRAMS = shcodecs-enc-benchmark
 
@@ -46,6 +46,15 @@ shcodecs_enc_SOURCES =  \
 
 shcodecs_enc_CFLAGS = $(UIOMUX_CFLAGS)
 shcodecs_enc_LDADD = $(UIOMUX_LIBS) -lrt $(SHCODECS_LIBS)
+
+shcodecs_encdec_SOURCES =  \
+	shcodecs-encdec.c \
+	framerate.c \
+	ControlFileUtil.c \
+	avcbeinputuser.c
+
+shcodecs_encdec_CFLAGS = $(UIOMUX_CFLAGS)
+shcodecs_encdec_LDADD = $(UIOMUX_LIBS) -lrt $(SHCODECS_LIBS)
 
 shcodecs_enc_benchmark_SOURCES =  \
 	shcodecs-enc-benchmark.c \
