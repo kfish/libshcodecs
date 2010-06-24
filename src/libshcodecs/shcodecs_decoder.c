@@ -245,10 +245,12 @@ static int stream_init(SHCodecs_Decoder * decoder)
 {
 	int i,j;
 	int iContext_ReqWorkSize;
+	int size_of_Y;
 	void *pv_wk_buff;
 	size_t dp_size;
 	TAVCBD_FMEM *frame_list;
 	long stream_mode;
+	unsigned char *pBuf;
 
 	avcbd_start_decoding();
 
@@ -281,8 +283,8 @@ static int stream_init(SHCodecs_Decoder * decoder)
            pragmatic approach when we don't know the number of reference
            frames in the stream... */
         decoder->si_fnum = CFRAME_NUM;
-        iContext_ReqWorkSize = decoder->si_max_fx * decoder->si_max_fy;
-        if (iContext_ReqWorkSize > (720*576)) {
+	size_of_Y = ((decoder->si_max_fx + 15) & ~15) * ((decoder->si_max_fy + 15) & ~15);
+        if (size_of_Y > (720*576)) {
                 decoder->si_fnum = 2;
         }
 	decoder->si_flist = calloc(decoder->si_fnum, sizeof(FrameInfo));
@@ -290,29 +292,22 @@ static int stream_init(SHCodecs_Decoder * decoder)
 		    decoder->si_fnum * sizeof(FrameInfo), "frame list",
 		    err1);
 
-	decoder->si_mbnum = iContext_ReqWorkSize >> 8;
+	decoder->si_mbnum = size_of_Y >> 8;
 	for (i = 0; i < decoder->si_fnum; i++) {
 		/*
  		 * Frame memory should be aligned on a 32-byte boundary.
 		 * Although the VPU requires 16 bytes alignment, the
 		 * cache line size is 32 bytes on the SH4.
 		 */
-		/* luma frame */
-		decoder->si_flist[i].Y_fmemp =
-		    m4iph_sdr_malloc(iContext_ReqWorkSize, 32);
 
-		/* printf("%02d--Y=%X,",i,(int)decoder->si_flist[i].Y_fmemp); */
-		CHECK_ALLOC(decoder->si_flist[i].Y_fmemp,
-			    iContext_ReqWorkSize,
+		pBuf = m4iph_sdr_malloc(size_of_Y + size_of_Y/2, 32);
+		/* printf("%02d--Y=%X,",i,(int)pBuf); */
+		CHECK_ALLOC(pBuf,
+			    size_of_Y + size_of_Y/2,
 			    "Y component (kernel memory)", err1);
 
-		/* chroma frame */
-		decoder->si_flist[i].C_fmemp
-		    = m4iph_sdr_malloc(iContext_ReqWorkSize >> 1, 32);
-		/* printf("C=%X\n",(int)decoder->si_flist[i].C_fmemp); */
-		CHECK_ALLOC(decoder->si_flist[i].C_fmemp,
-			    iContext_ReqWorkSize >> 1,
-			    "C component (kernel memory)", err1);
+		decoder->si_flist[i].Y_fmemp = pBuf;
+		decoder->si_flist[i].C_fmemp = pBuf + size_of_Y;
 	}
 
 	if (decoder->si_type == F_H264) {
@@ -325,7 +320,7 @@ static int stream_init(SHCodecs_Decoder * decoder)
 			    err1);
 	}
 	/* 16 bytes for each macroblocks */
-	dp_size = (iContext_ReqWorkSize * 16) >> 8;
+	dp_size = (size_of_Y * 16) >> 8;
 
 	decoder->si_dp_264 = m4iph_sdr_malloc(dp_size, 32);
 	CHECK_ALLOC(decoder->si_dp_264, dp_size, "data partition 1", err1);
@@ -333,15 +328,11 @@ static int stream_init(SHCodecs_Decoder * decoder)
 	decoder->si_dp_m4 = m4iph_sdr_malloc(dp_size, 32);
 	CHECK_ALLOC(decoder->si_dp_m4, dp_size, "data partition 1", err1);
 
-	decoder->si_ff.Y_fmemp =
-	    m4iph_sdr_malloc(iContext_ReqWorkSize, 32);
-	CHECK_ALLOC(decoder->si_ff.Y_fmemp, iContext_ReqWorkSize,
+	pBuf = m4iph_sdr_malloc(size_of_Y + size_of_Y/2, 32);
+	CHECK_ALLOC(pBuf, size_of_Y + size_of_Y/2,
 		    "Y component of filtered frame", err1);
-
-	decoder->si_ff.C_fmemp =
-	    m4iph_sdr_malloc(iContext_ReqWorkSize >> 1, 32);
-	CHECK_ALLOC(decoder->si_ff.C_fmemp, (iContext_ReqWorkSize >> 1),
-		    "C component of filtered frame", err1);
+	decoder->si_ff.Y_fmemp = pBuf;
+	decoder->si_ff.C_fmemp = pBuf + size_of_Y;
 
 	stream_mode = (decoder->si_type == F_H264) ? AVCBD_TYPE_AVC : AVCBD_TYPE_MPEG4;
 
@@ -688,51 +679,29 @@ static int decode_frame(SHCodecs_Decoder * decoder)
 static int extract_frame(SHCodecs_Decoder * decoder, long frame_index)
 {
 	FrameInfo *frame = &decoder->si_flist[frame_index];
-	int luma_size = decoder->si_fx * decoder->si_fy;
-	unsigned long ymem, cmem, page;
-	int ry;
 	unsigned char *yf, *cf;
-	static long frame_cnt = 1;
-	int pagesize = getpagesize();
-        int cb_ret=0;
+	int cb_ret=0;
+	int size_of_Y = decoder->si_max_fx * decoder->si_max_fy;
 
 #ifdef DEBUG
-	fprintf(stderr, "extract_frame: output frame %d, frame_index=%d\n", frame_cnt++, frame_index);
+	fprintf(stderr, "extract_frame: output frame %d, frame_index=%d\n", decoder->frame_count, frame_index);
 #endif
-	ymem = (unsigned long) frame->Y_fmemp;
-	cmem = (unsigned long) frame->C_fmemp;
 
-        if (decoder->use_physical) {
-                /* Call user's output callback */
-	        if (decoder->decoded_cb) {
-		        cb_ret = decoder->decoded_cb(decoder, 
-                                                     (unsigned char *)ymem, luma_size, 
-                                                     (unsigned char *)cmem, luma_size >> 1,
-                                                     decoder->decoded_cb_data);
-	        }
-        } else {
-	        page = ymem & ~(pagesize - 1);
-	        ry = (unsigned long) ymem - page;
-	        yf = m4iph_map_sdr_mem((void *) page,
-			       luma_size + (luma_size >> 1) + ry + 31);
-	        if (yf == NULL) {
-	        	fprintf(stderr, "%s: Aborting since mmap() failed.\n",
-	        	       __FUNCTION__);
-	        	abort();
-	        }
-	        /* C component should immediately follow the Y component */
-	        cf = ALIGN_NBYTES(yf + ry + luma_size, 32);
+	/* Call user's output callback */
+	if (decoder->decoded_cb) {
+		if (decoder->use_physical) {
+			yf = frame->Y_fmemp;
+		} else {
+			yf = m4iph_addr_to_virt(frame->Y_fmemp);
+		}
 
-                /* Call user's output callback */
-	        if (decoder->decoded_cb) {
-		        cb_ret = decoder->decoded_cb(decoder, 
-                                                     yf + ry, luma_size, 
-                                                     cf, luma_size >> 1,
-                                                     decoder->decoded_cb_data);
-	        }
+		cf = yf + size_of_Y;
 
-	        m4iph_unmap_sdr_mem(yf, luma_size + (luma_size >> 1) + ry + 31);
-        }
+		cb_ret = decoder->decoded_cb(decoder,
+			yf, size_of_Y,
+			cf, size_of_Y/2,
+			decoder->decoded_cb_data);
+	}
 
 	decoder->frame_count++;
 

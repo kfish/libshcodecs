@@ -241,15 +241,10 @@ void m4iph_avcbe_perror(char *msg, int error)
 	}
 }
 
-void *m4iph_map_sdr_mem(void *address, int size)
+void *m4iph_addr_to_virt(void *address)
 {
 	SHCodecs_vpu *vpu = &vpu_data;
 	return uiomux_phys_to_virt (vpu->uiomux, UIOMUX_SH_VPU, (unsigned long)address);
-}
-
-int m4iph_unmap_sdr_mem(void *address, int size)
-{
-	return 0;
 }
 
 
