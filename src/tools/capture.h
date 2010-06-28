@@ -22,7 +22,7 @@
 
 #include <uiomux/uiomux.h>
 
-#define NUM_CAPTURE_BUFS 3
+#define NUM_CAPTURE_BUFS 2
 
 struct capture_;
 typedef struct capture_ capture;
