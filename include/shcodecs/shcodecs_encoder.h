@@ -214,6 +214,22 @@ int shcodecs_encoder_get_height (SHCodecs_Encoder * encoder);
 int shcodecs_encoder_set_height (SHCodecs_Encoder * encoder, int height);
 
 /**
+ * Set input buffer allocation policy.
+ * Note that this function can only be called during intialization,
+ * ie. before the first call to shcodecs_encoder_run().
+ * \param encoder The SHCodecs_Encoder* handle
+ * \param allocate If 1, libshcodecs will allocate encode input buffers,
+ *              and free them on shcodecs_encoder_close(). This is the
+ *              default behavior.
+ *              If 0, the application is expected to provide input buffers,
+ *              by calling shcodecs_encoder_set_input_physical_addr().
+ * \retval 0 Success
+ * \retval -1 \a encoder invalid
+ * \retval -2 \a encoder already initialized.
+ */
+int shcodecs_encoder_set_allocate_input_buffers (SHCodecs_Encoder * encoder, int allocate);
+
+/**
  * Get the number of input frames elapsed since the last output callback.
  * This is typically called by the client in the encoder output callback.
  * \param encoder The SHCodecs_Encoder* handle

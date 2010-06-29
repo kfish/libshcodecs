@@ -503,17 +503,19 @@ h264_encode_multiple(SHCodecs_Encoder *encs[], int nr_encoders)
 	for (i=0; i < nr_encoders; i++) {
 		enc = encs[i];
 
-		/* Fixed input buffer if client doesn't change it */
-		enc->addr_y = enc->input_frames[0].Y_fmemp;
-		enc->addr_c = enc->input_frames[0].C_fmemp;
+		if (enc->allocate) {
+			/* Fixed input buffer if client doesn't change it */
+			enc->addr_y = enc->input_frames[0].Y_fmemp;
+			enc->addr_c = enc->input_frames[0].C_fmemp;
 
-		/* Release all input buffers */
-		for (j=0; j < NUM_INPUT_FRAMES; j++) {
-			if (enc->release) {
-				enc->release (enc,
-					enc->input_frames[j].Y_fmemp,
-					enc->input_frames[j].C_fmemp,
-					enc->release_user_data);
+			/* Release all input buffers */
+			for (j=0; j < NUM_INPUT_FRAMES; j++) {
+				if (enc->release) {
+					enc->release (enc,
+						enc->input_frames[j].Y_fmemp,
+						enc->input_frames[j].C_fmemp,
+						enc->release_user_data);
+				}
 			}
 		}
 

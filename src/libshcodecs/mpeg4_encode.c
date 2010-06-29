@@ -371,35 +371,37 @@ mpeg4_encode_picture (SHCodecs_Encoder *enc,
 	AVCBE_FRAME_CHECK frame_check_array[17];
 #endif
 
+	if (enc->allocate) {
 #ifdef USE_BVOP
-	for (i=0; i < (enc->other_options_mpeg4.avcbe_b_vop_num + 1); i++) {
-		addr_y_tbl[i] = enc->input_frames[i].Y_fmemp;
-		addr_c_tbl[i] = enc->input_frames[i].C_fmemp;
-	}
+		for (i=0; i < (enc->other_options_mpeg4.avcbe_b_vop_num + 1); i++) {
+			addr_y_tbl[i] = enc->input_frames[i].Y_fmemp;
+			addr_c_tbl[i] = enc->input_frames[i].C_fmemp;
+		}
 
-	/* Release a single input frame when using BVOPs as we need to keep 
-	   the frames as references. All are initially available */
-	if (enc->release) {
-		enc->release (enc,
-			enc->input_frames[0].Y_fmemp,
-			enc->input_frames[0].C_fmemp,
-			enc->release_user_data);
-	}
-#else
-	/* Release all input buffers */
-	for (i=0; i < NUM_INPUT_FRAMES; i++) {
+		/* Release a single input frame when using BVOPs as we need to keep 
+		   the frames as references. All are initially available */
 		if (enc->release) {
 			enc->release (enc,
-				enc->input_frames[i].Y_fmemp,
-				enc->input_frames[i].C_fmemp,
+				enc->input_frames[0].Y_fmemp,
+				enc->input_frames[0].C_fmemp,
 				enc->release_user_data);
 		}
-	}
+#else
+		/* Release all input buffers */
+		for (i=0; i < NUM_INPUT_FRAMES; i++) {
+			if (enc->release) {
+				enc->release (enc,
+					enc->input_frames[i].Y_fmemp,
+					enc->input_frames[i].C_fmemp,
+					enc->release_user_data);
+			}
+		}
 #endif
 
-	/* Fixed input buffer if client doesn't change it */
-	enc->addr_y = enc->input_frames[0].Y_fmemp;
-	enc->addr_c = enc->input_frames[0].C_fmemp;
+		/* Fixed input buffer if client doesn't change it */
+		enc->addr_y = enc->input_frames[0].Y_fmemp;
+		enc->addr_c = enc->input_frames[0].C_fmemp;
+	}
 
 	enc->ldec = 0;		/* Index number of the image-work-field area */
 	enc->ref1 = 0;
@@ -447,6 +449,11 @@ mpeg4_encode_picture (SHCodecs_Encoder *enc,
 					break;
 				}
 			}
+		}
+#else
+		if (enc->release) {
+			enc->release (enc, input_frame.Y_fmemp, input_frame.C_fmemp,
+                                      enc_release_user_data);
 		}
 #endif
 

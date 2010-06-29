@@ -33,6 +33,7 @@
 		shcodecs_encoder_set_width;
 		shcodecs_encoder_get_height;
 		shcodecs_encoder_set_height;
+		shcodecs_encoder_set_allocate_input_buffers;
 
 		shcodecs_encoder_get_frame_num_delta;
 		shcodecs_encoder_get_frame_number_to_encode;
