@@ -18,6 +18,10 @@ Compile options
 	* make libshcodecs _native_ x86 build possible for building docs
 	(with no library output)
 
+Encode
+	* check first frame of encoded video: is from previous video?
+	If so, clear frame data before starting encode.
+
 Tools
 -----
 
