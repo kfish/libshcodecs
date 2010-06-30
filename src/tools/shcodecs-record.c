@@ -522,7 +522,9 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	fprintf (stderr, "Target   @");
+	fprintf (stderr, "\nEncoders\n");
+	fprintf (stderr, "--------\n");
+	fprintf (stderr, "Size:     ");
 	for (i=0; i < pvt->nr_encoders; i++) {
 #if 0
 		if (pvt->rotate_cap == SHVEU_NO_ROT) {
@@ -545,7 +547,7 @@ int main(int argc, char *argv[])
 			pvt->encdata[i].enc_w = pvt->encdata[i].ainfo.ypic;
 			pvt->encdata[i].enc_h = pvt->encdata[i].ainfo.xpic;
 		}
-		debug_printf("[%d] Encode resolution:  %dx%d\n", i, pvt->encdata[i].enc_w, pvt->encdata[i].enc_h);
+		debug_printf("\t%dx%d", pvt->encdata[i].enc_w, pvt->encdata[i].enc_h);
 #endif
 
 		/* VPU Encoder initialisation */
@@ -573,6 +575,11 @@ int main(int argc, char *argv[])
 		//shcodecs_encoder_set_xpic_size(pvt->encoders[i], pvt->encdata[i].enc_w);
 		//shcodecs_encoder_set_ypic_size(pvt->encoders[i], pvt->encdata[i].enc_h);
 
+	}
+
+	/* Set up framedropping */
+	fprintf (stderr, "\nTarget   @");
+	for (i=0; i < pvt->nr_encoders; i++) {
 		target_fps10 = shcodecs_encoder_get_frame_rate(pvt->encoders[i]);
 		fprintf (stderr, "\t%4.2f  ", target_fps10/10.0);
 
